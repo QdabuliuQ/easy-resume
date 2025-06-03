@@ -1,0 +1,65 @@
+{
+  "name": "easy-resume",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "lint:pritter": "prettier --write src/",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "prepare": "husky install",
+    "commit": "cz"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.0.9",
+    "ahooks": "^3.8.4",
+    "antd": "^5.24.2",
+    "fabric": "^5.5.2",
+    "react": "^19.0.0",
+    "react-custom-scrollbars": "^4.2.1",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.2.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.6.5",
+    "@commitlint/config-conventional": "^17.6.5",
+    "@eslint/js": "^9.21.0",
+    "@types/fabric": "^5.3.10",
+    "@types/node": "^22.13.5",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@typescript-eslint/eslint-plugin": "^8.25.0",
+    "@typescript-eslint/parser": "^8.25.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^9.21.0",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^15.15.0",
+    "husky": "^8.0.3",
+    "less": "^4.2.2",
+    "less-loader": "^12.2.0",
+    "postcss": "^8.5.3",
+    "prettier": "^3.5.2",
+    "tailwindcss": "^4.0.9",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.25.0",
+    "vite": "^6.2.0"
+  },
+  "eslintConfig": {
+    "rules": {
+      "react/jsx-uses-react": "off",
+      "react/react-in-jsx-scope": "off"
+    }
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  }
+}
