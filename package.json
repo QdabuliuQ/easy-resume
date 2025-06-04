@@ -10,18 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "prepare": "husky install",
-    "commit": "gitmoji -c",
-    "commit:feat": "git commit -m \"feat: ✨ $1\"",
-    "commit:fix": "git commit -m \"fix: 🐛 $1\"",
-    "commit:docs": "git commit -m \"docs: 📝 $1\"",
-    "commit:style": "git commit -m \"style: 💄 $1\"",
-    "commit:refactor": "git commit -m \"refactor: ♻️ $1\"",
-    "commit:perf": "git commit -m \"perf: ⚡️ $1\"",
-    "commit:test": "git commit -m \"test: ✅ $1\"",
-    "commit:chore": "git commit -m \"chore: 🔧 $1\"",
-    "commit:revert": "git commit -m \"revert: ⏪️ $1\"",
-    "commit:build": "git commit -m \"build: 📦️ $1\"",
-    "commit:init": "git commit -m \"feat: 🎉 $1\""
+    "commit": "gitmoji -c"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.9",
@@ -36,8 +25,6 @@
     "react-router-dom": "^7.2.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^17.6.5",
-    "@commitlint/config-conventional": "^17.6.5",
     "@eslint/js": "^9.21.0",
     "@types/fabric": "^5.3.10",
     "@types/node": "^22.13.5",
@@ -47,10 +34,6 @@
     "@typescript-eslint/parser": "^8.25.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
-    "commitizen": "^4.3.1",
-    "cz-conventional-changelog": "^3.3.0",
-    "cz-customizable": "^7.4.0",
-    "cz-emoji": "^1.3.2-canary.2",
     "eslint": "^9.21.0",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.1.0",
