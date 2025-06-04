@@ -161,6 +161,9 @@ export default function createEducationModule(props: EducationProps) {
     ], {
         width: width - margin * 2,
         left: margin,
+        lockMovementX: true,
+        lockMovementY: true,
+        hasControls: false,
         property: {
             type: 'education',
             id: getRandomId(),

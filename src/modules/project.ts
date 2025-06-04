@@ -3,7 +3,6 @@ import createHeader1, { type HeaderProps } from "./header/header1";
 import { rowMargin } from "./utils/constant";
 import { GlobalStyle } from "./utils/common.type";
 import { getRandomId } from "@/utils";
-import { group } from "console";
 interface ProjectItemProps {
     name: string;
     role: string;
@@ -71,6 +70,9 @@ export default function createProjectModule(props: ProjectProps) {
     const project = new fabric.Group([header], {
         originX: "left",
         originY: "top",
+        lockMovementX: true,
+        lockMovementY: true,
+        hasControls: false,
         property: {
             type: "project",
             id: getRandomId(),

@@ -124,6 +124,9 @@ export default function createInfo1(props: InfoProps): Promise<fabric.Group> {
                 width: width - margin * 2,
                 left: margin,
                 top: 0,
+                lockMovementX: true,
+                lockMovementY: true,
+                hasControls: false,
                 property: {
                     type: 'info1',
                     id: getRandomId(),

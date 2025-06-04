@@ -99,6 +99,9 @@ export default function createJobModule(props: JobProps) {
     ], {
         width: width - margin * 2,
         left: margin,
+        lockMovementX: true,
+        lockMovementY: true,
+        hasControls: false,
     })
     header.set({
         left: -(width - margin * 2) / 2,

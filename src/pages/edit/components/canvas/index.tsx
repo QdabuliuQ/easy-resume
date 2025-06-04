@@ -10,8 +10,8 @@ import createProjectModule from "@/modules/project";
 
 import resume from "@/json/resume";
 import { moduleMargin } from "@/modules/utils/constant";
-console.log(resume, 'resume');
 
+import { moduleActiveStore, instanceStore } from "@/mobx"
 
 function Canvas() {
     // 重置dom
@@ -30,7 +30,7 @@ function Canvas() {
 
     useMount(async () => {
         resetDom(resume.globalStyle.width, resume.globalStyle.height);
-        const canvas = new fabric.Canvas("canvas");
+        const canvas = new fabric.Canvas("canvas", { hoverCursor: "pointer" });
         const groups: fabric.Group[] = [];
         for (const item of resume.template) {
             const { type, options } = item;
@@ -53,7 +53,6 @@ function Canvas() {
                 module = createProjectModule(_options);
             }
             if (module) {
-
                 if (groups.length > 0) {
                     module.set({
                         top: (groups[groups.length - 1].height ?? 0) + (groups[groups.length - 1].top ?? 0) + moduleMargin,
@@ -63,6 +62,19 @@ function Canvas() {
                 canvas.add(module);
             }
         }
+
+        // 选中
+        canvas.on("selection:created", ({ selected }: any) => {
+            moduleActiveStore.setModuleActive(selected[0].property.id)
+        })
+
+        // 取消选中
+        canvas.on("selection:cleared", () => {
+            moduleActiveStore.setModuleActive("")
+        })
+
+        instanceStore.setInstances([canvas])
+
         // canvas.add(createSkillModule({
         //     title: "技能",
         //     description: "1、技能技技能技能描述描述能技能技技能技能描述描述能描述描述技能技技能技能描述描述能描述描述技能技技能技能描述描述能描述描述技能技技能技能描述描述能描述描述描述描述\n2、12312\n2、12312\n2、12312\n2、12312",

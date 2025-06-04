@@ -27,6 +27,9 @@ export default function createSkillModule(props: SkillModuleProps) {
     ], {
         width: width - margin * 2,
         left: margin,
+        lockMovementX: true,
+        lockMovementY: true,
+        hasControls: false,
         property: {
             type: "skill",
             id: getRandomId(),

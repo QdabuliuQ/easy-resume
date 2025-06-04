@@ -25,9 +25,11 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.9",
-    "ahooks": "^3.8.4",
+    "ahooks": "^3.8.5",
     "antd": "^5.24.2",
     "fabric": "^5.5.2",
+    "mobx": "^6.13.7",
+    "mobx-react": "^9.2.0",
     "react": "^19.0.0",
     "react-custom-scrollbars": "^4.2.1",
     "react-dom": "^19.0.0",

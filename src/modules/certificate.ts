@@ -57,6 +57,9 @@ export default function createCertificateModule(props: CertificateProps) {
     ], {
         width: width - margin * 2,
         left: margin,
+        lockMovementX: true,
+        lockMovementY: true,
+        hasControls: false,
     })
 
     header.set({
