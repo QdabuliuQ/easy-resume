@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "prepare": "husky install",
-    "commit": "cz",
+    "commit": "gitmoji -c",
     "commit:feat": "git commit -m \"feat: ✨ $1\"",
     "commit:fix": "git commit -m \"fix: 🐛 $1\"",
     "commit:docs": "git commit -m \"docs: 📝 $1\"",
