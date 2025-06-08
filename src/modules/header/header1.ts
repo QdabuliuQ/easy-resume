@@ -8,8 +8,8 @@ export interface HeaderProps extends GlobalStyle {
 
 const HEADER_HEIGHT = 25;
 
-export default function createHeader1(props: HeaderProps) {
-    const { title, color, fontSize, margin, width } = props;
+export default function createHeader1(props: Partial<HeaderProps>) {
+    const { title, color, fontSize, horizontalMargin, width } = props;
     const line = new fabric.Rect({
         width: 5,
         height: HEADER_HEIGHT,
@@ -17,7 +17,7 @@ export default function createHeader1(props: HeaderProps) {
         left: 0,
         top: 0,
     })
-    const text = new fabric.Text(title, {
+    const text = new fabric.Text(title ?? "", {
         left: 25,
         fontSize,
         lineHeight: 1,
@@ -28,7 +28,7 @@ export default function createHeader1(props: HeaderProps) {
         top: (HEADER_HEIGHT - (text.height ?? 0)) / 2,
     })
     const bgRect = new fabric.Rect({
-        width: width - margin * 2,
+        width: (width ?? 0) - (horizontalMargin ?? 0) * 2,
         height: HEADER_HEIGHT,
         fill: color,
         left: 0,
@@ -42,7 +42,7 @@ export default function createHeader1(props: HeaderProps) {
     ], {
         originX: "left",
         originY: "top",
-        width: width - margin * 2,
+        width: (width ?? 0) - (horizontalMargin ?? 0) * 2,
         left: 0,
         property: {
             type: "header1",

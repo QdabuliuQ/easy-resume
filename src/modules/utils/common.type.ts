@@ -3,6 +3,7 @@ export interface GlobalStyle {
     height: number;
     fontSize: number;
     lineHeight: number;
-    margin: number;
+    horizontalMargin: number;
+    verticalMargin: number;
     color: string;
 }

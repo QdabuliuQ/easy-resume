@@ -16,7 +16,7 @@ function Panel() {
     })
 
     return ( 
-        <div className="w-[400px] bg-white mr-[20px] rounded-md text-black">
+        <div className="min-w-[400px] bg-white mr-[20px] rounded-md text-black">
             <div className="p-[20px]">
                 { PanelRender() }
             </div>

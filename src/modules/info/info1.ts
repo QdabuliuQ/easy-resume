@@ -86,7 +86,7 @@ function createRow(row: Array<keyof InfoProps>, props: InfoProps) {
 }
 
 export default function createInfo1(props: InfoProps): Promise<fabric.Group> {
-    const { margin, width } = props;
+    const { horizontalMargin, width } = props;
     return new Promise((resolve) => {
         const layout: Array<Array<keyof InfoProps>> = [
             ['phone', 'email', 'city'],
@@ -121,8 +121,8 @@ export default function createInfo1(props: InfoProps): Promise<fabric.Group> {
                 top: 0,
             })
             const info = new fabric.Group([data], {
-                width: width - margin * 2,
-                left: margin,
+                width: width - horizontalMargin * 2,
+                left: horizontalMargin,
                 top: 0,
                 lockMovementX: true,
                 lockMovementY: true,
@@ -147,11 +147,11 @@ export default function createInfo1(props: InfoProps): Promise<fabric.Group> {
                     top: -((img.height ?? 0) * (img.scaleY ?? 1) / 2),
                 })
                 data.set({
-                    left: -((width - margin * 2) / 2)
+                    left: -((width - horizontalMargin * 2) / 2)
                 })
                 info.set({
-                    width: width - margin * 2,
-                    left: margin,
+                    width: width - horizontalMargin * 2,
+                    left: horizontalMargin,
                 })
                 resolve(info)
             }else{
@@ -168,11 +168,11 @@ export default function createInfo1(props: InfoProps): Promise<fabric.Group> {
                         top: -((img.height ?? 0) * (img.scaleY ?? 1) / 2),
                     })
                     data.set({
-                        left: -((width - margin * 2) / 2)
+                        left: -((width - horizontalMargin * 2) / 2)
                     })
                     info.set({
-                        width: width - margin * 2,
-                        left: margin,
+                        width: width - horizontalMargin * 2,
+                        left: horizontalMargin,
                     })
                     resolve(info)
                 };

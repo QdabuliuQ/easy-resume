@@ -12,15 +12,13 @@ import resume from "@/json/resume";
 import { moduleMargin } from "@/modules/utils/constant";
 
 import { moduleActiveStore, instanceStore } from "@/mobx"
+import { computedModulePosition } from "@/utils";
 
 function Canvas() {
     // 重置dom
-    const resetDom = useMemoizedFn((width: number, height: number) => {
-        const canvasBox = document.getElementById("canvas-box");
-        if (!canvasBox) return;
-        canvasBox.innerHTML = "";
+    const createCanvasDom = useMemoizedFn((width: number, height: number, index: number, canvasBox: HTMLElement) => {
         const canvas: any = document.createElement("canvas");
-        canvas.id = "canvas";
+        canvas.id = "canvas-" + index;
         canvas.style.width = `${width}px`;
         canvas.style.height = `${height}px`;
         canvas.width = width;
@@ -28,41 +26,16 @@ function Canvas() {
         canvasBox.appendChild(canvas);
     })
 
-    useMount(async () => {
-        resetDom(resume.globalStyle.width, resume.globalStyle.height);
-        const canvas = new fabric.Canvas("canvas", { hoverCursor: "pointer" });
-        const groups: fabric.Group[] = [];
-        for (const item of resume.template) {
-            const { type, options } = item;
-            let module: fabric.Group | null = null;
-            const _options = {
-                ...resume.globalStyle,
-                ...options,
-            }
-            if (type === 'skill') {
-                module = createSkillModule(_options);
-            } else if (type === 'job') {
-                module = createJobModule(_options);
-            } else if (type === 'education') {
-                module = createEducationModule(_options);
-            } else if (type === 'certificate') {
-                module = createCertificateModule(_options);
-            } else if (type === 'info1') {
-                module = await createInfo1(_options);
-            } else if (type === 'project') {
-                module = createProjectModule(_options);
-            }
-            if (module) {
-                if (groups.length > 0) {
-                    module.set({
-                        top: (groups[groups.length - 1].height ?? 0) + (groups[groups.length - 1].top ?? 0) + moduleMargin,
-                    })
-                }
-                groups.push(module);
-                canvas.add(module);
-            }
-        }
 
+    useMount(async () => {
+        const canvasBox = document.getElementById("canvas-box");
+        if (!canvasBox) return;
+        canvasBox.innerHTML = "";
+        const modules = resume.pages.flat()
+        let index = 1
+        let height = 0
+        createCanvasDom(resume.globalStyle.width, resume.globalStyle.height, index, canvasBox)
+        let canvas = new fabric.Canvas("canvas-" + index, { hoverCursor: "pointer" });
         // 选中
         canvas.on("selection:created", ({ selected }: any) => {
             moduleActiveStore.setModuleActive(selected[0].property.id)
@@ -72,8 +45,57 @@ function Canvas() {
         canvas.on("selection:cleared", () => {
             moduleActiveStore.setModuleActive("")
         })
+        for (let i = 0; i < modules.length; i++) {
+            const options = modules[index];
+            const _options = {
+                ...resume.globalStyle,
+                ...options,
+            }
+            let module: fabric.Group | null = null;
+            if (_options.type === 'skill') {
+                module = createSkillModule(_options);
+            } else if (_options.type === 'job') {
+                module = createJobModule(_options);
+            } else if (_options.type === 'education') {
+                module = createEducationModule(_options);
+            } else if (_options.type === 'certificate') {
+                module = createCertificateModule(_options);
+            } else if (_options.type === 'info1') {
+                module = await createInfo1(_options);
+            } else if (_options.type === 'project') {
+                module = createProjectModule(_options);
+            }
+            
+            
+            if (module) {
+                if (((module as fabric.Group).height ?? 0) + ((module as fabric.Group).top ?? 0) + height > resume.globalStyle.height - resume.globalStyle.verticalMargin * 2) {
+                    index++
+                    createCanvasDom(resume.globalStyle.width, resume.globalStyle.height, index, canvasBox)
+                    canvas = new fabric.Canvas("canvas-" + index, { hoverCursor: "pointer" });
+                    canvas.add(module)
+                    module.set({
+                        top: resume.globalStyle.verticalMargin
+                    })
+                    height = ((module as fabric.Group).height ?? 0) + ((module as fabric.Group).top ?? 0)
+                    // 选中
+                    canvas.on("selection:created", ({ selected }: any) => {
+                        moduleActiveStore.setModuleActive(selected[0].property.id)
+                    })
 
-        instanceStore.setInstances([canvas])
+                    // 取消选中
+                    canvas.on("selection:cleared", () => {
+                        moduleActiveStore.setModuleActive("")
+                    })
+                } else {
+                    canvas.add(module)
+                    module.set({
+                        top: height + resume.globalStyle.moduleMargin
+                    })
+                    height += ((module as fabric.Group).height ?? 0) + ((module as fabric.Group).top ?? 0)
+                }
+            }
+        }
+
 
         // canvas.add(createSkillModule({
         //     title: "技能",
@@ -180,7 +202,7 @@ function Canvas() {
     })
 
     return ( 
-        <div className="w-full mt-[20px] bg-white h-[calc(100vh-100px)] rounded-md overflow-hidden">
+        <div className="w-full mt-[20px] bg-white rounded-md overflow-hidden">
             <div id="canvas-box" className="flex justify-center">
             </div>
         </div>

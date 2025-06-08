@@ -23,7 +23,7 @@ function createCertificateItem(props: CertificateItemProps, globalStyle: Partial
         fill: "black",
     })
     dateText.set({
-        left: (globalStyle.width ?? 0) - (globalStyle.margin ?? 0) - (dateText.width ?? 0) - 5,
+        left: (globalStyle.width ?? 0) - (globalStyle.horizontalMargin ?? 0) - (dateText.width ?? 0) - 5,
     })
     const group = new fabric.Group([
         nameText,
@@ -33,13 +33,13 @@ function createCertificateItem(props: CertificateItemProps, globalStyle: Partial
 }
 
 export default function createCertificateModule(props: CertificateProps) {
-    const { title, color, items, fontSize, lineHeight, margin, width, height } = props;
+    const { title, color, items, fontSize, lineHeight, horizontalMargin, width, height } = props;
     console.log(props, 'props')
-    const header = createHeader1({ title, color, fontSize, lineHeight, margin, width, height });
+    const header = createHeader1({ title, color, fontSize, lineHeight, horizontalMargin, width, height });
 
     const groups: Array<fabric.Group> = [];
     for (const item of items) {
-        const group = createCertificateItem(item, { fontSize, lineHeight, margin, width, height });
+        const group = createCertificateItem(item, { fontSize, lineHeight, horizontalMargin, width, height });
         if (groups.length > 0) {
             group.set({
                 top: (groups[groups.length - 1].top ?? 0) + (groups[groups.length - 1].height ?? 0) + rowMargin,
@@ -55,15 +55,15 @@ export default function createCertificateModule(props: CertificateProps) {
         header,
         ...groups,
     ], {
-        width: width - margin * 2,
-        left: margin,
+        width: width - horizontalMargin * 2,
+        left: horizontalMargin,
         lockMovementX: true,
         lockMovementY: true,
         hasControls: false,
     })
 
     header.set({
-        left: -(width - margin * 2) / 2,
+        left: -(width - horizontalMargin * 2) / 2,
     });
     return certificateModule;
 }

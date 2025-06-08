@@ -36,7 +36,7 @@ function createProjectItem(props: ProjectItemProps, header: fabric.Group, global
     });
 
     const roleText = new fabric.Text(role, {
-        left: globalStyle.margin,
+        left: globalStyle.horizontalMargin,
         top: (nameText.top ?? 0) + (nameText.height ?? 0) + rowMargin,
         fontSize: globalStyle.fontSize,
         fill: "black",
@@ -44,7 +44,7 @@ function createProjectItem(props: ProjectItemProps, header: fabric.Group, global
 
     const descriptionText = new fabric.Textbox(description, {
         width: globalStyle.width,
-        left: globalStyle.margin,
+        left: globalStyle.horizontalMargin,
         top: (roleText.top ?? 0) + (roleText.height ?? 0) + rowMargin,
         fontSize: globalStyle.fontSize,
         fill: "black",
@@ -59,14 +59,14 @@ function createProjectItem(props: ProjectItemProps, header: fabric.Group, global
         descriptionText,
         dateText,
     ], {
-        width: (globalStyle.width ?? 0) - (globalStyle.margin ?? 0) * 2,
+        width: (globalStyle.width ?? 0) - (globalStyle.horizontalMargin ?? 0) * 2,
         left: 0,
     });
 }   
 
 export default function createProjectModule(props: ProjectProps) {
-    const { title, color, items, fontSize, lineHeight, margin, width, height } = props;
-    const header = createHeader1({ title, color, fontSize, lineHeight, margin, width, height });
+    const { title, color, items, fontSize, lineHeight, horizontalMargin, width, height } = props;
+    const header = createHeader1({ title, color, fontSize, lineHeight, horizontalMargin, width, height });
     const project = new fabric.Group([header], {
         originX: "left",
         originY: "top",
@@ -79,12 +79,12 @@ export default function createProjectModule(props: ProjectProps) {
         }
     } as any);
     header.set({
-        left: -(width - margin * 2) / 2,
+        left: -(width - horizontalMargin * 2) / 2,
     });
     
     const projectGroups: fabric.Group[] = [];
     for (const item of items) {
-        const group = createProjectItem(item, header, { fontSize, lineHeight, margin, width, height });
+        const group = createProjectItem(item, header, { fontSize, lineHeight, horizontalMargin, width, height });
         if (projectGroups.length > 0) {
             group.set({
                 top: (projectGroups[projectGroups.length - 1].top ?? 0) + 
@@ -95,22 +95,22 @@ export default function createProjectModule(props: ProjectProps) {
         projectGroups.push(group);
         project.addWithUpdate(group);
         group.set({
-            width: width - margin * 2,
-            left: -(width - margin * 2) / 2,
+            width: width - horizontalMargin * 2,
+            left: -(width - horizontalMargin * 2) / 2,
         });
         for (let i = 0; i < group._objects.length - 1; i++) {
             group._objects[i].set({
-                left: -(width - margin * 2) / 2,
+                left: -(width - horizontalMargin * 2) / 2,
             });
         }
     }
     project.set({
-        width: width - margin * 2,
-        left: margin,
+        width: width - horizontalMargin * 2,
+        left: horizontalMargin,
     });
     for (let i = 0; i < project._objects.length; i++) {
         project._objects[i].set({
-            left: -(width - margin * 2) / 2,
+            left: -(width - horizontalMargin * 2) / 2,
         });
     }
 

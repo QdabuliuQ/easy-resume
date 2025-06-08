@@ -46,7 +46,7 @@ function createTag(tag: string) {
 
 function createEducationItem(props: EducationItemProps, header: fabric.Group, globalStyle: Partial<GlobalStyle>) {
     const { school, degree, major, type, startDate, endDate, city, tags, academy, description } = props;
-    const { fontSize, lineHeight, margin, width } = globalStyle;
+    const { fontSize, lineHeight, horizontalMargin, width } = globalStyle;
     const schoolText = new fabric.Text(school ?? '', {
         left: 0,
         top: (header.height ?? 0) + rowMargin,
@@ -84,7 +84,7 @@ function createEducationItem(props: EducationItemProps, header: fabric.Group, gl
         fill: "black",
     })
     dateText.set({
-        left: ((width ?? 0) - (margin ?? 0) * 2) - (dateText.width ?? 0),
+        left: ((width ?? 0) - (horizontalMargin ?? 0) * 2) - (dateText.width ?? 0),
     })
     const majorText = new fabric.Text(major, {
         left: 0,
@@ -110,10 +110,10 @@ function createEducationItem(props: EducationItemProps, header: fabric.Group, gl
         fill: "black",
     })
     cityText.set({
-        left: ((width ?? 0) - (margin ?? 0) * 2) - (cityText.width ?? 0),
+        left: ((width ?? 0) - (horizontalMargin ?? 0) * 2) - (cityText.width ?? 0),
     })
     const descriptionText = new fabric.Textbox(description ?? '', {
-        width: (width ?? 0) - (margin ?? 0) * 2,
+        width: (width ?? 0) - (horizontalMargin ?? 0) * 2,
         left: 0,
         top: (cityText.top ?? 0) + (cityText.height ?? 0) + rowMargin,
         fontSize,
@@ -135,19 +135,19 @@ function createEducationItem(props: EducationItemProps, header: fabric.Group, gl
     ])
 
     group.set({
-        width: (width ?? 0) - (margin ?? 0) * 2,
+        width: (width ?? 0) - (horizontalMargin ?? 0) * 2,
         left: 0,
     });
     return group;
 }
 export default function createEducationModule(props: EducationProps) {
-    const { title, color, items, width, height, fontSize, lineHeight, margin } = props;
+    const { title, color, items, width, height, fontSize, lineHeight, horizontalMargin } = props;
 
-    const header = createHeader1({ title, color, width, height, fontSize, lineHeight, margin });
+    const header = createHeader1({ title, color, width, height, fontSize, lineHeight, horizontalMargin });
 
     const groups: fabric.Group[] = [];
     for (const item of items) {
-        const group = createEducationItem(item, header, { fontSize, lineHeight, margin, width, height });
+        const group = createEducationItem(item, header, { fontSize, lineHeight, horizontalMargin, width, height });
         if (groups.length > 0) {
             group.set({
                 top: (groups[groups.length - 1].top ?? 0) + (groups[groups.length - 1].height ?? 0) + rowMargin,
@@ -159,8 +159,8 @@ export default function createEducationModule(props: EducationProps) {
         header,
         ...groups,
     ], {
-        width: width - margin * 2,
-        left: margin,
+        width: width - horizontalMargin * 2,
+        left: horizontalMargin,
         lockMovementX: true,
         lockMovementY: true,
         hasControls: false,
@@ -170,7 +170,7 @@ export default function createEducationModule(props: EducationProps) {
         }
     } as any)
     header.set({
-        left: -(width - margin * 2) / 2,
+        left: -(width - horizontalMargin * 2) / 2,
     });
     return educationModule;
 }

@@ -8,12 +8,12 @@ interface SkillModuleProps extends HeaderProps, GlobalStyle {
 }
 
 export default function createSkillModule(props: SkillModuleProps) {
-    const { title, description, fontSize, lineHeight, margin, color, width, height } = props;
+    const { title, description, fontSize, lineHeight, horizontalMargin, color, width, height } = props;
 
-    const header = createHeader1({ title, color, fontSize, margin, width, height, lineHeight });
+    const header = createHeader1({ title, color, fontSize, horizontalMargin, width, height, lineHeight });
     const descriptionText = new fabric.Textbox(description, {
-        width: width - margin * 2,
-        left: margin,
+        width: width - horizontalMargin * 2,
+        left: horizontalMargin,
         top: (header.height ?? 0) + 10,
         fontSize,
         fill: "black",
@@ -25,8 +25,8 @@ export default function createSkillModule(props: SkillModuleProps) {
         header,
         descriptionText,
     ], {
-        width: width - margin * 2,
-        left: margin,
+        width: width - horizontalMargin * 2,
+        left: horizontalMargin,
         lockMovementX: true,
         lockMovementY: true,
         hasControls: false,
@@ -37,7 +37,7 @@ export default function createSkillModule(props: SkillModuleProps) {
     } as any)
 
     header.set({
-        left: -(width - margin * 2) / 2,
+        left: -(width - horizontalMargin * 2) / 2,
     });
     
     return group;
