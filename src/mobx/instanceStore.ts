@@ -1,17 +1,17 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable } from 'mobx';
 
 export default class InstanceStore {
-    instances: Array<fabric.Canvas> = []
+  instances: Array<fabric.Canvas> = [];
 
-    constructor() {
-        makeAutoObservable(this)
-    }
+  constructor() {
+    makeAutoObservable(this);
+  }
 
-    setInstances(value: Array<fabric.Canvas>) {
-        this.instances = value
-    }
+  setInstances(value: Array<fabric.Canvas>) {
+    this.instances = value;
+  }
 
-    get getInstances(): Array<fabric.Canvas> {
-        return this.instances
-    }
+  get getInstances(): Array<fabric.Canvas> {
+    return this.instances;
+  }
 }

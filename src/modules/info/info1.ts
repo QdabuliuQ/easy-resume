@@ -129,7 +129,7 @@ export default function createInfo1(props: InfoProps): Promise<fabric.Group> {
                 hasControls: false,
                 property: {
                     type: 'info1',
-                    id: getRandomId(),
+                    ...props
                 }
             } as any)
             var image = new Image();
@@ -140,7 +140,6 @@ export default function createInfo1(props: InfoProps): Promise<fabric.Group> {
                     originY: 'top',
                     scaleX: 100 / image.width,
                     scaleY: 100 / image.width,
-
                 })
                 info.addWithUpdate(img)
                 img.set({

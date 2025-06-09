@@ -1,17 +1,17 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable } from 'mobx';
 
 export default class ModuleActiveStore {
-    moduleActive = ""
+  moduleActive = '';
 
-    constructor() {
-        makeAutoObservable(this)
-    }
+  constructor() {
+    makeAutoObservable(this);
+  }
 
-    setModuleActive(value: string) {
-        this.moduleActive = value
-    }
+  setModuleActive(value: string) {
+    this.moduleActive = value;
+  }
 
-    get getModuleActive(): string {
-        return this.moduleActive
-    }
+  get getModuleActive(): string {
+    return this.moduleActive;
+  }
 }
