@@ -173,6 +173,7 @@ function Canvas() {
     }
     resume.pages = pages;
     configStore.setConfig(JSON.parse(JSON.stringify(resume)));
+    console.log('执行1');
   });
 
   return (

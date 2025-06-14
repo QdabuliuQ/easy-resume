@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 
 export default class ModuleActiveStore {
-  moduleActive = '';
+  moduleActive = 'global';
 
   constructor() {
     makeAutoObservable(this);
