@@ -13,11 +13,13 @@
     "commit": "gitmoji -c"
   },
   "dependencies": {
+    "@icon-park/react": "^1.4.2",
     "@tailwindcss/vite": "^4.0.9",
     "ahooks": "^3.8.5",
     "antd": "^5.25.4",
     "commitlint": "^19.8.1",
     "cropperjs": "^2.0.0",
+    "dayjs": "^1.11.13",
     "fabric": "^5.5.2",
     "mobx": "^6.13.7",
     "mobx-react": "^9.2.0",
@@ -25,6 +27,7 @@
     "react-cropper": "^2.3.3",
     "react-custom-scrollbars": "^4.2.1",
     "react-dom": "^19.0.0",
+    "react-grid-layout": "^1.5.1",
     "react-image-crop": "^11.0.10",
     "react-router-dom": "^7.2.0"
   },

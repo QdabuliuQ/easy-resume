@@ -708,3 +708,25 @@ export const ethnic = [
   { label: '珞巴族', value: '珞巴族' },
   { label: '基诺族', value: '基诺族' },
 ];
+
+export const info = {
+  name: '姓名',
+  phone: '手机号',
+  email: '邮箱',
+  city: '城市',
+  status: '状态',
+  intentCity: '意向城市',
+  intentPosts: '意向职位',
+  wechat: '微信号',
+  birthday: '生日',
+  gender: '性别',
+  stature: '身高',
+  weight: '体重',
+  ethnic: '民族',
+  origin: '籍贯',
+  maritalStatus: '婚姻状况',
+  politicalStatus: '政治面貌',
+  expectedSalary: '期望薪资',
+  site: '个人网站',
+  avatar: '头像',
+};
