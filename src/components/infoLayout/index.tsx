@@ -6,6 +6,7 @@ import { WidthProvider } from 'react-grid-layout';
 import styles from './index.module.less';
 import { info } from '@/modules/utils/constant';
 import { DeleteThree } from '@icon-park/react';
+import { useMemoizedFn } from 'ahooks';
 const GridLayoutWithWidth = WidthProvider(GridLayout);
 
 function InfoLayout(props: { layout: Array<Array<string>> }) {
@@ -88,33 +89,73 @@ function InfoLayout(props: { layout: Array<Array<string>> }) {
     setLayout(finalLayout);
   };
 
-  return (
-    <div className={`w-full bg-gray-100 rounded-lg ${styles.infoLayout}`}>
-      <GridLayoutWithWidth
-        className='layout'
-        layout={layout}
-        cols={6}
-        rowHeight={30}
-        width={460}
-        isResizable={false}
-        compactType={null}
-        onDragStop={onDragStop}
-      >
-        {layout.map((item) => (
+  const removeItem = (value: any) => {
+    const newLayout = layout.filter((item) => item.i !== value);
+    onDragStop(newLayout);
+  };
+
+  const addItem = (value: any) => {
+    const newLayout = [
+      ...layout,
+      { i: value, x: 0, y: layout.length, w: 1, h: 1 },
+    ];
+    onDragStop(newLayout);
+  };
+
+  const canbeAddItem = useMemoizedFn(() => {
+    const items = [];
+    for (const key in info) {
+      if (
+        Object.prototype.hasOwnProperty.call(info, key) &&
+        !layout.some((item) => item.i === key) &&
+        key !== 'name' &&
+        key !== 'avatar'
+      ) {
+        items.push(
           <div
-            key={item.i}
-            className='bg-gray-300 flex items-center justify-center rounded-lg text-white text-[12px] font-bold relative cursor-move'
+            onClick={() => addItem(key)}
+            key={key}
+            className='w-[65px] h-[30px] bg-blue-500 flex items-center justify-center rounded-lg text-white text-[12px] font-bold relative cursor-pointer'
           >
-            {info[item.i as keyof typeof info]}
-            <DeleteThree
-              className='absolute top-[-5px] right-[-5px] cursor-pointer'
-              theme='filled'
-              size='16'
-              fill='red'
-            />
+            {info[key as keyof typeof info]}
           </div>
-        ))}
-      </GridLayoutWithWidth>
+        );
+      }
+    }
+    return items;
+  });
+
+  return (
+    <div className={styles.infoLayout}>
+      <div className='w-full bg-gray-100 rounded-lg'>
+        <GridLayoutWithWidth
+          className='layout'
+          layout={layout}
+          cols={6}
+          rowHeight={30}
+          width={460}
+          isResizable={false}
+          compactType={null}
+          onDragStop={onDragStop}
+        >
+          {layout.map((item) => (
+            <div
+              key={item.i}
+              className='bg-gray-300 flex items-center justify-center rounded-lg text-white text-[12px] font-bold relative cursor-move'
+            >
+              {info[item.i as keyof typeof info]}
+              <DeleteThree
+                className='absolute top-[-5px] right-[-5px] cursor-pointer'
+                theme='filled'
+                size='16'
+                fill='red'
+                onClick={() => removeItem(item.i)}
+              />
+            </div>
+          ))}
+        </GridLayoutWithWidth>
+      </div>
+      <div className='flex gap-2 w-full mt-2 flex-wrap'>{canbeAddItem()}</div>
     </div>
   );
 }
