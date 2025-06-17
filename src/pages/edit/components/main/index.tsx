@@ -7,7 +7,7 @@ function Main() {
   return (
     <Scrollbars
       hideTracksWhenNotNeeded
-      className='min-w-[595px] transform translate-x-0 translate-y-0 !h-[calc(100vh-100px)] relative overflow-hidden'
+      className='min-w-[595px] max-w-[595px] transform translate-x-0 translate-y-0 !h-[calc(100vh-100px)] relative overflow-hidden'
     >
       <Header />
       <Canvas />
