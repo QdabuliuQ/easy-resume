@@ -66,8 +66,6 @@ function createRow(row: Array<keyof InfoProps>, props: InfoProps) {
           }
         );
       } else {
-        console.log(props[item]);
-
         text = new fabric.Text(props[item as keyof InfoProps] as string, {
           top: 0,
           left: 0,

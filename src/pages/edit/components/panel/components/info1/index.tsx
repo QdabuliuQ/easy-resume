@@ -29,6 +29,7 @@ import { fileToBase64 } from '@/utils';
 import { configStore, moduleActiveStore } from '@/mobx';
 import dayjs from 'dayjs';
 import InfoLayout from '@/components/infoLayout';
+import Title from '@/components/title';
 
 function Info1() {
   const [form] = Form.useForm();
@@ -46,7 +47,6 @@ function Info1() {
   );
 
   const option = useMemo(() => {
-    console.log('option');
     const config = configStore.getConfig;
     const moduleActive = moduleActiveStore.getModuleActive;
     for (const page of config.pages) {
@@ -201,10 +201,6 @@ function Info1() {
         ...configStore.getConfigOption(moduleActiveStore.getModuleActive),
         [key]: image,
       });
-      console.log(
-        configStore.getConfigOption(moduleActiveStore.getModuleActive),
-        '执行'
-      );
     });
     return isJpgOrPng;
   });
@@ -213,6 +209,7 @@ function Info1() {
     <div className={styles.info1Panel}>
       {option ? (
         <Form form={form} variant='filled' layout='vertical'>
+          <Title title='个人信息' />
           <Row gutter={15}>
             {formLayout.map((item) => (
               <Col key={item.key} span={item.span}>
@@ -292,6 +289,7 @@ function Info1() {
         </Form>
       ) : null}
       <CropperImage ref={cropperRef} />
+      <Title title='布局方式' />
       <InfoLayout
         layout={
           configStore.getConfigOption(moduleActiveStore.getModuleActive).layout

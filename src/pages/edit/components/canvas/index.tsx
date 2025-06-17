@@ -71,7 +71,7 @@ function Canvas() {
 
     // 取消选中
     canvas.on('selection:cleared', () => {
-      moduleActiveStore.setModuleActive('');
+      moduleActiveStore.setModuleActive('global');
     });
 
     canvasInstanceRef.current.push(canvas);
@@ -80,6 +80,7 @@ function Canvas() {
     for (let i = 0; i < modules.length; i++) {
       const options = modules[i];
       options._options = {
+        id: options.id,
         ...options.options,
         ...resume.globalStyle,
       };
