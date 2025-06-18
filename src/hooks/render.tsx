@@ -230,8 +230,6 @@ export const update = async (resume: any) => {
     const module = getModuleInstance(options.id, canvasInstanceRef);
     if (module && (module as any).update) {
       // 更新现有模块
-      console.log(module, 'module');
-
       (module as any).update(options, resume.globalStyle);
       moduleInstances.push({ module, isExist: true });
       module.set({
