@@ -80,7 +80,6 @@ function CropperImage(props: any, ref: any) {
         );
 
         const base64Image = canvas.toDataURL('image/jpeg');
-        console.log(base64Image, 'base64Image');
         setShow(false);
         callbackRef.current?.(base64Image);
       }
