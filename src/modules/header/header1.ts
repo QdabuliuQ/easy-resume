@@ -3,13 +3,16 @@ import { GlobalStyle } from '../utils/common.type';
 
 export interface HeaderProps extends GlobalStyle {
   title: string;
-  color: string;
 }
 
 const HEADER_HEIGHT = 25;
 
-export default function createHeader1(props: Partial<HeaderProps>) {
-  const { title, color, fontSize, horizontalMargin, width } = props;
+export default function createHeader1(
+  props: Partial<HeaderProps>,
+  globalStyle: GlobalStyle
+) {
+  const { title } = props;
+  const { color, fontSize, horizontalMargin, width } = globalStyle;
   const line = new fabric.Rect({
     width: 5,
     height: HEADER_HEIGHT,

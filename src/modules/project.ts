@@ -1,5 +1,5 @@
 import { fabric } from 'fabric';
-import createHeader1, { type HeaderProps } from './header/header1';
+import createHeader1 from './header/header1';
 import { rowMargin } from './utils/constant';
 import { GlobalStyle } from './utils/common.type';
 interface ProjectItemProps {
@@ -10,14 +10,19 @@ interface ProjectItemProps {
   description: string;
 }
 
-interface ProjectProps extends HeaderProps, GlobalStyle {
-  items: ProjectItemProps[];
+interface ProjectProps {
+  id: string;
+  type: 'project';
+  options: {
+    title: string;
+    items: ProjectItemProps[];
+  };
 }
 
 function createProjectItem(
   props: ProjectItemProps,
   header: fabric.Group,
-  globalStyle: Partial<GlobalStyle>
+  globalStyle: GlobalStyle
 ) {
   const { name, role, startDate, endDate, description } = props;
 
@@ -62,26 +67,13 @@ function createProjectItem(
   });
 }
 
-export default function createProjectModule(props: ProjectProps) {
-  const {
-    title,
-    color,
-    items,
-    fontSize,
-    lineHeight,
-    horizontalMargin,
-    width,
-    height,
-  } = props;
-  const header = createHeader1({
-    title,
-    color,
-    fontSize,
-    lineHeight,
-    horizontalMargin,
-    width,
-    height,
-  });
+export default function createProjectModule(
+  props: ProjectProps,
+  globalStyle: GlobalStyle
+) {
+  const { items } = props.options;
+  const { width, horizontalMargin } = globalStyle;
+  const header = createHeader1(props.options, globalStyle);
   const project = new fabric.Group([header], {
     originX: 'left',
     originY: 'top',
@@ -89,8 +81,8 @@ export default function createProjectModule(props: ProjectProps) {
     lockMovementY: true,
     hasControls: false,
     property: {
-      type: 'project',
       ...props,
+      type: 'project',
     },
   } as any);
   header.set({
@@ -99,13 +91,7 @@ export default function createProjectModule(props: ProjectProps) {
 
   const projectGroups: fabric.Group[] = [];
   for (const item of items) {
-    const group = createProjectItem(item, header, {
-      fontSize,
-      lineHeight,
-      horizontalMargin,
-      width,
-      height,
-    });
+    const group = createProjectItem(item, header, globalStyle);
     if (projectGroups.length > 0) {
       group.set({
         top:

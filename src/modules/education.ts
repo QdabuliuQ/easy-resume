@@ -1,4 +1,4 @@
-import createHeader1, { type HeaderProps } from './header/header1';
+import createHeader1 from './header/header1';
 import { fabric } from 'fabric';
 import { columnMargin, rowMargin } from './utils/constant';
 import { GlobalStyle } from './utils/common.type';
@@ -16,8 +16,13 @@ interface EducationItemProps {
   description: string;
 }
 
-interface EducationProps extends HeaderProps {
-  items: EducationItemProps[];
+interface EducationProps {
+  id: string;
+  type: 'education';
+  options: {
+    title: string;
+    items: EducationItemProps[];
+  };
 }
 
 function createTag(tag: string) {
@@ -43,7 +48,7 @@ function createTag(tag: string) {
 function createEducationItem(
   props: EducationItemProps,
   header: fabric.Group,
-  globalStyle: Partial<GlobalStyle>
+  globalStyle: GlobalStyle
 ) {
   const {
     school,
@@ -158,37 +163,18 @@ function createEducationItem(
   });
   return group;
 }
-export default function createEducationModule(props: EducationProps) {
-  const {
-    title,
-    color,
-    items,
-    width,
-    height,
-    fontSize,
-    lineHeight,
-    horizontalMargin,
-  } = props;
+export default function createEducationModule(
+  props: EducationProps,
+  globalStyle: GlobalStyle
+) {
+  const { items } = props.options;
+  const { width, horizontalMargin } = globalStyle;
 
-  const header = createHeader1({
-    title,
-    color,
-    width,
-    height,
-    fontSize,
-    lineHeight,
-    horizontalMargin,
-  });
+  const header = createHeader1(props.options, globalStyle);
 
   const groups: fabric.Group[] = [];
   for (const item of items) {
-    const group = createEducationItem(item, header, {
-      fontSize,
-      lineHeight,
-      horizontalMargin,
-      width,
-      height,
-    });
+    const group = createEducationItem(item, header, globalStyle);
     if (groups.length > 0) {
       group.set({
         top:
@@ -206,8 +192,8 @@ export default function createEducationModule(props: EducationProps) {
     lockMovementY: true,
     hasControls: false,
     property: {
-      type: 'education',
       ...props,
+      type: 'education',
     },
   } as any);
   header.set({

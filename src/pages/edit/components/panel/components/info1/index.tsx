@@ -30,9 +30,11 @@ import { configStore, moduleActiveStore } from '@/mobx';
 import dayjs from 'dayjs';
 import InfoLayout from '@/components/infoLayout';
 import Title from '@/components/title';
+import { update, useRender } from '@/hooks/render';
 
 function Info1() {
   const [form] = Form.useForm();
+  const { render } = useRender();
   const cropperRef = useRef<any>(null);
   const uploadButton = useMemo(
     () => (
@@ -52,23 +54,24 @@ function Info1() {
     for (const page of config.pages) {
       for (const module of page.modules) {
         if (module.id === moduleActive) {
-          for (const key in module.options) {
-            if (Object.prototype.hasOwnProperty.call(module.options, key)) {
+          let _module = JSON.parse(JSON.stringify(module));
+          for (const key in _module.options) {
+            if (Object.prototype.hasOwnProperty.call(_module.options, key)) {
               if (key === 'birthday') {
-                module.options[key] = dayjs(module.options[key]);
+                _module.options[key] = dayjs(_module.options[key]);
               } else if (
                 key === 'city' ||
                 key === 'intentCity' ||
                 key === 'origin'
               ) {
-                module.options[key] =
-                  typeof module.options[key] === 'string'
-                    ? module.options[key].split('/')
-                    : module.options[key];
+                _module.options[key] =
+                  typeof _module.options[key] === 'string'
+                    ? _module.options[key].split('/')
+                    : _module.options[key];
               }
             }
           }
-          return module.options;
+          return _module.options;
         }
       }
     }
@@ -205,6 +208,14 @@ function Info1() {
     return isJpgOrPng;
   });
 
+  const inputHandler = useMemoizedFn((key: string, value: string) => {
+    configStore.setConfigOption(moduleActiveStore.getModuleActive, {
+      ...configStore.getConfigOption(moduleActiveStore.getModuleActive),
+      [key]: value,
+    });
+    update(configStore.getConfig);
+  });
+
   return (
     <div className={styles.info1Panel}>
       {option ? (
@@ -220,6 +231,7 @@ function Info1() {
                       placeholder={
                         '请输入' + info[item.key as keyof typeof info]
                       }
+                      onChange={(e) => inputHandler(item.key, e.target.value)}
                     />
                   ) : item.controllerType === 'date-picker' ? (
                     <DatePicker

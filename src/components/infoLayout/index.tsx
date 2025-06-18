@@ -58,7 +58,7 @@ function InfoLayout(props: { layout: Array<Array<string>> }) {
       }
       rowItems[newY].push({
         ...item,
-        y: newY
+        y: newY,
       });
     });
 
@@ -66,16 +66,16 @@ function InfoLayout(props: { layout: Array<Array<string>> }) {
     const finalLayout: Array<any> = [];
     Object.keys(rowItems).forEach((rowIndex) => {
       const items = rowItems[Number(rowIndex)];
-      
+
       // 按x坐标排序
       items.sort((a, b) => a.x - b.x);
-      
+
       // 重新分配x坐标，确保连续
       items.forEach((item, index) => {
         finalLayout.push({
           ...item,
           x: index,
-          y: Number(rowIndex)
+          y: Number(rowIndex),
         });
       });
     });

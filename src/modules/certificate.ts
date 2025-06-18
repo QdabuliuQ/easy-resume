@@ -1,4 +1,4 @@
-import createHeader1, { type HeaderProps } from './header/header1';
+import createHeader1 from './header/header1';
 import { fabric } from 'fabric';
 import { rowMargin } from './utils/constant';
 import { GlobalStyle } from './utils/common.type';
@@ -8,14 +8,18 @@ interface CertificateItemProps {
   date: string;
 }
 
-interface CertificateProps extends HeaderProps, GlobalStyle {
-  items: CertificateItemProps[];
+interface CertificateProps {
   id: string;
+  type: 'certificate';
+  options: {
+    title: string;
+    items: CertificateItemProps[];
+  };
 }
 
 function createCertificateItem(
   props: CertificateItemProps,
-  globalStyle: Partial<GlobalStyle>
+  globalStyle: GlobalStyle
 ) {
   const { name, date } = props;
   const nameText = new fabric.Text(name, {
@@ -28,8 +32,8 @@ function createCertificateItem(
   });
   dateText.set({
     left:
-      (globalStyle.width ?? 0) -
-      (globalStyle.horizontalMargin ?? 0) -
+      globalStyle.width -
+      globalStyle.horizontalMargin -
       (dateText.width ?? 0) -
       5,
   });
@@ -37,36 +41,17 @@ function createCertificateItem(
   return group;
 }
 
-export default function createCertificateModule(props: CertificateProps) {
-  const {
-    title,
-    color,
-    items,
-    fontSize,
-    lineHeight,
-    horizontalMargin,
-    width,
-    height,
-  } = props;
-  const header = createHeader1({
-    title,
-    color,
-    fontSize,
-    lineHeight,
-    horizontalMargin,
-    width,
-    height,
-  });
+export default function createCertificateModule(
+  props: CertificateProps,
+  globalStyle: GlobalStyle
+) {
+  const { items } = props.options;
+  const { horizontalMargin, width } = globalStyle;
+  const header = createHeader1(props.options, globalStyle);
 
   const groups: Array<fabric.Group> = [];
   for (const item of items) {
-    const group = createCertificateItem(item, {
-      fontSize,
-      lineHeight,
-      horizontalMargin,
-      width,
-      height,
-    });
+    const group = createCertificateItem(item, globalStyle);
     if (groups.length > 0) {
       group.set({
         top:
@@ -88,8 +73,8 @@ export default function createCertificateModule(props: CertificateProps) {
     lockMovementY: true,
     hasControls: false,
     property: {
-      type: 'certificate',
       ...props,
+      type: 'certificate',
     },
   } as any);
 

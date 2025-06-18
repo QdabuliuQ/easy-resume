@@ -1,32 +1,25 @@
 import { fabric } from 'fabric';
-import createHeader1, { type HeaderProps } from './header/header1';
+import createHeader1 from './header/header1';
 import { GlobalStyle } from '@/modules/utils/common.type';
 
-interface SkillModuleProps extends HeaderProps, GlobalStyle {
-  description: string;
+interface SkillModuleProps {
+  id: string;
+  type: 'skill';
+  options: {
+    title: string;
+    description: string;
+  };
 }
 
-export default function createSkillModule(props: SkillModuleProps) {
-  const {
-    title,
-    description,
-    fontSize,
-    lineHeight,
-    horizontalMargin,
-    color,
-    width,
-    height,
-  } = props;
+export default function createSkillModule(
+  props: SkillModuleProps,
+  globalStyle: GlobalStyle
+) {
+  const { description } = props.options;
 
-  const header = createHeader1({
-    title,
-    color,
-    fontSize,
-    horizontalMargin,
-    width,
-    height,
-    lineHeight,
-  });
+  const { horizontalMargin, fontSize, lineHeight, width } = globalStyle;
+
+  const header = createHeader1(props.options, globalStyle);
   const descriptionText = new fabric.Textbox(description, {
     width: width - horizontalMargin * 2 - 20,
     left: 0,
@@ -44,11 +37,10 @@ export default function createSkillModule(props: SkillModuleProps) {
     lockMovementY: true,
     hasControls: false,
     property: {
-      type: 'skill',
       ...props,
+      type: 'skill',
     },
   } as any);
-  console.log(descriptionText, group);
 
   header.set({
     left: -(width - horizontalMargin * 2) / 2,

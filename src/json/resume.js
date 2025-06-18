@@ -40,17 +40,15 @@ export default {
             layout: [
               ['phone', 'email', 'city'],
               ['wechat', 'site'],
+              ['birthday', 'gender', 'stature', 'weight', 'origin', 'ethnic'],
               [
-                'birthday',
-                'gender',
-                'stature',
-                'weight',
-                'origin',
-                'ethnic',
-              ],
-              ['status', 'intentCity', 'intentPosts', 'expectedSalary',
+                'status',
+                'intentCity',
+                'intentPosts',
+                'expectedSalary',
                 'politicalStatus',
-                'maritalStatus',],
+                'maritalStatus',
+              ],
             ],
           },
         },
@@ -59,7 +57,6 @@ export default {
           id: '2',
           options: {
             title: '证书',
-            color: '#ba443a',
             items: [{ name: '证书1', date: '2020-01-01' }],
           },
         },
@@ -68,7 +65,6 @@ export default {
           id: '3',
           options: {
             title: '技能',
-            color: '#ba443a',
             description:
               '1、技能技技能技能描述描述能技能技技能技能描述描述能描述描述技能技技能技能123123描述描述能描述描述技能技技能技能描述描述能描述描述技能技技能技能描述描述能描述描述描述描述2、12312\n2、12312\n2、12312\n2、12312',
           },
@@ -78,7 +74,6 @@ export default {
           id: '4',
           options: {
             title: '工作经历',
-            color: '#ba443a',
             items: [
               {
                 company: '公司',
@@ -108,7 +103,6 @@ export default {
           id: '5',
           options: {
             title: '项目经历',
-            color: '#ba443a',
             items: [
               {
                 name: '项目1',
@@ -125,7 +119,6 @@ export default {
           id: '6',
           options: {
             title: '教育经历',
-            color: '#ba443a',
             items: [
               {
                 school: '学校',
@@ -146,7 +139,6 @@ export default {
           id: '7',
           options: {
             title: '教育经历',
-            color: '#ba443a',
             items: [
               {
                 school: '学校',
@@ -167,7 +159,6 @@ export default {
           id: '8',
           options: {
             title: '教育经历',
-            color: '#ba443a',
             items: [
               {
                 school: '学校',
@@ -188,7 +179,6 @@ export default {
           id: '9',
           options: {
             title: '教育经历',
-            color: '#ba443a',
             items: [
               {
                 school: '学校',

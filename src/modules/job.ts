@@ -1,8 +1,7 @@
 import { fabric } from 'fabric';
-import createHeader1, { type HeaderProps } from './header/header1';
+import createHeader1 from './header/header1';
 import { columnMargin, rowMargin } from './utils/constant';
 import { GlobalStyle } from './utils/common.type';
-import { getRandomId } from '@/utils';
 
 interface JobItemProps {
   company: string;
@@ -13,8 +12,13 @@ interface JobItemProps {
   endDate: string;
   description: string;
 }
-interface JobProps extends HeaderProps, GlobalStyle {
-  items: JobItemProps[];
+interface JobProps {
+  id: string;
+  type: 'job';
+  options: {
+    title: string;
+    items: JobItemProps[];
+  };
 }
 
 function createJobItem(
@@ -91,37 +95,18 @@ function createJobItem(
   return group;
 }
 
-export default function createJobModule(props: JobProps) {
-  const {
-    title,
-    color,
-    items,
-    fontSize,
-    lineHeight,
-    horizontalMargin,
-    width,
-    height,
-  } = props;
+export default function createJobModule(
+  props: JobProps,
+  globalStyle: GlobalStyle
+) {
+  const { items } = props.options;
+  const { width, horizontalMargin } = globalStyle;
 
-  const header = createHeader1({
-    title,
-    color,
-    fontSize,
-    lineHeight,
-    horizontalMargin,
-    width,
-    height,
-  });
+  const header = createHeader1(props.options, globalStyle);
 
   const groups: fabric.Group[] = [];
   for (const item of items) {
-    const group = createJobItem(item, header, {
-      fontSize,
-      lineHeight,
-      horizontalMargin,
-      width,
-      height,
-    });
+    const group = createJobItem(item, header, globalStyle);
     if (groups.length > 0) {
       group.set({
         top:
@@ -139,8 +124,8 @@ export default function createJobModule(props: JobProps) {
     lockMovementY: true,
     hasControls: false,
     property: {
-      type: 'job',
       ...props,
+      type: 'job',
     },
   } as any);
   header.set({
