@@ -1,57 +1,154 @@
-import { memo, useEffect } from 'react';
-import { useMount } from 'ahooks';
+import { memo, useEffect, useRef, useState } from 'react';
+import { useMemoizedFn } from 'ahooks';
 
 import resume from '@/json/resume';
 
-import { moduleActiveStore, configStore } from '@/mobx';
-
-import styles from './index.module.less';
-import { useRender } from '@/hooks/render';
 import { observer } from 'mobx-react';
+import {
+  Certificate,
+  Info1,
+  Job,
+  Margin,
+  Page,
+  Project,
+  Skill,
+} from '@/modules';
+import { createRoot } from 'react-dom/client';
 
 function Canvas() {
-  const { render, canvasInstanceRef } = useRender();
+  const moduleHeights = useRef<{ [propName: string]: number }>({});
 
-  useMount(() => {
-    render(resume, true);
+  const measureComponentHeight = useMemoizedFn(
+    (Component: React.ComponentType<any>, props: any): Promise<Array<any>> => {
+      return new Promise((resolve) => {
+        // 创建一个隐藏的 div
+        const container = document.createElement('div');
+        container.style.position = 'absolute';
+        container.style.visibility = 'hidden';
+        container.style.pointerEvents = 'none';
+        container.style.height = 'auto';
+        container.style.width = 'auto';
+        document.body.appendChild(container);
+        const module = <Component {...props} key={props.key} />;
+
+        // 渲染组件
+        const root = createRoot(container);
+        root.render(module);
+
+        // 等待渲染完成后测量
+        setTimeout(() => {
+          const height = container.offsetHeight;
+          // 卸载并移除
+          root.unmount();
+          document.body.removeChild(container);
+          resolve([height, module]);
+        }, 0); // 0ms，等下一帧
+      });
+    }
+  );
+
+  const computeLayout = useMemoizedFn(
+    async (components: Array<any>, resume: any) => {
+      let { height: pageHeight, verticalMargin } = resume.globalStyle;
+      const newPages: Array<Array<any>> = [[]];
+      let height = 0;
+      let currentIndex = 1;
+      pageHeight = pageHeight - verticalMargin * 2;
+      for (const component of components) {
+        if (!component) {
+          continue;
+        }
+
+        const moduleHeight = moduleHeights.current[component.props.config.id];
+        if (height + moduleHeight > pageHeight) {
+          currentIndex++;
+          height = moduleHeight;
+          newPages.push([component]);
+        } else {
+          if (newPages[newPages.length - 1].length !== 0) {
+            newPages[newPages.length - 1].push(
+              <Margin
+                key={`margin-${height}`}
+                height={resume.pages[currentIndex - 1]?.moduleMargin ?? 10}
+              />
+            );
+          }
+          newPages[newPages.length - 1].push(component);
+          height +=
+            moduleHeight + (resume.pages[currentIndex - 1]?.moduleMargin ?? 10);
+        }
+      }
+      const allPages: Array<React.ReactNode> = [];
+      for (const page of newPages) {
+        const pageModules: Array<any> = [];
+        for (const module of page) {
+          pageModules.push(module);
+        }
+        allPages.push(
+          <Page key={currentIndex} globalStyle={resume.globalStyle}>
+            {pageModules}
+          </Page>
+        );
+      }
+      setPages(allPages);
+    }
+  );
+
+  const [pages, setPages] = useState<Array<React.ReactNode>>([]);
+  const render = useMemoizedFn(async (resume: any) => {
+    const allModules: Array<React.ReactNode> = [];
+    moduleHeights.current = {};
+    for (let i = 0; i < resume.pages.length; i++) {
+      const item = resume.pages[i];
+      // const currentPage = [];
+      for (const module of item.modules) {
+        let component = null;
+        let height = 0;
+        if (module.type === 'info1') {
+          [height, component] = await measureComponentHeight(Info1, {
+            key: module.id,
+            config: module,
+            globalStyle: resume.globalStyle,
+          });
+        } else if (module.type === 'certificate') {
+          [height, component] = await measureComponentHeight(Certificate, {
+            key: module.id,
+            config: module,
+            globalStyle: resume.globalStyle,
+          });
+        } else if (module.type === 'skill') {
+          [height, component] = await measureComponentHeight(Skill, {
+            key: module.id,
+            config: module,
+            globalStyle: resume.globalStyle,
+          });
+        } else if (module.type === 'job') {
+          [height, component] = await measureComponentHeight(Job, {
+            key: module.id,
+            config: module,
+            globalStyle: resume.globalStyle,
+          });
+        } else if (module.type === 'project') {
+          [height, component] = await measureComponentHeight(Project, {
+            key: module.id,
+            config: module,
+            globalStyle: resume.globalStyle,
+          });
+        }
+        moduleHeights.current[module.id] = height;
+        allModules.push(component);
+      }
+    }
+    computeLayout(allModules, resume);
+    // setPages(allPages);
   });
 
   useEffect(() => {
-    const config = configStore.getConfig;
-    const moduleActive = moduleActiveStore.getModuleActive;
-    if (
-      !moduleActive ||
-      !canvasInstanceRef ||
-      !config ||
-      moduleActive === 'global'
-    )
-      return;
-    for (let i = 0; i < config.pages.length; i++) {
-      for (let j = 0; j < config.pages[i].modules.length; j++) {
-        if (config.pages[i].modules[j].id === moduleActive) {
-          if (canvasInstanceRef) {
-            const canvas = canvasInstanceRef[i];
-            if (canvas) {
-              canvas.setActiveObject(canvas.getObjects()[j]);
-              canvas.renderAll();
-              for (let k = 0; k < canvasInstanceRef.length; k++) {
-                if (k !== j) {
-                  canvasInstanceRef[k]?.discardActiveObject();
-                  canvasInstanceRef[k]?.renderAll();
-                }
-              }
-              return;
-            }
-          }
-        }
-      }
-    }
-  }, [moduleActiveStore.getModuleActive, canvasInstanceRef]);
+    render(resume);
+  }, [resume]);
 
   return (
-    <div className='w-full mt-[20px] rounded-md overflow-hidden'>
-      <div id='canvas-box' className={styles['canvas-box']}></div>
-    </div>
+    <div className='w-full mt-[20px] rounded-md overflow-hidden'>{pages}</div>
   );
 }
 

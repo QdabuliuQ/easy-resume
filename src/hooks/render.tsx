@@ -1,10 +1,10 @@
 import { moduleActiveStore, configStore } from '@/mobx';
 import createCertificateModule from '@/modules/certificate';
-import createEducationModule from '@/modules/education';
+import createEducationModule from '@/modules/tmp/education';
 import createInfo1 from '@/modules/info/info1';
-import createJobModule from '@/modules/job';
-import createProjectModule from '@/modules/project';
-import createSkillModule from '@/modules/skill';
+import createJobModule from '@/modules/tmp/job';
+import createProjectModule from '@/modules/tmp/project';
+import createSkillModule from '@/modules/tmp/skill';
 import { useMemoizedFn } from 'ahooks';
 import { fabric } from 'fabric';
 

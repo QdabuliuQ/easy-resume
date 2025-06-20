@@ -1,5 +1,5 @@
 import { fabric } from 'fabric';
-import createHeader1 from './header/header1';
+import createHeader1 from './header1';
 import { GlobalStyle } from '@/modules/utils/common.type';
 
 interface SkillModuleProps {

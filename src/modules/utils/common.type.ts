@@ -6,4 +6,5 @@ export interface GlobalStyle {
   horizontalMargin: number;
   verticalMargin: number;
   color: string;
+  backgroundColor: string;
 }

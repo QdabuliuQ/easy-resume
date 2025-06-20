@@ -1,7 +1,7 @@
-import createHeader1 from './header/header1';
+import createHeader1 from './header1';
 import { fabric } from 'fabric';
-import { rowMargin } from './utils/constant';
-import { GlobalStyle } from './utils/common.type';
+import { rowMargin } from '../utils/constant';
+import { GlobalStyle } from '../utils/common.type';
 
 interface CertificateItemProps {
   name: string;

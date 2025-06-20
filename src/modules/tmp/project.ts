@@ -1,7 +1,7 @@
 import { fabric } from 'fabric';
-import createHeader1 from './header/header1';
-import { rowMargin } from './utils/constant';
-import { GlobalStyle } from './utils/common.type';
+import createHeader1 from './header1';
+import { rowMargin } from '../utils/constant';
+import { GlobalStyle } from '../utils/common.type';
 interface ProjectItemProps {
   name: string;
   role: string;

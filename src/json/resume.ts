@@ -11,7 +11,7 @@ export default {
   },
   pages: [
     {
-      moduleMargin: 10,
+      moduleMargin: 15,
       modules: [
         {
           type: 'info1',
@@ -57,7 +57,11 @@ export default {
           id: '2',
           options: {
             title: '证书',
-            items: [{ name: '证书1', date: '2020-01-01' }],
+            items: [
+              { name: '证书1', date: '2020-01-01' },
+              { name: '证书2', date: '2020-01-01' },
+              { name: '证书3', date: '2020-01-01' },
+            ],
           },
         },
         {
