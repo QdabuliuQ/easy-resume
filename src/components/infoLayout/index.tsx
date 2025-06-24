@@ -5,7 +5,7 @@ import 'react-grid-layout/css/styles.css';
 import { WidthProvider } from 'react-grid-layout';
 import styles from './index.module.less';
 import { info } from '@/modules/utils/constant';
-import { DeleteThree } from '@icon-park/react';
+import { AddOne, DeleteThree } from '@icon-park/react';
 import { useMemoizedFn } from 'ahooks';
 const GridLayoutWithWidth = WidthProvider(GridLayout);
 
@@ -109,8 +109,14 @@ function InfoLayout(props: { layout: Array<Array<string>> }) {
           <div
             onClick={() => addItem(key)}
             key={key}
-            className='w-[65px] h-[30px] bg-blue-500 flex items-center justify-center rounded-lg text-white text-[12px] font-bold relative cursor-pointer'
+            className='px-[10px] h-[30px] bg-gray-400 flex items-center rounded-[5px] text-white text-[12px] font-bold relative cursor-pointer text-white font-bold'
           >
+            <AddOne
+              className='mr-[5px]'
+              theme='outline'
+              size='15'
+              fill='#fff'
+            />
             {info[key as keyof typeof info]}
           </div>
         );
@@ -135,7 +141,7 @@ function InfoLayout(props: { layout: Array<Array<string>> }) {
           {layout.map((item) => (
             <div
               key={item.i}
-              className='bg-gray-300 flex items-center justify-center rounded-lg text-white text-[12px] font-bold relative cursor-move'
+              className='bg-blue-300 flex items-center justify-center rounded-lg text-white text-[12px] font-bold relative cursor-move text-white font-bold'
             >
               {info[item.i as keyof typeof info]}
               <DeleteThree

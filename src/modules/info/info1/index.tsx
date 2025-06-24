@@ -74,7 +74,7 @@ function Info1(props: Props) {
               {props.config.options[key as keyof InfoProps['options']][1]}
             </span>
           );
-        } else {
+        } else if (props.config.options[key as keyof InfoProps['options']]) {
           rowElements.push(
             <span
               key={
@@ -102,7 +102,7 @@ function Info1(props: Props) {
         }
       }
       elements.push(
-        <div key={i} className='flex items-center not-last:mb-[5px]'>
+        <div key={i} className='flex items-center flex-wrap not-last:mb-[5px]'>
           {rowElements}
         </div>
       );
@@ -125,7 +125,7 @@ function Info1(props: Props) {
           </div>
           <div className='w-full'>{itemLayout}</div>
         </div>
-        <div className='w-[90px]'>
+        <div className='w-[90px] min-w-[90px] max-w-[90px]'>
           <img
             className='w-full aspect-5/7 object-cover'
             src={avatar}

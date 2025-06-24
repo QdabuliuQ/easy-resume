@@ -54,7 +54,7 @@ export default {
         },
         {
           type: 'certificate',
-          id: '2',
+          id: '21421412',
           options: {
             title: '证书',
             items: [
@@ -124,6 +124,17 @@ export default {
           options: {
             title: '教育经历',
             items: [
+              {
+                school: '学校',
+                degree: '学位',
+                major: '专业',
+                startDate: '2020-01-01',
+                endDate: '2021-01-01',
+                city: '城市',
+                tags: ['标签1', '标签2'],
+                academy: '学院',
+                description: '描述',
+              },
               {
                 school: '学校',
                 degree: '学位',

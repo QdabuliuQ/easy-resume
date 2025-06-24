@@ -31,6 +31,26 @@ import dayjs from 'dayjs';
 import InfoLayout from '@/components/infoLayout';
 import Title from '@/components/title';
 import { update, useRender } from '@/hooks/render';
+import {
+  AutoHeightOne,
+  Avatar,
+  BirthdayCake,
+  BoyTwo,
+  Briefcase,
+  BuildingTwo,
+  City,
+  Family,
+  Finance,
+  IdCardV,
+  LocalTwo,
+  Mail,
+  Male,
+  PhoneCall,
+  WebPage,
+  Wechat,
+  Weight,
+  Workbench,
+} from '@icon-park/react';
 
 function Info1() {
   const [form] = Form.useForm();
@@ -89,99 +109,117 @@ function Info1() {
         key: 'phone',
         span: 12,
         controllerType: 'input',
+        icon: <PhoneCall theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'email',
         span: 12,
         controllerType: 'input',
+        icon: <Mail theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'city',
         span: 12,
         controllerType: 'cascader',
         options: city,
+        icon: <City theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'status',
         span: 12,
         controllerType: 'select',
         options: status,
+        icon: <Workbench theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'intentCity',
         span: 12,
         controllerType: 'cascader',
         options: intentCity,
+        icon: <BuildingTwo theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'intentPosts',
         span: 12,
         controllerType: 'input',
+        icon: <Briefcase theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'wechat',
         span: 12,
         controllerType: 'input',
+        icon: <Wechat theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'birthday',
         span: 12,
         controllerType: 'date-picker',
+        icon: <BirthdayCake theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'gender',
         span: 12,
         controllerType: 'select',
         options: gender,
+        icon: <Male theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'stature',
         span: 12,
         controllerType: 'input',
+        icon: <AutoHeightOne theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'weight',
         span: 12,
         controllerType: 'input',
+        icon: <Weight theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'ethnic',
         span: 12,
         controllerType: 'select',
         options: ethnic,
+        icon: <BoyTwo theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'origin',
         span: 12,
         controllerType: 'cascader',
         options: origin,
+        icon: <LocalTwo theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'maritalStatus',
         span: 12,
         controllerType: 'select',
         options: maritalStatus,
+        icon: <Family theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'politicalStatus',
         span: 12,
         controllerType: 'select',
         options: politicalStatus,
+        icon: <IdCardV theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'site',
         span: 12,
         controllerType: 'input',
+        icon: <WebPage theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'expectedSalary',
         span: 12,
         controllerType: 'input-salary',
+        icon: <Finance theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'avatar',
         span: 12,
         controllerType: 'image',
+        icon: <Avatar theme='outline' size='15' fill='#333' />,
       },
     ],
     []
@@ -213,7 +251,7 @@ function Info1() {
       ...configStore.getConfigOption(moduleActiveStore.getModuleActive),
       [key]: value,
     });
-    update(configStore.getConfig);
+    // update(configStore.getConfig);
   });
 
   return (
@@ -224,7 +262,18 @@ function Info1() {
           <Row gutter={15}>
             {formLayout.map((item) => (
               <Col key={item.key} span={item.span}>
-                <Form.Item label={info[item.key as keyof typeof info]}>
+                <Form.Item
+                  label={
+                    <div className='flex items-center'>
+                      {item.icon ? (
+                        <span className='inline-block mr-[7px]'>
+                          {item.icon}
+                        </span>
+                      ) : null}
+                      {info[item.key as keyof typeof info]}
+                    </div>
+                  }
+                >
                   {item.controllerType === 'input' ? (
                     <Input
                       defaultValue={option[item.key]}
@@ -250,9 +299,10 @@ function Info1() {
                       }
                       showSearch
                       filterOption={filterOption}
+                      onChange={(value) => inputHandler(item.key, value)}
                     />
                   ) : item.controllerType === 'input-salary' ? (
-                    <div className={styles.inputSalary}>
+                    <div className='w-full flex items-center justify-between'>
                       <Input
                         defaultValue={option[item.key][0]}
                         style={{ width: '43%' }}

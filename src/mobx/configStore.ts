@@ -16,12 +16,11 @@ export default class ConfigStore {
       for (const module of page.modules) {
         if (module.id === id) {
           module.options = option;
+          this.config = JSON.parse(JSON.stringify(this.config));
+          return;
         }
       }
     }
-    this.config = {
-      ...this.config,
-    };
   }
 
   getConfigOption(id: string) {

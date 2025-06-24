@@ -5,3 +5,4 @@ export { default as Margin } from './margin';
 export { default as Skill } from './skill';
 export { default as Project } from './project';
 export { default as Job } from './job';
+export { default as Education } from './education';

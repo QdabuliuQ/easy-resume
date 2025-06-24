@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { useMemoizedFn } from 'ahooks';
+import styles from './index.module.less';
 
 import resume from '@/json/resume';
 
@@ -12,8 +13,11 @@ import {
   Page,
   Project,
   Skill,
+  Education,
 } from '@/modules';
 import { createRoot } from 'react-dom/client';
+import { configStore } from '@/mobx';
+import { getRandomId } from '@/utils';
 
 function Canvas() {
   const moduleHeights = useRef<{ [propName: string]: number }>({});
@@ -29,7 +33,7 @@ function Canvas() {
         container.style.height = 'auto';
         container.style.width = 'auto';
         document.body.appendChild(container);
-        const module = <Component {...props} key={props.key} />;
+        const module = <Component {...props} key={getRandomId()} />;
 
         // 渲染组件
         const root = createRoot(container);
@@ -48,7 +52,7 @@ function Canvas() {
   );
 
   const computeLayout = useMemoizedFn(
-    async (components: Array<any>, resume: any) => {
+    async (components: Array<any>, resume: any, update: boolean = true) => {
       let { height: pageHeight, verticalMargin } = resume.globalStyle;
       const newPages: Array<Array<any>> = [[]];
       let height = 0;
@@ -79,23 +83,48 @@ function Canvas() {
         }
       }
       const allPages: Array<React.ReactNode> = [];
+
+      currentIndex = 1;
       for (const page of newPages) {
         const pageModules: Array<any> = [];
         for (const module of page) {
           pageModules.push(module);
         }
         allPages.push(
-          <Page key={currentIndex} globalStyle={resume.globalStyle}>
-            {pageModules}
-          </Page>
+          <div key={currentIndex++} className={styles.pageContainer}>
+            <Page globalStyle={resume.globalStyle}>{pageModules}</Page>
+          </div>
         );
       }
+
       setPages(allPages);
+      const config: any = {
+        globalStyle: resume.globalStyle,
+        pages: [],
+      };
+      currentIndex = 1;
+      for (const page of allPages) {
+        config.pages.push({
+          moduleMargin: resume.pages[currentIndex - 1]?.moduleMargin ?? 10,
+          modules: [],
+        });
+        for (const item of (page as any).props.children.props.children) {
+          if (item.props.config) {
+            config.pages[currentIndex - 1].modules.push(
+              JSON.parse(JSON.stringify(item.props.config))
+            );
+          }
+        }
+        currentIndex++;
+      }
+      if (update) {
+        configStore.setConfig(config);
+      }
     }
   );
 
   const [pages, setPages] = useState<Array<React.ReactNode>>([]);
-  const render = useMemoizedFn(async (resume: any) => {
+  const render = useMemoizedFn(async (resume: any, update: boolean = true) => {
     const allModules: Array<React.ReactNode> = [];
     moduleHeights.current = {};
     for (let i = 0; i < resume.pages.length; i++) {
@@ -134,18 +163,30 @@ function Canvas() {
             config: module,
             globalStyle: resume.globalStyle,
           });
+        } else if (module.type === 'education') {
+          [height, component] = await measureComponentHeight(Education, {
+            key: module.id,
+            config: module,
+            globalStyle: resume.globalStyle,
+          });
         }
         moduleHeights.current[module.id] = height;
         allModules.push(component);
       }
     }
-    computeLayout(allModules, resume);
+    computeLayout(allModules, resume, update);
     // setPages(allPages);
   });
 
   useEffect(() => {
     render(resume);
   }, [resume]);
+
+  useEffect(() => {
+    if (configStore.getConfig) {
+      render(configStore.getConfig, false);
+    }
+  }, [configStore.getConfig]);
 
   return (
     <div className='w-full mt-[20px] rounded-md overflow-hidden'>{pages}</div>
