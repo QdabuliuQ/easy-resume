@@ -15,7 +15,7 @@ function Panel() {
     }),
     []
   );
-  
+
   const [tabItems, setTabItems] = useState<Array<any>>([]);
 
   const PanelRender = useMemoizedFn((): any => {
@@ -38,15 +38,15 @@ function Panel() {
     const modules = [
       {
         key: 'global',
-        label: '全局配置'
-      }
+        label: '全局配置',
+      },
     ];
     if (pages.length) {
       for (const item of pages) {
         for (const module of item.modules) {
           modules.push({
             key: module.id,
-            label: (moduleType as any)[module.type].name
+            label: (moduleType as any)[module.type].name,
           });
         }
       }
@@ -60,12 +60,7 @@ function Panel() {
 
   useEffect(() => {
     getTabItems();
-
   }, [configStore.getConfig]);
-
-  useEffect(() => {
-    console.log(moduleActiveStore.getModuleActive, 'moduleActiveStore.getModuleActive');
-  }, [moduleActiveStore.getModuleActive]);
 
   return (
     <div className='min-w-[500px] max-w-[500px] w-[500px] bg-white mr-[20px] rounded-md text-black !h-[calc(100vh-100px)]'>

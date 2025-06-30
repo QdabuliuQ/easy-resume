@@ -30,7 +30,6 @@ import { configStore, moduleActiveStore } from '@/mobx';
 import dayjs from 'dayjs';
 import InfoLayout from '@/components/infoLayout';
 import Title from '@/components/title';
-import { update, useRender } from '@/hooks/render';
 import {
   AutoHeightOne,
   Avatar,
@@ -54,7 +53,6 @@ import {
 
 function Info1() {
   const [form] = Form.useForm();
-  const { render } = useRender();
   const cropperRef = useRef<any>(null);
   const uploadButton = useMemo(
     () => (
@@ -251,7 +249,24 @@ function Info1() {
       ...configStore.getConfigOption(moduleActiveStore.getModuleActive),
       [key]: value,
     });
-    // update(configStore.getConfig);
+  });
+
+  const formatLayout = useMemoizedFn((layout: Array<any>) => {
+    const newLayout: Array<Array<string>> = [];
+    for (const item of layout) {
+      if (!newLayout[item.y]) {
+        newLayout[item.y] = [];
+      }
+      newLayout[item.y][item.x] = item.i
+    }
+    return newLayout;
+  });
+
+  const onDragStop = useMemoizedFn((newLayout: Array<any>) => {
+    configStore.setConfigOption(moduleActiveStore.getModuleActive, {
+      ...configStore.getConfigOption(moduleActiveStore.getModuleActive),
+      layout: formatLayout(newLayout),
+    });
   });
 
   return (
@@ -356,6 +371,7 @@ function Info1() {
         layout={
           configStore.getConfigOption(moduleActiveStore.getModuleActive).layout
         }
+        onDragStop={onDragStop}
       />
     </div>
   );

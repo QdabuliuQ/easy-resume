@@ -51,8 +51,8 @@ function Job(props: Props) {
               style={{ fontSize: fontSize + 'px' }}
             >
               <div className='flex justify-between mb-[5px]'>
-                <div className='flex-7 font-bold'>{item.company}</div>
-                <div className='flex-3 text-right'>
+                <div className='flex-5 font-bold'>{item.company}</div>
+                <div className='flex-5 text-right'>
                   {item.startDate} - {item.endDate}
                 </div>
               </div>

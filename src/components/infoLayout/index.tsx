@@ -9,7 +9,10 @@ import { AddOne, DeleteThree } from '@icon-park/react';
 import { useMemoizedFn } from 'ahooks';
 const GridLayoutWithWidth = WidthProvider(GridLayout);
 
-function InfoLayout(props: { layout: Array<Array<string>> }) {
+function InfoLayout(props: {
+  layout: Array<Array<string>>;
+  onDragStop: (newLayout: Array<any>) => void;
+}) {
   const [layout, setLayout] = useState<Array<any>>([]);
 
   useEffect(() => {
@@ -81,6 +84,7 @@ function InfoLayout(props: { layout: Array<Array<string>> }) {
     });
 
     setLayout(finalLayout);
+    props.onDragStop(finalLayout);
   };
 
   const removeItem = (value: any) => {

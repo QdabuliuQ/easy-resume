@@ -27,6 +27,7 @@ function Skill(props: Props) {
   const { config, globalStyle } = props;
   const { id, options } = config;
   const { fontSize, lineHeight } = globalStyle;
+  console.log(lineHeight, 'lineHeight');
 
   return (
     <ModuleOperation

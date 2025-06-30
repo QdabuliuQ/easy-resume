@@ -42,6 +42,8 @@ function Canvas() {
         // 等待渲染完成后测量
         setTimeout(() => {
           const height = container.offsetHeight;
+          console.log(height, 'height', props);
+          
           // 卸载并移除
           root.unmount();
           document.body.removeChild(container);
@@ -90,9 +92,10 @@ function Canvas() {
         for (const module of page) {
           pageModules.push(module);
         }
+        console.log(resume.globalStyle, 'resume.globalStyle');
         allPages.push(
           <div key={currentIndex++} className={styles.pageContainer}>
-            <Page globalStyle={resume.globalStyle}>{pageModules}</Page>
+            <Page {...resume.globalStyle}>{pageModules}</Page>
           </div>
         );
       }
