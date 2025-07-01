@@ -27,7 +27,6 @@ function Skill(props: Props) {
   const { config, globalStyle } = props;
   const { id, options } = config;
   const { fontSize, lineHeight } = globalStyle;
-  console.log(lineHeight, 'lineHeight');
 
   return (
     <ModuleOperation
@@ -39,7 +38,7 @@ function Skill(props: Props) {
           <Header1 config={options} globalStyle={globalStyle} />
         </div>
         <div
-          className='w-full text-[#333]'
+          className='w-full text-[#333] whitespace-pre-wrap'
           style={{ fontSize: fontSize + 'px', lineHeight: lineHeight }}
         >
           {options.description}

@@ -93,7 +93,7 @@ export default {
                 company: '公司',
                 post: '职位',
                 department: '部门',
-                city: '城市',
+                city: '山西 - 太原',
                 startDate: '2020-01-01',
                 endDate: '2021-01-01',
                 description:

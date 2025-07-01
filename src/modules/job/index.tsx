@@ -56,13 +56,21 @@ function Job(props: Props) {
                   {item.startDate} - {item.endDate}
                 </div>
               </div>
-              {item.post && (
+              {(item.post || item.department || item.city) && (
                 <div className='flex justify-between mb-[5px]'>
-                  <div className='flex-6'>{item.post}</div>
+                  <div className='flex-6'>
+                    {item.post}
+                    {item.post ? ' ' : ''}
+                    {item.department}
+                  </div>
+                  <div className='flex-2 text-right'>{item.city}</div>
                 </div>
               )}
               {item.description && (
-                <div className='w-full' style={{ lineHeight: lineHeight }}>
+                <div
+                  className='w-full whitespace-pre-wrap'
+                  style={{ lineHeight: lineHeight }}
+                >
                   {item.description}
                 </div>
               )}

@@ -1,8 +1,11 @@
 import { memo, MemoExoticComponent, useEffect, useMemo, useState } from 'react';
 import Info1 from './components/info1';
+import Certificate from './components/certificate';
+import Skill from './components/skill';
 import Global from './components/global';
+import Job from './components/job';
 import { observer } from 'mobx-react';
-import { useMemoizedFn, useMount } from 'ahooks';
+import { useMemoizedFn } from 'ahooks';
 import { getModuleInfo } from '@/utils';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { Tabs } from 'antd';
@@ -12,6 +15,9 @@ function Panel() {
   const PanelMapped: { [key: string]: MemoExoticComponent<any> } = useMemo(
     () => ({
       info1: Info1,
+      certificate: Certificate,
+      skill: Skill,
+      job: Job,
     }),
     []
   );

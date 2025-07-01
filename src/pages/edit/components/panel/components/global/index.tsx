@@ -1,18 +1,20 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 
 import { configStore } from '@/mobx';
 import { observer } from 'mobx-react';
-import { Col, ColorPicker, Form, InputNumber, Row } from 'antd';
+import { Col, ColorPicker, Form, InputNumber, Popconfirm, Row } from 'antd';
 import styles from './index.module.less';
-import { useDebounceFn } from 'ahooks';
+import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import Title from '@/components/title';
 import FormItem from '@/components/formItem';
 import {
   AutoHeightOne,
   AutoLineHeight,
   BackgroundColor,
+  Delete,
   ExpandLeftAndRight,
   FontSize,
+  SlidingVertical,
 } from '@icon-park/react';
 import GridLayout from 'react-grid-layout';
 import { moduleType } from '@/modules/utils/constant';
@@ -45,7 +47,8 @@ function Global() {
     for (const page of config.pages) {
       for (const module of page.modules) {
         layout.push({
-          i: (moduleType as any)[module.type].name,
+          name: (moduleType as any)[module.type].name,
+          id: module.id,
           x: 0,
           y: i++,
           w: 1,
@@ -55,6 +58,59 @@ function Global() {
     }
     setModuleLayout(layout);
   }, [configStore.getConfig]);
+
+  const confirmDelete = (index: number) => {
+    const config = configStore.getConfig;
+    if (!config) return;
+    let idx = 0;
+    for (const page of config.pages) {
+      for (const _ of page.modules) {
+        if (idx === index) {
+          page.modules.splice(idx, 1);
+          configStore.setConfig({
+            ...config,
+            pages: [...config.pages],
+          });
+          return;
+        }
+        idx++;
+      }
+    }
+  };
+
+  const findModule = useMemoizedFn((id: string) => {
+    const config = configStore.getConfig;
+    if (!config) return;
+    for (const page of config.pages) {
+      for (const module of page.modules) {
+        if (module.id == id) {
+          return module;
+        }
+      }
+    }
+    return null;
+  });
+
+  const moduleLayoutChange = useMemoizedFn(
+    (newModuleLayout: Array<{ name: string; id: string }>) => {
+      setModuleLayout(newModuleLayout);
+      const config = configStore.getConfig;
+      if (!config) return;
+      const modules = [];
+      for (const item of newModuleLayout) {
+        modules.push(findModule(item.id));
+      }
+      configStore.setConfig({
+        ...config,
+        pages: [
+          {
+            ...(config.pages[0] ?? { moduleMargin: 15 }),
+            modules,
+          },
+        ],
+      });
+    }
+  );
 
   return (
     <div className={styles.globalPanel}>
@@ -135,38 +191,88 @@ function Global() {
                 />
               </FormItem>
             </Col>
+            <Col span={12}>
+              <FormItem
+                label='主题颜色'
+                icon={<BackgroundColor theme='outline' size='15' fill='#333' />}
+              >
+                <ColorPicker
+                  defaultValue={global.color}
+                  onChange={(_, rgba) => handleChange(rgba, 'color')}
+                />
+              </FormItem>
+            </Col>
           </Row>
+          {/* Glassmorphism 风格模块排列说明 */}
           <Title title='模块排列' />
-          {/* 用 react-grid-layout 实现竖向排列 */}
-          <div className='w-full bg-gray-100 rounded-lg p-[10px]'>
+          <div className='w-full bg-gray-100 rounded-lg p-[5px] overflow-y-auto max-h-[400px]'>
             <GridLayout
               className=''
               layout={moduleLayout}
               cols={1}
               rowHeight={40}
               margin={[10, 10]}
-              width={440}
+              width={450}
               isResizable={false}
               compactType='vertical'
+              draggableHandle='.drag-handle'
+              /*
               onDragStop={(layout: any) => {
-                // 竖向排列时，layout 已经是按 y 排序
-                // 只需将 key 按 y 排序后存储
-                const newLayout = layout
+                // layout 是 react-grid-layout 生成的布局数组，每一项的 i 字段对应 moduleLayout 的 key
+                // 假设 moduleLayout 的每一项有自定义参数（如 name、type 等）
+                // 通过 layout 的顺序重组 moduleLayout
+                const newModuleLayout = layout
                   .sort((a: any, b: any) => a.y - b.y)
-                  .map((item: any) => [item.i]);
-                handleChange(newLayout, 'layout');
+                  .map((item: any) => {
+                    // 这里假设 item.i 是 moduleLayout 的 key（如 y 或 id）
+                    // 你可以根据实际 key 字段调整
+                    return moduleLayout.find((m: any) => m.y === item.i);
+                  })
+                  .filter(Boolean); // 过滤掉找不到的情况
+                // 现在 newModuleLayout 就是包含自定义参数的新顺序
+                // 你可以 setState 或做其他处理
+                console.log(newModuleLayout, '带自定义参数的新顺序');
+              }}
+              */
+              onDragStop={(layout: any) => {
+                const newModuleLayout = layout
+                  .sort((a: any, b: any) => a.y - b.y)
+                  .map((item: any) =>
+                    moduleLayout.find((m: any) => m.y == item.i)
+                  )
+                  .filter(Boolean);
+                moduleLayoutChange(newModuleLayout);
               }}
             >
               {moduleLayout
-                ? moduleLayout.map((item: any) => (
+                ? moduleLayout.map((item: any, index: number) => (
                     <div
                       key={item.y}
-                      className='w-full bg-blue-300 cursor-move rounded-lg flex items-center justify-center text-white font-bold'
+                      className='w-full bg-blue-300 rounded-lg flex items-center justify-center text-white font-bold relative hover:bg-blue-400 transition-all'
                       style={{
                         transition: 'box-shadow 0.2s',
                       }}
                     >
-                      {item.i}
+                      <SlidingVertical
+                        className='drag-handle absolute top-1/2 left-[15px] translate-y-[-50%] cursor-move'
+                        theme='outline'
+                        size='20'
+                        fill='#fff'
+                      />
+                      {item.name}
+                      <Popconfirm
+                        title='提示'
+                        placement='top'
+                        description='确定要删除吗？'
+                        okText='确定'
+                        cancelText='取消'
+                        overlayStyle={{ width: '200px' }}
+                        onConfirm={() => confirmDelete(index)}
+                      >
+                        <div className='absolute top-1/2 right-[15px] translate-y-[-50%] cursor-pointer'>
+                          <Delete theme='outline' size='18' fill='#fff' />
+                        </div>
+                      </Popconfirm>
                     </div>
                   ))
                 : null}

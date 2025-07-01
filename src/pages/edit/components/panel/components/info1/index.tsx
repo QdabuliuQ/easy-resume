@@ -38,6 +38,7 @@ import {
   Briefcase,
   BuildingTwo,
   City,
+  EditName,
   Family,
   Finance,
   IdCardV,
@@ -102,6 +103,7 @@ function Info1() {
         key: 'name',
         span: 12,
         controllerType: 'input',
+        icon: <EditName theme='outline' size='15' fill='#333' />,
       },
       {
         key: 'phone',
@@ -257,7 +259,7 @@ function Info1() {
       if (!newLayout[item.y]) {
         newLayout[item.y] = [];
       }
-      newLayout[item.y][item.x] = item.i
+      newLayout[item.y][item.x] = item.i;
     }
     return newLayout;
   });
