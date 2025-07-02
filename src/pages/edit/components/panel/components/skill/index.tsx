@@ -2,7 +2,7 @@ import FormItem from '@/components/formItem';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { DocSuccess } from '@icon-park/react';
-import { useDebounceFn, useMemoizedFn } from 'ahooks';
+import { useDebounceFn } from 'ahooks';
 import { Form, Input } from 'antd';
 import { observer } from 'mobx-react';
 import { memo } from 'react';
@@ -18,7 +18,6 @@ function Skill() {
     if (!config) return;
     const module = getModule(moduleActive);
     if (!module) return;
-    console.log(e.target.value, 'e.target.value');
 
     module.options.description = e.target.value;
     configStore.setConfig({

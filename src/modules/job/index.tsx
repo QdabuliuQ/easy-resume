@@ -5,7 +5,7 @@ import { moduleActiveStore } from '@/mobx';
 import Header1 from '../header/header1';
 import { observer } from 'mobx-react';
 
-interface JobProps {
+export interface JobProps {
   id: string;
   type: 'job';
   options: {

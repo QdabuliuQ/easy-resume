@@ -143,33 +143,31 @@ function ModuleOperation(props: {
           {props.isActive ? (
             <div className='flex items-center'>
               {!isFirst && (
-                <div className='box-sizing-border not-last:border-r not-last:border-r-[#ffffffb0] not-last:border-r-[1px] w-[35px] h-[30px] flex items-center justify-center bg-blue-300 hover:bg-blue-400 transition-all'>
-                  <ArrowCircleUp
-                    theme='outline'
-                    size='17'
-                    fill='#fff'
-                    onClick={upHandle}
-                  />
+                <div
+                  onClick={upHandle}
+                  className='box-sizing-border not-last:border-r not-last:border-r-[#ffffffb0] not-last:border-r-[1px] w-[35px] h-[30px] flex items-center justify-center bg-blue-300 hover:bg-blue-400 transition-all'
+                >
+                  <ArrowCircleUp theme='outline' size='17' fill='#fff' />
                 </div>
               )}
               {!isLast && (
-                <div className='box-sizing-border not-last:border-r not-last:border-r-[#ffffffb0] not-last:border-r-[1px] w-[35px] h-[30px] flex items-center justify-center bg-blue-300 hover:bg-blue-400 transition-all'>
+                <div
+                  onClick={downHandle}
+                  className='box-sizing-border not-last:border-r not-last:border-r-[#ffffffb0] not-last:border-r-[1px] w-[35px] h-[30px] flex items-center justify-center bg-blue-300 hover:bg-blue-400 transition-all'
+                >
                   <ArrowCircleUp
                     className='rotate-180'
                     theme='outline'
                     size='17'
                     fill='#fff'
-                    onClick={downHandle}
                   />
                 </div>
               )}
-              <div className='box-sizing-border not-last:border-r not-last:border-r-[#ffffffb0] not-last:border-r-[1px] w-[35px] h-[30px] flex items-center justify-center bg-blue-300 hover:bg-blue-400 transition-all'>
-                <DeleteOne
-                  theme='outline'
-                  size='17'
-                  fill='#fff'
-                  onClick={deleteHandle}
-                />
+              <div
+                onClick={deleteHandle}
+                className='box-sizing-border not-last:border-r not-last:border-r-[#ffffffb0] not-last:border-r-[1px] w-[35px] h-[30px] flex items-center justify-center bg-blue-300 hover:bg-blue-400 transition-all'
+              >
+                <DeleteOne theme='outline' size='17' fill='#fff' />
               </div>
             </div>
           ) : (

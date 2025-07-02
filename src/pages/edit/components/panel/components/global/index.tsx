@@ -216,24 +216,6 @@ function Global() {
               isResizable={false}
               compactType='vertical'
               draggableHandle='.drag-handle'
-              /*
-              onDragStop={(layout: any) => {
-                // layout 是 react-grid-layout 生成的布局数组，每一项的 i 字段对应 moduleLayout 的 key
-                // 假设 moduleLayout 的每一项有自定义参数（如 name、type 等）
-                // 通过 layout 的顺序重组 moduleLayout
-                const newModuleLayout = layout
-                  .sort((a: any, b: any) => a.y - b.y)
-                  .map((item: any) => {
-                    // 这里假设 item.i 是 moduleLayout 的 key（如 y 或 id）
-                    // 你可以根据实际 key 字段调整
-                    return moduleLayout.find((m: any) => m.y === item.i);
-                  })
-                  .filter(Boolean); // 过滤掉找不到的情况
-                // 现在 newModuleLayout 就是包含自定义参数的新顺序
-                // 你可以 setState 或做其他处理
-                console.log(newModuleLayout, '带自定义参数的新顺序');
-              }}
-              */
               onDragStop={(layout: any) => {
                 const newModuleLayout = layout
                   .sort((a: any, b: any) => a.y - b.y)
@@ -248,16 +230,13 @@ function Global() {
                 ? moduleLayout.map((item: any, index: number) => (
                     <div
                       key={item.y}
-                      className='w-full bg-blue-300 rounded-lg flex items-center justify-center text-white font-bold relative hover:bg-blue-400 transition-all'
-                      style={{
-                        transition: 'box-shadow 0.2s',
-                      }}
+                      className={`${styles.moduleItem} w-full rounded-lg flex items-center justify-center text-white font-bold relative hover:bg-blue-400 transition-all`}
                     >
                       <SlidingVertical
                         className='drag-handle absolute top-1/2 left-[15px] translate-y-[-50%] cursor-move'
                         theme='outline'
                         size='20'
-                        fill='#fff'
+                        fill='#1677ff'
                       />
                       {item.name}
                       <Popconfirm
@@ -270,7 +249,7 @@ function Global() {
                         onConfirm={() => confirmDelete(index)}
                       >
                         <div className='absolute top-1/2 right-[15px] translate-y-[-50%] cursor-pointer'>
-                          <Delete theme='outline' size='18' fill='#fff' />
+                          <Delete theme='outline' size='18' fill='#1677ff' />
                         </div>
                       </Popconfirm>
                     </div>

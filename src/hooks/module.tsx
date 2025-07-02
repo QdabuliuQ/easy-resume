@@ -19,5 +19,18 @@ export function useModuleHandle() {
     return null;
   });
 
-  return { clickModule, getModule };
+  const getModuleIndex = useMemoizedFn((id: string) => {
+    const config = configStore.getConfig;
+    if (!config) return;
+    for (let i = 0; i < config.pages.length; i++) {
+      for (let j = 0; j < config.pages[i].modules.length; j++) {
+        if (config.pages[i].modules[j].id === id) {
+          return { page: i, module: j };
+        }
+      }
+    }
+    return null;
+  });
+
+  return { clickModule, getModule, getModuleIndex };
 }
