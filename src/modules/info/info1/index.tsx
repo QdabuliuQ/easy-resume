@@ -3,6 +3,15 @@ import { GlobalStyle } from '@/modules/utils/common.type';
 import ModuleOperation from '@/components/moduleOperation';
 import { moduleActiveStore } from '@/mobx';
 import { observer } from 'mobx-react';
+import {
+  leftStyle,
+  nameStyle,
+  nameWrapperStyle,
+  rightStyle,
+  wrapperStyle,
+} from './style';
+import { StyleSheet, View, Text } from '@react-pdf/renderer';
+import pdfStyle from '@/utils/render';
 
 export interface InfoProps {
   id: string;
@@ -115,10 +124,7 @@ function Info1(props: Props) {
       id={id}
       isActive={id === moduleActiveStore.getModuleActive}
     >
-      <div
-        id={id}
-        className='w-full flex justify-between items-center cursor-pointer'
-      >
+      <div id={id} style={wrapperStyle} className='cursor-pointer'>
         <div className='flex-1'>
           <div className='mb-[10px] text-[24px] font-bold text-[#333] leading-none'>
             {name}
@@ -137,4 +143,18 @@ function Info1(props: Props) {
   );
 }
 
+export const Info1Render = (props: any) => {
+  return (
+    <View style={pdfStyle.info1_wrapper}>
+      <View style={pdfStyle.info1_wrapper_left}>
+        <View style={pdfStyle.info1_wrapper_name_wrapper}>
+          <Text style={pdfStyle.info1_wrapper_name}>123123</Text>
+        </View>
+      </View>
+      <View style={pdfStyle.info1_wrapper_right}>
+        <Text>123123</Text>
+      </View>
+    </View>
+  );
+};
 export default memo(observer(Info1));

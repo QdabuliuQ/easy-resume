@@ -23,6 +23,56 @@ export const moduleType = {
   },
 };
 
+export const schoolType = [
+  {
+    label: '985',
+    value: '985',
+  },
+  {
+    label: '211',
+    value: '211',
+  },
+  {
+    label: '双一流',
+    value: '双一流',
+  },
+  {
+    label: '海外QS前100',
+    value: '海外QS前100',
+  },
+];
+
+export const degree = [
+  {
+    label: '中专',
+    value: '中专',
+  },
+  {
+    label: '高中',
+    value: '高中',
+  },
+  {
+    label: '专科',
+    value: '专科',
+  },
+  {
+    label: '本科',
+    value: '本科',
+  },
+  {
+    label: '硕士',
+    value: '硕士',
+  },
+  {
+    label: '博士',
+    value: '博士',
+  },
+  {
+    label: 'MBA',
+    value: 'MBA',
+  },
+];
+
 export const gender = [
   {
     label: '男',

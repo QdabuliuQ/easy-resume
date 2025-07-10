@@ -4,6 +4,8 @@ import Certificate from './components/certificate';
 import Skill from './components/skill';
 import Global from './components/global';
 import Job from './components/job';
+import Project from './components/project';
+import Education from './components/education';
 import { observer } from 'mobx-react';
 import { useMemoizedFn } from 'ahooks';
 import { getModuleInfo } from '@/utils';
@@ -18,6 +20,8 @@ function Panel() {
       certificate: Certificate,
       skill: Skill,
       job: Job,
+      project: Project,
+      education: Education,
     }),
     []
   );
@@ -79,7 +83,9 @@ function Panel() {
         />
       </div>
       <div className='h-[calc(100%-42px)] overflow-auto'>
-        <div className='p-[20px]'>{PanelRender()}</div>
+        <div key={moduleActiveStore.getModuleActive} className='p-[20px]'>
+          {PanelRender()}
+        </div>
       </div>
     </div>
   );

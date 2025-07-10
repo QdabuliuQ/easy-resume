@@ -14,6 +14,7 @@ import { useDebounceFn, useMemoizedFn, useMount } from 'ahooks';
 import { useModuleHandle } from '@/hooks/module';
 import ButtonGroup from '../buttonGroup';
 import { CertificateProps } from '@/modules/certificate';
+import SplitLine from '../splitLine';
 
 function Certificate() {
   const { getModule, getModuleIndex } = useModuleHandle();
@@ -116,7 +117,7 @@ function Certificate() {
           {module.options.items.map((item: any, index: number) => (
             <div
               key={index}
-              className='w-full flex flex-col justify-flex-end items-end not-last:mb-5'
+              className='w-full flex flex-col justify-flex-end items-end mb-[10px]'
             >
               <Form layout='vertical' className='w-full'>
                 <Row gutter={15}>
@@ -161,14 +162,12 @@ function Certificate() {
                 handleDelete={() => handleDelete(index)}
                 handleCopy={() => handleCopy(index)}
               />
-              {index !== module.options.items.length - 1 && (
-                <div className='w-full h-[1px] bg-[#e5e5e5] mt-[10px]'></div>
-              )}
+              {index !== module.options.items.length - 1 && <SplitLine />}
             </div>
           ))}
         </div>
       ) : (
-        <Empty description='暂无数据' className='mb-5' />
+        <Empty description='暂无证书' className='mb-5' />
       )}
     </div>
   );

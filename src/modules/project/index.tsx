@@ -5,7 +5,7 @@ import { moduleActiveStore } from '@/mobx';
 import Header1 from '../header/header1';
 import { observer } from 'mobx-react';
 
-interface ProjectProps {
+export interface ProjectProps {
   id: string;
   type: 'project';
   options: {
@@ -59,7 +59,10 @@ function Project(props: Props) {
                   <div className='flex-6'>{item.role}</div>
                 </div>
               )}
-              <div className='w-full' style={{ lineHeight: lineHeight }}>
+              <div
+                className='w-full whitespace-pre-wrap'
+                style={{ lineHeight: lineHeight }}
+              >
                 {item.description}
               </div>
             </div>

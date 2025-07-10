@@ -1,62 +1,58 @@
 import FormItem from '@/components/formItem';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
-import { city } from '@/modules/utils/constant';
+import { ProjectProps } from '@/modules/project';
 import {
   Add,
-  Briefcase,
-  BuildingThree,
   Calendar,
-  HomeTwo,
+  EditOne,
+  DegreeHat,
+  School,
+  Bookmark,
+  City,
   Notes,
-  PullDoor,
+  BuildingFour,
 } from '@icon-park/react';
+import { useDebounceFn, useMemoizedFn, useMount } from 'ahooks';
 import {
-  Row,
-  Col,
-  Input,
-  Form,
-  Cascader,
   Button,
+  Cascader,
+  Col,
   DatePicker,
   Empty,
+  Form,
+  Input,
+  Row,
+  Select,
 } from 'antd';
+import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { memo, useState } from 'react';
-import styles from './index.module.less';
-import dayjs from 'dayjs';
-import { useDebounceFn, useMemoizedFn, useMount } from 'ahooks';
 import ButtonGroup from '../buttonGroup';
-import { JobProps } from '@/modules/job';
+import { city, degree, schoolType } from '@/modules/utils/constant';
+import { EducationProps } from '@/modules/education';
+import styles from './index.module.less';
 import SplitLine from '../splitLine';
 
-function Job() {
+function Education() {
   const { getModule, getModuleIndex } = useModuleHandle();
 
   const moduleActive = moduleActiveStore.getModuleActive;
 
-  const [module, setModule] = useState<JobProps | null>(null);
+  const [module, setModule] = useState<EducationProps | null>(null);
 
   useMount(() => {
     const _module = JSON.parse(JSON.stringify(getModule(moduleActive)));
-    _module.options.items = _module.options.items.map((item: any) => ({
-      ...item,
-      city: item.city.split(' - '),
-    }));
     setModule(_module);
   });
 
   const { run } = useDebounceFn(
-    (module: JobProps) => {
+    (module: ProjectProps) => {
       const config = configStore.getConfig;
       if (!config) return;
       const res = getModuleIndex(moduleActive);
       if (!res) return;
       const _module = JSON.parse(JSON.stringify(module));
-      _module.options.items = _module.options.items.map((item: any) => ({
-        ...item,
-        city: item.city.join(' - '),
-      }));
       config.pages[res.page].modules[res.module] = _module;
       configStore.setConfig({
         ...config,
@@ -66,51 +62,26 @@ function Job() {
     { wait: 100 }
   );
 
-  const updateModule = useMemoizedFn((module: JobProps) => {
-    const _module = JSON.parse(JSON.stringify(module));
-    setModule(_module);
-    run(_module);
-  });
-
-  const handleChange = useMemoizedFn((e: any, index: number, key: string) => {
-    const config = configStore.getConfig;
-    if (!config) return;
-    const module = getModule(moduleActive);
-    if (!module) return;
-    if (
-      key === 'company' ||
-      key === 'post' ||
-      key === 'department' ||
-      key === 'description'
-    ) {
-      module.options.items[index][key] = e.target.value;
-    } else if (key === 'city') {
-      module.options.items[index][key] = e.join(' - ');
-    } else if (key === 'date') {
-      module.options.items[index].startDate = e[0].format('YYYY-MM');
-      module.options.items[index].endDate = e[1].format('YYYY-MM');
-    }
-    updateModule(module);
-  });
-
-  const handleDelete = useMemoizedFn((index: number) => {
-    if (!module) return;
-    module.options.items.splice(index, 1);
-    updateModule(module);
-  });
-
   const handleAdd = useMemoizedFn(() => {
     if (!module) return;
     module.options.items.unshift({
-      company: '',
-      post: '',
-      department: '',
+      school: '',
+      degree: undefined as any,
+      major: '',
       city: '',
+      tags: [],
+      academy: '',
       startDate: undefined as any,
       endDate: undefined as any,
       description: '',
     });
     updateModule(module);
+  });
+
+  const updateModule = useMemoizedFn((module: EducationProps) => {
+    const _module = JSON.parse(JSON.stringify(module));
+    setModule(_module);
+    run(_module);
   });
 
   const handleUp = useMemoizedFn((index: number) => {
@@ -129,6 +100,12 @@ function Job() {
     updateModule(module);
   });
 
+  const handleDelete = useMemoizedFn((index: number) => {
+    if (!module) return;
+    module.options.items.splice(index, 1);
+    updateModule(module);
+  });
+
   const handleCopy = useMemoizedFn((index: number) => {
     if (!module) return;
     module.options.items.splice(
@@ -139,17 +116,37 @@ function Job() {
     updateModule(module);
   });
 
+  const handleChange = useMemoizedFn((e: any, index: number, key: string) => {
+    if (!module) return;
+    if (
+      key === 'school' ||
+      key === 'major' ||
+      key === 'academy' ||
+      key === 'description'
+    ) {
+      module.options.items[index][key] = e.target.value;
+    } else if (key === 'degree' || key === 'tags') {
+      console.log(e);
+      module.options.items[index][key] = e;
+    } else if (key === 'date') {
+      module.options.items[index].startDate = e[0].format('YYYY-MM');
+      module.options.items[index].endDate = e[1].format('YYYY-MM');
+    } else if (key === 'city') {
+      module.options.items[index][key] = e.join(' - ');
+    }
+    updateModule(module);
+  });
+
   return (
-    <div className={styles.job}>
+    <div className={styles.education}>
       <Button
-        className='mb-[20px] h-[40px]!'
-        color='primary'
-        variant='solid'
+        type='primary'
         block
         icon={<Add theme='outline' size='15' fill='#fff' />}
+        className='mb-[20px] h-[40px]!'
         onClick={handleAdd}
       >
-        添加工作经历
+        添加教育经历
       </Button>
       {module && module.options.items.length ? (
         module?.options.items.map((item: any, index: number) => (
@@ -157,62 +154,89 @@ function Job() {
             key={index}
             className='mb-[10px] flex flex-col items-end justify-end'
           >
-            <Form layout='vertical'>
+            <Form layout='vertical' className='w-full'>
               <Row gutter={15}>
                 <Col span={12}>
                   <FormItem
-                    label='公司'
-                    icon={
-                      <BuildingThree theme='outline' size='15' fill='#333' />
-                    }
+                    label='学校名称'
+                    icon={<School theme='outline' size='15' fill='#333' />}
                   >
                     <Input
-                      value={item.company}
-                      placeholder='请输入公司'
-                      onChange={(e) => handleChange(e, index, 'company')}
+                      value={item.school}
+                      placeholder='请输入学校名称'
+                      onChange={(e) => handleChange(e, index, 'school')}
                     />
                   </FormItem>
                 </Col>
                 <Col span={12}>
                   <FormItem
-                    label='职位'
-                    icon={<Briefcase theme='outline' size='15' fill='#333' />}
+                    label='学位'
+                    icon={<DegreeHat theme='outline' size='15' fill='#333' />}
                   >
-                    <Input
-                      value={item.post}
-                      placeholder='请输入职位'
-                      onChange={(e) => handleChange(e, index, 'post')}
+                    <Select
+                      options={degree}
+                      value={item.degree}
+                      onChange={(e) => handleChange(e, index, 'degree')}
+                      placeholder='请选择学位'
                     />
                   </FormItem>
                 </Col>
                 <Col span={12}>
                   <FormItem
-                    label='部门'
-                    icon={<PullDoor theme='outline' size='15' fill='#333' />}
+                    label='专业'
+                    icon={<Bookmark theme='outline' size='15' fill='#333' />}
                   >
                     <Input
-                      value={item.department}
-                      placeholder='请输入部门'
-                      onChange={(e) => handleChange(e, index, 'department')}
+                      value={item.major}
+                      placeholder='请输入专业'
+                      onChange={(e) => handleChange(e, index, 'major')}
                     />
                   </FormItem>
                 </Col>
                 <Col span={12}>
                   <FormItem
-                    label='城市'
-                    icon={<HomeTwo theme='outline' size='15' fill='#333' />}
+                    label='所在城市'
+                    icon={<City theme='outline' size='15' fill='#333' />}
                   >
                     <Cascader
-                      value={item.city}
                       options={city}
-                      placeholder='请选择城市'
+                      value={item.city}
                       onChange={(e) => handleChange(e, index, 'city')}
+                      placeholder='请选择城市'
                     />
                   </FormItem>
                 </Col>
                 <Col span={24}>
                   <FormItem
-                    label='在职时间'
+                    label='学校类型'
+                    icon={<Notes theme='outline' size='15' fill='#333' />}
+                  >
+                    <Select
+                      options={schoolType}
+                      value={item.tags}
+                      onChange={(e) => handleChange(e, index, 'tags')}
+                      placeholder='请选择学校类型'
+                      mode='multiple'
+                    />
+                  </FormItem>
+                </Col>
+                <Col span={24}>
+                  <FormItem
+                    label='学院'
+                    icon={
+                      <BuildingFour theme='outline' size='15' fill='#333' />
+                    }
+                  >
+                    <Input
+                      value={item.academy}
+                      placeholder='请输入学院'
+                      onChange={(e) => handleChange(e, index, 'academy')}
+                    />
+                  </FormItem>
+                </Col>
+                <Col span={24}>
+                  <FormItem
+                    label='在读时间'
                     icon={<Calendar theme='outline' size='15' fill='#333' />}
                   >
                     <DatePicker.RangePicker
@@ -221,21 +245,21 @@ function Job() {
                         item.startDate ? dayjs(item.startDate) : undefined,
                         item.endDate ? dayjs(item.endDate) : undefined,
                       ]}
+                      format='YYYY-MM'
                       placeholder={['开始时间', '结束时间']}
                       onChange={(e) => handleChange(e, index, 'date')}
-                      format='YYYY-MM'
                     />
                   </FormItem>
                 </Col>
                 <Col span={24}>
                   <FormItem
-                    label='工作内容'
-                    icon={<Notes theme='outline' size='15' fill='#333' />}
+                    label='在校经历'
+                    icon={<EditOne theme='outline' size='15' fill='#333' />}
                   >
                     <Input.TextArea
                       value={item.description}
-                      placeholder='请输入工作内容'
                       autoSize={{ minRows: 7 }}
+                      placeholder='请输入在校经历'
                       onChange={(e) => handleChange(e, index, 'description')}
                     />
                   </FormItem>
@@ -254,10 +278,10 @@ function Job() {
           </div>
         ))
       ) : (
-        <Empty description='暂无工作经历' className='mb-5' />
+        <Empty description='暂无教育经历' />
       )}
     </div>
   );
 }
 
-export default memo(observer(Job));
+export default memo(observer(Education));

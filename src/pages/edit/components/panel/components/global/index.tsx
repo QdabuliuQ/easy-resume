@@ -1,6 +1,6 @@
 import { memo, useEffect, useState } from 'react';
 
-import { configStore } from '@/mobx';
+import { configStore, moduleActiveStore } from '@/mobx';
 import { observer } from 'mobx-react';
 import { Col, ColorPicker, Form, InputNumber, Popconfirm, Row } from 'antd';
 import styles from './index.module.less';
@@ -12,6 +12,7 @@ import {
   AutoLineHeight,
   BackgroundColor,
   Delete,
+  Edit,
   ExpandLeftAndRight,
   FontSize,
   SlidingVertical,
@@ -111,6 +112,10 @@ function Global() {
       });
     }
   );
+
+  const editModule = useMemoizedFn((item: any) => {
+    moduleActiveStore.setModuleActive(item.id);
+  });
 
   return (
     <div className={styles.globalPanel}>
@@ -230,7 +235,7 @@ function Global() {
                 ? moduleLayout.map((item: any, index: number) => (
                     <div
                       key={item.y}
-                      className={`${styles.moduleItem} w-full rounded-lg flex items-center justify-center text-white font-bold relative hover:bg-blue-400 transition-all`}
+                      className={`${styles.moduleItem} w-full rounded-lg flex items-center justify-center text-white font-bold relative transition-all`}
                     >
                       <SlidingVertical
                         className='drag-handle absolute top-1/2 left-[15px] translate-y-[-50%] cursor-move'
@@ -249,9 +254,16 @@ function Global() {
                         onConfirm={() => confirmDelete(index)}
                       >
                         <div className='absolute top-1/2 right-[15px] translate-y-[-50%] cursor-pointer'>
-                          <Delete theme='outline' size='18' fill='#1677ff' />
+                          <Delete theme='outline' size='17' fill='#1677ff' />
                         </div>
                       </Popconfirm>
+                      <Edit
+                        className='absolute top-1/2 right-[42px] translate-y-[-50%] cursor-pointer'
+                        theme='outline'
+                        size='18'
+                        fill='#1677ff'
+                        onClick={() => editModule(item)}
+                      />
                     </div>
                   ))
                 : null}

@@ -113,7 +113,7 @@ function InfoLayout(props: {
           <div
             onClick={() => addItem(key)}
             key={key}
-            className='px-[10px] h-[30px] bg-gray-400 flex items-center rounded-[5px] text-white text-[12px] font-bold relative cursor-pointer text-white font-bold'
+            className='px-[10px] h-[30px] bg-gray-300 flex items-center rounded-[5px] text-white text-[12px] font-bold relative cursor-pointer text-white font-bold hover:bg-gray-400 transition-all duration-300'
           >
             <AddOne
               className='mr-[5px]'
@@ -145,11 +145,11 @@ function InfoLayout(props: {
           {layout.map((item) => (
             <div
               key={item.i}
-              className='bg-blue-300 flex items-center justify-center rounded-lg text-white text-[12px] font-bold relative cursor-move text-white font-bold'
+              className={`${styles.gridItem} bg-white flex items-center justify-center rounded-lg text-gray-500 text-[11px] font-bold relative cursor-move hover:bg-blue-400 hover:text-white transition-all duration-300`}
             >
               {info[item.i as keyof typeof info]}
               <DeleteThree
-                className='absolute top-[-5px] right-[-5px] cursor-pointer'
+                className={`${styles.deleteIcon} opacity-0 absolute top-[-5px] right-[-5px] cursor-pointer`}
                 theme='filled'
                 size='16'
                 fill='red'

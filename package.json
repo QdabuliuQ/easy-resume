@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@icon-park/react": "^1.4.2",
+    "@react-pdf/renderer": "^4.3.0",
     "@tailwindcss/vite": "^4.0.9",
     "ahooks": "^3.8.5",
     "antd": "^5.25.4",
