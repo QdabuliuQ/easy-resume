@@ -189,7 +189,9 @@ function Canvas() {
   }, [configStore.getConfig]);
 
   return (
-    <div className='w-full mt-[20px] rounded-md overflow-hidden'>{pages}</div>
+    <div className='w-full rounded-md overflow-hidden flex items-center justify-center flex-col'>
+      {pages}
+    </div>
   );
 }
 

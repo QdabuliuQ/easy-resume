@@ -1,45 +1,152 @@
 import FormItem from '@/components/formItem';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
+import { SkillProps } from '@/modules/skill';
 import { DocSuccess } from '@icon-park/react';
-import { useDebounceFn } from 'ahooks';
-import { Form, Input } from 'antd';
+import { ThunderboltOutlined } from '@ant-design/icons';
+import { useDebounceFn, useMemoizedFn } from 'ahooks';
+import { Form } from 'antd';
 import { observer } from 'mobx-react';
-import { memo } from 'react';
+import { memo, useEffect, useId, useState, type CSSProperties } from 'react';
+import PanelToolbar from '../panelToolbar';
+import RichTextEditor from '@/components/richTextEditor';
+import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 
-function Skill() {
-  const { getModule } = useModuleHandle();
+const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
 
-  const moduleActive = moduleActiveStore.getModuleActive;
-  const module = getModule(moduleActive);
+function Skill({ moduleId }: { moduleId?: string } = {}) {
+  const { getModule, getModuleIndex } = useModuleHandle();
+  const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
+  const [editOpen, setEditOpen] = useState(false);
+  const [module, setModule] = useState<SkillProps | null>(null);
+  const gradId = useId().replace(/:/g, '');
+  const iconGradId = `skill-icon-grad-${gradId}`;
 
-  const { run: handleChange } = useDebounceFn((e: any) => {
-    const config = configStore.getConfig;
-    if (!config) return;
-    const module = getModule(moduleActive);
+  useEffect(() => {
+    const m = getModule(moduleActive);
+    if (m) {
+      setModule(JSON.parse(JSON.stringify(m)));
+    } else {
+      setModule(null);
+    }
+  }, [moduleActive, configStore.getConfig]);
+
+  const { run } = useDebounceFn(
+    (mod: SkillProps) => {
+      const config = configStore.getConfig;
+      if (!config) return;
+      const res = getModuleIndex(moduleActive);
+      if (!res) return;
+      config.pages[res.page].modules[res.module] = JSON.parse(
+        JSON.stringify(mod)
+      );
+      configStore.setConfig({
+        ...config,
+        pages: [...config.pages],
+      });
+    },
+    { wait: 100 }
+  );
+
+  const updateDescription = useMemoizedFn((text: string) => {
     if (!module) return;
-
-    module.options.description = e.target.value;
-    configStore.setConfig({
-      ...config,
-      pages: [...config.pages],
-    });
+    module.options.description = text;
+    const next = JSON.parse(JSON.stringify(module));
+    setModule(next);
+    run(next);
   });
 
+  const rawHtml = module?.options.description ?? '';
+  const previewText = plainTextFromRichHtml(rawHtml);
+
   return (
-    <Form layout='vertical'>
-      <FormItem
-        label='技能'
-        icon={<DocSuccess theme='outline' size='15' fill='#333' />}
-      >
-        <Input.TextArea
-          autoSize={{ minRows: 10 }}
-          placeholder='请输入技能'
-          defaultValue={module?.options.description}
-          onChange={(e) => handleChange(e)}
+    <div className='[&_.ant-form-item]:!mb-2.5'>
+      <div className='mb-3 flex items-center justify-between'>
+        <div className='flex items-center'>
+          <svg
+            width={0}
+            height={0}
+            className='pointer-events-none size-0 shrink-0 overflow-hidden'
+            aria-hidden
+          >
+            <defs>
+              <linearGradient
+                id={iconGradId}
+                x1='0%'
+                y1='0%'
+                x2='100%'
+                y2='100%'
+              >
+                <stop offset='0%' stopColor='#fde047' />
+                <stop offset='100%' stopColor='#f97316' />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div
+            className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-base [&_.anticon_svg_path]:!fill-[var(--skill-icon-fill)]'
+            style={
+              {
+                ['--skill-icon-fill']: `url(#${iconGradId})`,
+              } as CSSProperties
+            }
+            aria-hidden
+          >
+            <ThunderboltOutlined />
+          </div>
+          <span className='ml-[10px] text-[15px] font-medium text-white/95'>
+            技能
+          </span>
+        </div>
+        <PanelToolbar
+          moduleId={moduleActive}
+          editOpen={editOpen}
+          setEditOpen={setEditOpen}
         />
-      </FormItem>
-    </Form>
+      </div>
+
+      {!editOpen && module && (
+        <div
+          key='preview'
+          className='info1-panel-animate rounded-lg border border-white/[0.08] bg-white/[0.06] px-3.5 py-3 text-white/95'
+        >
+          <div className='mb-2 text-[15px] font-medium'>
+            {module.options.title || '技能'}
+          </div>
+          {!previewText ? (
+            <div className='text-[13px] text-white/75'>暂无技能描述</div>
+          ) : (
+            <div
+              className='skill-rich-html max-h-[280px] overflow-y-auto break-words text-[13px] text-white/75 [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5'
+              dangerouslySetInnerHTML={{ __html: rawHtml }}
+            />
+          )}
+        </div>
+      )}
+
+      {editOpen && module ? (
+        <div
+          key='edit'
+          className='info1-panel-animate mt-1 rounded-lg border border-white/[0.08] bg-white/[0.06] p-[10px] text-white/95'
+        >
+          <Form layout='vertical'>
+            <FormItem
+              label='技能'
+              labelClassName='text-[13px] text-white/85'
+              icon={
+                <DocSuccess theme='outline' size='15' fill={FORM_ICON_FILL} />
+              }
+            >
+              <RichTextEditor
+                instanceKey={`${moduleActive}-skill`}
+                html={module.options.description ?? ''}
+                onHtmlChange={updateDescription}
+                placeholder='请输入技能…'
+              />
+            </FormItem>
+          </Form>
+        </div>
+      ) : null}
+    </div>
   );
 }
 

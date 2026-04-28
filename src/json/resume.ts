@@ -1,4 +1,5 @@
 export default {
+  name: '张三',
   globalStyle: {
     width: 595,
     height: 842,
@@ -8,6 +9,7 @@ export default {
     verticalMargin: 10,
     color: '#43a8ff',
     backgroundColor: '#fff',
+    padding: 20,
   },
   pages: [
     {

@@ -1,39 +1,44 @@
 import FormItem from '@/components/formItem';
+import { FileDoneOutlined } from '@ant-design/icons';
 import { configStore, moduleActiveStore } from '@/mobx';
-import { Button, Col, DatePicker, Empty, Form, Input, Row } from 'antd';
+import { Col, DatePicker, Empty, Form, Input, Row } from 'antd';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
-import { memo, useState } from 'react';
-import {
-  Add,
-  Calendar,
-  Certificate as CertificateIcon,
-} from '@icon-park/react';
-import styles from './index.module.less';
-import { useDebounceFn, useMemoizedFn, useMount } from 'ahooks';
+import { memo, useEffect, useId, useState, type CSSProperties } from 'react';
+import { Calendar, Certificate as CertificateIcon } from '@icon-park/react';
+import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import { useModuleHandle } from '@/hooks/module';
+import AddGradientButton from '../addGradientButton';
 import ButtonGroup from '../buttonGroup';
+import PanelToolbar from '../panelToolbar';
 import { CertificateProps } from '@/modules/certificate';
 import SplitLine from '../splitLine';
 
-function Certificate() {
+const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
+
+function Certificate({ moduleId }: { moduleId?: string } = {}) {
   const { getModule, getModuleIndex } = useModuleHandle();
-
-  const moduleActive = moduleActiveStore.getModuleActive;
+  const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
+  const [editOpen, setEditOpen] = useState(false);
   const [module, setModule] = useState<CertificateProps | null>(null);
+  const gradId = useId().replace(/:/g, '');
 
-  useMount(() => {
-    const _module = JSON.parse(JSON.stringify(getModule(moduleActive)));
-    setModule(_module);
-  });
+  useEffect(() => {
+    const m = getModule(moduleActive);
+    if (m) {
+      setModule(JSON.parse(JSON.stringify(m)));
+    } else {
+      setModule(null);
+    }
+  }, [moduleActive, configStore.getConfig]);
 
   const { run } = useDebounceFn(
-    (module: CertificateProps) => {
+    (mod: CertificateProps) => {
       const config = configStore.getConfig;
       if (!config) return;
       const res = getModuleIndex(moduleActive);
       if (!res) return;
-      config.pages[res.page].modules[res.module] = module;
+      config.pages[res.page].modules[res.module] = mod;
       configStore.setConfig({
         ...config,
         pages: [...config.pages],
@@ -42,11 +47,12 @@ function Certificate() {
     { wait: 100 }
   );
 
-  const updateModule = useMemoizedFn((module: CertificateProps) => {
-    const _module = JSON.parse(JSON.stringify(module));
+  const updateModule = useMemoizedFn((mod: CertificateProps) => {
+    const _module = JSON.parse(JSON.stringify(mod));
     setModule(_module);
     run(_module);
   });
+
   const addCertificate = useMemoizedFn(() => {
     if (!module) return;
     module.options.items.unshift({
@@ -100,75 +106,161 @@ function Certificate() {
     updateModule(module);
   });
 
+  const iconGradId = `certificate-icon-grad-${gradId}`;
+
   return (
-    <div className={styles.certificate}>
-      <Button
-        className='mb-[20px] h-[40px]!'
-        color='primary'
-        variant='solid'
-        block
-        icon={<Add theme='outline' size='15' fill='#fff' />}
-        onClick={addCertificate}
-      >
-        添加证书
-      </Button>
-      {module && module.options.items.length > 0 ? (
-        <div className='flex flex-col justify-flex-end items-end mb-5'>
-          {module.options.items.map((item: any, index: number) => (
-            <div
-              key={index}
-              className='w-full flex flex-col justify-flex-end items-end mb-[10px]'
-            >
-              <Form layout='vertical' className='w-full'>
-                <Row gutter={15}>
-                  <Col span={12}>
-                    <FormItem
-                      label='证书名称'
-                      icon={
-                        <CertificateIcon
-                          theme='outline'
-                          size='15'
-                          fill='#333'
-                        />
-                      }
-                    >
-                      <Input
-                        value={item.name}
-                        placeholder='请输入证书名称'
-                        onChange={(e) => handleChange(index, 'name', e)}
-                      />
-                    </FormItem>
-                  </Col>
-                  <Col span={12}>
-                    <FormItem
-                      label='获取日期'
-                      icon={<Calendar theme='outline' size='15' fill='#333' />}
-                    >
-                      <DatePicker
-                        style={{ width: '100%' }}
-                        value={dayjs(item.date)}
-                        placeholder='请选择获取日期'
-                        onChange={(e) => handleChange(index, 'date', e)}
-                      />
-                    </FormItem>
-                  </Col>
-                </Row>
-              </Form>
-              <ButtonGroup
-                showUp={index !== 0}
-                showDown={index !== module?.options.items.length - 1}
-                handleUp={() => handleUp(index)}
-                handleDown={() => handleDown(index)}
-                handleDelete={() => handleDelete(index)}
-                handleCopy={() => handleCopy(index)}
-              />
-              {index !== module.options.items.length - 1 && <SplitLine />}
-            </div>
-          ))}
+    <div className='[&_.ant-form-item]:!mb-2.5'>
+      <div className='mb-3 flex items-center justify-between'>
+        <div className='flex items-center'>
+          <svg
+            width={0}
+            height={0}
+            className='pointer-events-none size-0 shrink-0 overflow-hidden'
+            aria-hidden
+          >
+            <defs>
+              <linearGradient
+                id={iconGradId}
+                x1='0%'
+                y1='0%'
+                x2='100%'
+                y2='100%'
+              >
+                <stop offset='0%' stopColor='#FCEA88' />
+                <stop offset='100%' stopColor='#e9754a' />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div
+            className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-base [&_.anticon_svg_path]:!fill-[var(--cert-icon-fill)]'
+            style={
+              {
+                ['--cert-icon-fill']: `url(#${iconGradId})`,
+              } as CSSProperties
+            }
+            aria-hidden
+          >
+            <FileDoneOutlined />
+          </div>
+          <span className='ml-[10px] text-[15px] font-medium text-white/95'>
+            证书
+          </span>
         </div>
-      ) : (
-        <Empty description='暂无证书' className='mb-5' />
+        <PanelToolbar
+          moduleId={moduleActive}
+          editOpen={editOpen}
+          setEditOpen={setEditOpen}
+        />
+      </div>
+
+      {!editOpen && module && (
+        <div
+          key='preview'
+          className='info1-panel-animate rounded-lg border border-white/[0.08] bg-white/[0.06] px-3.5 py-3 text-white/95'
+        >
+          <div className='mb-2 text-[15px] font-medium'>
+            {module.options.title || '证书'}
+          </div>
+          {module.options.items.length === 0 ? (
+            <div className='text-[13px] text-white/75'>暂无证书条目</div>
+          ) : (
+            <>
+              <div className='flex max-h-[200px] flex-col gap-1.5 overflow-y-auto'>
+                {module.options.items
+                  .slice(0, 12)
+                  .map((item: any, i: number) => (
+                    <div
+                      key={i}
+                      className='break-all text-[13px] text-white/75'
+                    >
+                      {item.name || '—'} · {item.date || '—'}
+                    </div>
+                  ))}
+              </div>
+              <div className='pt-2 text-[12px] text-white/45'>
+                共 {module.options.items.length} 条
+                {module.options.items.length > 12
+                  ? '（预览仅显示前 12 条）'
+                  : ''}
+              </div>
+            </>
+          )}
+        </div>
       )}
+
+      {editOpen && module ? (
+        <div
+          key='edit'
+          className='info1-panel-animate mt-1 rounded-lg border border-white/[0.08] bg-white/[0.06] p-[10px] text-white/95'
+        >
+          <AddGradientButton onClick={addCertificate}>添加证书</AddGradientButton>
+          {module.options.items.length > 0 ? (
+            <div className='mb-5 flex flex-col items-end'>
+              {module.options.items.map((item: any, index: number) => (
+                <div
+                  key={index}
+                  className='mb-[10px] flex w-full flex-col items-end last:mb-0'
+                >
+                  <Form layout='vertical' className='w-full'>
+                    <Row gutter={15}>
+                      <Col span={12}>
+                        <FormItem
+                          label='证书名称'
+                          labelClassName='text-[13px] text-white/85'
+                          icon={
+                            <CertificateIcon
+                              theme='outline'
+                              size='15'
+                              fill={FORM_ICON_FILL}
+                            />
+                          }
+                        >
+                          <Input
+                            value={item.name}
+                            placeholder='请输入证书名称'
+                            onChange={(e) => handleChange(index, 'name', e)}
+                          />
+                        </FormItem>
+                      </Col>
+                      <Col span={12}>
+                        <FormItem
+                          label='获取日期'
+                          labelClassName='text-[13px] text-white/85'
+                          icon={
+                            <Calendar
+                              theme='outline'
+                              size='15'
+                              fill={FORM_ICON_FILL}
+                            />
+                          }
+                        >
+                          <DatePicker
+                            style={{ width: '100%' }}
+                            value={dayjs(item.date)}
+                            placeholder='请选择获取日期'
+                            onChange={(e) => handleChange(index, 'date', e)}
+                          />
+                        </FormItem>
+                      </Col>
+                    </Row>
+                  </Form>
+                  <ButtonGroup
+                    showUp={index !== 0}
+                    showDown={index !== module.options.items.length - 1}
+                    handleUp={() => handleUp(index)}
+                    handleDown={() => handleDown(index)}
+                    handleDelete={() => handleDelete(index)}
+                    handleCopy={() => handleCopy(index)}
+                  />
+                  {index !== module.options.items.length - 1 && <SplitLine />}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Empty description='暂无证书' className='mb-5' />
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Scrollbars } from 'react-custom-scrollbars';
-import Header from '../header';
 import Canvas from '../canvas';
+import Header from '../header';
 
 function Main() {
   return (

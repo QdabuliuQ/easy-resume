@@ -1,0 +1,98 @@
+:global(.ql-toolbar.ql-snow) {
+  border: 1px solid #323236;
+}
+
+:global(.ql-container) {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+:global(.ql-snow .ql-stroke) {
+  stroke: #ffffff !important;
+}
+
+:global(.ql-snow .ql-fill) {
+  fill: #ffffff !important;
+}
+
+:global(.ql-toolbar) {
+  border-radius: 6px 6px 0 0;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #2a2a2e;
+  padding: 6px 8px;
+}
+
+:global(.ql-toolbar button) {
+  margin-right: 0 !important;
+  color: rgba(255, 255, 255, 0.85);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  &.ql-active {
+    background: rgba(255, 255, 255, 0.18) !important;
+  }
+}
+
+:global(.ql-toolbar .ql-picker-label) {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* toolbar 图标 path：stroke 橙色，悬停更亮 */
+:global(.ql-toolbar .ql-formats button .ql-stroke),
+:global(.ql-toolbar button .ql-stroke),
+:global(.ql-toolbar .ql-picker-label .ql-stroke) {
+  stroke: #ea580c;
+}
+
+:global(.ql-toolbar .ql-formats button:hover .ql-stroke),
+:global(.ql-toolbar button:hover .ql-stroke),
+:global(.ql-toolbar .ql-picker-label:hover .ql-stroke) {
+  stroke: #fb923c;
+}
+
+:global(.ql-toolbar .ql-picker-options) {
+  border-radius: 6px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background: #323236 !important;
+}
+
+:global(.ql-toolbar .ql-picker-item) {
+  color: rgba(255, 255, 255, 0.9) !important;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+}
+
+:global(.ql-container) {
+  border-radius: 0 0 6px 6px;
+  border: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1a1a1d;
+}
+
+:global(.ql-editor) {
+  min-height: 180px;
+  font-size: 13px !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+
+  a {
+    color: #38bdf8 !important;
+  }
+}
+
+:global(.ql-editor.ql-blank::before) {
+  left: 1rem !important;
+  font-style: normal !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.quillWrap {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}

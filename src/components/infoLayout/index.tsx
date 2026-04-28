@@ -5,8 +5,9 @@ import 'react-grid-layout/css/styles.css';
 import { WidthProvider } from 'react-grid-layout';
 import styles from './index.module.less';
 import { info } from '@/modules/utils/constant';
-import { AddOne, DeleteThree } from '@icon-park/react';
+import { AddOne } from '@icon-park/react';
 import { useMemoizedFn } from 'ahooks';
+import { Tag } from 'antd';
 const GridLayoutWithWidth = WidthProvider(GridLayout);
 
 function InfoLayout(props: {
@@ -131,7 +132,7 @@ function InfoLayout(props: {
 
   return (
     <div className={styles.infoLayout}>
-      <div className='w-full bg-gray-100 rounded-lg'>
+      <div className='w-full rounded-lg'>
         <GridLayoutWithWidth
           className='layout'
           layout={layout}
@@ -143,19 +144,18 @@ function InfoLayout(props: {
           onDragStop={onDragStop}
         >
           {layout.map((item) => (
-            <div
+            <Tag
               key={item.i}
-              className={`${styles.gridItem} bg-white flex items-center justify-center rounded-lg text-gray-500 text-[11px] font-bold relative cursor-move hover:bg-blue-400 hover:text-white transition-all duration-300`}
+              bordered
+              closable
+              onClose={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                removeItem(item.i);
+              }}
             >
               {info[item.i as keyof typeof info]}
-              <DeleteThree
-                className={`${styles.deleteIcon} opacity-0 absolute top-[-5px] right-[-5px] cursor-pointer`}
-                theme='filled'
-                size='16'
-                fill='red'
-                onClick={() => removeItem(item.i)}
-              />
-            </div>
+            </Tag>
           ))}
         </GridLayoutWithWidth>
       </div>

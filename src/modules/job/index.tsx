@@ -1,4 +1,5 @@
 import ModuleOperation from '@/components/moduleOperation';
+import { plainTextFromRichHtml, sanitizeRichTextHtml } from '@/utils/sanitizeHtml';
 import { memo } from 'react';
 import { GlobalStyle } from '../utils/common.type';
 import { moduleActiveStore } from '@/mobx';
@@ -66,14 +67,15 @@ function Job(props: Props) {
                   <div className='flex-2 text-right'>{item.city}</div>
                 </div>
               )}
-              {item.description && (
+              {plainTextFromRichHtml(item.description) ? (
                 <div
-                  className='w-full whitespace-pre-wrap'
+                  className='w-full text-[#333] [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5'
                   style={{ lineHeight: lineHeight }}
-                >
-                  {item.description}
-                </div>
-              )}
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeRichTextHtml(item.description),
+                  }}
+                />
+              ) : null}
             </div>
           ))}
         </div>
