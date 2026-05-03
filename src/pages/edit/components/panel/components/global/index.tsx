@@ -2,7 +2,7 @@ import { memo, useEffect, useState } from 'react';
 
 import { configStore, moduleActiveStore } from '@/mobx';
 import { observer } from 'mobx-react';
-import { Col, ColorPicker, Form, InputNumber, Popconfirm, Row } from 'antd';
+import { Col, ColorPicker, Form, InputNumber, Modal, Row } from 'antd';
 import styles from './index.module.less';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import Title from '@/components/title';
@@ -232,7 +232,19 @@ function Global() {
               }}
             >
               {moduleLayout
-                ? moduleLayout.map((item: any, index: number) => (
+                ? moduleLayout.map((item: any, index: number) => {
+                    const openDeleteConfirm = () => {
+                      Modal.confirm({
+                        title: '提示',
+                        content: '确定要删除吗？',
+                        okText: '确定',
+                        cancelText: '取消',
+                        okButtonProps: { danger: true },
+                        centered: true,
+                        onOk: () => confirmDelete(index),
+                      });
+                    };
+                    return (
                     <div
                       key={item.y}
                       className={`${styles.moduleItem} w-full rounded-lg flex items-center justify-center text-white font-bold relative transition-all`}
@@ -244,19 +256,24 @@ function Global() {
                         fill='#1677ff'
                       />
                       {item.name}
-                      <Popconfirm
-                        title='提示'
-                        placement='top'
-                        description='确定要删除吗？'
-                        okText='确定'
-                        cancelText='取消'
-                        overlayStyle={{ width: '200px' }}
-                        onConfirm={() => confirmDelete(index)}
+                      <div
+                        role='button'
+                        tabIndex={0}
+                        className='absolute top-1/2 right-[15px] translate-y-[-50%] cursor-pointer'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDeleteConfirm();
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            openDeleteConfirm();
+                          }
+                        }}
                       >
-                        <div className='absolute top-1/2 right-[15px] translate-y-[-50%] cursor-pointer'>
-                          <Delete theme='outline' size='17' fill='#1677ff' />
-                        </div>
-                      </Popconfirm>
+                        <Delete theme='outline' size='17' fill='#1677ff' />
+                      </div>
                       <Edit
                         className='absolute top-1/2 right-[42px] translate-y-[-50%] cursor-pointer'
                         theme='outline'
@@ -265,7 +282,8 @@ function Global() {
                         onClick={() => editModule(item)}
                       />
                     </div>
-                  ))
+                    );
+                  })
                 : null}
             </GridLayout>
           </div>

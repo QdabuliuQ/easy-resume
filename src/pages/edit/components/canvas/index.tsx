@@ -1,7 +1,5 @@
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useMemoizedFn } from 'ahooks';
-import styles from './index.module.less';
-
 import resume from '@/json/resume';
 
 import { observer } from 'mobx-react';
@@ -18,9 +16,86 @@ import {
 import { createRoot } from 'react-dom/client';
 import { configStore } from '@/mobx';
 import { getRandomId } from '@/utils';
+import { flattenModules, findModuleById } from '@/utils/resumePages';
+
+/** 容器内左右留白，用于判断是否需缩小画布（对齐约 595 宽 + 两侧各 20） */
+const CANVAS_SIDE_PAD = 20;
+
+/** 合并默认 globalStyle，避免 cfg 里缺 padding/height 时分页可用高度算错 */
+function mergeGlobalStyle(cfg: any) {
+  return {
+    ...resume.globalStyle,
+    ...(cfg?.globalStyle ?? {}),
+  };
+}
+
+function moduleMarginForPage(resume: any, pageIndex: number): number {
+  const pages = resume?.pages;
+  if (!pages?.length) return 10;
+  return (
+    pages[pageIndex]?.moduleMargin ??
+    pages[0]?.moduleMargin ??
+    10
+  );
+}
+
+/** 内容区宽度 ≈ width - padding*2，与 Page 版心一致 */
+function contentInnerWidth(gs: any): number {
+  const pad = gs?.padding ?? 0;
+  return Math.max(1, (gs?.width ?? 0) - pad * 2);
+}
+
+/** 单页可容纳内容高度（与 Page 内 padding 算法一致） */
+function pageContentHeight(gs: any): number {
+  const pad = gs?.padding ?? 0;
+  return Math.max(0, (gs?.height ?? 0) - pad * 2);
+}
+
+/** 影响高度的字段变化才应触发重测；附带版心宽高（换行、分页） */
+function layoutSig(module: any, gs: any): string {
+  const pad = gs?.padding ?? 0;
+  return `${JSON.stringify(module)}|w:${gs.width}|h:${gs.height}|pad:${pad}`;
+}
+
+function moduleComponentForType(
+  type: string
+): React.ComponentType<any> | null {
+  switch (type) {
+    case 'info1':
+      return Info1;
+    case 'certificate':
+      return Certificate;
+    case 'skill':
+      return Skill;
+    case 'job':
+      return Job;
+    case 'project':
+      return Project;
+    case 'education':
+      return Education;
+    default:
+      return null;
+  }
+}
+
+function buildModuleElements(ordered: any[], gs: any): React.ReactNode[] {
+  const out: React.ReactNode[] = [];
+  for (const module of ordered) {
+    const C = moduleComponentForType(module.type);
+    if (!C) continue;
+    out.push(<C key={module.id} config={module} globalStyle={gs} />);
+  }
+  return out;
+}
 
 function Canvas() {
   const moduleHeights = useRef<{ [propName: string]: number }>({});
+  /** 与 moduleHeights 对应，用于跳过未改动的模块测量 */
+  const measuredSigRef = useRef<Record<string, string>>({});
+  /** 避免分页结果与 store 一致时重复 setConfig 导致 effect 循环 */
+  const lastLayoutCommitRef = useRef<string>('');
+  /** 异步 render 交错完成时禁止旧任务 setConfig 覆盖侧栏已写入的数据 */
+  const renderGenerationRef = useRef(0);
 
   const measureComponentHeight = useMemoizedFn(
     (Component: React.ComponentType<any>, props: any): Promise<Array<any>> => {
@@ -33,149 +108,191 @@ function Canvas() {
         container.style.height = 'auto';
         container.style.width = 'auto';
         document.body.appendChild(container);
-        const module = <Component {...props} key={getRandomId()} />;
+        const gs =
+          props.globalStyle ?? mergeGlobalStyle(configStore.getConfig);
+        container.style.width = `${contentInnerWidth(gs)}px`;
+        const stableKey = props?.config?.id ?? getRandomId();
+        const module = <Component {...props} key={stableKey} />;
 
         // 渲染组件
         const root = createRoot(container);
         root.render(module);
 
-        // 等待渲染完成后测量
-        setTimeout(() => {
-          const height = container.offsetHeight;
-          // 卸载并移除
-          root.unmount();
-          document.body.removeChild(container);
-          resolve([height, module]);
-        }, 0); // 0ms，等下一帧
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const height = container.offsetHeight;
+            root.unmount();
+            document.body.removeChild(container);
+            resolve([height, module]);
+          });
+        });
       });
     }
   );
 
   const computeLayout = useMemoizedFn(
-    async (components: Array<any>, resume: any, update: boolean = true) => {
-      let { height: pageHeight, verticalMargin } = resume.globalStyle;
+    (
+      components: Array<any>,
+      cfg: any,
+      gs: any,
+      update: boolean = true,
+      gen?: number
+    ) => {
+      const pageHeight = pageContentHeight(gs);
       const newPages: Array<Array<any>> = [[]];
       let height = 0;
-      let currentIndex = 1;
-      pageHeight = pageHeight - verticalMargin * 2;
+      let pageKey = 1;
+
       for (const component of components) {
         if (!component) {
           continue;
         }
 
-        const moduleHeight = moduleHeights.current[component.props.config.id];
+        const moduleHeight =
+          moduleHeights.current[component.props.config.id] ?? 0;
+
         if (height + moduleHeight > pageHeight) {
-          currentIndex++;
-          height = moduleHeight;
-          newPages.push([component]);
+          const idx = newPages.length - 1;
+          if (newPages[idx].length === 0) {
+            newPages[idx].push(component);
+            height += moduleHeight;
+          } else {
+            height = moduleHeight;
+            newPages.push([component]);
+          }
         } else {
-          if (newPages[newPages.length - 1].length !== 0) {
-            newPages[newPages.length - 1].push(
+          const idx = newPages.length - 1;
+          const gap = moduleMarginForPage(cfg, idx);
+          if (newPages[idx].length !== 0) {
+            newPages[idx].push(
               <Margin
-                key={`margin-${height}`}
-                height={resume.pages[currentIndex - 1]?.moduleMargin ?? 10}
+                key={`margin-before-${component.props.config.id}`}
+                height={gap}
               />
             );
+            height += gap;
           }
-          newPages[newPages.length - 1].push(component);
-          height +=
-            moduleHeight + (resume.pages[currentIndex - 1]?.moduleMargin ?? 10);
+          newPages[idx].push(component);
+          height += moduleHeight;
         }
       }
       const allPages: Array<React.ReactNode> = [];
 
-      currentIndex = 1;
+      pageKey = 1;
       for (const page of newPages) {
         const pageModules: Array<any> = [];
         for (const module of page) {
           pageModules.push(module);
         }
         allPages.push(
-          <div key={currentIndex++} className={styles.pageContainer}>
-            <Page {...resume.globalStyle}>{pageModules}</Page>
+          <div key={pageKey++}>
+            <Page {...gs}>{pageModules}</Page>
           </div>
         );
       }
 
+      if (gen != null && gen !== renderGenerationRef.current) {
+        return;
+      }
       setPages(allPages);
-      const config: any = {
-        globalStyle: resume.globalStyle,
+      const live = configStore.getConfig;
+      if (!live) return;
+
+      const nextConfig: any = {
+        ...live,
+        globalStyle: gs,
         pages: [],
       };
-      currentIndex = 1;
-      for (const page of allPages) {
-        config.pages.push({
-          moduleMargin: resume.pages[currentIndex - 1]?.moduleMargin ?? 10,
-          modules: [],
-        });
-        for (const item of (page as any).props.children.props.children) {
-          if (item.props.config) {
-            config.pages[currentIndex - 1].modules.push(
-              JSON.parse(JSON.stringify(item.props.config))
-            );
-          }
+      let pi = 0;
+      for (const page of newPages) {
+        const modulesOut: any[] = [];
+        for (const node of page) {
+          const id = node?.props?.config?.id;
+          if (!id) continue;
+          const m = findModuleById(live, id);
+          if (m) modulesOut.push(m);
         }
-        currentIndex++;
+        nextConfig.pages.push({
+          moduleMargin: moduleMarginForPage(cfg, pi),
+          modules: modulesOut,
+        });
+        pi++;
       }
       if (update) {
-        configStore.setConfig(config);
+        const snapshot = JSON.stringify(nextConfig);
+        if (snapshot !== lastLayoutCommitRef.current) {
+          lastLayoutCommitRef.current = snapshot;
+          configStore.setConfig(nextConfig);
+        }
       }
     }
   );
 
   const [pages, setPages] = useState<Array<React.ReactNode>>([]);
-  const render = useMemoizedFn(async (resume: any, update: boolean = true) => {
-    const allModules: Array<React.ReactNode> = [];
-    moduleHeights.current = {};
-    for (let i = 0; i < resume.pages.length; i++) {
-      const item = resume.pages[i];
-      // const currentPage = [];
-      for (const module of item.modules) {
-        let component = null;
-        let height = 0;
-        if (module.type === 'info1') {
-          [height, component] = await measureComponentHeight(Info1, {
-            key: module.id,
-            config: module,
-            globalStyle: resume.globalStyle,
-          });
-        } else if (module.type === 'certificate') {
-          [height, component] = await measureComponentHeight(Certificate, {
-            key: module.id,
-            config: module,
-            globalStyle: resume.globalStyle,
-          });
-        } else if (module.type === 'skill') {
-          [height, component] = await measureComponentHeight(Skill, {
-            key: module.id,
-            config: module,
-            globalStyle: resume.globalStyle,
-          });
-        } else if (module.type === 'job') {
-          [height, component] = await measureComponentHeight(Job, {
-            key: module.id,
-            config: module,
-            globalStyle: resume.globalStyle,
-          });
-        } else if (module.type === 'project') {
-          [height, component] = await measureComponentHeight(Project, {
-            key: module.id,
-            config: module,
-            globalStyle: resume.globalStyle,
-          });
-        } else if (module.type === 'education') {
-          [height, component] = await measureComponentHeight(Education, {
-            key: module.id,
-            config: module,
-            globalStyle: resume.globalStyle,
-          });
-        }
-        moduleHeights.current[module.id] = height;
-        allModules.push(component);
+  const render = useMemoizedFn(async (cfg: any, update: boolean = true) => {
+    const myGen = ++renderGenerationRef.current;
+    const gs = mergeGlobalStyle(cfg);
+    const ordered = flattenModules(cfg);
+
+    const seen = new Set(ordered.map((m) => m.id));
+    for (const id of Object.keys(moduleHeights.current)) {
+      if (!seen.has(id)) {
+        delete moduleHeights.current[id];
+        delete measuredSigRef.current[id];
       }
     }
-    computeLayout(allModules, resume, update);
-    // setPages(allPages);
+
+    const runLayout = (nodes: React.ReactNode[]) => {
+      if (myGen !== renderGenerationRef.current) return;
+      computeLayout(nodes, cfg, gs, update, myGen);
+    };
+
+    const measureOne = async (module: any) => {
+      const C = moduleComponentForType(module.type);
+      if (!C) return;
+      const props = { config: module, globalStyle: gs };
+      const [height] = await measureComponentHeight(C, props);
+      moduleHeights.current[module.id] = height;
+      measuredSigRef.current[module.id] = layoutSig(module, gs);
+    };
+
+    const anyKnownHeight = ordered.some(
+      (m) => (moduleHeights.current[m.id] ?? 0) > 0
+    );
+
+    const dirtyModules = ordered.filter((m) => {
+      const sig = layoutSig(m, gs);
+      return (
+        measuredSigRef.current[m.id] !== sig ||
+        (moduleHeights.current[m.id] ?? 0) <= 0
+      );
+    });
+
+    // 从未测过高度的首屏：测完全部再分页
+    if (!anyKnownHeight && ordered.length > 0) {
+      await Promise.all(
+        ordered.map(async (module) => {
+          if (myGen !== renderGenerationRef.current) return;
+          await measureOne(module);
+        })
+      );
+      if (myGen !== renderGenerationRef.current) return;
+      runLayout(buildModuleElements(ordered, gs));
+      return;
+    }
+
+    // 有缓存：必须先测完所有脏模块再排版。用旧高度抢先 setPages 会导致分页高度与真实 DOM 不一致（重叠），且会错误 setConfig。
+    if (dirtyModules.length > 0) {
+      await Promise.all(
+        dirtyModules.map(async (module) => {
+          if (myGen !== renderGenerationRef.current) return;
+          await measureOne(module);
+        })
+      );
+      if (myGen !== renderGenerationRef.current) return;
+    }
+
+    runLayout(buildModuleElements(ordered, gs));
   });
 
   useEffect(() => {
@@ -184,13 +301,67 @@ function Canvas() {
 
   useEffect(() => {
     if (configStore.getConfig) {
-      render(configStore.getConfig, false);
+      void render(configStore.getConfig, true);
     }
   }, [configStore.getConfig]);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  const globalStyle = configStore.mergedGlobalStyle;
+  const pageCount = Math.max(1, pages.length);
+  const pageGap = 10;
+  const contentW = globalStyle.width;
+  const contentH =
+    pageCount * globalStyle.height + Math.max(0, pageCount - 1) * pageGap;
+
+  const updateScale = useMemoizedFn(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const cw = el.clientWidth;
+    if (cw <= 0 || contentW <= 0 || contentH <= 0) return;
+
+    const innerW = cw - CANVAS_SIDE_PAD * 2;
+    if (innerW <= 0) return;
+
+    if (innerW >= contentW) {
+      setScale(1);
+      return;
+    }
+
+    const s = innerW / contentW;
+    if (!Number.isFinite(s) || s <= 0) return;
+    setScale(s);
+  });
+
+  useLayoutEffect(() => {
+    updateScale();
+  }, [contentW, contentH, updateScale]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => updateScale());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [updateScale]);
+
   return (
-    <div className='w-full rounded-md overflow-hidden flex items-center justify-center flex-col'>
-      {pages}
+    <div
+      ref={containerRef}
+      className='flex h-full w-full min-h-0 flex-col items-center justify-start overflow-auto rounded-md'
+    >
+      <div style={{ width: contentW * scale, height: contentH * scale }}>
+        <div
+          style={{
+            width: contentW,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+          }}
+        >
+          <div className='flex w-full flex-col items-center gap-2.5 py-[40px]'>{pages}</div>
+        </div>
+      </div>
     </div>
   );
 }

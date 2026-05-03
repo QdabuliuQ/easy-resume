@@ -17,7 +17,7 @@ const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
 function Skill({ moduleId }: { moduleId?: string } = {}) {
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
-  const [editOpen, setEditOpen] = useState(false);
+  const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<SkillProps | null>(null);
   const gradId = useId().replace(/:/g, '');
   const iconGradId = `skill-icon-grad-${gradId}`;
@@ -29,7 +29,7 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
     } else {
       setModule(null);
     }
-  }, [moduleActive, configStore.getConfig]);
+  }, [moduleActive, getModule]);
 
   const { run } = useDebounceFn(
     (mod: SkillProps) => {
@@ -97,11 +97,7 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
             技能
           </span>
         </div>
-        <PanelToolbar
-          moduleId={moduleActive}
-          editOpen={editOpen}
-          setEditOpen={setEditOpen}
-        />
+        <PanelToolbar moduleId={moduleActive} />
       </div>
 
       {!editOpen && module && (
@@ -109,9 +105,6 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
           key='preview'
           className='info1-panel-animate rounded-lg border border-white/[0.08] bg-white/[0.06] px-3.5 py-3 text-white/95'
         >
-          <div className='mb-2 text-[15px] font-medium'>
-            {module.options.title || '技能'}
-          </div>
           {!previewText ? (
             <div className='text-[13px] text-white/75'>暂无技能描述</div>
           ) : (
@@ -128,22 +121,12 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
           key='edit'
           className='info1-panel-animate mt-1 rounded-lg border border-white/[0.08] bg-white/[0.06] p-[10px] text-white/95'
         >
-          <Form layout='vertical'>
-            <FormItem
-              label='技能'
-              labelClassName='text-[13px] text-white/85'
-              icon={
-                <DocSuccess theme='outline' size='15' fill={FORM_ICON_FILL} />
-              }
-            >
-              <RichTextEditor
-                instanceKey={`${moduleActive}-skill`}
-                html={module.options.description ?? ''}
-                onHtmlChange={updateDescription}
-                placeholder='请输入技能…'
-              />
-            </FormItem>
-          </Form>
+          <RichTextEditor
+            instanceKey={`${moduleActive}-skill`}
+            html={module.options.description ?? ''}
+            onHtmlChange={updateDescription}
+            placeholder='请输入技能…'
+          />
         </div>
       ) : null}
     </div>

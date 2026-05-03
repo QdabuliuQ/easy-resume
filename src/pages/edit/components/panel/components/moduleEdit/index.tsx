@@ -1,7 +1,8 @@
-import { memo, type ComponentType } from 'react';
+import { memo, useLayoutEffect, useRef, type ComponentType } from 'react';
 import { observer } from 'mobx-react';
-import { configStore } from '@/mobx';
+import { configStore, moduleActiveStore } from '@/mobx';
 import { moduleType } from '@/modules/utils/constant';
+import { flattenModules } from '@/utils/resumePages';
 import Global from '../global';
 import Info1 from '../info1';
 import Certificate from '../certificate';
@@ -30,45 +31,60 @@ const panelHasOwnTitle = new Set([
   'skill',
 ]);
 
+/** 滚入视区时与滚动容器顶部的间距（配合 scrollIntoView，用 CSS scroll-margin） */
+const SCROLL_INTO_VIEW_MARGIN_TOP = 10;
+
 function ModuleEdit() {
   const config = configStore.getConfig;
+  const activeId = moduleActiveStore.getModuleActive;
+  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+
+  useLayoutEffect(() => {
+    if (activeId === 'global' || !activeId) return;
+    const el = sectionRefs.current.get(activeId);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [activeId]);
+
   if (!config?.pages?.length) {
     return <Global />;
   }
 
+  const modulesFlat = flattenModules(config) as Array<{
+    id: string;
+    type: string;
+  }>;
+
   return (
     <div className='flex flex-col gap-8'>
-      {config.pages.map(
-        (
-          page: { modules: Array<{ id: string; type: string }> },
-          pageIndex: number
-        ) => (
-          <div key={pageIndex} className='flex flex-col gap-[20px]'>
-            {page.modules.map((mod: { id: string; type: string }) => {
-              const Panel = panelByType[mod.type];
-              if (!Panel) {
-                return null;
-              }
-              const label =
-                (moduleType as Record<string, { name: string }>)[mod.type]
-                  ?.name ?? mod.type;
-              return (
-                <section
-                  key={mod.id}
-                  className='border-b border-white/10 pb-[25px] last:border-0 last:pb-0'
-                >
-                  {!panelHasOwnTitle.has(mod.type) && (
-                    <h3 className='mb-4 text-[15px] font-medium text-white/90'>
-                      {label}
-                    </h3>
-                  )}
-                  <Panel moduleId={mod.id} />
-                </section>
-              );
-            })}
-          </div>
-        )
-      )}
+      <div className='flex flex-col gap-[20px]'>
+        {modulesFlat.map((mod) => {
+          const Panel = panelByType[mod.type];
+          if (!Panel) {
+            return null;
+          }
+          const label =
+            (moduleType as Record<string, { name: string }>)[mod.type]?.name ??
+            mod.type;
+          return (
+            <section
+              key={mod.id}
+              ref={(el) => {
+                if (el) sectionRefs.current.set(mod.id, el);
+                else sectionRefs.current.delete(mod.id);
+              }}
+              className='border-b border-white/10 pb-[25px] last:border-0 last:pb-0'
+              style={{ scrollMarginTop: SCROLL_INTO_VIEW_MARGIN_TOP }}
+            >
+              {!panelHasOwnTitle.has(mod.type) && (
+                <h3 className='mb-4 text-[15px] font-medium text-white/90'>
+                  {label}
+                </h3>
+              )}
+              <Panel moduleId={mod.id} />
+            </section>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -5,10 +5,105 @@ import 'react-grid-layout/css/styles.css';
 import { WidthProvider } from 'react-grid-layout';
 import styles from './index.module.less';
 import { info } from '@/modules/utils/constant';
-import { AddOne } from '@icon-park/react';
+import { AddOne, Delete } from '@icon-park/react';
 import { useMemoizedFn } from 'ahooks';
-import { Tag } from 'antd';
+
 const GridLayoutWithWidth = WidthProvider(GridLayout);
+
+function FieldChip(props: {
+  label: string;
+  onRemove: () => void;
+}) {
+  return (
+    <div className='box-border flex h-full min-h-[28px] w-full max-w-full min-w-0 items-center gap-1.5 rounded-md border border-white/15 bg-neutral-700/95 px-2 py-1 text-[12px] leading-tight text-white shadow-sm'>
+      <span
+        className='min-w-0 flex-1 break-words text-center [word-break:break-word]'
+        title={props.label}
+      >
+        {props.label}
+      </span>
+      <button
+        type='button'
+        className='inline-flex shrink-0 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0.5 text-white/70 outline-none transition-colors hover:bg-white/10 hover:text-white'
+        aria-label='删除'
+        title='删除'
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          props.onRemove();
+        }}
+      >
+        <Delete theme='outline' size='14' fill='currentColor' />
+      </button>
+    </div>
+  );
+}
+
+/** 12 栅格中单列 ≈38px；每项占 4 列 ≈153px，可完整显示四字中文 + 删除 */
+const GRID_COLS = 12;
+const FIELD_W = 4;
+const ROW_H = 42;
+const WIDTH = 460;
+
+function rowsToLayout(rows: Array<Array<string>>) {
+  const next: Array<{ i: string; x: number; y: number; w: number; h: number }> =
+    [];
+  let baseY = 0;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    let xAcc = 0;
+    let yLine = baseY;
+    for (let j = 0; j < row.length; j++) {
+      if (xAcc + FIELD_W > GRID_COLS) {
+        xAcc = 0;
+        yLine += 1;
+      }
+      next.push({
+        i: row[j],
+        x: xAcc,
+        y: yLine,
+        w: FIELD_W,
+        h: 1,
+      });
+      xAcc += FIELD_W;
+    }
+    baseY = yLine + 1;
+  }
+  return next;
+}
+
+function packAfterDrag(groupedRows: Record<number, Array<any>>) {
+  const final: Array<any> = [];
+  let nextY = 0;
+  const rowKeys = Object.keys(groupedRows).sort((a, b) => Number(a) - Number(b));
+
+  rowKeys.forEach((rowIdx) => {
+    const items = [...groupedRows[Number(rowIdx)]].sort((a, b) => a.x - b.x);
+    let x = 0;
+    let y = nextY;
+
+    items.forEach((item) => {
+      if (x + FIELD_W > GRID_COLS) {
+        x = 0;
+        y += 1;
+      }
+      final.push({
+        ...item,
+        x,
+        y,
+        w: FIELD_W,
+        h: 1,
+      });
+      x += FIELD_W;
+    });
+
+    nextY = y + 1;
+  });
+
+  return final;
+}
 
 function InfoLayout(props: {
   layout: Array<Array<string>>;
@@ -17,72 +112,40 @@ function InfoLayout(props: {
   const [layout, setLayout] = useState<Array<any>>([]);
 
   useEffect(() => {
-    const layout: Array<any> = [];
-    for (let i = 0; i < props.layout.length; i++) {
-      const row = props.layout[i];
-      for (let j = 0; j < row.length; j++) {
-        const item = row[j];
-        layout.push({
-          i: item,
-          x: j,
-          y: i,
-          w: 1,
-          h: 1,
-        });
-      }
-    }
-    setLayout(layout);
+    setLayout(rowsToLayout(props.layout));
   }, [props.layout]);
 
   const onDragStop = (newLayout: Array<any>) => {
     let correctedLayout = [...newLayout];
 
-    // 计算已使用的行
     const usedRows = new Set<number>();
     correctedLayout.forEach((item) => {
       usedRows.add(item.y);
     });
 
-    // 创建行映射（处理空行）
     const rowMapping: { [key: number]: number } = {};
     let newRowIndex = 0;
-    const maxRow = Math.max(...Array.from(usedRows)) + 1;
+    const maxRow =
+      usedRows.size > 0 ? Math.max(...Array.from(usedRows)) + 1 : 0;
     for (let i = 0; i < maxRow; i++) {
       if (usedRows.has(i)) {
         rowMapping[i] = newRowIndex++;
       }
     }
 
-    // 按行分组
-    const rowItems: { [key: number]: Array<any> } = {};
+    const rowItems: Record<number, Array<any>> = {};
     correctedLayout.forEach((item) => {
-      const newY = rowMapping[item.y] ?? item.y;
-      if (!rowItems[newY]) {
-        rowItems[newY] = [];
+      const mappedY = rowMapping[item.y] ?? item.y;
+      if (!rowItems[mappedY]) {
+        rowItems[mappedY] = [];
       }
-      rowItems[newY].push({
+      rowItems[mappedY].push({
         ...item,
-        y: newY,
+        y: mappedY,
       });
     });
 
-    // 处理每一行，确保列连续
-    const finalLayout: Array<any> = [];
-    Object.keys(rowItems).forEach((rowIndex) => {
-      const items = rowItems[Number(rowIndex)];
-
-      // 按x坐标排序
-      items.sort((a, b) => a.x - b.x);
-
-      // 重新分配x坐标，确保连续
-      items.forEach((item, index) => {
-        finalLayout.push({
-          ...item,
-          x: index,
-          y: Number(rowIndex),
-        });
-      });
-    });
+    const finalLayout = packAfterDrag(rowItems);
 
     setLayout(finalLayout);
     props.onDragStop(finalLayout);
@@ -94,11 +157,24 @@ function InfoLayout(props: {
   };
 
   const addItem = (value: any) => {
-    const newLayout = [
-      ...layout,
-      { i: value, x: 0, y: layout.length, w: 1, h: 1 },
-    ];
-    onDragStop(newLayout);
+    if (!layout.length) {
+      onDragStop([{ i: value, x: 0, y: 0, w: FIELD_W, h: 1 }]);
+      return;
+    }
+    const maxY = Math.max(...layout.map((l) => l.y));
+    const lastRow = layout.filter((l) => l.y === maxY).sort((a, b) => a.x - b.x);
+    const usedWidth = lastRow.reduce((s, l) => s + (l.w || FIELD_W), 0);
+    if (usedWidth + FIELD_W <= GRID_COLS) {
+      onDragStop([
+        ...layout,
+        { i: value, x: usedWidth, y: maxY, w: FIELD_W, h: 1 },
+      ]);
+    } else {
+      onDragStop([
+        ...layout,
+        { i: value, x: 0, y: maxY + 1, w: FIELD_W, h: 1 },
+      ]);
+    }
   };
 
   const canbeAddItem = useMemoizedFn(() => {
@@ -112,9 +188,10 @@ function InfoLayout(props: {
       ) {
         items.push(
           <div
+            role='presentation'
             onClick={() => addItem(key)}
             key={key}
-            className='px-[10px] h-[30px] bg-gray-300 flex items-center rounded-[5px] text-white text-[12px] font-bold relative cursor-pointer text-white font-bold hover:bg-gray-400 transition-all duration-300'
+            className='relative flex h-[30px] cursor-pointer items-center rounded-[5px] bg-gray-300 px-[10px] text-[12px] font-bold text-white transition-all duration-300 hover:bg-gray-400'
           >
             <AddOne
               className='mr-[5px]'
@@ -136,30 +213,31 @@ function InfoLayout(props: {
         <GridLayoutWithWidth
           className='layout'
           layout={layout}
-          cols={6}
-          rowHeight={30}
-          width={460}
+          cols={GRID_COLS}
+          rowHeight={ROW_H}
+          width={WIDTH}
+          margin={[6, 6]}
           isResizable={false}
           compactType={null}
           onDragStop={onDragStop}
         >
-          {layout.map((item) => (
-            <Tag
-              key={item.i}
-              bordered
-              closable
-              onClose={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                removeItem(item.i);
-              }}
-            >
-              {info[item.i as keyof typeof info]}
-            </Tag>
-          ))}
+          {layout.map((item) => {
+            const label = info[item.i as keyof typeof info];
+            return (
+              <div
+                key={item.i}
+                className='box-border flex h-full w-full items-stretch px-px'
+              >
+                <FieldChip
+                  label={label}
+                  onRemove={() => removeItem(item.i)}
+                />
+              </div>
+            );
+          })}
         </GridLayoutWithWidth>
       </div>
-      <div className='flex gap-2 w-full mt-2 flex-wrap'>{canbeAddItem()}</div>
+      <div className='mt-2 flex w-full flex-wrap gap-2'>{canbeAddItem()}</div>
     </div>
   );
 }

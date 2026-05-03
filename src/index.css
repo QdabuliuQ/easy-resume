@@ -22,6 +22,19 @@
 }
 
 :root {
+  --color-primary: #fa8362;
+  --color-primary-gradient-start: #fcea88;
+  --gradient-primary: linear-gradient(
+    90deg,
+    var(--color-primary-gradient-start) 0%,
+    var(--color-primary) 100%
+  );
+  --gradient-primary-br: linear-gradient(
+    to bottom right,
+    var(--color-primary-gradient-start),
+    var(--color-primary)
+  );
+
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -34,6 +47,13 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.bg-gradient-primary {
+  background-image: var(--gradient-primary);
+}
+.bg-gradient-primary-br {
+  background-image: var(--gradient-primary-br);
 }
 
 a {

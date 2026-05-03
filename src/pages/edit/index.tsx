@@ -1,32 +1,29 @@
 import { memo, useState } from 'react';
-import Main from './components/main';
-import Panel from './components/panel';
-import Header from './components/header';
-import Menu from './components/menu';
-import Container from './components/container';
+import { observer } from 'mobx-react';
 import Canvas from './components/canvas';
+import Container from './components/container';
+import Header from './components/header';
+import Menu from './components/menu/index';
 
 const DEFAULT_MENU_KEY = 'resume';
 
-export default memo(function Edit() {
+function Edit() {
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
 
   return (
-    <div className='w-screen h-screen overflow-hidden flex flex-col'>
-      <div className='w-full h-[50px] bg-[#444145]'>
+    <div className='flex h-screen w-screen flex-col overflow-hidden'>
+      <div className='h-[50px] w-full bg-[#444145]'>
         <Header />
       </div>
       <div className='flex min-h-0 flex-1'>
         <Menu activeKey={menuActiveKey} onActiveKeyChange={setMenuActiveKey} />
         <Container menuActiveKey={menuActiveKey} />
-        <div className='h-full min-h-0 flex-1 overflow-auto box-border py-[40px]'>
+        <div className='box-border flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden'>
           <Canvas />
         </div>
       </div>
-      {/* <div className='flex items-start justify-center'>
-        <Panel />
-        <Main />
-      </div> */}
     </div>
   );
-});
+}
+
+export default memo(observer(Edit));

@@ -1,8 +1,8 @@
 import { memo, useEffect, useState } from 'react';
 
-import styles from './index.module.less';
 import { ArrowCircleUp, DeleteOne } from '@icon-park/react';
 import { useMemoizedFn } from 'ahooks';
+import { Modal } from 'antd';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { observer } from 'mobx-react';
 
@@ -15,6 +15,8 @@ function ModuleOperation(props: {
   downModule?: (id: string) => void;
   children: React.ReactNode;
 }) {
+  const [modal, contextHolder] = Modal.useModal();
+
   const clickHandle = useMemoizedFn(() => {
     if (props.clickModule) {
       props.clickModule(props.id);
@@ -22,7 +24,6 @@ function ModuleOperation(props: {
     moduleActiveStore.setModuleActive(
       moduleActiveStore.getModuleActive === props.id ? 'global' : props.id
     );
-    console.log(moduleActiveStore.getModuleActive, 'moduleActiveStore');
   });
 
   const deleteHandle = useMemoizedFn(() => {
@@ -65,7 +66,7 @@ function ModuleOperation(props: {
         setIsLast(props.id === lastModule);
       }
     }
-  }, [props.id]);
+  }, [props.id, configStore.getConfig]);
 
   const upHandle = useMemoizedFn(() => {
     if (props.upModule) {
@@ -135,47 +136,75 @@ function ModuleOperation(props: {
     }
   });
 
+  const toolbarLeftPx = -(36 + (configStore.mergedGlobalStyle.padding ?? 0));
+
   return (
-    <div className={`relative ${props.isActive ? styles.moduleActive : ''}`}>
-      <div onClick={clickHandle}>{props.children}</div>
-      <div className='absolute bottom-[-30px] right-[-2px] w-full h-[30px] flex items-center justify-end z-[100]'>
-        <div className='rounded-br-[5px] rounded-bl-[5px] overflow-hidden cursor-pointer'>
-          {props.isActive ? (
-            <div className='flex items-center'>
-              {!isFirst && (
-                <div
-                  onClick={upHandle}
-                  className='box-sizing-border not-last:border-r not-last:border-r-[#ffffffb0] not-last:border-r-[1px] w-[35px] h-[30px] flex items-center justify-center bg-blue-300 hover:bg-blue-400 transition-all'
-                >
-                  <ArrowCircleUp theme='outline' size='17' fill='#fff' />
-                </div>
-              )}
-              {!isLast && (
-                <div
-                  onClick={downHandle}
-                  className='box-sizing-border not-last:border-r not-last:border-r-[#ffffffb0] not-last:border-r-[1px] w-[35px] h-[30px] flex items-center justify-center bg-blue-300 hover:bg-blue-400 transition-all'
-                >
-                  <ArrowCircleUp
-                    className='rotate-180'
-                    theme='outline'
-                    size='17'
-                    fill='#fff'
-                  />
-                </div>
-              )}
-              <div
-                onClick={deleteHandle}
-                className='box-sizing-border not-last:border-r not-last:border-r-[#ffffffb0] not-last:border-r-[1px] w-[35px] h-[30px] flex items-center justify-center bg-blue-300 hover:bg-blue-400 transition-all'
-              >
-                <DeleteOne theme='outline' size='17' fill='#fff' />
-              </div>
-            </div>
-          ) : (
-            <></>
+    <>
+      {contextHolder}
+      <div className='relative flex flex-row items-stretch'>
+      {props.isActive ? (
+        <div
+          style={{ left: `${toolbarLeftPx}px` }}
+          className='absolute top-0 z-[100] flex w-9 shrink-0 flex-col overflow-hidden rounded-tl-[6px] rounded-bl-[6px] border-r border-white/35 bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)]'
+          aria-label='模块操作'
+        >
+          {!isFirst && (
+            <button
+              type='button'
+              onClick={(e) => {
+                e.stopPropagation();
+                upHandle();
+              }}
+              className='bg-gradient-primary box-border flex h-8 w-9 shrink-0 cursor-pointer items-center justify-center border-b border-white/10 text-white transition-[filter] hover:brightness-110'
+              aria-label='上移'
+            >
+              <ArrowCircleUp theme='outline' size='17' fill='#fff' />
+            </button>
           )}
+          {!isLast && (
+            <button
+              type='button'
+              onClick={(e) => {
+                e.stopPropagation();
+                downHandle();
+              }}
+              className='bg-gradient-primary box-border flex h-8 w-9 shrink-0 cursor-pointer items-center justify-center border-b border-white/10 text-white transition-[filter] hover:brightness-110'
+              aria-label='下移'
+            >
+              <ArrowCircleUp
+                className='rotate-180'
+                theme='outline'
+                size='17'
+                fill='#fff'
+              />
+            </button>
+          )}
+          <button
+            type='button'
+            onClick={(e) => {
+              e.stopPropagation();
+              modal.confirm({
+                title: '删除模块',
+                content: '确定删除该模块吗？删除后不可恢复。',
+                okText: '删除',
+                cancelText: '取消',
+                okButtonProps: { danger: true },
+                centered: true,
+                onOk: () => deleteHandle(),
+              });
+            }}
+            className='box-border flex h-8 w-9 shrink-0 cursor-pointer items-center justify-center bg-red-400 text-white hover:bg-red-500'
+            aria-label='删除'
+          >
+            <DeleteOne theme='outline' size='17' fill='#fff' />
+          </button>
         </div>
+      ) : null}
+      <div className='min-w-0 flex-1' onClick={clickHandle}>
+        {props.children}
       </div>
     </div>
+    </>
   );
 }
 

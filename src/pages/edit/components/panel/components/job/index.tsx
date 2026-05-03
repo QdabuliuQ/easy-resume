@@ -42,7 +42,7 @@ const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
 function Job({ moduleId }: { moduleId?: string } = {}) {
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
-  const [editOpen, setEditOpen] = useState(false);
+  const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<JobProps | null>(null);
   const gradId = useId().replace(/:/g, '');
   const iconGradId = `job-icon-grad-${gradId}`;
@@ -62,7 +62,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
     } else {
       setModule(null);
     }
-  }, [moduleActive, configStore.getConfig]);
+  }, [moduleActive, getModule]);
 
   const { run } = useDebounceFn(
     (mod: JobProps) => {
@@ -193,11 +193,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
             工作经历
           </span>
         </div>
-        <PanelToolbar
-          moduleId={moduleActive}
-          editOpen={editOpen}
-          setEditOpen={setEditOpen}
-        />
+        <PanelToolbar moduleId={moduleActive} />
       </div>
 
       {!editOpen && module && (
@@ -205,9 +201,6 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
           key='preview'
           className='info1-panel-animate rounded-lg border border-white/[0.08] bg-white/[0.06] px-3.5 py-3 text-white/95'
         >
-          <div className='mb-2 text-[15px] font-medium'>
-            {module.options.title || '工作经历'}
-          </div>
           {module.options.items.length === 0 ? (
             <div className='text-[13px] text-white/75'>暂无工作经历条目</div>
           ) : (
@@ -340,6 +333,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         }
                       >
                         <DatePicker.RangePicker
+                          picker='month'
                           style={{ width: '100%' }}
                           value={[
                             item.startDate ? dayjs(item.startDate) : undefined,

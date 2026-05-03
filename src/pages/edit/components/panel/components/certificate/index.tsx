@@ -19,7 +19,7 @@ const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
 function Certificate({ moduleId }: { moduleId?: string } = {}) {
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
-  const [editOpen, setEditOpen] = useState(false);
+  const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<CertificateProps | null>(null);
   const gradId = useId().replace(/:/g, '');
 
@@ -30,7 +30,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
     } else {
       setModule(null);
     }
-  }, [moduleActive, configStore.getConfig]);
+  }, [moduleActive, getModule]);
 
   const { run } = useDebounceFn(
     (mod: CertificateProps) => {
@@ -126,8 +126,8 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                 x2='100%'
                 y2='100%'
               >
-                <stop offset='0%' stopColor='#FCEA88' />
-                <stop offset='100%' stopColor='#e9754a' />
+                <stop offset='0%' stopColor='var(--color-primary-gradient-start)' />
+                <stop offset='100%' stopColor='var(--color-primary)' />
               </linearGradient>
             </defs>
           </svg>
@@ -146,11 +146,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
             证书
           </span>
         </div>
-        <PanelToolbar
-          moduleId={moduleActive}
-          editOpen={editOpen}
-          setEditOpen={setEditOpen}
-        />
+        <PanelToolbar moduleId={moduleActive} />
       </div>
 
       {!editOpen && module && (
@@ -158,9 +154,6 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
           key='preview'
           className='info1-panel-animate rounded-lg border border-white/[0.08] bg-white/[0.06] px-3.5 py-3 text-white/95'
         >
-          <div className='mb-2 text-[15px] font-medium'>
-            {module.options.title || '证书'}
-          </div>
           {module.options.items.length === 0 ? (
             <div className='text-[13px] text-white/75'>暂无证书条目</div>
           ) : (
@@ -195,7 +188,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
         >
           <AddGradientButton onClick={addCertificate}>添加证书</AddGradientButton>
           {module.options.items.length > 0 ? (
-            <div className='mb-5 flex flex-col items-end'>
+            <div className='mb-[10px] flex flex-col items-end'>
               {module.options.items.map((item: any, index: number) => (
                 <div
                   key={index}

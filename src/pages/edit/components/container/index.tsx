@@ -12,7 +12,7 @@ export default function Container({ menuActiveKey }: ContainerProps) {
   }
 
   return (
-    <div className='flex h-full min-h-0 w-[400px] flex-col bg-[#38363a]'>
+    <div className='flex h-full min-h-0 w-[400px] min-w-[400px] shrink-0 flex-col bg-[#38363a]'>
       <div className='flex min-h-0 flex-1 flex-col'>
         <Resume />
       </div>

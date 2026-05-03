@@ -19,13 +19,23 @@ import AddGradientButton from '../addGradientButton';
 import ButtonGroup from '../buttonGroup';
 import SplitLine from '../splitLine';
 import PanelToolbar from '../panelToolbar';
+import RichTextEditor from '@/components/richTextEditor';
 
 const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
+
+function hasRichPreview(html?: string): boolean {
+  if (!html?.trim()) return false;
+  const t = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/gi, '').trim();
+  return t.length > 0;
+}
+
+const PREVIEW_HTML_CLASS =
+  'max-h-[140px] overflow-y-auto break-words text-[12px] text-white/60 [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-0.5 [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5';
 
 function Project({ moduleId }: { moduleId?: string } = {}) {
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
-  const [editOpen, setEditOpen] = useState(false);
+  const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<ProjectProps | null>(null);
   const gradId = useId().replace(/:/g, '');
   const iconGradId = `project-icon-grad-${gradId}`;
@@ -37,7 +47,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
     } else {
       setModule(null);
     }
-  }, [moduleActive, configStore.getConfig]);
+  }, [moduleActive, getModule]);
 
   const { run } = useDebounceFn(
     (module: ProjectProps) => {
@@ -105,9 +115,15 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
     updateModule(module);
   });
 
+  const handleDescriptionHtml = useMemoizedFn((index: number, html: string) => {
+    if (!module) return;
+    module.options.items[index].description = html;
+    updateModule(module);
+  });
+
   const handleChange = useMemoizedFn((e: any, index: number, key: string) => {
     if (!module) return;
-    if (key === 'name' || key === 'role' || key === 'description') {
+    if (key === 'name' || key === 'role') {
       module.options.items[index][key] = e.target.value;
     } else if (key === 'date') {
       module.options.items[index].startDate = e[0].format('YYYY-MM');
@@ -154,11 +170,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
             项目经历
           </span>
         </div>
-        <PanelToolbar
-          moduleId={moduleActive}
-          editOpen={editOpen}
-          setEditOpen={setEditOpen}
-        />
+        <PanelToolbar moduleId={moduleActive} />
       </div>
 
       {!editOpen && module && (
@@ -166,23 +178,28 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
           key='preview'
           className='info1-panel-animate rounded-lg border border-white/[0.08] bg-white/[0.06] px-3.5 py-3 text-white/95'
         >
-          <div className='mb-2 text-[15px] font-medium'>
-            {module.options.title || '项目经历'}
-          </div>
+
           {module.options.items.length === 0 ? (
             <div className='text-[13px] text-white/75'>暂无项目经历条目</div>
           ) : (
             <>
-              <div className='flex max-h-[240px] flex-col gap-1.5 overflow-y-auto'>
+              <div className='flex max-h-[280px] flex-col gap-1.5 overflow-y-auto'>
                 {module.options.items.slice(0, 10).map((item: any, i: number) => (
-                  <div
-                    key={i}
-                    className='break-all text-[13px] text-white/75'
-                  >
-                    {item.name || '—'} · {item.role || '—'}{' '}
-                    {item.startDate && item.endDate
-                      ? `${item.startDate} ~ ${item.endDate}`
-                      : '—'}
+                  <div key={i} className='break-all text-[13px] text-white/75'>
+                    <div>
+                      {item.name || '—'} · {item.role || '—'}{' '}
+                      {item.startDate && item.endDate
+                        ? `${item.startDate} ~ ${item.endDate}`
+                        : '—'}
+                    </div>
+                    {hasRichPreview(item.description) ? (
+                      <div
+                        className={PREVIEW_HTML_CLASS}
+                        dangerouslySetInnerHTML={{
+                          __html: item.description as string,
+                        }}
+                      />
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -258,6 +275,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                         }
                       >
                         <DatePicker.RangePicker
+                          picker='month'
                           style={{ width: '100%' }}
                           value={[
                             item.startDate ? dayjs(item.startDate) : undefined,
@@ -281,12 +299,16 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <Input.TextArea
-                          value={item.description}
-                          autoSize={{ minRows: 7 }}
-                          placeholder='请输入项目描述'
-                          onChange={(e) => handleChange(e, index, 'description')}
-                        />
+                        <div className='w-full'>
+                          <RichTextEditor
+                            instanceKey={`${moduleActive}-${index}`}
+                            html={item.description ?? ''}
+                            onHtmlChange={(next) =>
+                              handleDescriptionHtml(index, next)
+                            }
+                            placeholder='请输入项目描述…'
+                          />
+                        </div>
                       </FormItem>
                     </Col>
                   </Row>

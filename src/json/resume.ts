@@ -9,6 +9,7 @@ export default {
     verticalMargin: 10,
     color: '#43a8ff',
     backgroundColor: '#fff',
+    /** 单页版心内边距（四边相同，见 modules/page） */
     padding: 20,
   },
   pages: [

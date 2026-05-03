@@ -38,13 +38,14 @@ import { city, degree, schoolType } from '@/modules/utils/constant';
 import { EducationProps } from '@/modules/education';
 import SplitLine from '../splitLine';
 import PanelToolbar from '../panelToolbar';
+import RichTextEditor from '@/components/richTextEditor';
 
 const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
 
 function Education({ moduleId }: { moduleId?: string } = {}) {
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
-  const [editOpen, setEditOpen] = useState(false);
+  const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<EducationProps | null>(null);
   const gradId = useId().replace(/:/g, '');
   const iconGradId = `education-icon-grad-${gradId}`;
@@ -56,7 +57,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
     } else {
       setModule(null);
     }
-  }, [moduleActive, configStore.getConfig]);
+  }, [moduleActive, getModule]);
 
   const { run } = useDebounceFn(
     (mod: EducationProps) => {
@@ -129,13 +130,18 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
     updateModule(module);
   });
 
+  const handleDescriptionHtml = useMemoizedFn((index: number, html: string) => {
+    if (!module) return;
+    module.options.items[index].description = html;
+    updateModule(module);
+  });
+
   const handleChange = useMemoizedFn((e: any, index: number, key: string) => {
     if (!module) return;
     if (
       key === 'school' ||
       key === 'major' ||
-      key === 'academy' ||
-      key === 'description'
+      key === 'academy'
     ) {
       module.options.items[index][key] = e.target.value;
     } else if (key === 'degree' || key === 'tags') {
@@ -187,11 +193,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
             教育经历
           </span>
         </div>
-        <PanelToolbar
-          moduleId={moduleActive}
-          editOpen={editOpen}
-          setEditOpen={setEditOpen}
-        />
+        <PanelToolbar moduleId={moduleActive} />
       </div>
 
       {!editOpen && module && (
@@ -199,9 +201,6 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
           key='preview'
           className='info1-panel-animate rounded-lg border border-white/[0.08] bg-white/[0.06] px-3.5 py-3 text-white/95'
         >
-          <div className='mb-2 text-[15px] font-medium'>
-            {module.options.title || '教育经历'}
-          </div>
           {module.options.items.length === 0 ? (
             <div className='text-[13px] text-white/75'>暂无教育经历条目</div>
           ) : (
@@ -367,6 +366,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         }
                       >
                         <DatePicker.RangePicker
+                          picker='month'
                           style={{ width: '100%' }}
                           value={[
                             item.startDate ? dayjs(item.startDate) : undefined,
@@ -390,14 +390,16 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <Input.TextArea
-                          value={item.description}
-                          autoSize={{ minRows: 7 }}
-                          placeholder='请输入在校经历'
-                          onChange={(e) =>
-                            handleChange(e, index, 'description')
-                          }
-                        />
+                        <div className='w-full'>
+                          <RichTextEditor
+                            instanceKey={`${moduleActive}-${index}`}
+                            html={item.description ?? ''}
+                            onHtmlChange={(next) =>
+                              handleDescriptionHtml(index, next)
+                            }
+                            placeholder='请输入在校经历…'
+                          />
+                        </div>
                       </FormItem>
                     </Col>
                   </Row>

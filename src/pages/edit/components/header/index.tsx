@@ -92,7 +92,7 @@ function Header() {
       </div>
       <div className='flex h-full items-center'>
         <ModuleManage />
-        <div className='flex h-[30px] cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-[#FCEA88] to-[#E46642] px-[20px] text-[13px] font-bold transition-[filter] duration-200 hover:brightness-110'>
+        <div className='bg-gradient-primary flex h-[30px] cursor-pointer items-center justify-center rounded-full px-[20px] text-[13px] font-bold transition-[filter] duration-200 hover:brightness-110'>
           导出JSON
         </div>
       </div>

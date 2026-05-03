@@ -1,11 +1,11 @@
 import { ArrowCircleUp, ArrowCircleDown, Delete, Copy } from '@icon-park/react';
-import { Popconfirm, Tooltip } from 'antd';
+import { Modal, Tooltip } from 'antd';
 import { memo } from 'react';
 
 const circleBtn =
   'inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 p-0 outline-none transition-[filter] duration-200 hover:brightness-110 active:brightness-95 [&_svg]:block';
 
-const circleGradient = `${circleBtn} bg-gradient-to-br from-[#FCEA88] to-[#E46642]`;
+const circleGradient = `${circleBtn} bg-gradient-primary-br`;
 
 function ButtonGroup(props: {
   showUp: boolean;
@@ -30,7 +30,7 @@ function ButtonGroup(props: {
                 theme='outline'
                 size='15'
                 fill='#fff'
-                className='relative right-[1px]'
+                
               />
             </button>
           </Tooltip>
@@ -47,7 +47,6 @@ function ButtonGroup(props: {
                 theme='outline'
                 size='15'
                 fill='#fff'
-                className='relative right-[1px]'
               />
             </button>
           </Tooltip>
@@ -63,33 +62,36 @@ function ButtonGroup(props: {
               theme='outline'
               size='15'
               fill='#fff'
-              className='relative right-[1px]'
+              
             />
           </button>
         </Tooltip>
       </div>
-      <Popconfirm
-        placement='top'
-        title='删除'
-        description='确定删除吗？'
-        okText='确定'
-        cancelText='取消'
-        onConfirm={props.handleDelete}
-        overlayStyle={{ width: '200px' }}
-      >
+      <Tooltip placement='top' title='删除'>
         <button
           type='button'
           className={`${circleBtn} bg-[#ff4d4f] text-white`}
           aria-label='删除'
+          onClick={() => {
+            Modal.confirm({
+              title: '删除',
+              content: '确定删除吗？',
+              okText: '确定',
+              cancelText: '取消',
+              okButtonProps: { danger: true },
+              centered: true,
+              onOk: props.handleDelete,
+            });
+          }}
         >
           <Delete
             theme='outline'
             size='15'
             fill='#fff'
-            className='relative right-[1px]'
+            
           />
         </button>
-      </Popconfirm>
+      </Tooltip>
     </div>
   );
 }

@@ -19,12 +19,12 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
   ];
 
   return (
-    <div className='relative w-[100px] h-full bg-[#444145] flex flex-col'>
+    <div className='relative flex h-full w-[100px] shrink-0 flex-col bg-[#444145]'>
       <svg width={0} height={0} className='absolute' aria-hidden>
         <defs>
           <linearGradient id={GRADIENT_ID} x1='0%' y1='0%' x2='100%' y2='0%'>
-            <stop offset='0%' stopColor='#FCEA88' />
-            <stop offset='100%' stopColor='#E46642' />
+            <stop offset='0%' stopColor='var(--color-primary-gradient-start)' />
+            <stop offset='100%' stopColor='var(--color-primary)' />
           </linearGradient>
         </defs>
       </svg>
@@ -40,14 +40,14 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
               onActiveKeyChange(item.key);
             }
           }}
-          className={`w-full py-[10px] flex cursor-pointer flex-col items-center justify-center gap-0.5 text-[13px] transition-colors select-none rounded-tl-[10px] rounded-bl-[10px] ${
+          className={`flex w-full cursor-pointer select-none flex-col items-center justify-center gap-0.5 rounded-bl-[10px] rounded-tl-[10px] py-[10px] text-[13px] transition-colors ${
             activeKey === item.key
               ? 'bg-[#38363a]'
               : 'bg-transparent hover:bg-white/5'
           }`}
         >
           {item.icon}
-          <span className='bg-gradient-to-r from-[#FCEA88] to-[#E46642] bg-clip-text text-transparent mt-[5px] text-[12px]'>
+          <span className='bg-gradient-primary mt-[5px] bg-clip-text text-[12px] text-transparent'>
             {item.label}
           </span>
         </div>

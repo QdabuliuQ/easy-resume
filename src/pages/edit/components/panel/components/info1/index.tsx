@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react';
-import { memo, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { memo, useMemo, useRef, type CSSProperties } from 'react';
 import { UserOutlined } from '@ant-design/icons';
 import {
   Cascader,
@@ -79,9 +79,9 @@ function formatPreviewValue(key: string, opt: Record<string, unknown>): string {
 
 function Info1({ moduleId }: { moduleId?: string } = {}) {
   const [form] = Form.useForm();
-  const [editOpen, setEditOpen] = useState(false);
   const cropperRef = useRef<any>(null);
   const mid = moduleId ?? moduleActiveStore.getModuleActive;
+  const editOpen = moduleActiveStore.getModuleActive === mid;
   const uploadButton = useMemo(
     () => (
       <button
@@ -280,12 +280,17 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
   });
 
   const formatLayout = useMemoizedFn((layout: Array<any>) => {
+    const sorted = [...layout].sort((a, b) =>
+      a.y !== b.y ? a.y - b.y : a.x - b.x
+    );
     const newLayout: Array<Array<string>> = [];
-    for (const item of layout) {
-      if (!newLayout[item.y]) {
-        newLayout[item.y] = [];
+    let prevY = -Infinity;
+    for (const item of sorted) {
+      if (prevY !== item.y) {
+        newLayout.push([]);
+        prevY = item.y;
       }
-      newLayout[item.y][item.x] = item.i;
+      newLayout[newLayout.length - 1].push(item.i);
     }
     return newLayout;
   });
@@ -331,8 +336,8 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                 x2='100%'
                 y2='100%'
               >
-                <stop offset='0%' stopColor='#FCEA88' />
-                <stop offset='100%' stopColor='#e9754a' />
+                <stop offset='0%' stopColor='var(--color-primary-gradient-start)' />
+                <stop offset='100%' stopColor='var(--color-primary)' />
               </linearGradient>
             </defs>
           </svg>
@@ -351,11 +356,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
             基本信息
           </span>
         </div>
-        <PanelToolbar
-          moduleId={mid}
-          editOpen={editOpen}
-          setEditOpen={setEditOpen}
-        />
+        <PanelToolbar moduleId={mid} />
       </div>
 
       {!editOpen && option && (
@@ -363,9 +364,6 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
           key='preview'
           className='info1-panel-animate rounded-lg border border-white/[0.08] bg-white/[0.06] px-3.5 py-3 text-white/95'
         >
-          <div className='mb-2 text-[15px] font-medium'>
-            {String(option.name ?? '未填写姓名')}
-          </div>
           {previewByLayout ? (
             <div className='flex flex-col gap-2 break-all text-[13px] text-white/75'>
               {previewByLayout.map((line, idx) => (

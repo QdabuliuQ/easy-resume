@@ -1,3 +1,4 @@
+import { plainTextFromRichHtml, sanitizeRichTextHtml } from '@/utils/sanitizeHtml';
 import { memo } from 'react';
 import { GlobalStyle } from '../utils/common.type';
 import ModuleOperation from '@/components/moduleOperation';
@@ -32,7 +33,7 @@ interface Props {
 function Education(props: Props) {
   const { config, globalStyle } = props;
   const { id, options } = config;
-  const { fontSize, color } = globalStyle;
+  const { fontSize, color, lineHeight } = globalStyle;
 
   return (
     <ModuleOperation
@@ -77,11 +78,15 @@ function Education(props: Props) {
                   <div className='flex-3 text-right'>{item.city}</div>
                 </div>
               )}
-              {item.description && (
-                <div style={{ fontSize: fontSize + 'px' }}>
-                  {item.description}
-                </div>
-              )}
+              {plainTextFromRichHtml(item.description) ? (
+                <div
+                  className='text-[#333] [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5'
+                  style={{ fontSize: fontSize + 'px', lineHeight }}
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeRichTextHtml(item.description),
+                  }}
+                />
+              ) : null}
             </div>
           ))}
         </div>
