@@ -1,5 +1,6 @@
 import { fabric } from 'fabric';
 import { GlobalStyle } from '../utils/common.type';
+import { cssLengthToApproxPx } from '@/utils/cssLength';
 
 export interface HeaderProps extends GlobalStyle {
   title: string;
@@ -12,7 +13,8 @@ export default function createHeader1(
   globalStyle: GlobalStyle
 ) {
   const { title } = props;
-  const { color, fontSize, horizontalMargin, width } = globalStyle;
+  const { color, fontSize, horizontalMargin } = globalStyle;
+  const widthPx = cssLengthToApproxPx(globalStyle.width);
   const line = new fabric.Rect({
     width: 5,
     height: HEADER_HEIGHT,
@@ -31,7 +33,7 @@ export default function createHeader1(
     top: (HEADER_HEIGHT - (text.height ?? 0)) / 2,
   });
   const bgRect = new fabric.Rect({
-    width: (width ?? 0) - (horizontalMargin ?? 0) * 2,
+    width: widthPx - (horizontalMargin ?? 0) * 2,
     height: HEADER_HEIGHT,
     fill: color,
     left: 0,
@@ -41,7 +43,7 @@ export default function createHeader1(
   const group = new fabric.Group([bgRect, line, text], {
     originX: 'left',
     originY: 'top',
-    width: (width ?? 0) - (horizontalMargin ?? 0) * 2,
+    width: widthPx - (horizontalMargin ?? 0) * 2,
     left: 0,
     property: {
       type: 'header1',

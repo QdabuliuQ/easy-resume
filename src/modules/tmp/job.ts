@@ -2,6 +2,7 @@ import { fabric } from 'fabric';
 import createHeader1 from './header1';
 import { columnMargin, rowMargin } from '../utils/constant';
 import { GlobalStyle } from '../utils/common.type';
+import { cssLengthToApproxPx } from '@/utils/cssLength';
 
 interface JobItemProps {
   company: string;
@@ -26,6 +27,7 @@ function createJobItem(
   header: fabric.Group,
   globalStyle: Partial<GlobalStyle>
 ) {
+  const sheetW = cssLengthToApproxPx(globalStyle.width ?? '210mm');
   const { company, post, department, city, startDate, endDate, description } =
     props;
 
@@ -43,7 +45,7 @@ function createJobItem(
   });
   dateText.set({
     left:
-      (globalStyle.width ?? 0) -
+      sheetW -
       (globalStyle.horizontalMargin ?? 0) * 2 -
       (dateText.width ?? 0),
   });
@@ -67,13 +69,12 @@ function createJobItem(
 
   cityText.set({
     left:
-      (globalStyle.width ?? 0) -
+      sheetW -
       (globalStyle.horizontalMargin ?? 0) * 2 -
       (cityText.width ?? 0),
   });
   const descriptionText = new fabric.Textbox(description, {
-    width:
-      (globalStyle.width ?? 0) - (globalStyle.horizontalMargin ?? 0) * 2 - 5,
+    width: sheetW - (globalStyle.horizontalMargin ?? 0) * 2 - 5,
     left: 0,
     top: (cityText.top ?? 0) + (cityText.height ?? 0) + rowMargin,
     fontSize: globalStyle.fontSize,
@@ -100,7 +101,8 @@ export default function createJobModule(
   globalStyle: GlobalStyle
 ) {
   const { items } = props.options;
-  const { width, horizontalMargin } = globalStyle;
+  const { horizontalMargin } = globalStyle;
+  const widthPx = cssLengthToApproxPx(globalStyle.width);
 
   const header = createHeader1(props.options, globalStyle);
 
@@ -118,7 +120,7 @@ export default function createJobModule(
     groups.push(group);
   }
   const jobModule = new fabric.Group([header, ...groups], {
-    width: width - horizontalMargin * 2,
+    width: widthPx - horizontalMargin * 2,
     left: horizontalMargin,
     lockMovementX: true,
     lockMovementY: true,
@@ -129,13 +131,13 @@ export default function createJobModule(
     },
   } as any);
   header.set({
-    left: -(width - horizontalMargin * 2) / 2,
+    left: -(widthPx - horizontalMargin * 2) / 2,
   });
 
   for (let i = 0; i < jobModule._objects.length; i++) {
     jobModule._objects[i].set({
-      width: width - horizontalMargin * 2,
-      left: -(width - horizontalMargin * 2) / 2,
+      width: widthPx - horizontalMargin * 2,
+      left: -(widthPx - horizontalMargin * 2) / 2,
     });
   }
 

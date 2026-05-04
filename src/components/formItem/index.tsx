@@ -1,6 +1,5 @@
 import { Form } from 'antd';
 import { memo } from 'react';
-import styles from './index.module.less';
 
 function FormItem(props: {
   label: string;
@@ -12,7 +11,7 @@ function FormItem(props: {
 }) {
   return (
     <Form.Item
-      className={styles.formItem}
+      className='[&_.ant-form-item-label]:!h-[30px] [&_.ant-form-item-label]:!pb-[5px]'
       label={
         <div className=' flex items-center'>
           {props.icon ? (

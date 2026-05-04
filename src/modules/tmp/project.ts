@@ -2,6 +2,7 @@ import { fabric } from 'fabric';
 import createHeader1 from './header1';
 import { rowMargin } from '../utils/constant';
 import { GlobalStyle } from '../utils/common.type';
+import { cssLengthToApproxPx } from '@/utils/cssLength';
 interface ProjectItemProps {
   name: string;
   role: string;
@@ -24,6 +25,7 @@ function createProjectItem(
   header: fabric.Group,
   globalStyle: GlobalStyle
 ) {
+  const sheetW = cssLengthToApproxPx(globalStyle.width);
   const { name, role, startDate, endDate, description } = props;
 
   const nameText = new fabric.Text(name, {
@@ -40,7 +42,11 @@ function createProjectItem(
     fill: 'black',
   });
   dateText.set({
-    left: (globalStyle.width ?? 0) - (dateText.width ?? 0) - 5,
+    left:
+      sheetW -
+      (globalStyle.horizontalMargin ?? 0) * 2 -
+      (dateText.width ?? 0) -
+      5,
   });
 
   const roleText = new fabric.Text(role, {
@@ -51,7 +57,7 @@ function createProjectItem(
   });
 
   const descriptionText = new fabric.Textbox(description, {
-    width: globalStyle.width,
+    width: sheetW,
     left: globalStyle.horizontalMargin,
     top: (roleText.top ?? 0) + (roleText.height ?? 0) + rowMargin,
     fontSize: globalStyle.fontSize,
@@ -62,7 +68,7 @@ function createProjectItem(
   });
 
   return new fabric.Group([nameText, roleText, descriptionText, dateText], {
-    width: (globalStyle.width ?? 0) - (globalStyle.horizontalMargin ?? 0) * 2,
+    width: sheetW - (globalStyle.horizontalMargin ?? 0) * 2,
     left: 0,
   });
 }
@@ -72,7 +78,8 @@ export default function createProjectModule(
   globalStyle: GlobalStyle
 ) {
   const { items } = props.options;
-  const { width, horizontalMargin } = globalStyle;
+  const { horizontalMargin } = globalStyle;
+  const widthPx = cssLengthToApproxPx(globalStyle.width);
   const header = createHeader1(props.options, globalStyle);
   const project = new fabric.Group([header], {
     originX: 'left',
@@ -86,7 +93,7 @@ export default function createProjectModule(
     },
   } as any);
   header.set({
-    left: -(width - horizontalMargin * 2) / 2,
+    left: -(widthPx - horizontalMargin * 2) / 2,
   });
 
   const projectGroups: fabric.Group[] = [];
@@ -103,22 +110,22 @@ export default function createProjectModule(
     projectGroups.push(group);
     project.addWithUpdate(group);
     group.set({
-      width: width - horizontalMargin * 2,
-      left: -(width - horizontalMargin * 2) / 2,
+      width: widthPx - horizontalMargin * 2,
+      left: -(widthPx - horizontalMargin * 2) / 2,
     });
     for (let i = 0; i < group._objects.length - 1; i++) {
       group._objects[i].set({
-        left: -(width - horizontalMargin * 2) / 2,
+        left: -(widthPx - horizontalMargin * 2) / 2,
       });
     }
   }
   project.set({
-    width: width - horizontalMargin * 2,
+    width: widthPx - horizontalMargin * 2,
     left: horizontalMargin,
   });
   for (let i = 0; i < project._objects.length; i++) {
     project._objects[i].set({
-      left: -(width - horizontalMargin * 2) / 2,
+      left: -(widthPx - horizontalMargin * 2) / 2,
     });
   }
 

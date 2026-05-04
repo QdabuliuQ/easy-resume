@@ -1,5 +1,5 @@
 import { moduleActiveStore, configStore } from '@/mobx';
-import createCertificateModule from '@/modules/certificate';
+import createCertificateModule from '@/modules/tmp/certificate';
 import createEducationModule from '@/modules/tmp/education';
 import createInfo1 from '@/modules/info/info1';
 import createJobModule from '@/modules/tmp/job';
@@ -7,6 +7,7 @@ import createProjectModule from '@/modules/tmp/project';
 import createSkillModule from '@/modules/tmp/skill';
 import { useMemoizedFn } from 'ahooks';
 import { fabric } from 'fabric';
+import { cssLengthToApproxPx } from '@/utils/cssLength';
 
 let canvasInstanceRef: Array<fabric.Canvas> = [];
 
@@ -28,6 +29,8 @@ function createCanvasDom(
 
 export const useRender = () => {
   const render = useMemoizedFn(async (resume: any, init: boolean = false) => {
+    const layoutW = cssLengthToApproxPx(resume.globalStyle.width);
+    const layoutH = cssLengthToApproxPx(resume.globalStyle.height);
     let currentPage = 1;
     for (let i = 0; i < canvasInstanceRef.length; i++) {
       canvasInstanceRef[i].clear();
@@ -38,12 +41,7 @@ export const useRender = () => {
       canvasBox.innerHTML = '';
       canvasInstanceRef = [];
 
-      createCanvasDom(
-        resume.globalStyle.width,
-        resume.globalStyle.height,
-        currentPage,
-        canvasBox
-      );
+      createCanvasDom(layoutW, layoutH, currentPage, canvasBox);
       let canvas = new fabric.Canvas('canvas-' + currentPage, {
         hoverCursor: 'pointer',
         backgroundColor: resume.globalStyle.backgroundColor,
@@ -67,9 +65,9 @@ export const useRender = () => {
       canvasInstanceRef.push(canvas);
     }
 
-    const pages = []; // 页面布局
+    const pages: any[] = []; // 页面布局
     let height = 0;
-    const modules = [];
+    const modules: any[] = [];
     for (const element of resume.pages) {
       for (const item of element.modules) {
         modules.push(item);
@@ -88,7 +86,7 @@ export const useRender = () => {
       } else if (options.type === 'certificate') {
         module = createCertificateModule(options, resume.globalStyle);
       } else if (options.type === 'info1') {
-        module = (await createInfo1(
+        module = (await (createInfo1 as any)(
           options,
           resume.globalStyle
         )) as fabric.Group;
@@ -101,16 +99,11 @@ export const useRender = () => {
           ((module as fabric.Group).height ?? 0) +
             ((module as fabric.Group).top ?? 0) +
             height >
-          resume.globalStyle.height - resume.globalStyle.verticalMargin * 2
+          layoutH - resume.globalStyle.verticalMargin * 2
         ) {
           currentPage++;
 
-          createCanvasDom(
-            resume.globalStyle.width,
-            resume.globalStyle.height,
-            currentPage,
-            canvasBox
-          );
+          createCanvasDom(layoutW, layoutH, currentPage, canvasBox);
           if (canvasInstanceRef) {
             canvasInstanceRef[currentPage - 2].renderAll();
 
@@ -202,10 +195,13 @@ function getModuleInstance(
 }
 
 export const update = async (resume: any) => {
+  const layoutW = cssLengthToApproxPx(resume.globalStyle.width);
+  const layoutH = cssLengthToApproxPx(resume.globalStyle.height);
   const canvasBox = document.getElementById('canvas-box') as HTMLElement;
   const pages: Array<any> = []; // 页面布局
-  const moduleInstances = [];
-  const modules = [];
+  const moduleInstances: Array<{ module: fabric.Object; isExist: boolean }> =
+    [];
+  const modules: any[] = [];
   for (const element of resume.pages) {
     for (const item of element.modules) {
       modules.push(item);
@@ -248,7 +244,7 @@ export const update = async (resume: any) => {
       } else if (options.type === 'certificate') {
         module = createCertificateModule(options, resume.globalStyle);
       } else if (options.type === 'info1') {
-        module = (await createInfo1(
+        module = (await (createInfo1 as any)(
           options,
           resume.globalStyle
         )) as fabric.Group;
@@ -275,19 +271,14 @@ export const update = async (resume: any) => {
     // 检查是否需要新页
     if (
       height + moduleHeight >
-      resume.globalStyle.height - resume.globalStyle.verticalMargin * 2
+      layoutH - resume.globalStyle.verticalMargin * 2
     ) {
       currentPage++;
       height = 0;
 
       // 创建新画布
       if (currentPage > canvasInstanceRef.length) {
-        createCanvasDom(
-          resume.globalStyle.width,
-          resume.globalStyle.height,
-          currentPage,
-          canvasBox
-        );
+        createCanvasDom(layoutW, layoutH, currentPage, canvasBox);
         currentCanvas = new fabric.Canvas('canvas-' + currentPage, {
           hoverCursor: 'pointer',
           backgroundColor: resume.globalStyle.backgroundColor,

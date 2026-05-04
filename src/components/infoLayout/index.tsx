@@ -1,23 +1,19 @@
+import { Popover } from 'antd';
 import { observer } from 'mobx-react';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import GridLayout from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
-import { WidthProvider } from 'react-grid-layout';
-import styles from './index.module.less';
 import { info } from '@/modules/utils/constant';
 import { AddOne, Delete } from '@icon-park/react';
-import { useMemoizedFn } from 'ahooks';
-
-const GridLayoutWithWidth = WidthProvider(GridLayout);
 
 function FieldChip(props: {
   label: string;
   onRemove: () => void;
 }) {
   return (
-    <div className='box-border flex h-full min-h-[28px] w-full max-w-full min-w-0 items-center gap-1.5 rounded-md border border-white/15 bg-neutral-700/95 px-2 py-1 text-[12px] leading-tight text-white shadow-sm'>
+    <div className='box-border flex min-h-[26px] max-h-[26px] w-full max-w-full min-w-0 cursor-move items-center gap-1 rounded-md border border-white/15 bg-neutral-700/95 px-1 py-0.5 text-[11px] leading-tight text-white shadow-sm'>
       <span
-        className='min-w-0 flex-1 break-words text-center [word-break:break-word]'
+        className='min-w-0 flex-1 break-words text-center [word-break:break-word] text-[10px]'
         title={props.label}
       >
         {props.label}
@@ -35,17 +31,44 @@ function FieldChip(props: {
           props.onRemove();
         }}
       >
-        <Delete theme='outline' size='14' fill='currentColor' />
+        <Delete theme='outline' size='12' fill='currentColor' />
       </button>
     </div>
   );
 }
 
-/** 12 栅格中单列 ≈38px；每项占 4 列 ≈153px，可完整显示四字中文 + 删除 */
+/** 与 FieldChip 同款容器与排版，右侧为添加按钮 */
+function AddFieldChip(props: { label: string; onAdd: () => void }) {
+  return (
+    <div className='box-border flex min-h-[26px] max-h-[26px] w-full max-w-full min-w-0 items-center gap-1 rounded-md border border-white/15 bg-neutral-700/95 px-1 py-0.5 text-[11px] leading-tight text-white shadow-sm'>
+      <span
+        className='min-w-0 flex-1 break-words text-center [word-break:break-word] text-[10px]'
+        title={props.label}
+      >
+        {props.label}
+      </span>
+      <button
+        type='button'
+        className='inline-flex shrink-0 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0.5 text-white/70 outline-none transition-colors hover:bg-white/10 hover:text-white'
+        aria-label='添加'
+        title='添加'
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          props.onAdd();
+        }}
+      >
+        <AddOne theme='outline' size='12' fill='currentColor' />
+      </button>
+    </div>
+  );
+}
+
+/** 12 栅格；每项占 2 列 → 一行最多 6 个 */
 const GRID_COLS = 12;
-const FIELD_W = 4;
-const ROW_H = 42;
-const WIDTH = 460;
+const FIELD_W = 2;
+const ROW_H = 26;
+const WIDTH = 500;
 
 function rowsToLayout(rows: Array<Array<string>>) {
   const next: Array<{ i: string; x: number; y: number; w: number; h: number }> =
@@ -177,8 +200,8 @@ function InfoLayout(props: {
     }
   };
 
-  const canbeAddItem = useMemoizedFn(() => {
-    const items = [];
+  const addableFieldKeys = useMemo(() => {
+    const keys: string[] = [];
     for (const key in info) {
       if (
         Object.prototype.hasOwnProperty.call(info, key) &&
@@ -186,39 +209,29 @@ function InfoLayout(props: {
         key !== 'name' &&
         key !== 'avatar'
       ) {
-        items.push(
-          <div
-            role='presentation'
-            onClick={() => addItem(key)}
-            key={key}
-            className='relative flex h-[30px] cursor-pointer items-center rounded-[5px] bg-gray-300 px-[10px] text-[12px] font-bold text-white transition-all duration-300 hover:bg-gray-400'
-          >
-            <AddOne
-              className='mr-[5px]'
-              theme='outline'
-              size='15'
-              fill='#fff'
-            />
-            {info[key as keyof typeof info]}
-          </div>
-        );
+        keys.push(key);
       }
     }
-    return items;
-  });
+    return keys;
+  }, [layout]);
 
-  return (
-    <div className={styles.infoLayout}>
+  /** Popover 内不要用 WidthProvider：会按气泡整宽测量，栅格错位、出现伪「重复」与横向灰条 */
+  const gridChromeClassName =
+    'w-[500px] max-w-[min(500px,calc(100vw-48px))] overflow-x-hidden [&_.react-grid-layout]:!min-h-0 [&_.react-grid-item.react-draggable-dragging]:!z-[100] [&_.react-grid-item.react-draggable-dragging]:!rounded-md [&_.react-grid-item.react-draggable-dragging]:!opacity-95 [&_.react-grid-item.react-draggable-dragging]:!shadow-lg [&_.react-grid-item.react-grid-placeholder]:!z-[99] [&_.react-grid-item.react-grid-placeholder]:!min-h-0 [&_.react-grid-item.react-grid-placeholder]:!rounded-lg [&_.react-grid-item.react-grid-placeholder]:!border-2 [&_.react-grid-item.react-grid-placeholder]:!border-dashed [&_.react-grid-item.react-grid-placeholder]:!border-[color-mix(in_srgb,var(--color-primary)_55%,transparent)] [&_.react-grid-item.react-grid-placeholder]:!bg-transparent [&_.react-grid-item.react-grid-placeholder]:!opacity-100';
+
+  const layoutPopoverContent = (
+    <div className={gridChromeClassName}>
       <div className='w-full rounded-lg'>
-        <GridLayoutWithWidth
+        <GridLayout
           className='layout'
           layout={layout}
           cols={GRID_COLS}
           rowHeight={ROW_H}
           width={WIDTH}
-          margin={[6, 6]}
+          margin={[6, 10]}
           isResizable={false}
           compactType={null}
+          useCSSTransforms
           onDragStop={onDragStop}
         >
           {layout.map((item) => {
@@ -226,7 +239,7 @@ function InfoLayout(props: {
             return (
               <div
                 key={item.i}
-                className='box-border flex h-full w-full items-stretch px-px'
+                className='box-border flex h-full w-full cursor-move items-stretch px-px'
               >
                 <FieldChip
                   label={label}
@@ -235,10 +248,50 @@ function InfoLayout(props: {
               </div>
             );
           })}
-        </GridLayoutWithWidth>
+        </GridLayout>
       </div>
-      <div className='mt-2 flex w-full flex-wrap gap-2'>{canbeAddItem()}</div>
+      {addableFieldKeys.length > 0 ? (
+        <div className='flex w-full flex-wrap gap-2 border-t border-white/10 pt-[10px] px-[6px]'>
+          {addableFieldKeys.map((key) => (
+            <div
+              key={key}
+              className='box-border min-w-0 shrink-0 basis-[calc((100%-2.5rem)/6)]'
+            >
+              <AddFieldChip
+                label={info[key as keyof typeof info]}
+                onAdd={() => addItem(key)}
+              />
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
+  );
+
+  return (
+    <Popover
+      trigger='click'
+      mouseEnterDelay={0.15}
+      mouseLeaveDelay={0.35}
+      placement='bottomLeft'
+      overlayInnerStyle={{
+        padding: 14,
+        width: WIDTH + 28,
+        maxWidth: 'min(calc(100vw - 24px), 528px)',
+        backgroundColor: '#262626',
+        borderRadius: 10,
+        boxShadow: '0 8px 28px rgba(0,0,0,0.45)',
+      }}
+      zIndex={1100}
+      content={layoutPopoverContent}
+    >
+      <button
+        type='button'
+        className='inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-white/20 bg-neutral-700/90 px-3 text-[12px] font-medium text-white outline-none transition-colors hover:border-white/35 hover:bg-neutral-600/90'
+      >
+        字段布局
+      </button>
+    </Popover>
   );
 }
 

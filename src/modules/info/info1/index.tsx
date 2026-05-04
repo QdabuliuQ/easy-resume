@@ -1,7 +1,6 @@
 import { memo, useEffect, useState } from 'react';
 import { GlobalStyle } from '@/modules/utils/common.type';
-import ModuleOperation from '@/components/moduleOperation';
-import { moduleActiveStore } from '@/mobx';
+import { RESUME_MODULE_ID_ATTR } from '@/components/moduleOperation/constants';
 import { observer } from 'mobx-react';
 import { wrapperStyle } from './style';
 
@@ -48,10 +47,10 @@ function Info1(props: Props) {
   const [itemLayout, setItemLayout] = useState<Array<React.ReactNode>>([]);
 
   useEffect(() => {
-    const elements = [];
+    const elements: React.ReactNode[] = [];
     for (let i = 0; i < layout.length; i++) {
       const row = layout[i];
-      const rowElements = [];
+      const rowElements: React.ReactNode[] = [];
       for (let j = 0; j < row.length; j++) {
         const key = row[j];
         if (key === 'avatar' || key === 'name' || key === 'layout') {
@@ -112,26 +111,26 @@ function Info1(props: Props) {
   }, [layout, props]);
 
   return (
-    <ModuleOperation
+    <div
       id={id}
-      isActive={id === moduleActiveStore.getModuleActive}
+      {...{ [RESUME_MODULE_ID_ATTR]: id }}
+      style={wrapperStyle}
+      className='cursor-pointer'
     >
-      <div id={id} style={wrapperStyle} className='cursor-pointer'>
-        <div className='flex-1'>
-          <div className='mb-[10px] text-[24px] font-bold text-[#333] leading-none'>
-            {name}
-          </div>
-          <div className='w-full'>{itemLayout}</div>
+      <div className='flex-1'>
+        <div className='mb-[10px] text-[24px] font-bold text-[#333] leading-none'>
+          {name}
         </div>
-        <div className='w-[90px] min-w-[90px] max-w-[90px]'>
-          <img
-            className='w-full aspect-5/7 object-cover'
-            src={avatar}
-            alt='avatar'
-          />
-        </div>
+        <div className='w-full'>{itemLayout}</div>
       </div>
-    </ModuleOperation>
+      <div className='w-[90px] min-w-[90px] max-w-[90px]'>
+        <img
+          className='w-full aspect-5/7 object-cover'
+          src={avatar}
+          alt='avatar'
+        />
+      </div>
+    </div>
   );
 }
 

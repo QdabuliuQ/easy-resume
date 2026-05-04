@@ -2,6 +2,7 @@ import createHeader1 from './header1';
 import { fabric } from 'fabric';
 import { columnMargin, rowMargin } from '../utils/constant';
 import { GlobalStyle } from '../utils/common.type';
+import { cssLengthToApproxPx } from '@/utils/cssLength';
 
 interface EducationItemProps {
   school: string;
@@ -62,7 +63,8 @@ function createEducationItem(
     academy,
     description,
   } = props;
-  const { fontSize, lineHeight, horizontalMargin, width } = globalStyle;
+  const { fontSize, lineHeight, horizontalMargin } = globalStyle;
+  const widthPx = cssLengthToApproxPx(globalStyle.width);
   const schoolText = new fabric.Text(school ?? '', {
     left: 0,
     top: (header.height ?? 0) + rowMargin,
@@ -107,7 +109,7 @@ function createEducationItem(
     fill: 'black',
   });
   dateText.set({
-    left: (width ?? 0) - (horizontalMargin ?? 0) * 2 - (dateText.width ?? 0),
+    left: widthPx - (horizontalMargin ?? 0) * 2 - (dateText.width ?? 0),
   });
   const majorText = new fabric.Text(major, {
     left: 0,
@@ -133,10 +135,10 @@ function createEducationItem(
     fill: 'black',
   });
   cityText.set({
-    left: (width ?? 0) - (horizontalMargin ?? 0) * 2 - (cityText.width ?? 0),
+    left: widthPx - (horizontalMargin ?? 0) * 2 - (cityText.width ?? 0),
   });
   const descriptionText = new fabric.Textbox(description ?? '', {
-    width: (width ?? 0) - (horizontalMargin ?? 0) * 2,
+    width: widthPx - (horizontalMargin ?? 0) * 2,
     left: 0,
     top: (cityText.top ?? 0) + (cityText.height ?? 0) + rowMargin,
     fontSize,
@@ -158,7 +160,7 @@ function createEducationItem(
   ]);
 
   group.set({
-    width: (width ?? 0) - (horizontalMargin ?? 0) * 2,
+    width: widthPx - (horizontalMargin ?? 0) * 2,
     left: 0,
   });
   return group;
@@ -168,7 +170,8 @@ export default function createEducationModule(
   globalStyle: GlobalStyle
 ) {
   const { items } = props.options;
-  const { width, horizontalMargin } = globalStyle;
+  const { horizontalMargin } = globalStyle;
+  const widthPx = cssLengthToApproxPx(globalStyle.width);
 
   const header = createHeader1(props.options, globalStyle);
 
@@ -186,7 +189,7 @@ export default function createEducationModule(
     groups.push(group);
   }
   const educationModule = new fabric.Group([header, ...groups], {
-    width: width - horizontalMargin * 2,
+    width: widthPx - horizontalMargin * 2,
     left: horizontalMargin,
     lockMovementX: true,
     lockMovementY: true,
@@ -197,7 +200,7 @@ export default function createEducationModule(
     },
   } as any);
   header.set({
-    left: -(width - horizontalMargin * 2) / 2,
+    left: -(widthPx - horizontalMargin * 2) / 2,
   });
   return educationModule;
 }

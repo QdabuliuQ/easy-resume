@@ -1,8 +1,8 @@
 export default {
   name: '张三',
   globalStyle: {
-    width: 595,
-    height: 842,
+    width: '210mm',
+    height: '297mm',
     fontSize: 13,
     lineHeight: 1.3,
     horizontalMargin: 10,
@@ -11,6 +11,8 @@ export default {
     backgroundColor: '#fff',
     /** 单页版心内边距（四边相同，见 modules/page） */
     padding: 20,
+    bodyBorderWidth: 0,
+    bodyBorderColor: '#d9d9d9',
   },
   pages: [
     {

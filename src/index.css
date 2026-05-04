@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* 与 Ant Design 暗色布局底色一致 */
+@theme {
+  --color-background: #141414;
+}
+
 @keyframes info1-panel-enter {
   from {
     opacity: 0;
@@ -47,6 +52,12 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #242424;
 }
 
 .bg-gradient-primary {
