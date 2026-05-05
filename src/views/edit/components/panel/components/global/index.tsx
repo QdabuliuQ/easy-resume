@@ -7,12 +7,10 @@ import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import Title from '@/components/title';
 import FormItem from '@/components/formItem';
 import {
-  AutoHeightOne,
   AutoLineHeight,
   BackgroundColor,
   Delete,
   Edit,
-  ExpandLeftAndRight,
   FontSize,
   SlidingVertical,
 } from '@icon-park/react';
@@ -105,7 +103,6 @@ function Global() {
         ...config,
         pages: [
           {
-            ...(config.pages[0] ?? { moduleMargin: 15 }),
             modules,
           },
         ],
@@ -157,36 +154,6 @@ function Global() {
             </Col>
             <Col span={12}>
               <FormItem
-                label='左右间距'
-                icon={
-                  <ExpandLeftAndRight theme='outline' size='15' fill='#333' />
-                }
-              >
-                <InputNumber
-                  value={global.horizontalMargin}
-                  style={{ width: '100%' }}
-                  min={1}
-                  addonAfter='PX'
-                  onChange={(value) => handleChange(value, 'horizontalMargin')}
-                />
-              </FormItem>
-            </Col>
-            <Col span={12}>
-              <FormItem
-                label='上下间距'
-                icon={<AutoHeightOne theme='outline' size='15' fill='#333' />}
-              >
-                <InputNumber
-                  value={global.verticalMargin}
-                  style={{ width: '100%' }}
-                  min={1}
-                  addonAfter='PX'
-                  onChange={(value) => handleChange(value, 'verticalMargin')}
-                />
-              </FormItem>
-            </Col>
-            <Col span={12}>
-              <FormItem
                 label='背景颜色'
                 icon={<BackgroundColor theme='outline' size='15' fill='#333' />}
               >
@@ -204,28 +171,6 @@ function Global() {
                 <ColorPicker
                   defaultValue={global.color}
                   onChange={(_, rgba) => handleChange(rgba, 'color')}
-                />
-              </FormItem>
-            </Col>
-            <Col span={12}>
-              <FormItem label='Body 边框宽度' icon={<ExpandLeftAndRight theme='outline' size='15' fill='#333' />}>
-                <InputNumber
-                  value={global.bodyBorderWidth ?? 0}
-                  style={{ width: '100%' }}
-                  min={0}
-                  max={40}
-                  addonAfter='PX'
-                  onChange={(value) =>
-                    handleChange(value ?? 0, 'bodyBorderWidth')
-                  }
-                />
-              </FormItem>
-            </Col>
-            <Col span={12}>
-              <FormItem label='Body 边框颜色' icon={<BackgroundColor theme='outline' size='15' fill='#333' />}>
-                <ColorPicker
-                  defaultValue={global.bodyBorderColor ?? '#d9d9d9'}
-                  onChange={(_, rgba) => handleChange(rgba, 'bodyBorderColor')}
                 />
               </FormItem>
             </Col>

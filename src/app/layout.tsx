@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import '../index.css';
+import 'quill/dist/quill.snow.css';
+import '../styles/resumeQuillEmbed.css';
 import { AntdProvider } from './providers';
 
 export const metadata: Metadata = {

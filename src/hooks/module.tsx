@@ -1,5 +1,9 @@
 import { configStore, moduleActiveStore } from '@/mobx';
 import { useMemoizedFn } from 'ahooks';
+import {
+  createEmptyResumeModule,
+  type ResumeModuleType,
+} from '@/utils/createResumeModule';
 
 export function useModuleHandle() {
   const clickModule = useMemoizedFn((id: string) => {
@@ -55,18 +59,29 @@ export function useModuleHandle() {
     const config = configStore.getConfig;
     if (!config?.pages?.length) return;
     const snapshot = ordered.map((m) => JSON.parse(JSON.stringify(m)));
-    const first = {
-      ...config.pages[0],
-      modules: snapshot,
-    };
-    const rest = config.pages.slice(1).map((p: Record<string, unknown>) => ({
-      ...p,
-      modules: [],
-    }));
+    const first = { modules: snapshot };
+    const rest = config.pages.slice(1).map(() => ({ modules: [] }));
     configStore.setConfig({
       ...config,
       pages: [first, ...rest],
     });
+  });
+
+  const addModuleByType = useMemoizedFn((type: ResumeModuleType) => {
+    const config = configStore.getConfig;
+    if (!config) return;
+    const mod = createEmptyResumeModule(type);
+    if (!config.pages?.length) {
+      const next = JSON.parse(JSON.stringify(config));
+      next.pages = [{ modules: [mod] }];
+      configStore.setConfig(next);
+      moduleActiveStore.setModuleActive(mod.id);
+      return;
+    }
+    const next = JSON.parse(JSON.stringify(config));
+    next.pages[0].modules.push(mod);
+    configStore.setConfig(next);
+    moduleActiveStore.setModuleActive(mod.id);
   });
 
   const updateModuleTitleInConfig = useMemoizedFn((id: string, title: string) => {
@@ -88,6 +103,7 @@ export function useModuleHandle() {
     clickModule,
     getModule,
     getModuleIndex,
+    addModuleByType,
     removeModuleFromConfig,
     reorderFlattenedModules,
     updateModuleTitleInConfig,

@@ -1,0 +1,25 @@
+.resume-quill-embed {
+  --spacing: 0.25rem;
+}
+
+.resume-quill-embed .ql-editor li {
+  margin-block: calc(var(--spacing) * 0.5);
+}
+
+.resume-quill-embed .ql-editor {
+  padding: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  outline: none !important;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.resume-quill-embed .ql-editor ol {
+  padding-left: 0 !important;
+}

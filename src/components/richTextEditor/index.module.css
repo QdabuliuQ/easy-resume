@@ -1,0 +1,150 @@
+.host {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.host :global(.ql-toolbar.ql-snow) {
+  border-color: #2d2d2d !important;
+  border-bottom-color: #2d2d2d !important;
+}
+
+.host :global(.ql-container) {
+  border-radius: 0;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  border-width: 0 !important;
+  border-top-width: 1px !important;
+  border-top-style: solid !important;
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: #1a1a1d !important;
+}
+
+.host :global(.ql-snow .ql-stroke) {
+  stroke: #ffffff !important;
+}
+
+.host :global(.ql-snow .ql-fill) {
+  fill: #ffffff !important;
+}
+
+.host :global(.ql-toolbar) {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  border-width: 0;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: #2d2d2d !important;
+  background-color: #2a2a2e;
+  padding: 6px 8px;
+}
+
+.host :global(.ql-toolbar button) {
+  margin-right: 0 !important;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.host :global(.ql-toolbar button:hover) {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.host :global(.ql-toolbar button.ql-active) {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.host :global(.ql-toolbar .ql-picker-label) {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.host :global(.ql-toolbar .ql-formats button .ql-stroke) {
+  stroke: #ea580c;
+}
+
+.host :global(.ql-toolbar button .ql-stroke) {
+  stroke: #ea580c;
+}
+
+.host :global(.ql-toolbar .ql-picker-label .ql-stroke) {
+  stroke: #ea580c;
+}
+
+.host :global(.ql-toolbar .ql-formats button:hover .ql-stroke) {
+  stroke: #fb923c;
+}
+
+.host :global(.ql-toolbar button:hover .ql-stroke) {
+  stroke: #fb923c;
+}
+
+.host :global(.ql-toolbar .ql-picker-label:hover .ql-stroke) {
+  stroke: #fb923c;
+}
+
+.host :global(.ql-toolbar .ql-picker-options) {
+  border-radius: 6px !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background-color: #323236 !important;
+}
+
+.host :global(.ql-toolbar .ql-picker-item) {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.host :global(.ql-toolbar .ql-picker-item:hover) {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.host :global(.ql-editor) {
+  box-sizing: border-box !important;
+  height: 350px !important;
+  min-height: 350px !important;
+  max-height: 350px !important;
+  overflow-y: auto;
+  font-size: 13px !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.host :global(.ql-editor ol) {
+  padding-left: 0;
+}
+
+.host :global(.ql-editor a) {
+  color: #38bdf8 !important;
+}
+
+.host :global(.ql-editor.ql-blank::before) {
+  left: 16px !important;
+  font-style: normal !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.host :global(.ql-snow .ql-tooltip::before) {
+  content: '访问链接：' !important;
+}
+
+.host :global(.ql-snow .ql-tooltip[data-mode='link']::before) {
+  content: '访问链接：' !important;
+}
+
+.host :global(.ql-snow .ql-tooltip[data-mode='formula']::before) {
+  content: '请输入公式：' !important;
+}
+
+.host :global(.ql-snow .ql-tooltip[data-mode='video']::before) {
+  content: '请输入视频地址：' !important;
+}
+
+.host :global(.ql-snow .ql-tooltip a.ql-action::after) {
+  content: '编辑' !important;
+}
+
+.host :global(.ql-snow .ql-tooltip.ql-editing a.ql-action::after) {
+  content: '保存' !important;
+}
+
+.host :global(.ql-snow .ql-tooltip a.ql-remove::before) {
+  content: '移除' !important;
+}

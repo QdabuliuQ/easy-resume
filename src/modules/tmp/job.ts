@@ -46,7 +46,7 @@ function createJobItem(
   dateText.set({
     left:
       sheetW -
-      (globalStyle.horizontalMargin ?? 0) * 2 -
+      (globalStyle.padding ?? 0) * 2 -
       (dateText.width ?? 0),
   });
   const postText = new fabric.Text(post, {
@@ -70,11 +70,11 @@ function createJobItem(
   cityText.set({
     left:
       sheetW -
-      (globalStyle.horizontalMargin ?? 0) * 2 -
+      (globalStyle.padding ?? 0) * 2 -
       (cityText.width ?? 0),
   });
   const descriptionText = new fabric.Textbox(description, {
-    width: sheetW - (globalStyle.horizontalMargin ?? 0) * 2 - 5,
+    width: sheetW - (globalStyle.padding ?? 0) * 2 - 5,
     left: 0,
     top: (cityText.top ?? 0) + (cityText.height ?? 0) + rowMargin,
     fontSize: globalStyle.fontSize,
@@ -101,7 +101,7 @@ export default function createJobModule(
   globalStyle: GlobalStyle
 ) {
   const { items } = props.options;
-  const { horizontalMargin } = globalStyle;
+  const pad = globalStyle.padding ?? 0;
   const widthPx = cssLengthToApproxPx(globalStyle.width);
 
   const header = createHeader1(props.options, globalStyle);
@@ -120,8 +120,8 @@ export default function createJobModule(
     groups.push(group);
   }
   const jobModule = new fabric.Group([header, ...groups], {
-    width: widthPx - horizontalMargin * 2,
-    left: horizontalMargin,
+    width: widthPx - pad * 2,
+    left: pad,
     lockMovementX: true,
     lockMovementY: true,
     hasControls: false,
@@ -131,13 +131,13 @@ export default function createJobModule(
     },
   } as any);
   header.set({
-    left: -(widthPx - horizontalMargin * 2) / 2,
+    left: -(widthPx - pad * 2) / 2,
   });
 
   for (let i = 0; i < jobModule._objects.length; i++) {
     jobModule._objects[i].set({
-      width: widthPx - horizontalMargin * 2,
-      left: -(widthPx - horizontalMargin * 2) / 2,
+      width: widthPx - pad * 2,
+      left: -(widthPx - pad * 2) / 2,
     });
   }
 

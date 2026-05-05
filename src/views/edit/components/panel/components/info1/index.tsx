@@ -408,6 +408,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                   >
                     {item.controllerType === 'input' ? (
                       <Input
+                        maxLength={30}
                         defaultValue={option[item.key]}
                         placeholder={
                           '请输入' + info[item.key as keyof typeof info]
@@ -436,12 +437,14 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                     ) : item.controllerType === 'input-salary' ? (
                       <div className='w-full flex items-center justify-between'>
                         <Input
+                          maxLength={30}
                           defaultValue={option[item.key][0]}
                           style={{ width: '43%' }}
                           placeholder='薪资'
                         />
                         -
                         <Input
+                          maxLength={30}
                           defaultValue={option[item.key][1]}
                           style={{ width: '43%' }}
                           placeholder='薪资'

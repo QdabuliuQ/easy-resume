@@ -2,7 +2,6 @@ import { memo, useEffect, useState } from 'react';
 import { GlobalStyle } from '@/modules/utils/common.type';
 import { RESUME_MODULE_ID_ATTR } from '@/components/moduleOperation/constants';
 import { observer } from 'mobx-react';
-import { wrapperStyle } from './style';
 
 export interface InfoProps {
   id: string;
@@ -114,11 +113,13 @@ function Info1(props: Props) {
     <div
       id={id}
       {...{ [RESUME_MODULE_ID_ATTR]: id }}
-      style={wrapperStyle}
-      className='cursor-pointer'
+      className='flex w-full cursor-pointer items-center justify-between'
     >
       <div className='flex-1'>
-        <div className='mb-[10px] text-[24px] font-bold text-[#333] leading-none'>
+        <div
+          className='mb-[10px] font-bold text-[#333] leading-none'
+          style={{ fontSize: fontSize * 1.7 }}
+        >
           {name}
         </div>
         <div className='w-full'>{itemLayout}</div>

@@ -63,7 +63,8 @@ function createEducationItem(
     academy,
     description,
   } = props;
-  const { fontSize, lineHeight, horizontalMargin } = globalStyle;
+  const { fontSize, lineHeight } = globalStyle;
+  const pad = globalStyle.padding ?? 0;
   const widthPx = cssLengthToApproxPx(globalStyle.width);
   const schoolText = new fabric.Text(school ?? '', {
     left: 0,
@@ -109,7 +110,7 @@ function createEducationItem(
     fill: 'black',
   });
   dateText.set({
-    left: widthPx - (horizontalMargin ?? 0) * 2 - (dateText.width ?? 0),
+    left: widthPx - pad * 2 - (dateText.width ?? 0),
   });
   const majorText = new fabric.Text(major, {
     left: 0,
@@ -135,10 +136,10 @@ function createEducationItem(
     fill: 'black',
   });
   cityText.set({
-    left: widthPx - (horizontalMargin ?? 0) * 2 - (cityText.width ?? 0),
+    left: widthPx - pad * 2 - (cityText.width ?? 0),
   });
   const descriptionText = new fabric.Textbox(description ?? '', {
-    width: widthPx - (horizontalMargin ?? 0) * 2,
+    width: widthPx - pad * 2,
     left: 0,
     top: (cityText.top ?? 0) + (cityText.height ?? 0) + rowMargin,
     fontSize,
@@ -160,7 +161,7 @@ function createEducationItem(
   ]);
 
   group.set({
-    width: widthPx - (horizontalMargin ?? 0) * 2,
+    width: widthPx - pad * 2,
     left: 0,
   });
   return group;
@@ -170,7 +171,7 @@ export default function createEducationModule(
   globalStyle: GlobalStyle
 ) {
   const { items } = props.options;
-  const { horizontalMargin } = globalStyle;
+  const pad = globalStyle.padding ?? 0;
   const widthPx = cssLengthToApproxPx(globalStyle.width);
 
   const header = createHeader1(props.options, globalStyle);
@@ -189,8 +190,8 @@ export default function createEducationModule(
     groups.push(group);
   }
   const educationModule = new fabric.Group([header, ...groups], {
-    width: widthPx - horizontalMargin * 2,
-    left: horizontalMargin,
+    width: widthPx - pad * 2,
+    left: pad,
     lockMovementX: true,
     lockMovementY: true,
     hasControls: false,
@@ -200,7 +201,7 @@ export default function createEducationModule(
     },
   } as any);
   header.set({
-    left: -(widthPx - horizontalMargin * 2) / 2,
+    left: -(widthPx - pad * 2) / 2,
   });
   return educationModule;
 }

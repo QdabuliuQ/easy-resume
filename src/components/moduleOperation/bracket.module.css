@@ -22,17 +22,14 @@
   height: 2px;
   width: 4px;
   border-radius: 1px;
-  background: linear-gradient(
-    to bottom,
-    var(--color-primary-gradient-start),
-    var(--color-primary)
-  );
 }
 
 .bracket::before {
   top: 0;
+  background: var(--color-primary-gradient-start);
 }
 
 .bracket::after {
   bottom: 0;
+  background: var(--color-primary);
 }

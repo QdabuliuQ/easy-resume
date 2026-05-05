@@ -35,7 +35,7 @@ function createCertificateItem(
   dateText.set({
     left:
       widthPx -
-      (globalStyle.horizontalMargin ?? 0) * 2 -
+      (globalStyle.padding ?? 0) * 2 -
       (dateText.width ?? 0) -
       5,
   });
@@ -48,7 +48,7 @@ export default function createCertificateModule(
   globalStyle: GlobalStyle
 ) {
   const { items } = props.options;
-  const { horizontalMargin } = globalStyle;
+  const pad = globalStyle.padding ?? 0;
   const widthPx = cssLengthToApproxPx(globalStyle.width);
   const header = createHeader1(props.options, globalStyle);
 
@@ -70,8 +70,8 @@ export default function createCertificateModule(
     groups.push(group);
   }
   const certificateModule = new fabric.Group([header, ...groups], {
-    width: widthPx - horizontalMargin * 2,
-    left: horizontalMargin,
+    width: widthPx - pad * 2,
+    left: pad,
     lockMovementX: true,
     lockMovementY: true,
     hasControls: false,
@@ -82,7 +82,7 @@ export default function createCertificateModule(
   } as any);
 
   header.set({
-    left: -(widthPx - horizontalMargin * 2) / 2,
+    left: -(widthPx - pad * 2) / 2,
   });
   return certificateModule;
 }

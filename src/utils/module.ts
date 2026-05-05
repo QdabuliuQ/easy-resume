@@ -25,7 +25,7 @@ export function computedModulePosition(pages: Array<any>, pageHeight: number) {
 }
 
 export function getModuleInfo(
-  pages: Array<{ moduleMargin: number; modules: Array<any> }>,
+  pages: Array<{ modules: Array<any> }>,
   moduleActive: string
 ) {
   for (const page of pages) {

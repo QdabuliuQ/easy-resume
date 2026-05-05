@@ -25,6 +25,7 @@ function createProjectItem(
   header: fabric.Group,
   globalStyle: GlobalStyle
 ) {
+  const pad = globalStyle.padding ?? 0;
   const sheetW = cssLengthToApproxPx(globalStyle.width);
   const { name, role, startDate, endDate, description } = props;
 
@@ -44,13 +45,13 @@ function createProjectItem(
   dateText.set({
     left:
       sheetW -
-      (globalStyle.horizontalMargin ?? 0) * 2 -
+      pad * 2 -
       (dateText.width ?? 0) -
       5,
   });
 
   const roleText = new fabric.Text(role, {
-    left: globalStyle.horizontalMargin,
+    left: pad,
     top: (nameText.top ?? 0) + (nameText.height ?? 0) + rowMargin,
     fontSize: globalStyle.fontSize,
     fill: 'black',
@@ -58,7 +59,7 @@ function createProjectItem(
 
   const descriptionText = new fabric.Textbox(description, {
     width: sheetW,
-    left: globalStyle.horizontalMargin,
+    left: pad,
     top: (roleText.top ?? 0) + (roleText.height ?? 0) + rowMargin,
     fontSize: globalStyle.fontSize,
     fill: 'black',
@@ -68,7 +69,7 @@ function createProjectItem(
   });
 
   return new fabric.Group([nameText, roleText, descriptionText, dateText], {
-    width: sheetW - (globalStyle.horizontalMargin ?? 0) * 2,
+    width: sheetW - pad * 2,
     left: 0,
   });
 }
@@ -78,7 +79,7 @@ export default function createProjectModule(
   globalStyle: GlobalStyle
 ) {
   const { items } = props.options;
-  const { horizontalMargin } = globalStyle;
+  const pad = globalStyle.padding ?? 0;
   const widthPx = cssLengthToApproxPx(globalStyle.width);
   const header = createHeader1(props.options, globalStyle);
   const project = new fabric.Group([header], {
@@ -93,7 +94,7 @@ export default function createProjectModule(
     },
   } as any);
   header.set({
-    left: -(widthPx - horizontalMargin * 2) / 2,
+    left: -(widthPx - pad * 2) / 2,
   });
 
   const projectGroups: fabric.Group[] = [];
@@ -110,22 +111,22 @@ export default function createProjectModule(
     projectGroups.push(group);
     project.addWithUpdate(group);
     group.set({
-      width: widthPx - horizontalMargin * 2,
-      left: -(widthPx - horizontalMargin * 2) / 2,
+      width: widthPx - pad * 2,
+      left: -(widthPx - pad * 2) / 2,
     });
     for (let i = 0; i < group._objects.length - 1; i++) {
       group._objects[i].set({
-        left: -(widthPx - horizontalMargin * 2) / 2,
+        left: -(widthPx - pad * 2) / 2,
       });
     }
   }
   project.set({
-    width: widthPx - horizontalMargin * 2,
-    left: horizontalMargin,
+    width: widthPx - pad * 2,
+    left: pad,
   });
   for (let i = 0; i < project._objects.length; i++) {
     project._objects[i].set({
-      left: -(widthPx - horizontalMargin * 2) / 2,
+      left: -(widthPx - pad * 2) / 2,
     });
   }
 

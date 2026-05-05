@@ -1,5 +1,6 @@
 import FormItem from '@/components/formItem';
 import { useModuleHandle } from '@/hooks/module';
+import { polishJobDescriptionWithBigmodel } from '@/api/jobDescriptionPolish';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { city } from '@/modules/utils/constant';
 import {
@@ -38,6 +39,20 @@ import { SolutionOutlined } from '@ant-design/icons';
 import RichTextEditor from '@/components/richTextEditor';
 
 const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
+
+function intentPostsFromResumeConfig(
+  config: { pages?: { modules?: { type?: string; options?: { intentPosts?: string } }[] }[] } | null
+): string {
+  if (!config?.pages) return '';
+  for (const page of config.pages) {
+    for (const m of page.modules ?? []) {
+      if (m.type === 'info1' && m.options?.intentPosts != null) {
+        return String(m.options.intentPosts).trim();
+      }
+    }
+  }
+  return '';
+}
 
 function Job({ moduleId }: { moduleId?: string } = {}) {
   const { getModule, getModuleIndex } = useModuleHandle();
@@ -155,6 +170,8 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
     updateModule(module);
   });
 
+  const intentPostsForPolish = intentPostsFromResumeConfig(configStore.getConfig);
+
   return (
     <div className='[&_.ant-form-item]:!mb-2.5'>
       <div className='mb-3 flex items-center justify-between'>
@@ -256,6 +273,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         }
                       >
                         <Input
+                          maxLength={30}
                           value={item.company}
                           placeholder='请输入公司'
                           onChange={(e) => handleChange(e, index, 'company')}
@@ -275,6 +293,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         }
                       >
                         <Input
+                          maxLength={30}
                           value={item.post}
                           placeholder='请输入职位'
                           onChange={(e) => handleChange(e, index, 'post')}
@@ -294,6 +313,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         }
                       >
                         <Input
+                          maxLength={30}
                           value={item.department}
                           placeholder='请输入部门'
                           onChange={(e) => handleChange(e, index, 'department')}
@@ -361,6 +381,30 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                               handleDescriptionHtml(index, next)
                             }
                             placeholder='请输入工作内容…'
+                            onAiPolishClick={(richTextHtml, ctx) => {
+                              const cityStr = Array.isArray(item.city)
+                                ? item.city.join(' - ')
+                                : String(item.city ?? '').trim();
+                              const timeStr =
+                                item.startDate && item.endDate
+                                  ? `${item.startDate} ~ ${item.endDate}`
+                                  : '';
+                              const postDept = [item.post, item.department]
+                                .map((s: string) => String(s ?? '').trim())
+                                .filter(Boolean)
+                                .join(' / ');
+                              return polishJobDescriptionWithBigmodel(
+                                {
+                                  richTextHtml,
+                                  company: String(item.company ?? ''),
+                                  time: timeStr,
+                                  postDepartment: postDept,
+                                  city: cityStr,
+                                  intentPosts: intentPostsForPolish,
+                                },
+                                ctx?.onStreamingHtml
+                              );
+                            }}
                           />
                         </div>
                       </FormItem>

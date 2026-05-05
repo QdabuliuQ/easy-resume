@@ -5,18 +5,14 @@ export default {
     height: '297mm',
     fontSize: 13,
     lineHeight: 1.3,
-    horizontalMargin: 10,
-    verticalMargin: 10,
-    color: '#43a8ff',
+    moduleMargin: 15,
+    color: '#383838',
     backgroundColor: '#fff',
     /** 单页版心内边距（四边相同，见 modules/page） */
     padding: 20,
-    bodyBorderWidth: 0,
-    bodyBorderColor: '#d9d9d9',
   },
   pages: [
     {
-      moduleMargin: 15,
       modules: [
         {
           type: 'info1',
@@ -85,10 +81,10 @@ export default {
             title: '工作经历',
             items: [
               {
-                company: '公司',
-                post: '职位',
-                department: '部门',
-                city: '城市',
+                company: 'KK集团',
+                post: '前端开发工程师',
+                department: '技术中心',
+                city: '广东/东莞',
                 startDate: '2020-01-01',
                 endDate: '2021-01-01',
                 description:
@@ -114,11 +110,11 @@ export default {
             title: '项目经历',
             items: [
               {
-                name: '项目1',
-                role: '角色',
+                name: 'Keewood低代码系统',
+                role: '前端开发工程师',
                 startDate: '2020-01-01',
                 endDate: '2021-01',
-                description: '描述',
+                description: '参与低代码平台的开发，支持集团内部系统搭建',
               },
             ],
           },

@@ -1,4 +1,5 @@
 import FormItem from '@/components/formItem';
+import { polishSkillDescriptionWithBigmodel } from '@/api/skillDescriptionPolish';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { SkillProps } from '@/modules/skill';
@@ -10,9 +11,24 @@ import { observer } from 'mobx-react';
 import { memo, useEffect, useId, useState, type CSSProperties } from 'react';
 import PanelToolbar from '../panelToolbar';
 import RichTextEditor from '@/components/richTextEditor';
+import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 
 const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
+
+function intentPostsFromResumeConfig(
+  config: { pages?: { modules?: { type?: string; options?: { intentPosts?: string } }[] }[] } | null
+): string {
+  if (!config?.pages) return '';
+  for (const page of config.pages) {
+    for (const m of page.modules ?? []) {
+      if (m.type === 'info1' && m.options?.intentPosts != null) {
+        return String(m.options.intentPosts).trim();
+      }
+    }
+  }
+  return '';
+}
 
 function Skill({ moduleId }: { moduleId?: string } = {}) {
   const { getModule, getModuleIndex } = useModuleHandle();
@@ -58,6 +74,7 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
 
   const rawHtml = module?.options.description ?? '';
   const previewText = plainTextFromRichHtml(rawHtml);
+  const intentPostsForPolish = intentPostsFromResumeConfig(configStore.getConfig);
 
   return (
     <div className='[&_.ant-form-item]:!mb-2.5'>
@@ -108,9 +125,9 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
           {!previewText ? (
             <div className='text-[13px] text-white/75'>暂无技能描述</div>
           ) : (
-            <div
-              className='skill-rich-html max-h-[280px] overflow-y-auto break-words text-[13px] text-white/75 [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5'
-              dangerouslySetInnerHTML={{ __html: rawHtml }}
+            <ResumeQuillHtml
+              html={rawHtml}
+              className='skill-rich-html max-h-[280px] overflow-y-auto break-words text-[13px] text-white/75 [&_li]:my-0.5 [&_p]:my-1'
             />
           )}
         </div>
@@ -126,6 +143,12 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
             html={module.options.description ?? ''}
             onHtmlChange={updateDescription}
             placeholder='请输入技能…'
+            onAiPolishClick={(richTextHtml, ctx) =>
+              polishSkillDescriptionWithBigmodel(
+                { richTextHtml, intentPosts: intentPostsForPolish },
+                ctx?.onStreamingHtml
+              )
+            }
           />
         </div>
       ) : null}

@@ -1,6 +1,7 @@
 import FormItem from '@/components/formItem';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
+import { polishProjectDescriptionWithBigmodel } from '@/api/projectDescriptionPolish';
 import { ProjectProps } from '@/modules/project';
 import { Book, Avatar, Calendar, EditOne } from '@icon-park/react';
 import { ProjectOutlined } from '@ant-design/icons';
@@ -20,6 +21,7 @@ import ButtonGroup from '../buttonGroup';
 import SplitLine from '../splitLine';
 import PanelToolbar from '../panelToolbar';
 import RichTextEditor from '@/components/richTextEditor';
+import ResumeQuillHtml from '@/components/resumeQuillHtml';
 
 const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
 
@@ -30,7 +32,21 @@ function hasRichPreview(html?: string): boolean {
 }
 
 const PREVIEW_HTML_CLASS =
-  'max-h-[140px] overflow-y-auto break-words text-[12px] text-white/60 [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-0.5 [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5';
+  'max-h-[140px] overflow-y-auto break-words text-[12px] text-white/60 [&_li]:my-0.5 [&_p]:my-0.5';
+
+function intentPostsFromResumeConfig(
+  config: { pages?: { modules?: { type?: string; options?: { intentPosts?: string } }[] }[] } | null
+): string {
+  if (!config?.pages) return '';
+  for (const page of config.pages) {
+    for (const m of page.modules ?? []) {
+      if (m.type === 'info1' && m.options?.intentPosts != null) {
+        return String(m.options.intentPosts).trim();
+      }
+    }
+  }
+  return '';
+}
 
 function Project({ moduleId }: { moduleId?: string } = {}) {
   const { getModule, getModuleIndex } = useModuleHandle();
@@ -132,6 +148,8 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
     updateModule(module);
   });
 
+  const intentPostsForPolish = intentPostsFromResumeConfig(configStore.getConfig);
+
   return (
     <div className='[&_.ant-form-item]:!mb-2.5'>
       <div className='mb-3 flex items-center justify-between'>
@@ -193,11 +211,9 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                         : '—'}
                     </div>
                     {hasRichPreview(item.description) ? (
-                      <div
+                      <ResumeQuillHtml
+                        html={item.description as string}
                         className={PREVIEW_HTML_CLASS}
-                        dangerouslySetInnerHTML={{
-                          __html: item.description as string,
-                        }}
                       />
                     ) : null}
                   </div>
@@ -237,6 +253,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                         }
                       >
                         <Input
+                          maxLength={30}
                           value={item.name}
                           placeholder='请输入项目名称'
                           onChange={(e) => handleChange(e, index, 'name')}
@@ -256,6 +273,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                         }
                       >
                         <Input
+                          maxLength={30}
                           value={item.role}
                           placeholder='请输入担任角色'
                           onChange={(e) => handleChange(e, index, 'role')}
@@ -307,6 +325,17 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                               handleDescriptionHtml(index, next)
                             }
                             placeholder='请输入项目描述…'
+                            onAiPolishClick={(richTextHtml, ctx) =>
+                              polishProjectDescriptionWithBigmodel(
+                                {
+                                  richTextHtml,
+                                  projectName: String(item.name ?? ''),
+                                  role: String(item.role ?? ''),
+                                  intentPosts: intentPostsForPolish,
+                                },
+                                ctx?.onStreamingHtml
+                              )
+                            }
                           />
                         </div>
                       </FormItem>

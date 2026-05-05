@@ -12,8 +12,6 @@ type PrintMeta = {
   paperWidth: string;
   paperHeight: string;
   pageCount: number;
-  /** 与 renderResumeHtml 中 body 外框一致，用于 viewport */
-  bodyBorderWidth?: number;
 };
 
 async function generatePdfFromPage(
@@ -28,18 +26,16 @@ async function generatePdfFromPage(
   try {
     const page = await browser.newPage();
     if (printMeta?.paperWidth && printMeta?.paperHeight) {
-      const bbw = Math.max(0, Number(printMeta.bodyBorderWidth) || 0);
-      const borderPad = 2 * bbw;
       const pageWPx = cssLengthToApproxPx(printMeta.paperWidth);
       const pageHPx = cssLengthToApproxPx(printMeta.paperHeight);
-      const vw = Math.min(2400, Math.ceil(pageWPx + borderPad));
+      const vw = Math.min(2400, Math.ceil(pageWPx));
       const vh = Math.min(
         16384,
-        Math.ceil(printMeta.pageCount * pageHPx + borderPad)
+        Math.ceil(printMeta.pageCount * pageHPx)
       );
       await page.setViewport({
         width: vw,
-        height: Math.max(vh, Math.ceil(pageHPx + borderPad)),
+        height: Math.max(vh, Math.ceil(pageHPx)),
         deviceScaleFactor: 1,
       });
     }
@@ -110,12 +106,10 @@ export async function POST(req: Request) {
         Array.isArray(merged.pages) && merged.pages.length > 0
           ? merged.pages.length
           : 1;
-      const bbw = Math.max(0, Number(gs?.bodyBorderWidth) || 0);
       printMeta = {
         paperWidth: String(gs?.width ?? defaultResume.globalStyle.width),
         paperHeight: String(gs?.height ?? defaultResume.globalStyle.height),
         pageCount: n,
-        bodyBorderWidth: bbw,
       };
     } else if (typeof html === 'string' && html.trim()) {
       pageHtml = html;

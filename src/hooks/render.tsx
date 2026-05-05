@@ -99,7 +99,7 @@ export const useRender = () => {
           ((module as fabric.Group).height ?? 0) +
             ((module as fabric.Group).top ?? 0) +
             height >
-          layoutH - resume.globalStyle.verticalMargin * 2
+          layoutH - (resume.globalStyle.padding ?? 0) * 2
         ) {
           currentPage++;
 
@@ -114,7 +114,7 @@ export const useRender = () => {
             canvasInstanceRef.push(canvas);
             canvas.add(module);
             module.set({
-              top: resume.globalStyle.verticalMargin,
+              top: resume.globalStyle.padding ?? 0,
             });
             module.setCoords();
             height =
@@ -137,7 +137,6 @@ export const useRender = () => {
 
             delete options._options;
             pages.push({
-              moduleMargin: resume.pages[currentPage - 1]?.moduleMargin ?? 10,
               modules: [options],
             });
           }
@@ -147,9 +146,9 @@ export const useRender = () => {
             module.set({
               top:
                 i === 0
-                  ? resume.globalStyle.verticalMargin
+                  ? resume.globalStyle.padding ?? 0
                   : height +
-                    (resume.pages[currentPage - 1]?.moduleMargin ?? 10),
+                    (resume.globalStyle.moduleMargin ?? 10),
             });
             module.setCoords();
             height =
@@ -158,7 +157,6 @@ export const useRender = () => {
             delete options._options;
             if (!pages.length) {
               pages.push({
-                moduleMargin: resume.pages[currentPage - 1]?.moduleMargin ?? 10,
                 modules: [options],
               });
             } else {
@@ -271,7 +269,7 @@ export const update = async (resume: any) => {
     // 检查是否需要新页
     if (
       height + moduleHeight >
-      layoutH - resume.globalStyle.verticalMargin * 2
+      layoutH - (resume.globalStyle.padding ?? 0) * 2
     ) {
       currentPage++;
       height = 0;
@@ -294,9 +292,9 @@ export const update = async (resume: any) => {
       top:
         height +
         (height === 0
-          ? resume.globalStyle.verticalMargin
-          : (resume.pages[currentPage - 1]?.moduleMargin ?? 10)),
-      left: resume.globalStyle.horizontalMargin,
+          ? resume.globalStyle.padding ?? 0
+          : (resume.globalStyle.moduleMargin ?? 10)),
+      left: resume.globalStyle.padding ?? 0,
     });
 
     // 添加到画布
@@ -311,7 +309,6 @@ export const update = async (resume: any) => {
     // 更新页面数据
     if (!pages[currentPage - 1]) {
       pages[currentPage - 1] = {
-        moduleMargin: resume.pages[currentPage - 1]?.moduleMargin ?? 10,
         modules: [],
       };
     }

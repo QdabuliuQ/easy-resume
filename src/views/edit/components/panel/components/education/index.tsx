@@ -1,4 +1,5 @@
 import FormItem from '@/components/formItem';
+import { polishEducationDescriptionWithBigmodel } from '@/api/educationDescriptionPolish';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
 import {
@@ -41,6 +42,20 @@ import PanelToolbar from '../panelToolbar';
 import RichTextEditor from '@/components/richTextEditor';
 
 const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
+
+function intentPostsFromResumeConfig(
+  config: { pages?: { modules?: { type?: string; options?: { intentPosts?: string } }[] }[] } | null
+): string {
+  if (!config?.pages) return '';
+  for (const page of config.pages) {
+    for (const m of page.modules ?? []) {
+      if (m.type === 'info1' && m.options?.intentPosts != null) {
+        return String(m.options.intentPosts).trim();
+      }
+    }
+  }
+  return '';
+}
 
 function Education({ moduleId }: { moduleId?: string } = {}) {
   const { getModule, getModuleIndex } = useModuleHandle();
@@ -135,6 +150,8 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
     module.options.items[index].description = html;
     updateModule(module);
   });
+
+  const intentPostsForPolish = intentPostsFromResumeConfig(configStore.getConfig);
 
   const handleChange = useMemoizedFn((e: any, index: number, key: string) => {
     if (!module) return;
@@ -256,6 +273,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         }
                       >
                         <Input
+                          maxLength={30}
                           value={item.school}
                           placeholder='请输入学校名称'
                           onChange={(e) => handleChange(e, index, 'school')}
@@ -295,6 +313,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         }
                       >
                         <Input
+                          maxLength={30}
                           value={item.major}
                           placeholder='请输入专业'
                           onChange={(e) => handleChange(e, index, 'major')}
@@ -347,6 +366,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         }
                       >
                         <Input
+                          maxLength={30}
                           value={item.academy}
                           placeholder='请输入学院'
                           onChange={(e) => handleChange(e, index, 'academy')}
@@ -398,6 +418,32 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                               handleDescriptionHtml(index, next)
                             }
                             placeholder='请输入在校经历…'
+                            onAiPolishClick={(richTextHtml, ctx) => {
+                              const cityStr = Array.isArray(item.city)
+                                ? item.city.join(' - ')
+                                : String(item.city ?? '').trim();
+                              const studyTime =
+                                item.startDate && item.endDate
+                                  ? `${item.startDate} ~ ${item.endDate}`
+                                  : '';
+                              const schoolTypeTags = Array.isArray(item.tags)
+                                ? item.tags.join('、')
+                                : '';
+                              return polishEducationDescriptionWithBigmodel(
+                                {
+                                  richTextHtml,
+                                  school: String(item.school ?? ''),
+                                  degree: String(item.degree ?? ''),
+                                  major: String(item.major ?? ''),
+                                  city: cityStr,
+                                  schoolTypeTags,
+                                  academy: String(item.academy ?? ''),
+                                  studyTime,
+                                  intentPosts: intentPostsForPolish,
+                                },
+                                ctx?.onStreamingHtml
+                              );
+                            }}
                           />
                         </div>
                       </FormItem>

@@ -1,4 +1,16 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import type { GlobalStyle } from '@/modules/utils/common.type';
+import { ensureAnchorsOpenBlank } from '@/utils/sanitizeHtml';
+
+let quillSnowCssCache: string | null = null;
+function getQuillSnowCss(): string {
+  if (quillSnowCssCache == null) {
+    const p = path.join(process.cwd(), 'node_modules/quill/dist/quill.snow.css');
+    quillSnowCssCache = fs.readFileSync(p, 'utf8');
+  }
+  return quillSnowCssCache;
+}
 
 /** PDF 专用：无 JSDOM 环境下的富文本清理（内容来自用户自己的简历 JSON） */
 function sanitizeRichText(html: string): string {
@@ -11,6 +23,63 @@ function sanitizeRichText(html: string): string {
   s = s.replace(/\son\w+\s*=\s*[^\s>]*/gi, '');
   s = s.replace(/javascript:/gi, '');
   return s;
+}
+
+/** Chromium 打印 PDF 时，相对路径的 <a href> 往往不产生 /URI 注释，多数阅读器无法点击 */
+function getPdfLinkBase(): string {
+  const explicit =
+    process.env.PDF_LINK_BASE_URL?.trim() ||
+    process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (explicit) return explicit.replace(/\/$/, '');
+  const v = process.env.VERCEL_URL?.trim();
+  if (v) return `https://${v.replace(/\/$/, '')}`;
+  return '';
+}
+
+function normalizeHrefForPdf(href: string, base: string): string {
+  const raw = href.trim();
+  if (!raw || /^javascript:/i.test(raw)) return raw;
+  if (/^(https?:|ftps?:|mailto:|tel:|sms:)/i.test(raw)) return raw;
+  if (raw.startsWith('//')) return `https:${raw}`;
+  if (raw.startsWith('/') && base) return `${base}${raw}`;
+  if (raw.startsWith('#')) return raw;
+  if (!raw.includes('://')) {
+    const hostish =
+      /^(?:[\w-]+\.)+\w{2,}(\/.*)?$/i.test(raw) || /^www\./i.test(raw);
+    if (hostish) return `https://${raw.replace(/^\/+/, '')}`;
+  }
+  return raw;
+}
+
+function rewriteAnchorsForPdfHtml(html: string): string {
+  const base = getPdfLinkBase();
+  return html.replace(/<a\b([^>]*)>/gi, (full, attrs: string) => {
+    const dq = attrs.match(/\bhref\s*=\s*"([^"]*)"/i);
+    const sq = attrs.match(/\bhref\s*=\s*'([^']*)'/i);
+    const m = dq || sq;
+    if (!m) return full;
+    const quote = dq ? '"' : "'";
+    const hrefVal = m[1];
+    const next = normalizeHrefForPdf(hrefVal, base);
+    if (next === hrefVal) return full;
+    const esc =
+      quote === '"'
+        ? next.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+        : next.replace(/&/g, '&amp;').replace(/'/g, '&#39;');
+    const newAttrs = attrs.replace(
+      /\bhref\s*=\s*(["'])[^"']*\1/i,
+      `href=${quote}${esc}${quote}`,
+    );
+    return `<a${newAttrs}>`;
+  });
+}
+
+function wrapQuillRichHtml(html: string, style: string): string {
+  const body = ensureAnchorsOpenBlank(
+    rewriteAnchorsForPdfHtml(sanitizeRichText(html))
+  );
+  if (!body) return '';
+  return `<div class="pdf-rich resume-quill-embed" style="${style}"><div class="ql-editor">${body}</div></div>`;
 }
 
 function escapeHtml(s: unknown): string {
@@ -28,9 +97,10 @@ function plainTextFromRich(html: string): string {
   return safe.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-function sectionHeader(title: string, color: string): string {
-  const c = escapeHtml(color);
-  return `<div style="font-weight:bold;padding:3px 3px 3px 15px;position:relative;font-size:15px;color:${c};">
+function sectionHeader(title: string, gs: GlobalStyle): string {
+  const c = escapeHtml(gs.color);
+  const fs = Number(gs.fontSize) || 13;
+  return `<div style="font-weight:bold;padding:3px 3px 3px 15px;position:relative;font-size:${fs}px;color:${c};">
 <span style="line-height:1;">${escapeHtml(title)}</span>
 <span style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${c};"></span>
 <span style="position:absolute;inset:0;opacity:0.1;background:${c};"></span>
@@ -98,7 +168,7 @@ function renderCertificate(mod: { options: { title: string; items: Array<{ name:
 </div>`
     )
     .join('');
-  return `<div style="width:100%;">${sectionHeader(title, gs.color)}<div style="margin-top:5px;">${rows}</div></div>`;
+  return `<div style="width:100%;">${sectionHeader(title, gs)}<div style="margin-top:5px;">${rows}</div></div>`;
 }
 
 function renderSkill(mod: { options: { title: string; description: string } }, gs: GlobalStyle): string {
@@ -106,9 +176,9 @@ function renderSkill(mod: { options: { title: string; description: string } }, g
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
   const inner = plainTextFromRich(description)
-    ? `<div class="pdf-rich" style="font-size:${fs}px;line-height:${lh};color:#333;">${sanitizeRichText(description)}</div>`
+    ? wrapQuillRichHtml(description, `font-size:${fs}px;line-height:${lh};color:#333;`)
     : '';
-  return `<div style="width:100%;">${sectionHeader(title, gs.color)}<div style="margin-top:5px;">${inner}</div></div>`;
+  return `<div style="width:100%;">${sectionHeader(title, gs)}<div style="margin-top:5px;">${inner}</div></div>`;
 }
 
 function renderJob(mod: { options: { title: string; items: Array<Record<string, string>> } }, gs: GlobalStyle): string {
@@ -119,7 +189,7 @@ function renderJob(mod: { options: { title: string; items: Array<Record<string, 
     .map((item, index) => {
       const desc = item.description ?? '';
       const descHtml = plainTextFromRich(desc)
-        ? `<div class="pdf-rich" style="font-size:${fs}px;line-height:${lh};color:#333;">${sanitizeRichText(desc)}</div>`
+        ? wrapQuillRichHtml(desc, `font-size:${fs}px;line-height:${lh};color:#333;`)
         : '';
       const sub = [item.post, item.department].filter(Boolean).join(' ');
       const subRow =
@@ -139,7 +209,7 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return `<div style="width:100%;">${sectionHeader(title, gs.color)}<div style="margin-top:5px;">${blocks}</div></div>`;
+  return `<div style="width:100%;">${sectionHeader(title, gs)}<div style="margin-top:5px;">${blocks}</div></div>`;
 }
 
 function renderProject(mod: { options: { title: string; items: Array<Record<string, string>> } }, gs: GlobalStyle): string {
@@ -150,7 +220,7 @@ function renderProject(mod: { options: { title: string; items: Array<Record<stri
     .map((item, index) => {
       const desc = item.description ?? '';
       const descHtml = plainTextFromRich(desc)
-        ? `<div class="pdf-rich" style="line-height:${lh};color:#333;">${sanitizeRichText(desc)}</div>`
+        ? wrapQuillRichHtml(desc, `font-size:${fs}px;line-height:${lh};color:#333;`)
         : '';
       const roleRow = item.role
         ? `<div style="display:flex;justify-content:space-between;margin-bottom:5px;"><div style="flex:0.6;">${escapeHtml(item.role)}</div></div>`
@@ -165,7 +235,7 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return `<div style="width:100%;">${sectionHeader(title, gs.color)}<div style="margin-top:5px;">${blocks}</div></div>`;
+  return `<div style="width:100%;">${sectionHeader(title, gs)}<div style="margin-top:5px;">${blocks}</div></div>`;
 }
 
 function renderEducation(mod: { options: { title: string; items: Array<Record<string, unknown>> } }, gs: GlobalStyle): string {
@@ -184,7 +254,7 @@ function renderEducation(mod: { options: { title: string; items: Array<Record<st
         .join('');
       const desc = String(item.description ?? '');
       const descHtml = plainTextFromRich(desc)
-        ? `<div class="pdf-rich" style="font-size:${fs}px;line-height:${lh};color:#333;">${sanitizeRichText(desc)}</div>`
+        ? wrapQuillRichHtml(desc, `font-size:${fs}px;line-height:${lh};color:#333;`)
         : '';
       const degreeLine = item.degree
         ? `<div style="display:flex;justify-content:space-between;margin-bottom:5px;">
@@ -205,7 +275,7 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return `<div style="width:100%;">${sectionHeader(title, gs.color)}<div style="margin-top:5px;">${blocks}</div></div>`;
+  return `<div style="width:100%;">${sectionHeader(title, gs)}<div style="margin-top:5px;">${blocks}</div></div>`;
 }
 
 function renderModule(mod: { type: string; options?: unknown }, gs: GlobalStyle): string {
@@ -229,7 +299,10 @@ function renderModule(mod: { type: string; options?: unknown }, gs: GlobalStyle)
 }
 
 function renderPage(page: { moduleMargin?: number; modules?: unknown[] }, gs: GlobalStyle): string {
-  const mm = page.moduleMargin ?? 10;
+  const mm =
+    Number(gs.moduleMargin) ||
+    Number(page.moduleMargin) ||
+    10;
   const modules = (page.modules ?? []) as Array<{ type: string; options?: unknown }>;
   const parts: string[] = [];
   for (let i = 0; i < modules.length; i++) {
@@ -257,25 +330,19 @@ export function renderResumeDocumentHtml(resume: {
   const bodyInner = pages.map((p) => renderPage(p, gs)).join('\n');
   const docTitle = 'Resume';
   const canvasBg = escapeHtml(gs.backgroundColor ?? '#fff');
-  const bbw = Math.max(0, Number(gs.bodyBorderWidth) || 0);
-  const bbc = escapeHtml(gs.bodyBorderColor ?? '#d9d9d9');
-  const bodyBorderCss =
-    bbw > 0 ? `${bbw}px solid ${bbc}` : 'none';
   const wCss = escapeHtml(String(gs.width));
   const hCss = escapeHtml(String(gs.height));
   const pageCount = Math.max(1, pages.length);
-  const bodyWidthCss =
-    bbw > 0 ? `calc(${wCss} + ${2 * bbw}px)` : wCss;
+  const bodyWidthCss = wCss;
   const bodyHeightCss =
-    bbw > 0
-      ? `calc(${pageCount} * (${hCss}) + ${2 * bbw}px)`
-      : pageCount === 1
-        ? hCss
-        : `calc(${pageCount} * (${hCss}))`;
+    pageCount === 1
+      ? hCss
+      : `calc(${pageCount} * (${hCss}))`;
 
   /** 无头环境常无系统中文轮廓；用 Noto Sans SC 拉字库，避免 PDF 中方块/空白 */
   const fontStack =
     '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", system-ui, sans-serif';
+  const quillSnow = getQuillSnowCss();
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -285,6 +352,7 @@ export function renderResumeDocumentHtml(resume: {
 <title>${escapeHtml(docTitle)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet" />
 <style>
+${quillSnow}
   * { box-sizing: border-box; }
   html { -webkit-font-smoothing: antialiased; background: ${canvasBg}; }
   @page {
@@ -298,7 +366,6 @@ export function renderResumeDocumentHtml(resume: {
     height: ${bodyHeightCss};
     background: ${canvasBg};
     font-family: ${fontStack};
-    border: ${bodyBorderCss};
     box-sizing: border-box;
   }
   .pdf-page {
@@ -310,10 +377,28 @@ export function renderResumeDocumentHtml(resume: {
     break-after: auto;
   }
   .pdf-rich, .pdf-rich * { font-family: ${fontStack} !important; }
-  .pdf-rich p { margin: 0.25rem 0; }
-  .pdf-rich ul { margin: 0.25rem 0; padding-left: 1.25rem; list-style: disc; }
-  .pdf-rich ol { margin: 0.25rem 0; padding-left: 1.25rem; list-style: decimal; }
-  .pdf-rich li { margin: 0.125rem 0; }
+  .resume-quill-embed {
+    --spacing: 0.25rem;
+  }
+  .resume-quill-embed .ql-editor li {
+    margin-block: calc(var(--spacing) * 0.5);
+  }
+  .resume-quill-embed .ql-editor {
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    outline: none !important;
+    color: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+  .resume-quill-embed .ql-editor ol {
+    padding-left: 0 !important;
+  }
 </style>
 </head>
 <body>

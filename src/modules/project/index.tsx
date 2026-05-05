@@ -1,5 +1,6 @@
 import { RESUME_MODULE_ID_ATTR } from '@/components/moduleOperation/constants';
-import { plainTextFromRichHtml, sanitizeRichTextHtml } from '@/utils/sanitizeHtml';
+import ResumeQuillHtml from '@/components/resumeQuillHtml';
+import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 import { memo } from 'react';
 import { GlobalStyle } from '../utils/common.type';
 import Header1 from '../header/header1';
@@ -60,12 +61,10 @@ function Project(props: Props) {
               </div>
             )}
             {plainTextFromRichHtml(item.description) ? (
-              <div
-                className='w-full text-[#333] [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5'
+              <ResumeQuillHtml
+                html={item.description}
                 style={{ lineHeight: lineHeight }}
-                dangerouslySetInnerHTML={{
-                  __html: sanitizeRichTextHtml(item.description),
-                }}
+                className='text-[#333] [&_li]:my-0.5 [&_p]:my-1'
               />
             ) : null}
           </div>

@@ -13,7 +13,8 @@ export default function createHeader1(
   globalStyle: GlobalStyle
 ) {
   const { title } = props;
-  const { color, fontSize, horizontalMargin } = globalStyle;
+  const { color, fontSize } = globalStyle;
+  const pad = globalStyle.padding ?? 0;
   const widthPx = cssLengthToApproxPx(globalStyle.width);
   const line = new fabric.Rect({
     width: 5,
@@ -33,7 +34,7 @@ export default function createHeader1(
     top: (HEADER_HEIGHT - (text.height ?? 0)) / 2,
   });
   const bgRect = new fabric.Rect({
-    width: widthPx - (horizontalMargin ?? 0) * 2,
+    width: widthPx - pad * 2,
     height: HEADER_HEIGHT,
     fill: color,
     left: 0,
@@ -43,7 +44,7 @@ export default function createHeader1(
   const group = new fabric.Group([bgRect, line, text], {
     originX: 'left',
     originY: 'top',
-    width: widthPx - (horizontalMargin ?? 0) * 2,
+    width: widthPx - pad * 2,
     left: 0,
     property: {
       type: 'header1',

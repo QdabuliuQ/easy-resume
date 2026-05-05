@@ -291,7 +291,7 @@ function ModuleManageInner() {
       >
         <button
           type='button'
-          className='mr-3 flex h-[30px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10'
+          className='flex h-[30px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10'
         >
           <span>模块管理</span>
           <RightOutlined

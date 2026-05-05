@@ -4,7 +4,6 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type CSSProperties,
 } from 'react';
 import { useMemoizedFn } from 'ahooks';
 import resume from '@/json/resume';
@@ -40,14 +39,13 @@ function mergeGlobalStyle(cfg: any) {
   };
 }
 
-function moduleMarginForPage(resume: any, pageIndex: number): number {
-  const pages = resume?.pages;
-  if (!pages?.length) return 10;
-  return (
-    pages[pageIndex]?.moduleMargin ??
-    pages[0]?.moduleMargin ??
-    10
-  );
+/** 模块间距 px：优先 globalStyle.moduleMargin，兼容旧数据 pages[].moduleMargin */
+function moduleGapPx(gs: any, cfg?: any): number {
+  const v = Number(gs?.moduleMargin);
+  if (Number.isFinite(v) && v >= 0) return v;
+  const legacy = Number(cfg?.pages?.[0]?.moduleMargin);
+  if (Number.isFinite(legacy) && legacy >= 0) return legacy;
+  return Number(resume.globalStyle.moduleMargin) || 15;
 }
 
 /** 内容区宽度 ≈ width - padding*2，与 Page 版心一致 */
@@ -64,10 +62,12 @@ function pageContentHeight(gs: any): number {
   return Math.max(0, outer - pad * 2);
 }
 
-/** 影响高度的字段变化才应触发重测；附带版心宽高（换行、分页） */
+/** 影响高度的字段变化才应触发重测；附带版心宽高与正文排版（换行、分页） */
 function layoutSig(module: any, gs: any): string {
   const pad = gs?.padding ?? 0;
-  return `${JSON.stringify(module)}|w:${gs.width}|h:${gs.height}|pad:${pad}`;
+  const fs = gs?.fontSize ?? '';
+  const lh = gs?.lineHeight ?? '';
+  return `${JSON.stringify(module)}|w:${gs.width}|h:${gs.height}|pad:${pad}|fs:${fs}|lh:${lh}`;
 }
 
 function moduleComponentForType(
@@ -175,7 +175,7 @@ function Canvas() {
           }
         } else {
           const idx = newPages.length - 1;
-          const gap = moduleMarginForPage(cfg, idx);
+          const gap = moduleGapPx(gs, cfg);
           if (newPages[idx].length !== 0) {
             newPages[idx].push(
               <Margin
@@ -226,7 +226,6 @@ function Canvas() {
           if (m) modulesOut.push(m);
         }
         nextConfig.pages.push({
-          moduleMargin: moduleMarginForPage(cfg, pi),
           modules: modulesOut,
         });
         pi++;
@@ -322,15 +321,6 @@ function Canvas() {
   const [scale, setScale] = useState(1);
 
   const globalStyle = configStore.mergedGlobalStyle;
-  const bodyBorderW = Math.max(0, Number(globalStyle.bodyBorderWidth) || 0);
-  const bodyBorderC = globalStyle.bodyBorderColor ?? '#d9d9d9';
-  const bodyStackStyle: CSSProperties =
-    bodyBorderW > 0
-      ? {
-          border: `${bodyBorderW}px solid ${bodyBorderC}`,
-          boxSizing: 'border-box',
-        }
-      : {};
   const pageCount = Math.max(1, pages.length);
   const pageWPx = cssLengthToApproxPx(globalStyle.width);
   const pageHPx = cssLengthToApproxPx(globalStyle.height);
@@ -384,10 +374,7 @@ function Canvas() {
           }}
         >
           <CanvasScaleContext.Provider value={scale}>
-            <div
-              className='flex w-full flex-col items-center py-[40px]'
-              style={bodyStackStyle}
-            >
+            <div className='flex w-full flex-col items-center py-[40px]'>
               <ModuleOperation>{pages}</ModuleOperation>
             </div>
           </CanvasScaleContext.Provider>

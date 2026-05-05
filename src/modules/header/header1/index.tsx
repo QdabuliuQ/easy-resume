@@ -16,12 +16,12 @@ function Header1(props: Props) {
     return null;
   }
   const { title } = config;
-  const { color } = globalStyle;
+  const { color, fontSize } = globalStyle;
 
   return (
     <div
-      style={{ color }}
-      className='font-bold pl-[15px] pt-[3px] pb-[3px] relative font-size-[15px]'
+      style={{ color, fontSize: `${Number(fontSize) || 13}px` }}
+      className='font-bold pl-[15px] pt-[3px] pb-[3px] relative'
     >
       <span className='leading-none'>{title}</span>
       <div

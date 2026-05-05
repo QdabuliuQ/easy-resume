@@ -18,12 +18,13 @@ export default function createSkillModule(
 ) {
   const { description } = props.options;
 
-  const { horizontalMargin, fontSize, lineHeight } = globalStyle;
+  const pad = globalStyle.padding ?? 0;
+  const { fontSize, lineHeight } = globalStyle;
   const widthPx = cssLengthToApproxPx(globalStyle.width);
 
   const header = createHeader1(props.options, globalStyle);
   const descriptionText = new fabric.Textbox(description, {
-    width: widthPx - horizontalMargin * 2 - 20,
+    width: widthPx - pad * 2 - 20,
     left: 0,
     top: (header.height ?? 0) + 10,
     fontSize,
@@ -33,8 +34,8 @@ export default function createSkillModule(
     splitByGrapheme: true,
   });
   const group = new fabric.Group([header, descriptionText], {
-    width: widthPx - horizontalMargin * 2,
-    left: horizontalMargin,
+    width: widthPx - pad * 2,
+    left: pad,
     lockMovementX: true,
     lockMovementY: true,
     hasControls: false,
@@ -45,7 +46,7 @@ export default function createSkillModule(
   } as any);
 
   header.set({
-    left: -(widthPx - horizontalMargin * 2) / 2,
+    left: -(widthPx - pad * 2) / 2,
   });
 
   return group;

@@ -209,6 +209,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                           }
                         >
                           <Input
+                            maxLength={30}
                             value={item.name}
                             placeholder='请输入证书名称'
                             onChange={(e) => handleChange(index, 'name', e)}

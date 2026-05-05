@@ -1,60 +1,90 @@
-import { ThunderboltOutlined } from '@ant-design/icons';
 import { message } from 'antd';
 import { useMemoizedFn } from 'ahooks';
 import Quill from 'quill';
 import { memo, useEffect, useRef, useState } from 'react';
-import { sanitizeRichTextHtml } from '@/utils/sanitizeHtml';
+import { sanitizeRichTextHtml, unwrapFencedHtml } from '@/utils/sanitizeHtml';
 import 'quill/dist/quill.snow.css';
+import { Magic } from '@icon-park/react';
+import styles from './index.module.css';
 
-/** 直接使用 Quill，避免 react-quill 依赖 ReactDOM.findDOMNode（React 19 已移除） */
+const LinkFormat = Quill.import('formats/link') as { PROTOCOL_WHITELIST: string[] };
+for (const p of ['ftp', 'ftps'] as const) {
+  if (!LinkFormat.PROTOCOL_WHITELIST.includes(p)) {
+    LinkFormat.PROTOCOL_WHITELIST.push(p);
+  }
+}
 
-const quillHostClass =
-  'min-w-0 overflow-hidden rounded-md border border-white/[0.08] ' +
-  '[&_.ql-toolbar.ql-snow]:![border-color:#2d2d2d] ' +
-  '[&_.ql-container]:!rounded-none [&_.ql-container]:rounded-b-md [&_.ql-container]:!border-0 [&_.ql-container]:border-t [&_.ql-container]:border-white/10 [&_.ql-container]:!bg-[#1a1a1d] ' +
-  '[&_.ql-snow_.ql-stroke]:![stroke:#ffffff] [&_.ql-snow_.ql-fill]:![fill:#ffffff] ' +
-  '[&_.ql-toolbar]:rounded-t-md [&_.ql-toolbar]:border-0 [&_.ql-toolbar]:border-b [&_.ql-toolbar.ql-snow]:!border-b-[#2d2d2d] [&_.ql-toolbar]:bg-[#2a2a2e] [&_.ql-toolbar]:px-2 [&_.ql-toolbar]:py-1.5 ' +
-  '[&_.ql-toolbar_button]:!mr-0 [&_.ql-toolbar_button]:text-white/85 [&_.ql-toolbar_button:hover]:!bg-white/10 [&_.ql-toolbar_button.ql-active]:!bg-white/[0.18] ' +
-  '[&_.ql-toolbar_.ql-picker-label]:text-white/85 ' +
-  '[&_.ql-toolbar_.ql-formats_button_.ql-stroke]:[stroke:#ea580c] [&_.ql-toolbar_button_.ql-stroke]:[stroke:#ea580c] [&_.ql-toolbar_.ql-picker-label_.ql-stroke]:[stroke:#ea580c] ' +
-  '[&_.ql-toolbar_.ql-formats_button:hover_.ql-stroke]:[stroke:#fb923c] [&_.ql-toolbar_button:hover_.ql-stroke]:[stroke:#fb923c] [&_.ql-toolbar_.ql-picker-label:hover_.ql-stroke]:[stroke:#fb923c] ' +
-  '[&_.ql-toolbar_.ql-picker-options]:!rounded-md [&_.ql-toolbar_.ql-picker-options]:!border [&_.ql-toolbar_.ql-picker-options]:!border-white/15 [&_.ql-toolbar_.ql-picker-options]:!bg-[#323236] ' +
-  '[&_.ql-toolbar_.ql-picker-item]:!text-white/90 [&_.ql-toolbar_.ql-picker-item:hover]:!bg-white/10 ' +
-  '[&_.ql-editor]:min-h-[180px] [&_.ql-editor]:!text-[13px] [&_.ql-editor]:!text-white/[0.92] ' +
-  '[&_.ql-editor_a]:!text-sky-400 [&_.ql-editor.ql-blank::before]:!left-4 [&_.ql-editor.ql-blank::before]:!not-italic [&_.ql-editor.ql-blank::before]:!text-white/35';
+/** 富文本纯文本字数上限（与各模块公用） */
+export const RICH_TEXT_MAX_PLAIN_LENGTH = 300;
 
-export const DEFAULT_QUILL_TOOLBAR = {
-  toolbar: [
-    [
-      'bold',
-      'italic',
-      'underline',
-      'strike',
-      { list: 'ordered' },
-      { list: 'bullet' },
-    ],
-  ],
+function getQuillPlainCharCount(q: Quill): number {
+  const L = q.getLength();
+  return L > 0 ? L - 1 : 0;
+}
+
+function clampQuillPlainLength(q: Quill, max: number) {
+  const n = getQuillPlainCharCount(q);
+  if (n <= max) return;
+  q.deleteText(max, n - max, Quill.sources.SILENT);
+}
+
+export type AiPolishStreamContext = {
+  onStreamingHtml?: (htmlSoFar: string) => void;
 };
+export const DEFAULT_QUILL_TOOLBAR_ROWS = [
+  [
+    'bold',
+    'italic',
+    'underline',
+    'strike',
+    'link',
+    { list: 'ordered' },
+    { list: 'bullet' },
+  ],
+] as const;
+const TOOLBAR_BTN_ZH: Record<string, string> = {
+  bold: '粗体',
+  italic: '斜体',
+  underline: '下划线',
+  strike: '删除线',
+  link: '插入链接',
+};
+function localizeQuillSnowToolbar(toolbarEl: Element) {
+  toolbarEl.querySelectorAll('button').forEach((btn) => {
+    const ql = Array.from(btn.classList).find((c) => c.startsWith('ql-') && c !== 'ql-active');
+    if (!ql) return;
+    const key = ql.slice('ql-'.length);
+    let zh = TOOLBAR_BTN_ZH[key];
+    if (key === 'list') {
+      zh = btn.getAttribute('value') === 'ordered' ? '有序列表' : '无序列表';
+    }
+    if (zh) {
+      btn.setAttribute('aria-label', zh);
+      btn.setAttribute('title', zh);
+    }
+  });
+}
 
 function RichTextEditor({
   instanceKey,
   html,
   onHtmlChange,
   placeholder,
-  onAiPolish,
+  onAiPolishClick,
 }: {
   instanceKey: string;
   html: string;
   onHtmlChange: (next: string) => void;
   placeholder?: string;
-  /** 接入后端时传入；返回润色后的 HTML 片段（会再走 sanitize） */
-  onAiPolish?: (currentHtml: string) => Promise<string>;
+  /** 点击 AI 润色时调用；ctx.onStreamingHtml 可流式写入当前累积 HTML；返回最终 HTML（会再走 sanitize 并写回编辑器） */
+  onAiPolishClick?: (richTextHtml: string, ctx?: AiPolishStreamContext) => Promise<string>;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
   const onHtmlChangeRef = useRef(onHtmlChange);
   onHtmlChangeRef.current = onHtmlChange;
   const [polishing, setPolishing] = useState(false);
+  const [plainCount, setPlainCount] = useState(0);
 
   useEffect(() => {
     const el = hostRef.current;
@@ -63,12 +93,22 @@ function RichTextEditor({
 
     const q = new Quill(el, {
       theme: 'snow',
-      placeholder: placeholder ?? '',
+      placeholder: placeholder ?? '请输入内容',
       modules: {
-        toolbar: DEFAULT_QUILL_TOOLBAR.toolbar,
+        toolbar: {
+          container: [...DEFAULT_QUILL_TOOLBAR_ROWS],
+        },
       },
     });
     quillRef.current = q;
+    const tb = el.previousElementSibling;
+    if (tb?.classList.contains('ql-toolbar')) localizeQuillSnowToolbar(tb);
+    const tipInput = el.querySelector('.ql-tooltip input[type="text"]');
+    if (tipInput)
+      tipInput.setAttribute(
+        'data-link',
+        '完整地址即可跳转任意网站（如 https://github.com/user/repo）',
+      );
 
     const initial = sanitizeRichTextHtml(html ?? '');
     if (initial) {
@@ -79,8 +119,17 @@ function RichTextEditor({
         q.root.innerHTML = initial;
       }
     }
+    const beforeClamp = sanitizeRichTextHtml(q.root.innerHTML);
+    clampQuillPlainLength(q, RICH_TEXT_MAX_PLAIN_LENGTH);
+    const afterClamp = sanitizeRichTextHtml(q.root.innerHTML);
+    setPlainCount(getQuillPlainCharCount(q));
+    if (beforeClamp !== afterClamp) {
+      onHtmlChangeRef.current(afterClamp);
+    }
 
     const onTextChange = () => {
+      clampQuillPlainLength(q, RICH_TEXT_MAX_PLAIN_LENGTH);
+      setPlainCount(getQuillPlainCharCount(q));
       onHtmlChangeRef.current(sanitizeRichTextHtml(q.root.innerHTML));
     };
     q.on('text-change', onTextChange);
@@ -100,6 +149,12 @@ function RichTextEditor({
     };
   }, [instanceKey]);
 
+  useEffect(() => {
+    const q = quillRef.current;
+    if (!q) return;
+    q.enable(!polishing);
+  }, [polishing]);
+
   const applyHtmlToQuill = useMemoizedFn((q: Quill, nextHtml: string) => {
     const sanitized = sanitizeRichTextHtml(nextHtml);
     if (sanitized) {
@@ -112,39 +167,69 @@ function RichTextEditor({
     } else {
       q.setText('');
     }
+    clampQuillPlainLength(q, RICH_TEXT_MAX_PLAIN_LENGTH);
+    setPlainCount(getQuillPlainCharCount(q));
     onHtmlChangeRef.current(sanitizeRichTextHtml(q.root.innerHTML));
   });
 
-  const handleAiPolish = useMemoizedFn(async () => {
+  const runAiPolishFromParent = useMemoizedFn(async () => {
     const q = quillRef.current;
     if (!q || polishing) return;
-    const raw = sanitizeRichTextHtml(q.root.innerHTML);
-    const plain = raw.replace(/<[^>]*>/g, '').trim();
+    const richTextHtml = sanitizeRichTextHtml(q.root.innerHTML);
+    const plain = richTextHtml.replace(/<[^>]*>/g, '').trim();
     if (!plain) {
       message.warning('请先输入内容');
       return;
     }
-    if (!onAiPolish) {
+    if (!onAiPolishClick) {
       message.info('AI 润色接口接入后即可使用');
       return;
     }
     setPolishing(true);
+    q.enable(false);
     try {
-      const polished = await onAiPolish(raw);
+      const polished = await onAiPolishClick(richTextHtml, {
+        onStreamingHtml: (htmlSoFar) => {
+          applyHtmlToQuill(q, unwrapFencedHtml(htmlSoFar));
+        },
+      });
       applyHtmlToQuill(q, polished);
       message.success('润色完成');
-    } catch {
-      message.error('润色失败，请稍后重试');
+    } catch (e) {
+      const errText =
+        e instanceof Error && e.message?.trim()
+          ? e.message.trim()
+          : '润色失败，请稍后重试';
+      message.error(errText);
     } finally {
       setPolishing(false);
     }
   });
 
-  // 工具栏 DOM 在 quill.container 外侧（与前一个兄弟节点），包一层才能让 [&_.ql-toolbar] 等选择器生效
   return (
     <div className="min-w-0">
-      <div className={quillHostClass}>
-        <div ref={hostRef} className="min-w-0" />
+      <div className="relative min-w-0">
+        <div className={styles.host}>
+          <div ref={hostRef} className="min-w-0" />
+        </div>
+        {polishing ? (
+          <div
+            className="pointer-events-none absolute inset-0 z-[5] flex flex-col items-center justify-center gap-2 rounded-md bg-neutral-900/55 text-[13px] font-medium text-white/95"
+            role="status"
+            aria-live="polite"
+          >
+            <span
+              className="inline-block size-7 shrink-0 animate-spin rounded-full border-2 border-white/30 border-t-white"
+              aria-hidden
+            />
+            <span>AI生成中...</span>
+          </div>
+        ) : null}
+      </div>
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-neutral-400">
+        <span aria-live="polite">
+          {plainCount}/{RICH_TEXT_MAX_PLAIN_LENGTH}
+        </span>
       </div>
       <div className="mt-2 flex justify-end">
         <div
@@ -153,13 +238,13 @@ function RichTextEditor({
           aria-busy={polishing}
           aria-disabled={polishing}
           onClick={() => {
-            if (!polishing) void handleAiPolish();
+            if (!polishing) void runAiPolishFromParent();
           }}
           onKeyDown={(e) => {
             if (polishing) return;
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              void handleAiPolish();
+              void runAiPolishFromParent();
             }
           }}
           className={
@@ -174,7 +259,7 @@ function RichTextEditor({
               aria-hidden
             />
           ) : (
-            <ThunderboltOutlined className="text-[13px]" />
+            <Magic theme="outline" size="13" fill="#fff"/>
           )}
           AI润色
         </div>
