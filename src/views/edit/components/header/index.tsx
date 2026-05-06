@@ -7,6 +7,8 @@ import { EditOutlined } from '@ant-design/icons';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume';
 import resume from '@/json/resume';
+import SectionHeader from '@/modules/header/sectionHeader';
+import type { GlobalStyle } from '@/modules/utils/common.type';
 import ModuleManage from './moduleManage';
 
 const FONT_SIZE_OPTIONS = Array.from({ length: 9 }, (_, i) => {
@@ -28,6 +30,16 @@ const MODULE_MARGIN_OPTIONS = [10, 15, 20, 25, 30, 35, 40].map((n) => ({
   label: `${n}px`,
   value: n,
 }));
+const HEADER_PREVIEW_TITLE = '模块标题';
+const HEADER_TYPE_VALUES = [1, 2, 3, 4, 5, 6, 7] as const;
+function headerTypeNorm(v: unknown): number {
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 1) return 1;
+  return Math.min(7, Math.floor(n));
+}
+function headerPreviewGlobal(t: number, base: GlobalStyle): GlobalStyle {
+  return { ...base, headerType: t };
+}
 const THEME_PRESETS = [
   '#43a8ff',
   '#1677ff',
@@ -56,6 +68,7 @@ function Header() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [pngLoading, setPngLoading] = useState(false);
   const [pickerDraft, setPickerDraft] = useState(defaultResume.globalStyle.color);
   const pickerDraftRef = useRef(pickerDraft);
   pickerDraftRef.current = pickerDraft;
@@ -170,6 +183,17 @@ function Header() {
     };
     configStore.setConfig(base);
   };
+  const setGlobalHeaderType = (v: number) => {
+    const base = configStore.getConfig
+      ? JSON.parse(JSON.stringify(configStore.getConfig))
+      : JSON.parse(JSON.stringify(defaultResume));
+    base.globalStyle = {
+      ...defaultResume.globalStyle,
+      ...(base.globalStyle ?? {}),
+      headerType: v,
+    };
+    configStore.setConfig(base);
+  };
   const setGlobalThemeColor = (v: string) => {
     const base = configStore.getConfig
       ? JSON.parse(JSON.stringify(configStore.getConfig))
@@ -200,6 +224,47 @@ function Header() {
     (v: string) => setGlobalBackgroundColor(v),
     { wait: 280 },
   );
+  const mergedGs = configStore.mergedGlobalStyle as GlobalStyle;
+  const headerTypeVal = headerTypeNorm(mergedGs.headerType);
+  const headerTypeOptions = HEADER_TYPE_VALUES.map((n) => ({
+    value: n,
+    title: `样式 ${n}`,
+    label: (
+      <div className='py-1.5'>
+        <div
+          className={
+            n === 7
+              ? 'grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] items-stretch gap-2 rounded border border-black/10 bg-white px-2 py-1.5 shadow-sm'
+              : 'rounded border border-black/10 bg-white px-2 py-1.5 shadow-sm'
+          }
+        >
+          {n === 7 ? (
+            <>
+              <div className='relative min-h-[36px] min-w-0'>
+                <div
+                  className='pointer-events-none absolute top-0 right-0 bottom-0 z-0 w-px'
+                  style={{ backgroundColor: mergedGs.color }}
+                  aria-hidden
+                />
+                <div className='relative z-[1] min-h-0 pr-2'>
+                  <SectionHeader
+                    config={{ title: HEADER_PREVIEW_TITLE }}
+                    globalStyle={headerPreviewGlobal(n, mergedGs)}
+                  />
+                </div>
+              </div>
+              <div className='min-h-[36px] min-w-0 rounded-sm border border-zinc-200 bg-zinc-50' />
+            </>
+          ) : (
+            <SectionHeader
+              config={{ title: HEADER_PREVIEW_TITLE }}
+              globalStyle={headerPreviewGlobal(n, mergedGs)}
+            />
+          )}
+        </div>
+      </div>
+    ),
+  }));
   const rawTheme = configStore.mergedGlobalStyle.color;
   const themeColor =
     typeof rawTheme === 'string' && rawTheme.trim()
@@ -278,6 +343,61 @@ function Header() {
       message.error(e instanceof Error ? e.message : '导出失败');
     } finally {
       setPdfLoading(false);
+    }
+  };
+
+  const exportPng = async () => {
+    if (typeof window === 'undefined' || pngLoading) return;
+    setPngLoading(true);
+    try {
+      const base = (name || '简历').trim() || '简历';
+      const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
+      const res = await fetch('/api/png', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          config: configStore.getConfig ?? defaultResume,
+          filename: `${safe}.png`,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(
+          typeof data.error === 'string' ? data.error : `请求失败 ${res.status}`
+        );
+      }
+      const blob = await res.blob();
+      const href = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = href;
+      a.download = `${safe}.png`;
+      a.click();
+      URL.revokeObjectURL(href);
+      message.success('已导出 PNG');
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '导出失败');
+    } finally {
+      setPngLoading(false);
+    }
+  };
+
+  const exportJson = () => {
+    try {
+      const raw = configStore.getConfig ?? defaultResume;
+      const cfg = JSON.parse(JSON.stringify(raw));
+      const base = (name || '简历').trim() || '简历';
+      const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
+      const json = JSON.stringify(cfg, null, 2);
+      const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+      const href = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = href;
+      a.download = `${safe}.json`;
+      a.click();
+      URL.revokeObjectURL(href);
+      message.success('已导出 JSON');
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '导出失败');
     }
   };
 
@@ -384,6 +504,23 @@ function Header() {
             }}
           />
         </Tooltip>
+        <Tooltip title='模块标题样式' placement='bottom'>
+          <Select
+            virtual={false}
+            value={headerTypeVal}
+            optionLabelProp='title'
+            options={headerTypeOptions}
+            onChange={(v) => setGlobalHeaderType(v)}
+            popupMatchSelectWidth={false}
+            className='min-w-[88px] [&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[#555] [&_.ant-select-selector]:!bg-[#2a2a2a] [&_.ant-select-selection-item]:!text-white [&_.ant-select-arrow]:!text-[#aaa]'
+            popupClassName='[&_.ant-select-item]:!min-h-[unset] [&_.ant-select-item]:!py-1 [&_.ant-select-item-option-selected]:!bg-white/10 [&_.ant-select-item-option-active]:!bg-white/8'
+            styles={{
+              popup: {
+                root: { backgroundColor: '#323236', padding: 6, minWidth: 268 },
+              },
+            }}
+          />
+        </Tooltip>
         <Tooltip title='主题色' placement='bottom'>
           <Popover
             trigger='click'
@@ -456,7 +593,7 @@ function Header() {
             <button
               type='button'
               aria-label='主题色'
-              className='size-[30px] shrink-0 rounded-md border border-[#555] shadow-inner'
+              className='size-[30px] shrink-0 cursor-pointer rounded-md border border-[#555] shadow-inner'
               style={{ backgroundColor: themeColor }}
             />
           </Popover>
@@ -535,7 +672,7 @@ function Header() {
             <button
               type='button'
               aria-label='背景色'
-              className='size-[30px] shrink-0 rounded-md border border-[#555] shadow-inner'
+              className='size-[30px] shrink-0 cursor-pointer rounded-md border border-[#555] shadow-inner'
               style={{ backgroundColor: pageBgColor }}
             />
           </Popover>
@@ -543,9 +680,9 @@ function Header() {
         <ModuleManage />
         <button
           type='button'
-          disabled={pdfLoading}
+          disabled={pdfLoading || pngLoading}
           onClick={() => void exportPdf()}
-          className='bg-gradient-primary inline-flex h-[30px] min-w-[100px] cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-[20px] text-[13px] font-bold text-[#333] shadow-none hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70 text-white'
+          className='bg-gradient-primary inline-flex h-[30px] min-w-[100px] cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-[20px] text-[13px] font-bold shadow-none hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70 text-white'
         >
           {pdfLoading ? (
             <>
@@ -559,9 +696,32 @@ function Header() {
             '导出 PDF'
           )}
         </button>
-        <div className='bg-gradient-primary flex h-[30px] cursor-pointer items-center justify-center rounded-full px-[20px] text-[13px] font-bold transition-[filter] duration-200 hover:brightness-110'>
-          导出JSON
-        </div>
+        <button
+          type='button'
+          disabled={pdfLoading || pngLoading}
+          onClick={() => void exportPng()}
+          className='bg-gradient-primary inline-flex h-[30px] min-w-[100px] cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-[20px] text-[13px] font-bold text-white shadow-none transition-[filter] duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70'
+        >
+          {pngLoading ? (
+            <>
+              <span
+                className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-white/25 border-t-white'
+                aria-hidden
+              />
+              <span>导出中…</span>
+            </>
+          ) : (
+            '导出 PNG'
+          )}
+        </button>
+        <button
+          type='button'
+          disabled={pdfLoading || pngLoading}
+          onClick={exportJson}
+          className='bg-gradient-primary flex h-[30px] cursor-pointer items-center justify-center rounded-full border-0 px-[20px] text-[13px] font-bold text-white shadow-none transition-[filter] duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70'
+        >
+          导出 JSON
+        </button>
       </div>
     </div>
   );

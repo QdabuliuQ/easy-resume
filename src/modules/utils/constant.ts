@@ -21,6 +21,9 @@ export const moduleType = {
   skill: {
     name: '技能',
   },
+  other: {
+    name: '其他',
+  },
 };
 
 export const schoolType = [

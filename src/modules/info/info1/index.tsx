@@ -1,4 +1,8 @@
 import { memo, useEffect, useState } from 'react';
+import {
+  formatIntentCityDisplay,
+  normalizeResumeCityDisplay,
+} from '@/utils/resumeCityDisplay';
 import { GlobalStyle } from '@/modules/utils/common.type';
 import { RESUME_MODULE_ID_ATTR } from '@/components/moduleOperation/constants';
 import { observer } from 'mobx-react';
@@ -12,7 +16,7 @@ export interface InfoProps {
     email: string; // 邮件
     city: string; // 当前城市
     status: string; // 当前状态
-    intentCity: string; // 意向城市
+    intentCity: string | string[][]; // 意向城市（多选为 Cascader 路径数组）
     intentPosts: string; // 意向职位
     wechat: string; // 微信号
     birthday: string; // 生日
@@ -74,17 +78,20 @@ function Info1(props: Props) {
             </span>
           );
         } else if (props.config.options[key as keyof InfoProps['options']]) {
+          const val = props.config.options[key as keyof InfoProps['options']];
+          const display =
+            key === 'city'
+              ? normalizeResumeCityDisplay(String(val))
+              : key === 'intentCity'
+                ? formatIntentCityDisplay(val as unknown)
+                : String(val);
           rowElements.push(
             <span
-              key={
-                props.config.options[
-                  key as keyof InfoProps['options']
-                ] as string
-              }
+              key={`${String(key)}-${i}-${j}`}
               className='text-[#333]'
               style={{ fontSize, lineHeight }}
             >
-              {props.config.options[key as keyof InfoProps['options']]}
+              {display}
             </span>
           );
         }

@@ -26,6 +26,7 @@ import {
 import { useMemoizedFn } from 'ahooks';
 import CropperImage from '@/components/cropperImage';
 import { fileToBase64 } from '@/utils';
+import { formatIntentCityDisplay, normalizeIntentCityToCascaderValue } from '@/utils/resumeCityDisplay';
 import { configStore, moduleActiveStore } from '@/mobx';
 import dayjs from 'dayjs';
 import InfoLayout from '@/components/infoLayout';
@@ -63,13 +64,13 @@ function formatPreviewValue(key: string, opt: Record<string, unknown>): string {
     if (a == null && b == null) return '—';
     return [a, b].filter((x) => x != null && String(x) !== '').join(' - ') || '—';
   }
+  if (key === 'intentCity') {
+    return formatIntentCityDisplay(v) || '—';
+  }
   if (key === 'birthday' && v != null && typeof v === 'object' && typeof (v as { format?: (f: string) => string }).format === 'function') {
     return (v as { format: (f: string) => string }).format('YYYY-MM-DD');
   }
-  if (
-    (key === 'city' || key === 'intentCity' || key === 'origin') &&
-    Array.isArray(v)
-  ) {
+  if ((key === 'city' || key === 'origin') && Array.isArray(v)) {
     const s = (v as unknown[]).filter(Boolean).join('/');
     return s || '—';
   }
@@ -104,11 +105,11 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
             if (Object.prototype.hasOwnProperty.call(_module.options, key)) {
               if (key === 'birthday') {
                 _module.options[key] = dayjs(_module.options[key]);
-              } else if (
-                key === 'city' ||
-                key === 'intentCity' ||
-                key === 'origin'
-              ) {
+              } else if (key === 'intentCity') {
+                _module.options[key] = normalizeIntentCityToCascaderValue(
+                  _module.options[key]
+                );
+              } else if (key === 'city' || key === 'origin') {
                 _module.options[key] =
                   typeof _module.options[key] === 'string'
                     ? _module.options[key].split('/')
@@ -255,13 +256,16 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
     return option?.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
   });
 
-  const beforeUpload = useMemoizedFn(async (file, key) => {
-    const isJpgOrPng =
+  const beforeUpload = useMemoizedFn(async (file: File, key: string) => {
+    const mimeOk =
       file.type === 'image/jpeg' ||
       file.type === 'image/jpg' ||
       file.type === 'image/png';
-    if (!isJpgOrPng) {
-      message.error('请上传 jpeg, jpg, png 文件');
+    const extOk = /\.(jpe?g|png)$/i.test(file.name ?? '');
+    const ok = mimeOk || (!file.type && extOk);
+    if (!ok) {
+      message.error('请上传 jpeg、jpg、png 格式的图片');
+      return Upload.LIST_IGNORE;
     }
     cropperRef.current.showModal(await fileToBase64(file), (image: string) => {
       configStore.setConfigOption(mid, {
@@ -269,7 +273,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
         [key]: image,
       });
     });
-    return isJpgOrPng;
+    return false;
   });
 
   const inputHandler = useMemoizedFn((key: string, value: string) => {
@@ -390,6 +394,10 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
           key='edit'
           className='info1-panel-animate mt-1 rounded-lg border border-white/[0.08] bg-white/[0.06] p-[10px] text-white/95'
         >
+          <p className='mb-3 rounded-md border border-[color:color-mix(in_srgb,var(--color-primary)_52%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)] px-3 py-2.5 text-[11px] font-medium leading-relaxed text-[color:var(--color-primary)] shadow-[inset_0_1px_0_0_color-mix(in_srgb,var(--color-primary)_28%,transparent)]'>
+            <span className='font-semibold'>提示</span>
+            ：若修改字段后页面未展示，请到下方「字段布局」中开启对应字段的显示开关。
+          </p>
           <Form form={form} variant='filled' layout='vertical'>
             <Row gutter={15}>
               {formLayout.map((item) => (
@@ -452,11 +460,24 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                       </div>
                     ) : item.controllerType === 'cascader' ? (
                       <Cascader
+                        multiple={item.key === 'intentCity'}
+                        maxTagCount='responsive'
+                        showCheckedStrategy={
+                          item.key === 'intentCity'
+                            ? Cascader.SHOW_CHILD
+                            : undefined
+                        }
                         defaultValue={option[item.key]}
                         options={item.options}
                         placeholder={
                           '请选择' + info[item.key as keyof typeof info]
                         }
+                        onChange={(value) => {
+                          configStore.setConfigOption(mid, {
+                            ...configStore.getConfigOption(mid),
+                            [item.key]: value,
+                          });
+                        }}
                       />
                     ) : item.controllerType === 'image' ? (
                       <Upload

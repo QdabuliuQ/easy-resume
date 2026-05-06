@@ -2,7 +2,7 @@ import { memo, useEffect, useState } from 'react';
 
 import { configStore, moduleActiveStore } from '@/mobx';
 import { observer } from 'mobx-react';
-import { Col, ColorPicker, Form, InputNumber, Modal, Row } from 'antd';
+import { Col, ColorPicker, Form, InputNumber, Modal, Row, Select } from 'antd';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import Title from '@/components/title';
 import FormItem from '@/components/formItem';
@@ -171,6 +171,33 @@ function Global() {
                 <ColorPicker
                   defaultValue={global.color}
                   onChange={(_, rgba) => handleChange(rgba, 'color')}
+                />
+              </FormItem>
+            </Col>
+            <Col span={24}>
+              <FormItem
+                label='模块标题样式'
+                icon={<Edit theme='outline' size='15' fill='#333' />}
+              >
+                <Select
+                  value={global.headerType ?? 1}
+                  style={{ width: '100%' }}
+                  options={[
+                    { value: 1, label: '样式1 · 左侧竖条 + 浅底' },
+                    { value: 2, label: '样式2 · 居中标题 + 通栏横线' },
+                    { value: 3, label: '样式3 · 斜切色块 + 装饰 + 横线' },
+                    { value: 4, label: '样式4 · 左对齐 + 底部分割线' },
+                    { value: 5, label: '样式5 · 箭头色带' },
+                    { value: 6, label: '样式6 · 双三角 + 横线延伸' },
+                    { value: 7, label: '样式7 · 左栏标题 + 竖线 + 右侧内容区' },
+                  ]}
+                  onChange={(v) => {
+                    global.headerType = v;
+                    configStore.setConfig({
+                      ...configStore.getConfig,
+                      globalStyle: global,
+                    });
+                  }}
                 />
               </FormItem>
             </Col>

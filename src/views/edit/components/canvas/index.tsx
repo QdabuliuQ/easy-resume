@@ -18,6 +18,7 @@ import {
   Project,
   Skill,
   Education,
+  Other,
 } from '@/modules';
 import { createRoot } from 'react-dom/client';
 import { configStore } from '@/mobx';
@@ -67,7 +68,8 @@ function layoutSig(module: any, gs: any): string {
   const pad = gs?.padding ?? 0;
   const fs = gs?.fontSize ?? '';
   const lh = gs?.lineHeight ?? '';
-  return `${JSON.stringify(module)}|w:${gs.width}|h:${gs.height}|pad:${pad}|fs:${fs}|lh:${lh}`;
+  const ht = gs?.headerType ?? '';
+  return `${JSON.stringify(module)}|w:${gs.width}|h:${gs.height}|pad:${pad}|fs:${fs}|lh:${lh}|ht:${ht}`;
 }
 
 function moduleComponentForType(
@@ -86,6 +88,8 @@ function moduleComponentForType(
       return Project;
     case 'education':
       return Education;
+    case 'other':
+      return Other;
     default:
       return null;
   }
@@ -164,8 +168,11 @@ function Canvas() {
         const moduleHeight =
           moduleHeights.current[component.props.config.id] ?? 0;
 
-        if (height + moduleHeight > pageHeight) {
-          const idx = newPages.length - 1;
+        const idx = newPages.length - 1;
+        const gapBefore =
+          newPages[idx].length !== 0 ? moduleGapPx(gs, cfg) : 0;
+
+        if (height + gapBefore + moduleHeight > pageHeight) {
           if (newPages[idx].length === 0) {
             newPages[idx].push(component);
             height += moduleHeight;
@@ -174,16 +181,14 @@ function Canvas() {
             newPages.push([component]);
           }
         } else {
-          const idx = newPages.length - 1;
-          const gap = moduleGapPx(gs, cfg);
-          if (newPages[idx].length !== 0) {
+          if (gapBefore > 0) {
             newPages[idx].push(
               <Margin
                 key={`margin-before-${component.props.config.id}`}
-                height={gap}
+                height={gapBefore}
               />
             );
-            height += gap;
+            height += gapBefore;
           }
           newPages[idx].push(component);
           height += moduleHeight;

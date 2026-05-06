@@ -27,8 +27,8 @@
 }
 
 :root {
-  --color-primary: #fa8362;
-  --color-primary-gradient-start: #fcea88;
+  --color-primary: #f9724d;
+  --color-primary-gradient-start: #fde76b;
   --gradient-primary: linear-gradient(
     90deg,
     var(--color-primary-gradient-start) 0%,

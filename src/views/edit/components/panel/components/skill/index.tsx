@@ -9,6 +9,7 @@ import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import { Form } from 'antd';
 import { observer } from 'mobx-react';
 import { memo, useEffect, useId, useState, type CSSProperties } from 'react';
+import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import RichTextEditor from '@/components/richTextEditor';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
@@ -64,12 +65,15 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
     { wait: 100 }
   );
 
+  const updateModule = useMemoizedFn((mod: SkillProps) => {
+    const next = JSON.parse(JSON.stringify(mod));
+    setModule(next);
+    run(next);
+  });
   const updateDescription = useMemoizedFn((text: string) => {
     if (!module) return;
     module.options.description = text;
-    const next = JSON.parse(JSON.stringify(module));
-    setModule(next);
-    run(next);
+    updateModule(module);
   });
 
   const rawHtml = module?.options.description ?? '';
@@ -78,8 +82,8 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
 
   return (
     <div className='[&_.ant-form-item]:!mb-2.5'>
-      <div className='mb-3 flex items-center justify-between'>
-        <div className='flex items-center'>
+      <div className='mb-3 flex min-w-0 items-center justify-between gap-2'>
+        <div className='flex min-w-0 flex-1 items-center'>
           <svg
             width={0}
             height={0}
@@ -110,9 +114,17 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
           >
             <ThunderboltOutlined />
           </div>
-          <span className='ml-[10px] text-[15px] font-medium text-white/95'>
-            技能
-          </span>
+          <ModulePanelTitleEdit
+            resetKey={moduleActive}
+            title={module?.options?.title ?? ''}
+            fallbackTitle='专业技能'
+            disabled={!module}
+            onCommit={(next) => {
+              if (!module) return;
+              module.options.title = next;
+              updateModule(module);
+            }}
+          />
         </div>
         <PanelToolbar moduleId={moduleActive} />
       </div>

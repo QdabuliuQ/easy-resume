@@ -10,6 +10,7 @@ import Skill from '../skill';
 import Job from '../job';
 import Project from '../project';
 import Education from '../education';
+import Other from '../other';
 
 type ModulePanel = ComponentType<{ moduleId?: string }>;
 
@@ -20,6 +21,7 @@ const panelByType: Record<string, ModulePanel> = {
   job: Job,
   project: Project,
   education: Education,
+  other: Other,
 };
 
 const panelHasOwnTitle = new Set([
@@ -29,6 +31,7 @@ const panelHasOwnTitle = new Set([
   'job',
   'project',
   'skill',
+  'other',
 ]);
 
 /** 滚入视区时与滚动容器顶部的间距（配合 scrollIntoView，用 CSS scroll-margin） */

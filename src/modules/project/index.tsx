@@ -1,9 +1,8 @@
-import { RESUME_MODULE_ID_ATTR } from '@/components/moduleOperation/constants';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 import { memo } from 'react';
 import { GlobalStyle } from '../utils/common.type';
-import Header1 from '../header/header1';
+import SectionModuleShell from '../layout/sectionModuleShell';
 import { observer } from 'mobx-react';
 
 export interface ProjectProps {
@@ -34,14 +33,7 @@ function Project(props: Props) {
   const { id, options } = config;
   const { fontSize, lineHeight } = globalStyle;
   return (
-    <div
-      id={id}
-      {...{ [RESUME_MODULE_ID_ATTR]: id }}
-      className='w-full cursor-pointer'
-    >
-      <div className='w-full mb-[5px]'>
-        <Header1 config={options} globalStyle={globalStyle} />
-      </div>
+    <SectionModuleShell moduleId={id} headerConfig={options} globalStyle={globalStyle}>
       <div className='w-full'>
         {options.items.map((item, index) => (
           <div
@@ -70,7 +62,7 @@ function Project(props: Props) {
           </div>
         ))}
       </div>
-    </div>
+    </SectionModuleShell>
   );
 }
 

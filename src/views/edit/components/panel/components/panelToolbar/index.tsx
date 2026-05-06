@@ -36,7 +36,7 @@ function PanelToolbar({ moduleId }: { moduleId: string }) {
   return (
     <>
       {contextHolder}
-      <div className='flex items-center gap-0.5'>
+      <div className='flex shrink-0 items-center gap-0.5'>
         <button
           type='button'
           className='flex h-7 w-7 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0 text-white/45 transition-colors hover:text-red-500'

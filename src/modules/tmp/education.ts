@@ -1,4 +1,4 @@
-import createHeader1 from './header1';
+import createSectionHeader from './sectionHeader';
 import { fabric } from 'fabric';
 import { columnMargin, rowMargin } from '../utils/constant';
 import { GlobalStyle } from '../utils/common.type';
@@ -174,7 +174,7 @@ export default function createEducationModule(
   const pad = globalStyle.padding ?? 0;
   const widthPx = cssLengthToApproxPx(globalStyle.width);
 
-  const header = createHeader1(props.options, globalStyle);
+  const header = createSectionHeader(props.options, globalStyle);
 
   const groups: fabric.Group[] = [];
   for (const item of items) {

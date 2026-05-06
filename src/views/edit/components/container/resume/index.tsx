@@ -1,9 +1,12 @@
-import { Popover } from 'antd';
+import { message, Popover } from 'antd';
 import { memo, useCallback, useState } from 'react';
+import { analyzeResumeWithBigmodel, type ResumeAiAnalyzeResult } from '@/api/resumeAiScoreAnalyze';
 import { useModuleHandle } from '@/hooks/module';
+import { configStore } from '@/mobx';
 import type { ResumeModuleType } from '@/utils/createResumeModule';
 import AiScore from '../../panel/components/aiScore';
 import ModuleEdit from '../../panel/components/moduleEdit';
+import ResumeTemplate from '../../panel/components/resumeTemplate';
 
 const ADD_MODULE_LIST: { type: ResumeModuleType; label: string }[] = [
   { type: 'info1', label: '个人信息' },
@@ -12,6 +15,7 @@ const ADD_MODULE_LIST: { type: ResumeModuleType; label: string }[] = [
   { type: 'job', label: '工作经历' },
   { type: 'project', label: '项目经历' },
   { type: 'education', label: '教育经历' },
+  { type: 'other', label: '其他' },
 ];
 
 type ResumeProps = { menuActiveKey: string };
@@ -23,14 +27,28 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const { addModuleByType } = useModuleHandle();
   const [addOpen, setAddOpen] = useState(false);
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
+  const [hasAiAnalysis, setHasAiAnalysis] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<ResumeAiAnalyzeResult | null>(null);
   const isAiScore = menuActiveKey === 'ai-score';
+  const isResumeTemplate = menuActiveKey === 'resume-template';
+  const isResumeEdit = menuActiveKey === 'resume';
 
   const onStartAnalyze = useCallback(() => {
     if (analyzeLoading) return;
+    const cfg = configStore.getConfig;
+    if (!cfg?.pages?.length) {
+      message.warning('暂无简历配置，请先编辑简历');
+      return;
+    }
     setAnalyzeLoading(true);
     void (async () => {
       try {
-        await new Promise((r) => setTimeout(r, 1600));
+        const payload = { pages: cfg.pages, globalStyle: cfg.globalStyle ?? undefined };
+        const result = await analyzeResumeWithBigmodel(payload);
+        setAiAnalysis(result);
+        setHasAiAnalysis(true);
+      } catch (e) {
+        message.error(e instanceof Error ? e.message : '分析失败');
       } finally {
         setAnalyzeLoading(false);
       }
@@ -41,10 +59,20 @@ function Resume({ menuActiveKey }: ResumeProps) {
     <div className='relative flex h-full min-h-0 flex-1 flex-col text-black [transform:translateZ(0)]'>
       <div className='min-h-0 flex-1 overflow-auto pb-20'>
         <div className='m-[20px]'>
-          {isAiScore ? <AiScore /> : <ModuleEdit />}
+          {isAiScore ? (
+            <AiScore
+              loading={analyzeLoading}
+              hasAnalysis={hasAiAnalysis}
+              analysis={aiAnalysis}
+            />
+          ) : isResumeTemplate ? (
+            <ResumeTemplate />
+          ) : (
+            <ModuleEdit />
+          )}
         </div>
       </div>
-      {!isAiScore && (
+      {isResumeEdit && (
       <div className='pointer-events-none fixed bottom-0 left-0 right-0 z-10 p-[10px]'>
         <div className='pointer-events-auto flex justify-center'>
           <Popover
@@ -105,7 +133,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
               disabled={analyzeLoading}
               aria-busy={analyzeLoading}
               onClick={onStartAnalyze}
-              className={GRADIENT_CTA_CLASS}
+              className={`${GRADIENT_CTA_CLASS} gap-2`}
             >
               {analyzeLoading ? (
                 <span

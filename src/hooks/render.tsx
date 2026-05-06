@@ -5,6 +5,7 @@ import createInfo1 from '@/modules/info/info1';
 import createJobModule from '@/modules/tmp/job';
 import createProjectModule from '@/modules/tmp/project';
 import createSkillModule from '@/modules/tmp/skill';
+import createOtherModule from '@/modules/tmp/other';
 import { useMemoizedFn } from 'ahooks';
 import { fabric } from 'fabric';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
@@ -79,6 +80,8 @@ export const useRender = () => {
       let module: fabric.Group | null = null;
       if (options.type === 'skill') {
         module = createSkillModule(options, resume.globalStyle);
+      } else if (options.type === 'other') {
+        module = createOtherModule(options, resume.globalStyle);
       } else if (options.type === 'job') {
         module = createJobModule(options, resume.globalStyle);
       } else if (options.type === 'education') {
@@ -235,6 +238,8 @@ export const update = async (resume: any) => {
       let module: fabric.Group | null = null;
       if (options.type === 'skill') {
         module = createSkillModule(options, resume.globalStyle);
+      } else if (options.type === 'other') {
+        module = createOtherModule(options, resume.globalStyle);
       } else if (options.type === 'job') {
         module = createJobModule(options, resume.globalStyle);
       } else if (options.type === 'education') {

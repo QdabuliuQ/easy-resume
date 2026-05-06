@@ -1,6 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { GlobalStyle } from '@/modules/utils/common.type';
+import { wrapSectionModuleHtml } from '@/modules/header/sectionHeaderHtml';
+import {
+  formatIntentCityDisplay,
+  normalizeResumeCityDisplay,
+} from '@/utils/resumeCityDisplay';
 import { ensureAnchorsOpenBlank } from '@/utils/sanitizeHtml';
 
 let quillSnowCssCache: string | null = null;
@@ -97,16 +102,6 @@ function plainTextFromRich(html: string): string {
   return safe.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-function sectionHeader(title: string, gs: GlobalStyle): string {
-  const c = escapeHtml(gs.color);
-  const fs = Number(gs.fontSize) || 13;
-  return `<div style="font-weight:bold;padding:3px 3px 3px 15px;position:relative;font-size:${fs}px;color:${c};">
-<span style="line-height:1;">${escapeHtml(title)}</span>
-<span style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${c};"></span>
-<span style="position:absolute;inset:0;opacity:0.1;background:${c};"></span>
-</div>`;
-}
-
 function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle): string {
   const opts = mod.options;
   const name = String(opts.name ?? '');
@@ -130,8 +125,14 @@ function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle)
         );
       } else if (opts[key as keyof typeof opts]) {
         const val = opts[key as keyof typeof opts];
+        const out =
+          key === 'city'
+            ? normalizeResumeCityDisplay(String(val))
+            : key === 'intentCity'
+              ? formatIntentCityDisplay(val as unknown)
+              : String(val);
         rowParts.push(
-          `<span style="font-size:${fs}px;line-height:${lh};color:#333">${escapeHtml(val)}</span>`
+          `<span style="font-size:${fs}px;line-height:${lh};color:#333">${escapeHtml(out)}</span>`
         );
       }
       if (j !== row.length - 1) {
@@ -168,7 +169,7 @@ function renderCertificate(mod: { options: { title: string; items: Array<{ name:
 </div>`
     )
     .join('');
-  return `<div style="width:100%;">${sectionHeader(title, gs)}<div style="margin-top:5px;">${rows}</div></div>`;
+  return wrapSectionModuleHtml(title, gs, rows);
 }
 
 function renderSkill(mod: { options: { title: string; description: string } }, gs: GlobalStyle): string {
@@ -178,7 +179,7 @@ function renderSkill(mod: { options: { title: string; description: string } }, g
   const inner = plainTextFromRich(description)
     ? wrapQuillRichHtml(description, `font-size:${fs}px;line-height:${lh};color:#333;`)
     : '';
-  return `<div style="width:100%;">${sectionHeader(title, gs)}<div style="margin-top:5px;">${inner}</div></div>`;
+  return wrapSectionModuleHtml(title, gs, inner);
 }
 
 function renderJob(mod: { options: { title: string; items: Array<Record<string, string>> } }, gs: GlobalStyle): string {
@@ -196,7 +197,7 @@ function renderJob(mod: { options: { title: string; items: Array<Record<string, 
         item.post || item.department || item.city
           ? `<div style="display:flex;justify-content:space-between;margin-bottom:5px;">
 <div style="flex:0.6;">${escapeHtml(sub)}</div>
-<div style="flex:0.2;text-align:right;">${escapeHtml(item.city ?? '')}</div>
+<div style="flex:0.2;text-align:right;">${escapeHtml(normalizeResumeCityDisplay(item.city ?? ''))}</div>
 </div>`
           : '';
       return `<div style="width:100%;color:#333;${index < items.length - 1 ? 'margin-bottom:10px;' : ''}font-size:${fs}px;">
@@ -209,7 +210,7 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return `<div style="width:100%;">${sectionHeader(title, gs)}<div style="margin-top:5px;">${blocks}</div></div>`;
+  return wrapSectionModuleHtml(title, gs, blocks);
 }
 
 function renderProject(mod: { options: { title: string; items: Array<Record<string, string>> } }, gs: GlobalStyle): string {
@@ -235,7 +236,7 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return `<div style="width:100%;">${sectionHeader(title, gs)}<div style="margin-top:5px;">${blocks}</div></div>`;
+  return wrapSectionModuleHtml(title, gs, blocks);
 }
 
 function renderEducation(mod: { options: { title: string; items: Array<Record<string, unknown>> } }, gs: GlobalStyle): string {
@@ -259,7 +260,7 @@ function renderEducation(mod: { options: { title: string; items: Array<Record<st
       const degreeLine = item.degree
         ? `<div style="display:flex;justify-content:space-between;margin-bottom:5px;">
 <div style="flex:0.7;">${escapeHtml(String(item.major ?? ''))} ${escapeHtml(String(item.degree ?? ''))} ${escapeHtml(String(item.academy ?? ''))}</div>
-<div style="flex:0.3;text-align:right;">${escapeHtml(String(item.city ?? ''))}</div>
+<div style="flex:0.3;text-align:right;">${escapeHtml(normalizeResumeCityDisplay(String(item.city ?? '')))}</div>
 </div>`
         : '';
       return `<div style="width:100%;color:#333;${index < items.length - 1 ? 'margin-bottom:10px;' : ''}font-size:${fs}px;">
@@ -275,7 +276,7 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return `<div style="width:100%;">${sectionHeader(title, gs)}<div style="margin-top:5px;">${blocks}</div></div>`;
+  return wrapSectionModuleHtml(title, gs, blocks);
 }
 
 function renderModule(mod: { type: string; options?: unknown }, gs: GlobalStyle): string {
@@ -286,6 +287,8 @@ function renderModule(mod: { type: string; options?: unknown }, gs: GlobalStyle)
     case 'certificate':
       return renderCertificate(mod as { options: { title: string; items: Array<{ name: string; date: string }> } }, gs);
     case 'skill':
+      return renderSkill(mod as { options: { title: string; description: string } }, gs);
+    case 'other':
       return renderSkill(mod as { options: { title: string; description: string } }, gs);
     case 'job':
       return renderJob(mod as { options: { title: string; items: Array<Record<string, string>> } }, gs);

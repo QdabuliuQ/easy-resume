@@ -1,9 +1,10 @@
-import { ProfileOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, ProfileOutlined } from '@ant-design/icons';
 import { Magic } from '@icon-park/react';
 
 const GRADIENT_ID = 'resume-menu-item-grad';
 
 const menuItems = [
+  { label: '简历模板', key: 'resume-template' as const },
   { label: '简历编辑', key: 'resume' as const },
   { label: 'AI 智能评分', key: 'ai-score' as const },
 ];
@@ -46,6 +47,14 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
           >
             {item.key === 'resume' ? (
               <ProfileOutlined
+                className={
+                  selected
+                    ? 'text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[url(#resume-menu-item-grad)]'
+                    : 'text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[#8c8c8c]'
+                }
+              />
+            ) : item.key === 'resume-template' ? (
+              <AppstoreOutlined
                 className={
                   selected
                     ? 'text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[url(#resume-menu-item-grad)]'

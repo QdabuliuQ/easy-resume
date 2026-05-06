@@ -1,5 +1,5 @@
 import { fabric } from 'fabric';
-import createHeader1 from './header1';
+import createSectionHeader from './sectionHeader';
 import { rowMargin } from '../utils/constant';
 import { GlobalStyle } from '../utils/common.type';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
@@ -81,7 +81,7 @@ export default function createProjectModule(
   const { items } = props.options;
   const pad = globalStyle.padding ?? 0;
   const widthPx = cssLengthToApproxPx(globalStyle.width);
-  const header = createHeader1(props.options, globalStyle);
+  const header = createSectionHeader(props.options, globalStyle);
   const project = new fabric.Group([header], {
     originX: 'left',
     originY: 'top',

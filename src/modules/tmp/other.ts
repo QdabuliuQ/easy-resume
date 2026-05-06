@@ -3,25 +3,23 @@ import createSectionHeader from './sectionHeader';
 import { GlobalStyle } from '@/modules/utils/common.type';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 
-interface SkillModuleProps {
+interface OtherModuleProps {
   id: string;
-  type: 'skill';
+  type: 'other';
   options: {
     title: string;
     description: string;
   };
 }
 
-export default function createSkillModule(
-  props: SkillModuleProps,
+export default function createOtherModule(
+  props: OtherModuleProps,
   globalStyle: GlobalStyle
 ) {
   const { description } = props.options;
-
   const pad = globalStyle.padding ?? 0;
   const { fontSize, lineHeight } = globalStyle;
   const widthPx = cssLengthToApproxPx(globalStyle.width);
-
   const header = createSectionHeader(props.options, globalStyle);
   const descriptionText = new fabric.Textbox(description, {
     width: widthPx - pad * 2 - 20,
@@ -41,13 +39,11 @@ export default function createSkillModule(
     hasControls: false,
     property: {
       ...props,
-      type: 'skill',
+      type: 'other',
     },
   } as any);
-
   header.set({
     left: -(widthPx - pad * 2) / 2,
   });
-
   return group;
 }

@@ -11,4 +11,6 @@ export interface GlobalStyle {
   padding?: number;
   color: string;
   backgroundColor: string;
+  /** 模块标题样式：1 左侧竖条 2 居中+底横线 3 斜切色块 4 左对齐+底横线 5 箭头色带 6 双三角+横线 7 左栏标题+竖线+右侧内容盒 */
+  headerType?: number;
 }

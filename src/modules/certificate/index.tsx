@@ -1,7 +1,6 @@
-import { RESUME_MODULE_ID_ATTR } from '@/components/moduleOperation/constants';
 import { memo } from 'react';
 import { GlobalStyle } from '../utils/common.type';
-import Header1 from '../header/header1';
+import SectionModuleShell from '../layout/sectionModuleShell';
 import { observer } from 'mobx-react';
 
 export interface CertificateProps {
@@ -29,14 +28,7 @@ function Certificate(props: Props) {
   const { id, options } = config;
 
   return (
-    <div
-      id={id}
-      {...{ [RESUME_MODULE_ID_ATTR]: id }}
-      className='w-full cursor-pointer'
-    >
-      <div className='w-full mb-[5px]'>
-        <Header1 config={options} globalStyle={globalStyle} />
-      </div>
+    <SectionModuleShell moduleId={id} headerConfig={options} globalStyle={globalStyle}>
       <div className='w-full'>
         {options.items.map((item, index) => (
           <div
@@ -49,7 +41,7 @@ function Certificate(props: Props) {
           </div>
         ))}
       </div>
-    </div>
+    </SectionModuleShell>
   );
 }
 

@@ -6,7 +6,8 @@ export type ResumeModuleType =
   | 'skill'
   | 'job'
   | 'project'
-  | 'education';
+  | 'education'
+  | 'other';
 
 export function createEmptyResumeModule(type: ResumeModuleType) {
   const template = defaultResume.pages[0].modules.find(

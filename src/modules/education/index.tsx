@@ -1,9 +1,9 @@
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
+import { normalizeResumeCityDisplay } from '@/utils/resumeCityDisplay';
 import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 import { memo } from 'react';
 import { GlobalStyle } from '../utils/common.type';
-import { RESUME_MODULE_ID_ATTR } from '@/components/moduleOperation/constants';
-import Header1 from '../header/header1';
+import SectionModuleShell from '../layout/sectionModuleShell';
 import { observer } from 'mobx-react';
 
 export interface EducationProps {
@@ -36,14 +36,7 @@ function Education(props: Props) {
   const { fontSize, color, lineHeight } = globalStyle;
 
   return (
-    <div
-      id={id}
-      {...{ [RESUME_MODULE_ID_ATTR]: id }}
-      className='w-full cursor-pointer'
-    >
-      <div className='w-full mb-[5px]'>
-        <Header1 config={options} globalStyle={globalStyle} />
-      </div>
+    <SectionModuleShell moduleId={id} headerConfig={options} globalStyle={globalStyle}>
       <div className='w-full' style={{ fontSize: fontSize + 'px' }}>
         {options.items.map((item, index) => (
           <div key={index} className='w-full text-[#333] not-last:mb-[10px]'>
@@ -75,7 +68,9 @@ function Education(props: Props) {
                 <div className='flex-7'>
                   {item.major} {item.degree} {item.academy}
                 </div>
-                <div className='flex-3 text-right'>{item.city}</div>
+                <div className='flex-3 text-right'>
+                  {normalizeResumeCityDisplay(item.city)}
+                </div>
               </div>
             )}
             {plainTextFromRichHtml(item.description) ? (
@@ -88,7 +83,7 @@ function Education(props: Props) {
           </div>
         ))}
       </div>
-    </div>
+    </SectionModuleShell>
   );
 }
 

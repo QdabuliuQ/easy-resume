@@ -19,6 +19,7 @@ import {
 import AddGradientButton from '../addGradientButton';
 import ButtonGroup from '../buttonGroup';
 import SplitLine from '../splitLine';
+import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import RichTextEditor from '@/components/richTextEditor';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
@@ -152,8 +153,8 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
 
   return (
     <div className='[&_.ant-form-item]:!mb-2.5'>
-      <div className='mb-3 flex items-center justify-between'>
-        <div className='flex items-center'>
+      <div className='mb-3 flex min-w-0 items-center justify-between gap-2'>
+        <div className='flex min-w-0 flex-1 items-center'>
           <svg
             width={0}
             height={0}
@@ -184,9 +185,17 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
           >
             <ProjectOutlined />
           </div>
-          <span className='ml-[10px] text-[15px] font-medium text-white/95'>
-            项目经历
-          </span>
+          <ModulePanelTitleEdit
+            resetKey={moduleActive}
+            title={module?.options?.title ?? ''}
+            fallbackTitle='项目经历'
+            disabled={!module}
+            onCommit={(next) => {
+              if (!module) return;
+              module.options.title = next;
+              updateModule(module);
+            }}
+          />
         </div>
         <PanelToolbar moduleId={moduleActive} />
       </div>

@@ -2,13 +2,20 @@ import Resume from './resume';
 
 const RESUME_MENU_KEY = 'resume';
 const AI_SCORE_MENU_KEY = 'ai-score';
+const RESUME_TEMPLATE_MENU_KEY = 'resume-template';
+
+const PANEL_MENU_KEYS = [
+  RESUME_MENU_KEY,
+  AI_SCORE_MENU_KEY,
+  RESUME_TEMPLATE_MENU_KEY,
+] as const;
 
 type ContainerProps = {
   menuActiveKey: string;
 };
 
 export default function Container({ menuActiveKey }: ContainerProps) {
-  if (menuActiveKey !== RESUME_MENU_KEY && menuActiveKey !== AI_SCORE_MENU_KEY) {
+  if (!PANEL_MENU_KEYS.includes(menuActiveKey as (typeof PANEL_MENU_KEYS)[number])) {
     return null;
   }
 
