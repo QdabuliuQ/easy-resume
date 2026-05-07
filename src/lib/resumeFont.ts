@@ -15,15 +15,27 @@ export function normResumeFont(v: unknown): ResumeFontId {
   return 'noto-sans';
 }
 
-const STACKS: Record<ResumeFontId, string> = {
-  'noto-sans': "'Noto Sans SC', sans-serif",
-  'noto-serif': "'Noto Serif SC', serif",
-  alibaba: "'Alibaba PuHuiTi 3.0', sans-serif",
-  'lxgw-wenkai': "'LXGW WenKai', serif",
+const PRIMARY: Record<ResumeFontId, string> = {
+  'noto-sans': "'Noto Sans SC'",
+  'noto-serif': "'Noto Serif SC'",
+  alibaba: "'Alibaba PuHuiTi 3.0'",
+  'lxgw-wenkai': "'LXGW WenKai'",
 };
 
+/** 服务端 Puppeteer 常无外网或 CDN 失败；须依赖系统已安装的中文字体（如 fonts-noto-cjk、wqy-microhei） */
+const CJK_FALLBACK_SANS =
+  "'Noto Sans CJK SC', 'Noto Sans CJK JP', 'Source Han Sans SC', 'WenQuanYi Micro Hei', 'WenQuanYi Zen Hei', sans-serif";
+const CJK_FALLBACK_SERIF =
+  "'Noto Serif CJK SC', 'Source Han Serif SC', 'Noto Serif SC', serif";
+
 export function resumeFontStack(id: unknown): string {
-  return STACKS[normResumeFont(id)];
+  const fid = normResumeFont(id);
+  const p = PRIMARY[fid];
+  const fb =
+    fid === 'noto-serif' || fid === 'lxgw-wenkai'
+      ? CJK_FALLBACK_SERIF
+      : CJK_FALLBACK_SANS;
+  return `${p}, ${fb}`;
 }
 
 /** 外链 CSS（不含普惠体：npm 上无可用聚合 CSS，见 resumeAlibabaPuHuiTiFontFacesCss） */

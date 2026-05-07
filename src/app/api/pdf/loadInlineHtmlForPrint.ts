@@ -4,7 +4,7 @@ const FONT_READY_MS = 12_000;
 
 export async function loadInlineHtmlForPrint(page: Page, html: string) {
   await page.setContent(html, {
-    waitUntil: 'domcontentloaded',
+    waitUntil: 'load',
     timeout: 120_000,
   });
   await page.evaluate(

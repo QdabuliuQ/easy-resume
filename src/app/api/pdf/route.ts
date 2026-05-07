@@ -41,7 +41,7 @@ async function generatePdfFromPage(
     if (pageHtml) {
       await loadInlineHtmlForPrint(page, pageHtml);
     } else if (pageUrl) {
-      await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
+      await page.goto(pageUrl, { waitUntil: 'load', timeout: 120000 });
       await settleFontsOrTimeout(page);
     } else {
       throw new Error('缺少 html 或 url');
