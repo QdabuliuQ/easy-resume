@@ -70,6 +70,7 @@ function Header() {
   const [draft, setDraft] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pngLoading, setPngLoading] = useState(false);
+  const [wordLoading, setWordLoading] = useState(false);
   const [pickerDraft, setPickerDraft] = useState(defaultResume.globalStyle.color);
   const pickerDraftRef = useRef(pickerDraft);
   pickerDraftRef.current = pickerDraft;
@@ -382,6 +383,41 @@ function Header() {
     }
   };
 
+  const exportWord = async () => {
+    if (typeof window === 'undefined' || wordLoading) return;
+    setWordLoading(true);
+    try {
+      const base = (name || '简历').trim() || '简历';
+      const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
+      const res = await fetch(withBasePath('/api/word'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          config: configStore.getConfig ?? defaultResume,
+          filename: `${safe}.docx`,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(
+          typeof data.error === 'string' ? data.error : `请求失败 ${res.status}`
+        );
+      }
+      const blob = await res.blob();
+      const href = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = href;
+      a.download = `${safe}.docx`;
+      a.click();
+      URL.revokeObjectURL(href);
+      message.success('已导出 Word');
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '导出失败');
+    } finally {
+      setWordLoading(false);
+    }
+  };
+
   const exportJson = () => {
     try {
       const raw = configStore.getConfig ?? defaultResume;
@@ -681,7 +717,7 @@ function Header() {
         <ModuleManage />
         <button
           type='button'
-          disabled={pdfLoading || pngLoading}
+          disabled={pdfLoading || pngLoading || wordLoading}
           onClick={() => void exportPdf()}
           className='bg-gradient-primary inline-flex h-[30px] min-w-[100px] cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-[20px] text-[13px] font-bold shadow-none hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70 text-white'
         >
@@ -699,7 +735,7 @@ function Header() {
         </button>
         <button
           type='button'
-          disabled={pdfLoading || pngLoading}
+          disabled={pdfLoading || pngLoading || wordLoading}
           onClick={() => void exportPng()}
           className='bg-gradient-primary inline-flex h-[30px] min-w-[100px] cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-[20px] text-[13px] font-bold text-white shadow-none transition-[filter] duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70'
         >
@@ -717,7 +753,25 @@ function Header() {
         </button>
         <button
           type='button'
-          disabled={pdfLoading || pngLoading}
+          disabled={pdfLoading || pngLoading || wordLoading}
+          onClick={() => void exportWord()}
+          className='bg-gradient-primary inline-flex h-[30px] min-w-[100px] cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-[20px] text-[13px] font-bold text-white shadow-none transition-[filter] duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70'
+        >
+          {wordLoading ? (
+            <>
+              <span
+                className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-white/25 border-t-white'
+                aria-hidden
+              />
+              <span>导出中…</span>
+            </>
+          ) : (
+            '导出 Word'
+          )}
+        </button>
+        <button
+          type='button'
+          disabled={pdfLoading || pngLoading || wordLoading}
           onClick={exportJson}
           className='bg-gradient-primary flex h-[30px] cursor-pointer items-center justify-center rounded-full border-0 px-[20px] text-[13px] font-bold text-white shadow-none transition-[filter] duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70'
         >
