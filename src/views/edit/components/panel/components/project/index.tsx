@@ -6,7 +6,7 @@ import { ProjectProps } from '@/modules/project';
 import { Book, Avatar, Calendar, EditOne } from '@icon-park/react';
 import { ProjectOutlined } from '@ant-design/icons';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
-import { Col, DatePicker, Empty, Form, Input, Row } from 'antd';
+import { Col, DatePicker, Empty, Form, Input, Row, message } from 'antd';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import {
@@ -23,6 +23,10 @@ import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import RichTextEditor from '@/components/richTextEditor';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
+import {
+  canAddResumeModuleItem,
+  resumeModuleItemLimitMessage,
+} from '@/utils/moduleTypeLimits';
 
 const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
 
@@ -84,6 +88,10 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
 
   const handleAdd = useMemoizedFn(() => {
     if (!module) return;
+    if (!canAddResumeModuleItem('project', module.options.items.length)) {
+      message.warning(resumeModuleItemLimitMessage('project'));
+      return;
+    }
     module.options.items.unshift({
       name: '',
       role: '',
@@ -124,6 +132,10 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
 
   const handleCopy = useMemoizedFn((index: number) => {
     if (!module) return;
+    if (!canAddResumeModuleItem('project', module.options.items.length)) {
+      message.warning(resumeModuleItemLimitMessage('project'));
+      return;
+    }
     module.options.items.splice(
       index,
       0,
@@ -150,6 +162,9 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
   });
 
   const intentPostsForPolish = intentPostsFromResumeConfig(configStore.getConfig);
+  const projectItemsFull =
+    module != null &&
+    !canAddResumeModuleItem('project', module.options.items.length);
 
   return (
     <div className='[&_.ant-form-item]:!mb-2.5'>
@@ -244,7 +259,9 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
           key='edit'
           className='info1-panel-animate mt-1 rounded-lg border border-white/[0.08] bg-white/[0.06] p-[10px] text-white/95'
         >
-          <AddGradientButton onClick={handleAdd}>添加项目经历</AddGradientButton>
+          <AddGradientButton onClick={handleAdd} disabled={projectItemsFull}>
+            添加项目经历
+          </AddGradientButton>
           {module.options.items.length > 0 ? (
             module.options.items.map((item: any, index: number) => (
               <div
@@ -358,6 +375,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                   handleDown={() => handleDown(index)}
                   handleDelete={() => handleDelete(index)}
                   handleCopy={() => handleCopy(index)}
+                  copyDisabled={projectItemsFull}
                 />
                 {index !== module.options.items.length - 1 && <SplitLine />}
               </div>

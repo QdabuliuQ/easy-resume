@@ -14,6 +14,7 @@ function ButtonGroup(props: {
   handleDown: () => void;
   handleDelete: () => void;
   handleCopy: () => void;
+  copyDisabled?: boolean;
 }) {
   return (
     <div className='flex w-full items-center justify-between'>
@@ -51,10 +52,16 @@ function ButtonGroup(props: {
             </button>
           </Tooltip>
         )}
-        <Tooltip placement='top' title='复制'>
+        <Tooltip
+          placement='top'
+          title={
+            props.copyDisabled ? '已达条目上限，无法复制' : '复制'
+          }
+        >
           <button
             type='button'
-            className={`${circleBtn} bg-[#52c41a] text-white`}
+            disabled={props.copyDisabled}
+            className={`${circleBtn} bg-[#52c41a] text-white disabled:cursor-not-allowed disabled:opacity-45`}
             onClick={props.handleCopy}
             aria-label='复制'
           >

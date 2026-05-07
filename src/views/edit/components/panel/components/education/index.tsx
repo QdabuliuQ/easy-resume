@@ -23,6 +23,7 @@ import {
   Input,
   Row,
   Select,
+  message,
 } from 'antd';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -41,6 +42,10 @@ import SplitLine from '../splitLine';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import RichTextEditor from '@/components/richTextEditor';
+import {
+  canAddResumeModuleItem,
+  resumeModuleItemLimitMessage,
+} from '@/utils/moduleTypeLimits';
 
 const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
 
@@ -100,6 +105,10 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
 
   const handleAdd = useMemoizedFn(() => {
     if (!module) return;
+    if (!canAddResumeModuleItem('education', module.options.items.length)) {
+      message.warning(resumeModuleItemLimitMessage('education'));
+      return;
+    }
     module.options.items.unshift({
       school: '',
       degree: undefined as any,
@@ -138,6 +147,10 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
 
   const handleCopy = useMemoizedFn((index: number) => {
     if (!module) return;
+    if (!canAddResumeModuleItem('education', module.options.items.length)) {
+      message.warning(resumeModuleItemLimitMessage('education'));
+      return;
+    }
     module.options.items.splice(
       index,
       0,
@@ -153,6 +166,9 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
   });
 
   const intentPostsForPolish = intentPostsFromResumeConfig(configStore.getConfig);
+  const educationItemsFull =
+    module != null &&
+    !canAddResumeModuleItem('education', module.options.items.length);
 
   const handleChange = useMemoizedFn((e: any, index: number, key: string) => {
     if (!module) return;
@@ -260,7 +276,9 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
           key='edit'
           className='info1-panel-animate mt-1 rounded-lg border border-white/[0.08] bg-white/[0.06] p-[10px] text-white/95'
         >
-          <AddGradientButton onClick={handleAdd}>添加教育经历</AddGradientButton>
+          <AddGradientButton onClick={handleAdd} disabled={educationItemsFull}>
+            添加教育经历
+          </AddGradientButton>
           {module.options.items.length > 0 ? (
             module.options.items.map((item: any, index: number) => (
               <div
@@ -466,6 +484,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                   handleDown={() => handleDown(index)}
                   handleDelete={() => handleDelete(index)}
                   handleCopy={() => handleCopy(index)}
+                  copyDisabled={educationItemsFull}
                 />
                 {index !== module.options.items.length - 1 && <SplitLine />}
               </div>

@@ -19,6 +19,7 @@ import {
   Cascader,
   DatePicker,
   Empty,
+  message,
 } from 'antd';
 import { observer } from 'mobx-react';
 import {
@@ -38,6 +39,10 @@ import PanelToolbar from '../panelToolbar';
 import dayjs from 'dayjs';
 import { SolutionOutlined } from '@ant-design/icons';
 import RichTextEditor from '@/components/richTextEditor';
+import {
+  canAddResumeModuleItem,
+  resumeModuleItemLimitMessage,
+} from '@/utils/moduleTypeLimits';
 
 const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
 
@@ -127,6 +132,10 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
 
   const handleAdd = useMemoizedFn(() => {
     if (!module) return;
+    if (!canAddResumeModuleItem('job', module.options.items.length)) {
+      message.warning(resumeModuleItemLimitMessage('job'));
+      return;
+    }
     module.options.items.unshift({
       company: '',
       post: '',
@@ -157,6 +166,10 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
 
   const handleCopy = useMemoizedFn((index: number) => {
     if (!module) return;
+    if (!canAddResumeModuleItem('job', module.options.items.length)) {
+      message.warning(resumeModuleItemLimitMessage('job'));
+      return;
+    }
     module.options.items.splice(
       index,
       0,
@@ -172,6 +185,9 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
   });
 
   const intentPostsForPolish = intentPostsFromResumeConfig(configStore.getConfig);
+  const jobItemsFull =
+    module != null &&
+    !canAddResumeModuleItem('job', module.options.items.length);
 
   return (
     <div className='[&_.ant-form-item]:!mb-2.5'>
@@ -260,7 +276,9 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
           key='edit'
           className='info1-panel-animate mt-1 rounded-lg border border-white/[0.08] bg-white/[0.06] p-[10px] text-white/95'
         >
-          <AddGradientButton onClick={handleAdd}>添加工作经历</AddGradientButton>
+          <AddGradientButton onClick={handleAdd} disabled={jobItemsFull}>
+            添加工作经历
+          </AddGradientButton>
           {module.options.items.length > 0 ? (
             module.options.items.map((item: any, index: number) => (
               <div
@@ -427,6 +445,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                   handleDown={() => handleDown(index)}
                   handleDelete={() => handleDelete(index)}
                   handleCopy={() => handleCopy(index)}
+                  copyDisabled={jobItemsFull}
                 />
                 {index !== module.options.items.length - 1 && <SplitLine />}
               </div>

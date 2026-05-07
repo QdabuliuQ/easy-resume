@@ -1,9 +1,15 @@
-import { message, Popover } from 'antd';
+import { message, Popover, Tooltip } from 'antd';
+import { observer } from 'mobx-react';
 import { memo, useCallback, useState } from 'react';
 import { analyzeResumeWithBigmodel, type ResumeAiAnalyzeResult } from '@/api/resumeAiScoreAnalyze';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore } from '@/mobx';
 import type { ResumeModuleType } from '@/utils/createResumeModule';
+import {
+  countResumeModulesByType,
+  isResumeModuleTypeAtLimit,
+  RESUME_MODULE_MAX_COUNT,
+} from '@/utils/moduleTypeLimits';
 import AiScore from '../../panel/components/aiScore';
 import ModuleEdit from '../../panel/components/moduleEdit';
 import ResumeTemplate from '../../panel/components/resumeTemplate';
@@ -24,6 +30,7 @@ const GRADIENT_CTA_CLASS =
   'bg-add-module-gradient relative isolate flex h-10 w-[410px] max-w-full cursor-pointer select-none items-center justify-center gap-2 overflow-hidden rounded-md text-[14px] font-bold text-white shadow-lg shadow-black/20 outline-none backdrop-blur-md backdrop-saturate-200 transition-[filter] duration-200 hover:brightness-125 hover:saturate-150 active:brightness-95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100 disabled:hover:saturate-100';
 
 function Resume({ menuActiveKey }: ResumeProps) {
+  const cfg = configStore.getConfig;
   const { addModuleByType } = useModuleHandle();
   const [addOpen, setAddOpen] = useState(false);
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
@@ -91,26 +98,53 @@ function Resume({ menuActiveKey }: ResumeProps) {
             }}
             content={
               <div className='flex min-w-[168px] flex-col'>
-                {ADD_MODULE_LIST.map(({ type, label }) => (
-                  <div
-                    key={type}
-                    role='button'
-                    tabIndex={0}
-                    className='cursor-pointer rounded-md px-3 py-2 text-[13px] text-white/90 outline-none hover:bg-white/10'
-                    onClick={() => {
-                      addModuleByType(type);
-                      setAddOpen(false);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key !== 'Enter' && e.key !== ' ') return;
-                      e.preventDefault();
-                      addModuleByType(type);
-                      setAddOpen(false);
-                    }}
-                  >
-                    {label}
-                  </div>
-                ))}
+                {ADD_MODULE_LIST.map(({ type, label }) => {
+                  const atLimit = isResumeModuleTypeAtLimit(cfg, type);
+                  const cur = countResumeModulesByType(cfg, type);
+                  const max = RESUME_MODULE_MAX_COUNT[type];
+                  const row = (
+                    <div
+                      role='button'
+                      tabIndex={atLimit ? -1 : 0}
+                      aria-disabled={atLimit}
+                      className={`rounded-md px-3 py-2 text-[13px] outline-none ${
+                        atLimit
+                          ? 'cursor-not-allowed text-white/40'
+                          : 'cursor-pointer text-white/90 hover:bg-white/10'
+                      }`}
+                      onClick={() => {
+                        if (atLimit) return;
+                        addModuleByType(type);
+                        setAddOpen(false);
+                      }}
+                      onKeyDown={(e) => {
+                        if (atLimit) return;
+                        if (e.key !== 'Enter' && e.key !== ' ') return;
+                        e.preventDefault();
+                        addModuleByType(type);
+                        setAddOpen(false);
+                      }}
+                    >
+                      {label}
+                      {atLimit ? (
+                        <span className='ml-1 text-[11px] text-white/35'>
+                          （{cur}/{max}）
+                        </span>
+                      ) : null}
+                    </div>
+                  );
+                  return atLimit ? (
+                    <Tooltip
+                      key={type}
+                      title={`该模块最多 ${max} 个，已达上限`}
+                      placement='left'
+                    >
+                      {row}
+                    </Tooltip>
+                  ) : (
+                    <div key={type}>{row}</div>
+                  );
+                })}
               </div>
             }
           >
@@ -150,4 +184,4 @@ function Resume({ menuActiveKey }: ResumeProps) {
   );
 }
 
-export default memo(Resume);
+export default memo(observer(Resume));

@@ -1,7 +1,7 @@
 import FormItem from '@/components/formItem';
 import { FileDoneOutlined } from '@ant-design/icons';
 import { configStore, moduleActiveStore } from '@/mobx';
-import { Col, DatePicker, Empty, Form, Input, Row } from 'antd';
+import { Col, DatePicker, Empty, Form, Input, Row, message } from 'antd';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { memo, useEffect, useId, useState, type CSSProperties } from 'react';
@@ -14,6 +14,10 @@ import PanelToolbar from '../panelToolbar';
 import { CertificateProps } from '@/modules/certificate';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import SplitLine from '../splitLine';
+import {
+  canAddResumeModuleItem,
+  resumeModuleItemLimitMessage,
+} from '@/utils/moduleTypeLimits';
 
 const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
 
@@ -56,6 +60,10 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
 
   const addCertificate = useMemoizedFn(() => {
     if (!module) return;
+    if (!canAddResumeModuleItem('certificate', module.options.items.length)) {
+      message.warning(resumeModuleItemLimitMessage('certificate'));
+      return;
+    }
     module.options.items.unshift({
       name: '证书',
       date: '2020-01-01',
@@ -99,6 +107,10 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
 
   const handleCopy = useMemoizedFn((index: number) => {
     if (!module) return;
+    if (!canAddResumeModuleItem('certificate', module.options.items.length)) {
+      message.warning(resumeModuleItemLimitMessage('certificate'));
+      return;
+    }
     module.options.items.splice(
       index,
       0,
@@ -108,6 +120,9 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
   });
 
   const iconGradId = `certificate-icon-grad-${gradId}`;
+  const certificateItemsFull =
+    module != null &&
+    !canAddResumeModuleItem('certificate', module.options.items.length);
 
   return (
     <div className='[&_.ant-form-item]:!mb-2.5'>
@@ -195,7 +210,9 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
           key='edit'
           className='info1-panel-animate mt-1 rounded-lg border border-white/[0.08] bg-white/[0.06] p-[10px] text-white/95'
         >
-          <AddGradientButton onClick={addCertificate}>添加证书</AddGradientButton>
+          <AddGradientButton onClick={addCertificate} disabled={certificateItemsFull}>
+            添加证书
+          </AddGradientButton>
           {module.options.items.length > 0 ? (
             <div className='mb-[10px] flex flex-col items-end'>
               {module.options.items.map((item: any, index: number) => (
@@ -254,6 +271,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                     handleDown={() => handleDown(index)}
                     handleDelete={() => handleDelete(index)}
                     handleCopy={() => handleCopy(index)}
+                    copyDisabled={certificateItemsFull}
                   />
                   {index !== module.options.items.length - 1 && <SplitLine />}
                 </div>

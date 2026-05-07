@@ -10,12 +10,19 @@ const iconWrapClass =
 function AddGradientButton({
   children,
   onClick,
+  disabled,
 }: {
   children: ReactNode;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
-    <button type='button' className={btnClass} onClick={onClick}>
+    <button
+      type='button'
+      disabled={disabled}
+      className={`${btnClass} disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100`}
+      onClick={onClick}
+    >
       <span className={iconWrapClass}>
         <Add theme='outline' size='17' fill='#fff' />
       </span>

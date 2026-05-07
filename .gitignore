@@ -28,3 +28,6 @@ dist-ssr
 next-env.d.ts
 .vercel
 .env*.local
+deploy.sh
+ecosystem.config.cjs
+webhook.cjs

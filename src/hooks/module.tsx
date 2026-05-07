@@ -1,9 +1,15 @@
+import { message } from 'antd';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { useMemoizedFn } from 'ahooks';
+import { moduleType } from '@/modules/utils/constant';
 import {
   createEmptyResumeModule,
   type ResumeModuleType,
 } from '@/utils/createResumeModule';
+import {
+  countResumeModulesByType,
+  RESUME_MODULE_MAX_COUNT,
+} from '@/utils/moduleTypeLimits';
 
 export function useModuleHandle() {
   const clickModule = useMemoizedFn((id: string) => {
@@ -70,6 +76,14 @@ export function useModuleHandle() {
   const addModuleByType = useMemoizedFn((type: ResumeModuleType) => {
     const config = configStore.getConfig;
     if (!config) return;
+    const max = RESUME_MODULE_MAX_COUNT[type];
+    const cur = countResumeModulesByType(config, type);
+    if (cur >= max) {
+      const name =
+        (moduleType as Record<string, { name: string }>)[type]?.name ?? type;
+      message.warning(`${name}最多添加 ${max} 个`);
+      return;
+    }
     const mod = createEmptyResumeModule(type);
     if (!config.pages?.length) {
       const next = JSON.parse(JSON.stringify(config));
