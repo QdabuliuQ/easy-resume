@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import { getPuppeteerLaunchOptions } from '@/lib/puppeteerLaunchOptions';
 import defaultResume from '@/json/resume';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { loadInlineHtmlForPrint, settleFontsOrTimeout } from './loadInlineHtmlForPrint';
@@ -20,10 +21,7 @@ async function generatePdfFromPage(
   pageUrl: string | null,
   printMeta?: PrintMeta | null
 ) {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
+  const browser = await puppeteer.launch(getPuppeteerLaunchOptions());
   try {
     const page = await browser.newPage();
     if (printMeta?.paperWidth && printMeta?.paperHeight) {
