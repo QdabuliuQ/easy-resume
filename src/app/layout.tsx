@@ -6,6 +6,10 @@ import { AntdProvider } from './providers';
 export const metadata: Metadata = {
   title: 'Easy Resume',
   description: 'Resume editor',
+  icons: {
+    icon: '/printer-paper.ico',
+    shortcut: '/printer-paper.ico',
+  },
 };
 
 export default function RootLayout({
