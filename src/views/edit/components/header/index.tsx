@@ -10,6 +10,7 @@ import resume from '@/json/resume';
 import SectionHeader from '@/modules/header/sectionHeader';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import ModuleManage from './moduleManage';
+import { withBasePath } from '@/lib/withBasePath';
 
 const FONT_SIZE_OPTIONS = Array.from({ length: 9 }, (_, i) => {
   const n = 10 + i;
@@ -317,7 +318,7 @@ function Header() {
     try {
       const base = (name || '简历').trim() || '简历';
       const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
-      const res = await fetch('/api/pdf', {
+      const res = await fetch(withBasePath('/api/pdf'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -352,7 +353,7 @@ function Header() {
     try {
       const base = (name || '简历').trim() || '简历';
       const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
-      const res = await fetch('/api/png', {
+      const res = await fetch(withBasePath('/api/png'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

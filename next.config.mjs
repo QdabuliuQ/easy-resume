@@ -1,6 +1,10 @@
+const basePath = '/easy-resume';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: "/easy-resume",
+  basePath,
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+  },
   reactStrictMode: true,
   swcMinify: true,
   experimental: {
