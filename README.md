@@ -73,6 +73,7 @@ npm run start
 | `BIGMODEL_API_KEY` | 智谱 BigModel API 密钥 |
 | `CHATANYWHERE_API_KEY` / `BASE_API_KEY` | ChatAnywhere 转发用密钥 |
 | `PUPPETEER_EXECUTABLE_PATH` | 生产环境 Chromium 可执行文件路径 |
+| `RESUME_PROJECT_ROOT` | PDF 嵌字体时查找 `public/fonts` 的根目录；默认 `process.cwd()`。进程工作目录不是仓库根时设为绝对路径，例如 `/root/easy-resume` |
 
 ## 目录结构（摘要）
 

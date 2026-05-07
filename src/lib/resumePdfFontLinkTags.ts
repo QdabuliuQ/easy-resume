@@ -2,11 +2,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { normResumeFont, resumeLocalFontFacesCss } from '@/lib/resumeFont';
 
+function resumeProjectRoot(): string {
+  const v = process.env.RESUME_PROJECT_ROOT?.trim();
+  return v ? path.resolve(v) : process.cwd();
+}
+
 /** 仅服务端 PDF：按需内嵌 ttf；system 不嵌字体 */
 export function resumePdfFontLinkTags(font: unknown): string {
   const id = normResumeFont(font);
   if (id === 'system') return '';
-  const fontsDir = path.join(process.cwd(), 'public', 'fonts');
+  const fontsDir = path.join(resumeProjectRoot(), 'public', 'fonts');
   const subset: Array<{ family: string; weight: number; file: string }> =
     id === 'noto-sans-sc'
       ? [
