@@ -22,12 +22,14 @@ import {
 } from '@/modules';
 import { createRoot } from 'react-dom/client';
 import { configStore } from '@/mobx';
+import { resumeFontStack } from '@/lib/resumeFont';
 import { getRandomId } from '@/utils';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { flattenModules, findModuleById } from '@/utils/resumePages';
 import ModuleOperation from '@/components/moduleOperation';
 import { CanvasScaleContext } from './canvasScaleContext';
 import { PAGE_STACK_GAP_PX } from './pageStackGap';
+import ResumeFontCdn from './ResumeFontCdn';
 
 /** 容器内左右留白，用于判断是否需缩小画布（缩放时两侧至少各 40） */
 const CANVAS_SIDE_PAD = 40;
@@ -69,7 +71,8 @@ function layoutSig(module: any, gs: any): string {
   const fs = gs?.fontSize ?? '';
   const lh = gs?.lineHeight ?? '';
   const ht = gs?.headerType ?? '';
-  return `${JSON.stringify(module)}|w:${gs.width}|h:${gs.height}|pad:${pad}|fs:${fs}|lh:${lh}|ht:${ht}`;
+  const rf = gs?.resumeFont ?? '';
+  return `${JSON.stringify(module)}|w:${gs.width}|h:${gs.height}|pad:${pad}|fs:${fs}|lh:${lh}|ht:${ht}|rf:${rf}`;
 }
 
 function moduleComponentForType(
@@ -128,6 +131,7 @@ function Canvas() {
         const gs =
           props.globalStyle ?? mergeGlobalStyle(configStore.getConfig);
         container.style.width = `${contentInnerWidth(gs)}px`;
+        container.style.fontFamily = resumeFontStack(gs.resumeFont);
         const stableKey = props?.config?.id ?? getRandomId();
         const module = <Component {...props} key={stableKey} />;
 
@@ -370,6 +374,7 @@ function Canvas() {
       ref={containerRef}
       className='flex h-full w-full min-h-0 flex-col items-center justify-start overflow-auto rounded-md'
     >
+      <ResumeFontCdn font={globalStyle.resumeFont} />
       <div style={{ width: contentW * scale, height: contentH * scale }}>
         <div
           style={{

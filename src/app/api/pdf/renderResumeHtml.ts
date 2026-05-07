@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { GlobalStyle } from '@/modules/utils/common.type';
+import { resumeFontStack, resumePdfFontLinkTags } from '@/lib/resumeFont';
 import { wrapSectionModuleHtml } from '@/modules/header/sectionHeaderHtml';
 import {
   formatIntentCityDisplay,
@@ -342,10 +343,9 @@ export function renderResumeDocumentHtml(resume: {
       ? hCss
       : `calc(${pageCount} * (${hCss}))`;
 
-  /** 无头环境常无系统中文轮廓；用 Noto Sans SC 拉字库，避免 PDF 中方块/空白 */
-  const fontStack =
-    '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", system-ui, sans-serif';
+  const fontStack = resumeFontStack(gs.resumeFont);
   const quillSnow = getQuillSnowCss();
+  const fontLinks = resumePdfFontLinkTags(gs.resumeFont);
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -353,7 +353,7 @@ export function renderResumeDocumentHtml(resume: {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${escapeHtml(docTitle)}</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+${fontLinks}
 <style>
 ${quillSnow}
   * { box-sizing: border-box; }
@@ -379,6 +379,8 @@ ${quillSnow}
     page-break-after: auto;
     break-after: auto;
   }
+  .pdf-page { font-family: ${fontStack}; }
+  .pdf-page * { font-family: inherit !important; }
   .pdf-rich, .pdf-rich * { font-family: ${fontStack} !important; }
   .resume-quill-embed {
     --spacing: 0.25rem;

@@ -324,16 +324,22 @@ function AiScore({
     [loading, fieldList, onApply, onApplyAll]
   );
   return (
-    <div className='relative flex h-full min-h-0 flex-col gap-3 overflow-auto text-left'>
+    <div className='relative flex h-full min-h-0 flex-col gap-3 overflow-auto px-0.5 pt-0.5 text-left'>
       {loading ? (
         <div className='absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-[#1c1b1f]/55 backdrop-blur-sm rounded-sm'>
           <Spin size='large' />
           <span className='text-[12px] text-white/55'>正在分析简历…</span>
         </div>
       ) : null}
-      <header className='flex shrink-0 items-start justify-between gap-2 px-0.5 pt-0.5'>
-        <h1 className='bg-gradient-primary bg-clip-text text-[18px] font-bold leading-tight text-transparent select-none flex items-center'>
-          <img src={aiScore.src} alt='' className='w-[40px] object-contain p-1' width={aiScore.width} height={aiScore.height} />
+      <header className='flex shrink-0 items-center gap-2'>
+        <img
+          src={aiScore.src}
+          alt=''
+          className='size-[22px] shrink-0 object-contain'
+          width={22}
+          height={22}
+        />
+        <h1 className='bg-gradient-primary bg-clip-text text-[18px] font-bold leading-tight text-transparent'>
           AI 智能评分分析
         </h1>
       </header>

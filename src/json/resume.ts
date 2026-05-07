@@ -10,6 +10,7 @@ export default {
     backgroundColor: '#fff',
     padding: 20,
     headerType: 1,
+    resumeFont: 'noto-sans',
   },
   pages: [
     {

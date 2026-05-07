@@ -1,4 +1,5 @@
 import defaultResume from '@/json/resume';
+import { normResumeFont } from '@/lib/resumeFont';
 
 function deepClone<T>(x: T): T {
   return JSON.parse(JSON.stringify(x));
@@ -31,6 +32,7 @@ export function mergeResumeConfig(user: unknown) {
       height: normalizeCssLength(ug.height, fbH),
     } as typeof base.globalStyle;
   }
+  base.globalStyle.resumeFont = normResumeFont(base.globalStyle.resumeFont);
   if (Array.isArray(u.pages) && u.pages.length > 0) {
     base.pages = deepClone(u.pages) as typeof base.pages;
   }

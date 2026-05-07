@@ -1,5 +1,7 @@
 import { sanitizeRichTextHtml } from '@/utils/sanitizeHtml';
 import type { CSSProperties } from 'react';
+import 'quill/dist/quill.snow.css';
+import '@/styles/resumeQuillEmbed.css';
 
 export default function ResumeQuillHtml({
   html,

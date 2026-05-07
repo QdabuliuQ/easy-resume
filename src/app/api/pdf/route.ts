@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer';
 import defaultResume from '@/json/resume';
 import type { GlobalStyle } from '@/modules/utils/common.type';
+import { loadInlineHtmlForPrint, settleFontsOrTimeout } from './loadInlineHtmlForPrint';
 import { mergeResumeConfig } from './mergeResumeConfig';
 import { renderResumeDocumentHtml } from './renderResumeHtml';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
@@ -40,11 +41,10 @@ async function generatePdfFromPage(
       });
     }
     if (pageHtml) {
-      await page.setContent(pageHtml, { waitUntil: 'load', timeout: 60000 });
-      await page.evaluate(() => document.fonts.ready);
+      await loadInlineHtmlForPrint(page, pageHtml);
     } else if (pageUrl) {
-      await page.goto(pageUrl, { waitUntil: 'load', timeout: 120000 });
-      await page.evaluate(() => document.fonts.ready);
+      await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
+      await settleFontsOrTimeout(page);
     } else {
       throw new Error('缺少 html 或 url');
     }

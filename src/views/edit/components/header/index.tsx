@@ -3,7 +3,7 @@ import { useDebounceFn } from 'ahooks';
 import { memo, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { Button, Input, message, Popover, Select, Tooltip } from 'antd';
-import { EditOutlined } from '@ant-design/icons';
+import { EditOutlined, RightOutlined } from '@ant-design/icons';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume';
 import resume from '@/json/resume';
@@ -11,6 +11,14 @@ import SectionHeader from '@/modules/header/sectionHeader';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import ModuleManage from './moduleManage';
 import { withBasePath } from '@/lib/withBasePath';
+import { normResumeFont, type ResumeFontId } from '@/lib/resumeFont';
+
+const RESUME_FONT_OPTIONS: { label: string; value: ResumeFontId }[] = [
+  { value: 'noto-sans', label: '思源黑体 Noto Sans SC' },
+  { value: 'noto-serif', label: '思源宋体 Noto Serif SC' },
+  { value: 'alibaba', label: '阿里巴巴普惠体 3.0' },
+  { value: 'lxgw-wenkai', label: '霞鹜文楷 LXGW WenKai' },
+];
 
 const FONT_SIZE_OPTIONS = Array.from({ length: 9 }, (_, i) => {
   const n = 10 + i;
@@ -70,7 +78,6 @@ function Header() {
   const [draft, setDraft] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pngLoading, setPngLoading] = useState(false);
-  const [wordLoading, setWordLoading] = useState(false);
   const [pickerDraft, setPickerDraft] = useState(defaultResume.globalStyle.color);
   const pickerDraftRef = useRef(pickerDraft);
   pickerDraftRef.current = pickerDraft;
@@ -80,6 +87,7 @@ function Header() {
   const bgPickerDraftRef = useRef(bgPickerDraft);
   bgPickerDraftRef.current = bgPickerDraft;
   const ignoreNextBlur = useRef(false);
+  const [exportPopOpen, setExportPopOpen] = useState(false);
 
   const name = configStore.getConfig?.name ?? resume.name;
   const rawFs = Number(configStore.mergedGlobalStyle.fontSize);
@@ -137,6 +145,18 @@ function Header() {
     configStore.setConfig(base);
   };
 
+  const setGlobalResumeFont = (v: ResumeFontId) => {
+    const base = configStore.getConfig
+      ? JSON.parse(JSON.stringify(configStore.getConfig))
+      : JSON.parse(JSON.stringify(defaultResume));
+    base.globalStyle = {
+      ...defaultResume.globalStyle,
+      ...(base.globalStyle ?? {}),
+      resumeFont: v,
+    };
+    configStore.setConfig(base);
+  };
+
   const setGlobalLineHeight = (v: number) => {
     const base = configStore.getConfig
       ? JSON.parse(JSON.stringify(configStore.getConfig))
@@ -160,6 +180,8 @@ function Header() {
     };
     configStore.setConfig(base);
   };
+
+  const resumeFontVal = normResumeFont(configStore.mergedGlobalStyle.resumeFont);
 
   const rawMm = Number(configStore.mergedGlobalStyle.moduleMargin);
   const moduleMarginVal = Number.isFinite(rawMm)
@@ -313,6 +335,17 @@ function Header() {
     commit();
   };
 
+  const snapshotForExport = () => {
+    const raw = configStore.getConfig;
+    if (!raw) return JSON.parse(JSON.stringify(defaultResume));
+    return JSON.parse(
+      JSON.stringify({
+        ...raw,
+        globalStyle: configStore.mergedGlobalStyle,
+      }),
+    );
+  };
+
   const exportPdf = async () => {
     if (typeof window === 'undefined' || pdfLoading) return;
     setPdfLoading(true);
@@ -323,7 +356,7 @@ function Header() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          config: configStore.getConfig ?? defaultResume,
+          config: snapshotForExport(),
           filename: `${safe}.pdf`,
         }),
       });
@@ -358,7 +391,7 @@ function Header() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          config: configStore.getConfig ?? defaultResume,
+          config: snapshotForExport(),
           filename: `${safe}.png`,
         }),
       });
@@ -383,45 +416,9 @@ function Header() {
     }
   };
 
-  const exportWord = async () => {
-    if (typeof window === 'undefined' || wordLoading) return;
-    setWordLoading(true);
-    try {
-      const base = (name || '简历').trim() || '简历';
-      const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
-      const res = await fetch(withBasePath('/api/word'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          config: configStore.getConfig ?? defaultResume,
-          filename: `${safe}.docx`,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(
-          typeof data.error === 'string' ? data.error : `请求失败 ${res.status}`
-        );
-      }
-      const blob = await res.blob();
-      const href = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = href;
-      a.download = `${safe}.docx`;
-      a.click();
-      URL.revokeObjectURL(href);
-      message.success('已导出 Word');
-    } catch (e) {
-      message.error(e instanceof Error ? e.message : '导出失败');
-    } finally {
-      setWordLoading(false);
-    }
-  };
-
   const exportJson = () => {
     try {
-      const raw = configStore.getConfig ?? defaultResume;
-      const cfg = JSON.parse(JSON.stringify(raw));
+      const cfg = snapshotForExport();
       const base = (name || '简历').trim() || '简历';
       const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
       const json = JSON.stringify(cfg, null, 2);
@@ -492,6 +489,21 @@ function Header() {
             onChange={(v) => setGlobalFontSize(v)}
             className='min-w-[76px] [&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[#555] [&_.ant-select-selector]:!bg-[#2a2a2a] [&_.ant-select-selection-item]:!text-white [&_.ant-select-arrow]:!text-[#aaa]'
             popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+            styles={{
+              popup: {
+                root: { backgroundColor: '#323236', padding: 4 },
+              },
+            }}
+          />
+        </Tooltip>
+        <Tooltip title='简历字体' placement='bottom'>
+          <Select
+            value={resumeFontVal}
+            options={RESUME_FONT_OPTIONS}
+            onChange={(v) => setGlobalResumeFont(v)}
+            popupMatchSelectWidth={false}
+            className='min-w-[168px] [&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[#555] [&_.ant-select-selector]:!bg-[#2a2a2a] [&_.ant-select-selection-item]:!text-white [&_.ant-select-arrow]:!text-[#aaa]'
+            popupClassName='min-w-[220px] [&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
             styles={{
               popup: {
                 root: { backgroundColor: '#323236', padding: 4 },
@@ -715,68 +727,85 @@ function Header() {
           </Popover>
         </Tooltip>
         <ModuleManage />
-        <button
-          type='button'
-          disabled={pdfLoading || pngLoading || wordLoading}
-          onClick={() => void exportPdf()}
-          className='bg-gradient-primary inline-flex h-[30px] min-w-[100px] cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-[20px] text-[13px] font-bold shadow-none hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70 text-white'
+        <Popover
+          open={exportPopOpen}
+          onOpenChange={setExportPopOpen}
+          placement='bottomRight'
+          trigger='click'
+          arrow={false}
+          styles={{
+            root: { zIndex: 1050 },
+            body: {
+              padding: 8,
+              background: '#2e2d31',
+              borderRadius: 10,
+            },
+          }}
+          content={
+            <div className='flex min-w-[132px] flex-col gap-0.5'>
+              <button
+                type='button'
+                disabled={pdfLoading || pngLoading}
+                onClick={() => {
+                  setExportPopOpen(false);
+                  void exportPdf();
+                }}
+                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-white/95 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                导出 PDF
+              </button>
+              <button
+                type='button'
+                disabled={pdfLoading || pngLoading}
+                onClick={() => {
+                  setExportPopOpen(false);
+                  void exportPng();
+                }}
+                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-white/95 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                导出 PNG
+              </button>
+              <button
+                type='button'
+                disabled={pdfLoading || pngLoading}
+                onClick={() => {
+                  setExportPopOpen(false);
+                  exportJson();
+                }}
+                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-white/95 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                导出 JSON
+              </button>
+            </div>
+          }
         >
-          {pdfLoading ? (
-            <>
-              <span
-                className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-white/25 border-t-white'
-                aria-hidden
-              />
-              <span>导出中…</span>
-            </>
-          ) : (
-            '导出 PDF'
-          )}
-        </button>
-        <button
-          type='button'
-          disabled={pdfLoading || pngLoading || wordLoading}
-          onClick={() => void exportPng()}
-          className='bg-gradient-primary inline-flex h-[30px] min-w-[100px] cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-[20px] text-[13px] font-bold text-white shadow-none transition-[filter] duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70'
-        >
-          {pngLoading ? (
-            <>
-              <span
-                className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-white/25 border-t-white'
-                aria-hidden
-              />
-              <span>导出中…</span>
-            </>
-          ) : (
-            '导出 PNG'
-          )}
-        </button>
-        <button
-          type='button'
-          disabled={pdfLoading || pngLoading || wordLoading}
-          onClick={() => void exportWord()}
-          className='bg-gradient-primary inline-flex h-[30px] min-w-[100px] cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-[20px] text-[13px] font-bold text-white shadow-none transition-[filter] duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70'
-        >
-          {wordLoading ? (
-            <>
-              <span
-                className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-white/25 border-t-white'
-                aria-hidden
-              />
-              <span>导出中…</span>
-            </>
-          ) : (
-            '导出 Word'
-          )}
-        </button>
-        <button
-          type='button'
-          disabled={pdfLoading || pngLoading || wordLoading}
-          onClick={exportJson}
-          className='bg-gradient-primary flex h-[30px] cursor-pointer items-center justify-center rounded-full border-0 px-[20px] text-[13px] font-bold text-white shadow-none transition-[filter] duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70'
-        >
-          导出 JSON
-        </button>
+          <button
+            type='button'
+            disabled={pdfLoading || pngLoading}
+            aria-expanded={exportPopOpen}
+            aria-haspopup='menu'
+            className='flex h-[30px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-70'
+          >
+            {pdfLoading || pngLoading ? (
+              <>
+                <span
+                  className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-white/25 border-t-white'
+                  aria-hidden
+                />
+                <span>导出中…</span>
+              </>
+            ) : (
+              <>
+                <span>导出</span>
+                <RightOutlined
+                  className={`text-[10px] text-white/70 transition-transform duration-200 ${
+                    exportPopOpen ? 'rotate-90' : ''
+                  }`}
+                />
+              </>
+            )}
+          </button>
+        </Popover>
       </div>
     </div>
   );
