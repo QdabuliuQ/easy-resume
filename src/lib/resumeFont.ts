@@ -1,82 +1,48 @@
-export type ResumeFontId =
-  | 'noto-sans'
-  | 'noto-serif'
-  | 'alibaba'
-  | 'lxgw-wenkai';
+export type ResumeFontId = 'system' | 'noto-sans-sc' | 'noto-serif-sc';
 
-export const DEFAULT_RESUME_FONT: ResumeFontId = 'noto-sans';
+export const DEFAULT_RESUME_FONT: ResumeFontId = 'system';
 
-const JSD = 'https://cdn.jsdelivr.net/npm';
+const SYSTEM_STACK =
+  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif";
 
 export function normResumeFont(v: unknown): ResumeFontId {
-  if (v === 'noto-serif' || v === 'alibaba' || v === 'lxgw-wenkai') {
-    return v;
-  }
-  return 'noto-sans';
+  if (v === 'system') return 'system';
+  if (v === 'noto-sans-sc') return 'noto-sans-sc';
+  if (v === 'noto-serif-sc') return 'noto-serif-sc';
+  if (v === 'noto-serif' || v === 'lxgw-wenkai') return 'noto-serif-sc';
+  if (v === 'noto-sans' || v === 'alibaba') return 'noto-sans-sc';
+  return 'system';
 }
 
-const PRIMARY: Record<ResumeFontId, string> = {
-  'noto-sans': "'Noto Sans SC'",
-  'noto-serif': "'Noto Serif SC'",
-  alibaba: "'Alibaba PuHuiTi 3.0'",
-  'lxgw-wenkai': "'LXGW WenKai'",
+const PRIMARY: Record<Exclude<ResumeFontId, 'system'>, string> = {
+  'noto-sans-sc': "'Noto Sans SC'",
+  'noto-serif-sc': "'Noto Serif SC'",
 };
 
-/** 服务端 Puppeteer 常无外网或 CDN 失败；须依赖系统已安装的中文字体（如 fonts-noto-cjk、wqy-microhei） */
-const CJK_FALLBACK_SANS =
-  "'Noto Sans CJK SC', 'Noto Sans CJK JP', 'Source Han Sans SC', 'WenQuanYi Micro Hei', 'WenQuanYi Zen Hei', sans-serif";
-const CJK_FALLBACK_SERIF =
-  "'Noto Serif CJK SC', 'Source Han Serif SC', 'Noto Serif SC', serif";
+const FALLBACK_SANS = 'sans-serif';
+const FALLBACK_SERIF = 'serif';
 
 export function resumeFontStack(id: unknown): string {
   const fid = normResumeFont(id);
-  const p = PRIMARY[fid];
-  const fb =
-    fid === 'noto-serif' || fid === 'lxgw-wenkai'
-      ? CJK_FALLBACK_SERIF
-      : CJK_FALLBACK_SANS;
-  return `${p}, ${fb}`;
+  if (fid === 'system') return SYSTEM_STACK;
+  const fb = fid === 'noto-serif-sc' ? FALLBACK_SERIF : FALLBACK_SANS;
+  return `${PRIMARY[fid]}, ${fb}`;
 }
 
-/** 外链 CSS（不含普惠体：npm 上无可用聚合 CSS，见 resumeAlibabaPuHuiTiFontFacesCss） */
-export const RESUME_FONT_LINK_STYLESHEET_HREF: Partial<
-  Record<ResumeFontId, string>
-> = {
-  'noto-sans':
-    'https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap',
-  'noto-serif':
-    'https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@400;700&display=swap',
-  'lxgw-wenkai':
-    'https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css',
-};
-
-/** 普惠体 3.0：jsDelivr woff2 + @font-face（PDF/预览共用） */
-export function resumeAlibabaPuHuiTiFontFacesCss(): string {
-  return `@font-face{font-family:'Alibaba PuHuiTi 3.0';font-style:normal;font-weight:400;font-display:swap;src:url('${JSD}/alibabapuhuiti-3-55-regular@1.0.0/AlibabaPuHuiTi-3-55-Regular.woff2') format('woff2');}
-@font-face{font-family:'Alibaba PuHuiTi 3.0';font-style:normal;font-weight:500;font-display:swap;src:url('${JSD}/alibabapuhuiti-3-65-medium@1.0.0/AlibabaPuHuiTi-3-65-Medium.woff2') format('woff2');}
-@font-face{font-family:'Alibaba PuHuiTi 3.0';font-style:normal;font-weight:700;font-display:swap;src:url('${JSD}/alibabapuhuiti-3-85-bold@1.0.0/AlibabaPuHuiTi-3-85-Bold.woff2') format('woff2');}`;
-}
-
-export function resumeFontPreconnectLoli(id: ResumeFontId): boolean {
-  return id === 'noto-sans' || id === 'noto-serif';
-}
-
-export function resumeFontPreconnectJsdelivr(id: ResumeFontId): boolean {
-  return id === 'alibaba' || id === 'lxgw-wenkai';
-}
-
-export function resumePdfFontLinkTags(font: unknown): string {
-  const id = normResumeFont(font);
-  const preLoli = resumeFontPreconnectLoli(id)
-    ? '<link rel="preconnect" href="https://fonts.loli.net" crossorigin />'
-    : '';
-  const preJsd = resumeFontPreconnectJsdelivr(id)
-    ? '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />'
-    : '';
-  if (id === 'alibaba') {
-    return `${preJsd}<style>${resumeAlibabaPuHuiTiFontFacesCss()}</style>`;
-  }
-  const href = RESUME_FONT_LINK_STYLESHEET_HREF[id];
-  if (!href) return '';
-  return `${preLoli}${preJsd}<link rel="stylesheet" href="${href}" crossorigin="anonymous" />`;
+/** 本地 @font-face；system 不注入；字体在 public/fonts/ */
+export function resumeLocalFontFacesCss(
+  basePath = '',
+  font: ResumeFontId = 'noto-sans-sc'
+): string {
+  if (font === 'system') return '';
+  const b = basePath;
+  const sans = [
+    `@font-face{font-family:'Noto Sans SC';font-style:normal;font-weight:400;font-display:swap;src:url('${b}/fonts/NotoSansSC-Regular.ttf') format('truetype');}`,
+    `@font-face{font-family:'Noto Sans SC';font-style:normal;font-weight:700;font-display:swap;src:url('${b}/fonts/NotoSansSC-Bold.ttf') format('truetype');}`,
+  ];
+  const serif = [
+    `@font-face{font-family:'Noto Serif SC';font-style:normal;font-weight:400;font-display:swap;src:url('${b}/fonts/NotoSerifSC-Regular.ttf') format('truetype');}`,
+    `@font-face{font-family:'Noto Serif SC';font-style:normal;font-weight:700;font-display:swap;src:url('${b}/fonts/NotoSerifSC-Bold.ttf') format('truetype');}`,
+  ];
+  return font === 'noto-sans-sc' ? sans.join('\n') : serif.join('\n');
 }

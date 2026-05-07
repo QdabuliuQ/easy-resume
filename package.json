@@ -8,7 +8,6 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "eslint .",
-    "preview": "vite preview",
     "prepare": "husky install",
     "commit": "gitmoji -c",
     "start": "next start -p 3010"
@@ -24,14 +23,12 @@
     "commitlint": "^19.8.1",
     "dayjs": "^1.11.13",
     "dompurify": "^3.4.1",
-    "fabric": "^5.5.2",
     "mobx": "^6.13.7",
     "mobx-react": "^9.2.0",
     "next": "^14.0.0",
     "puppeteer": "^24.42.0",
     "quill": "^2.0.3",
     "react": "^19.0.0",
-    "react-custom-scrollbars": "^4.2.1",
     "react-dom": "^19.0.0",
     "react-grid-layout": "^1.5.1",
     "react-image-crop": "^11.0.10"
@@ -39,8 +36,6 @@
   "devDependencies": {
     "@eslint/js": "^9.21.0",
     "@tailwindcss/postcss": "^4.0.9",
-    "@types/dompurify": "^3.0.5",
-    "@types/fabric": "^5.3.10",
     "@types/node": "^22.13.5",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",

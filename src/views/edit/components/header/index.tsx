@@ -14,10 +14,9 @@ import { withBasePath } from '@/lib/withBasePath';
 import { normResumeFont, type ResumeFontId } from '@/lib/resumeFont';
 
 const RESUME_FONT_OPTIONS: { label: string; value: ResumeFontId }[] = [
-  { value: 'noto-sans', label: '思源黑体 Noto Sans SC' },
-  { value: 'noto-serif', label: '思源宋体 Noto Serif SC' },
-  { value: 'alibaba', label: '阿里巴巴普惠体 3.0' },
-  { value: 'lxgw-wenkai', label: '霞鹜文楷 LXGW WenKai' },
+  { value: 'system', label: '系统默认' },
+  { value: 'noto-serif-sc', label: '思源宋体' },
+  { value: 'noto-sans-sc', label: '思源黑体' },
 ];
 
 const FONT_SIZE_OPTIONS = Array.from({ length: 9 }, (_, i) => {

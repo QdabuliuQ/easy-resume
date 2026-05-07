@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { GlobalStyle } from '@/modules/utils/common.type';
-import { resumeFontStack, resumePdfFontLinkTags } from '@/lib/resumeFont';
+import { resumeFontStack } from '@/lib/resumeFont';
+import { resumePdfFontLinkTags } from '@/lib/resumePdfFontLinkTags';
 import { wrapSectionModuleHtml } from '@/modules/header/sectionHeaderHtml';
 import {
   formatIntentCityDisplay,

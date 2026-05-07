@@ -1,30 +1,17 @@
 'use client';
 import { memo } from 'react';
-import {
-  normResumeFont,
-  RESUME_FONT_LINK_STYLESHEET_HREF,
-  resumeAlibabaPuHuiTiFontFacesCss,
-  resumeFontPreconnectJsdelivr,
-  resumeFontPreconnectLoli,
-} from '@/lib/resumeFont';
+import { normResumeFont, resumeLocalFontFacesCss } from '@/lib/resumeFont';
 
 function ResumeFontCdn({ font }: { font: unknown }) {
   const id = normResumeFont(font);
-  const href = RESUME_FONT_LINK_STYLESHEET_HREF[id];
+  if (id === 'system') return null;
+  const bp = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
   return (
-    <>
-      {resumeFontPreconnectLoli(id) ? (
-        <link rel='preconnect' href='https://fonts.loli.net' crossOrigin='' />
-      ) : null}
-      {resumeFontPreconnectJsdelivr(id) ? (
-        <link rel='preconnect' href='https://cdn.jsdelivr.net' crossOrigin='' />
-      ) : null}
-      {id === 'alibaba' ? (
-        <style dangerouslySetInnerHTML={{ __html: resumeAlibabaPuHuiTiFontFacesCss() }} />
-      ) : href ? (
-        <link rel='stylesheet' href={href} crossOrigin='anonymous' />
-      ) : null}
-    </>
+    <style
+      dangerouslySetInnerHTML={{
+        __html: resumeLocalFontFacesCss(bp, id),
+      }}
+    />
   );
 }
 
