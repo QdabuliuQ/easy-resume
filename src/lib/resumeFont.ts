@@ -47,7 +47,7 @@ export const RESUME_FONT_LINK_STYLESHEET_HREF: Partial<
   'noto-serif':
     'https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@400;700&display=swap',
   'lxgw-wenkai':
-    'https://cdn.jsdelivr.net/gh/hoochanlon/fonts@main/assets/LXGWWenKai-Regular/result.css',
+    'https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css',
 };
 
 /** 普惠体 3.0：jsDelivr woff2 + @font-face（PDF/预览共用） */

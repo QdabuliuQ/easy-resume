@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Space, notification } from 'antd';
+import { App, Button, Space } from 'antd';
 import { useEffect, useRef } from 'react';
 import { withBasePath } from '@/lib/withBasePath';
 
@@ -9,6 +9,7 @@ const NOTIFY_KEY = 'easy-resume-version-update';
 const STORAGE_KEY = 'easy-resume:dismissed-version-build-id';
 
 export function VersionUpdateNotifier() {
+  const { notification } = App.useApp();
   const baselineRef = useRef<string | null>(null);
   const dismissedRef = useRef<string | null>(null);
   const showingForRef = useRef<string | null>(null);
