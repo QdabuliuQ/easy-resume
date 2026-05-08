@@ -86,10 +86,11 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
   const uploadButton = useMemo(
     () => (
       <button
-        className='border-0 bg-transparent p-0 outline-none'
+        className='flex h-[112px] w-full flex-col items-center justify-center rounded-lg border border-dashed border-white/15 bg-white/[0.03] p-0 text-white/55 outline-none transition-colors hover:border-[color:var(--color-primary)] hover:bg-white/[0.05] hover:text-white/80'
         type='button'
       >
-        <div>点击上传</div>
+        <Avatar theme='outline' size='22' fill='currentColor' />
+        <div className='mt-2 text-[12px]'>上传头像</div>
       </button>
     ),
     []
@@ -123,6 +124,10 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
     }
     return null;
   }, [mid, configStore.getConfig]);
+
+  const avatarValue =
+    typeof option?.avatar === 'string' ? option.avatar.trim() : '';
+  const showAvatar = !!avatarValue && avatarValue !== 'avatar';
 
   const formLayout = useMemo(
     () => [
@@ -483,18 +488,20 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                       <Upload
                         beforeUpload={(file) => beforeUpload(file, item.key)}
                         showUploadList={false}
-                        listType='picture-card'
+                        className='w-full [&_.ant-upload-wrapper]:w-full [&_.ant-upload-select]:!m-0 [&_.ant-upload-select]:!h-auto [&_.ant-upload-select]:!w-full [&_.ant-upload-select]:!border-0 [&_.ant-upload-select]:!bg-transparent'
                       >
-                        {option[item.key] ? (
-                          <img
-                            src={option[item.key]}
-                            alt='avatar'
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'contain',
-                            }}
-                          />
+                        {showAvatar ? (
+                          <div className='overflow-hidden rounded-lg border border-white/10 bg-black/10'>
+                            <img
+                              src={avatarValue}
+                              alt='avatar'
+                              style={{
+                                width: '100%',
+                                height: 112,
+                                objectFit: 'contain',
+                              }}
+                            />
+                          </div>
                         ) : (
                           uploadButton
                         )}

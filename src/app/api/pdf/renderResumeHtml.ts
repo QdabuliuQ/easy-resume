@@ -126,6 +126,8 @@ function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle)
   const name = String(opts.name ?? '');
   const layout = (opts.layout as string[][]) ?? [];
   const avatar = String(opts.avatar ?? '');
+  const avatarSrc = avatar.trim();
+  const showAvatar = !!avatarSrc && avatarSrc !== 'avatar';
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
   const rows: string[] = [];
@@ -164,14 +166,16 @@ function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle)
       `<div style="display:flex;align-items:center;flex-wrap:wrap;${i < layout.length - 1 ? 'margin-bottom:5px;' : ''}">${rowParts.join('')}</div>`
     );
   }
-  const src = encodeURI(avatar);
+  const avatarHtml = showAvatar
+    ? `<img src="${encodeURI(avatarSrc)}" alt="" width="90" style="width:100%;aspect-ratio:5/7;object-fit:cover;display:block;" />`
+    : `<div style="width:100%;aspect-ratio:5/7;"></div>`;
   return `<div style="width:100%;display:flex;justify-content:space-between;align-items:center;">
 <div style="flex:1;min-width:0;">
 <div style="margin-bottom:10px;font-size:24px;font-weight:bold;color:#333;line-height:1;">${escapeHtml(name)}</div>
 <div style="width:100%">${rows.join('')}</div>
 </div>
 <div style="width:90px;min-width:90px;max-width:90px;flex-shrink:0;">
-<img src="${src}" alt="" width="90" style="width:100%;aspect-ratio:5/7;object-fit:cover;display:block;" />
+${avatarHtml}
 </div>
 </div>`;
 }

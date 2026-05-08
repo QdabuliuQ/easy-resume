@@ -49,7 +49,7 @@ function ResumeTemplate() {
     <>
       {contextHolder}
       <div className='relative flex h-full min-h-0 flex-col gap-3 overflow-auto px-0.5 pt-0.5 text-left'>
-      <header className='flex shrink-0 items-center gap-2'>
+      <header className='flex shrink-0 items-center justify-center gap-2 py-[7px] text-center'>
         <AppstoreOutlined className='text-[22px] shrink-0 [&_svg]:!fill-[var(--color-primary)]' />
         <h1 className='bg-gradient-primary bg-clip-text text-[18px] font-bold leading-tight text-transparent'>
           简历模板

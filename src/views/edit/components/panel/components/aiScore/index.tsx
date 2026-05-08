@@ -331,7 +331,7 @@ function AiScore({
           <span className='text-[12px] text-white/55'>正在分析简历…</span>
         </div>
       ) : null}
-      <header className='flex shrink-0 items-center gap-2'>
+      <header className='flex shrink-0 items-center justify-center gap-2 py-[7px] text-center'>
         <img
           src={aiScore.src}
           alt=''

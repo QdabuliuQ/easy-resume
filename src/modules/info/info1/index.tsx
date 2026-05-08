@@ -46,6 +46,8 @@ function Info1(props: Props) {
   const { id } = props.config;
   const { name, layout, avatar } = props.config.options;
   const { fontSize, lineHeight } = props.globalStyle;
+  const avatarSrc = typeof avatar === 'string' ? avatar.trim() : '';
+  const showAvatar = !!avatarSrc && avatarSrc !== 'avatar';
 
   const [itemLayout, setItemLayout] = useState<Array<React.ReactNode>>([]);
 
@@ -132,11 +134,15 @@ function Info1(props: Props) {
         <div className='w-full'>{itemLayout}</div>
       </div>
       <div className='w-[90px] min-w-[90px] max-w-[90px]'>
-        <img
-          className='w-full aspect-5/7 object-cover'
-          src={avatar}
-          alt='avatar'
-        />
+        {showAvatar ? (
+          <img
+            className='w-full aspect-5/7 object-cover'
+            src={avatarSrc}
+            alt='avatar'
+          />
+        ) : (
+          <div className='w-full aspect-5/7' aria-hidden />
+        )}
       </div>
     </div>
   );
