@@ -30,5 +30,4 @@ next-env.d.ts
 .env*.local
 deploy.sh
 ecosystem.config.cjs
-webhook.cjs
-public/fonts/*
+webhook.cjspublic/fonts/*
