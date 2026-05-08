@@ -3,6 +3,7 @@ import { getPuppeteerLaunchOptions } from '@/lib/puppeteerLaunchOptions';
 import defaultResume from '@/json/resume';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { loadInlineHtmlForPrint, settleFontsOrTimeout } from '../pdf/loadInlineHtmlForPrint';
+import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { mergeResumeConfig } from '../pdf/mergeResumeConfig';
 import { renderResumeDocumentHtml } from '../pdf/renderResumeHtml';
@@ -26,7 +27,9 @@ async function generatePngFromPage(
     const page = await browser.newPage();
     let vw = 1200;
     let vh = 1600;
-    let pageHPx = cssLengthToApproxPx(defaultResume.globalStyle.height);
+    let pageHPx = cssLengthToApproxPx(
+      globalStylePageDimensions(defaultResume.globalStyle).height
+    );
     if (printMeta?.paperWidth && printMeta?.paperHeight) {
       const pageWPx = cssLengthToApproxPx(printMeta.paperWidth);
       pageHPx = cssLengthToApproxPx(printMeta.paperHeight);
@@ -96,13 +99,17 @@ export async function POST(req: Request) {
         }
       );
       const gs = (merged as { globalStyle?: GlobalStyle }).globalStyle;
+      const exportPages = (merged as { exportPages?: Array<unknown> }).exportPages;
       const n =
-        Array.isArray(merged.pages) && merged.pages.length > 0
-          ? merged.pages.length
+        Array.isArray(exportPages) && exportPages.length > 0
+          ? exportPages.length
+          : Array.isArray(merged.pages) && merged.pages.length > 0
+            ? merged.pages.length
           : 1;
+      const dim = globalStylePageDimensions(gs ?? defaultResume.globalStyle);
       printMeta = {
-        paperWidth: String(gs?.width ?? defaultResume.globalStyle.width),
-        paperHeight: String(gs?.height ?? defaultResume.globalStyle.height),
+        paperWidth: dim.width,
+        paperHeight: dim.height,
         pageCount: n,
       };
     } else if (typeof html === 'string' && html.trim()) {

@@ -20,8 +20,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '前端工程师简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -169,8 +168,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '后端工程师简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -305,8 +303,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '会计简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -427,8 +424,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '法务简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -546,8 +542,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '运营简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -665,8 +660,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: 'UI设计师简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -806,8 +800,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '人力资源HR简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -930,8 +923,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '教师简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -1057,8 +1049,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '护士简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -1184,8 +1175,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '销售简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -1308,8 +1298,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '产品经理简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -1449,8 +1438,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '软件测试工程师简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -1590,8 +1578,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '运维工程师简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -1731,8 +1718,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '行政专员简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -1855,8 +1841,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '电商美工简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,
@@ -1996,8 +1981,7 @@ export const resumeTemplates: ResumeTemplateItem[] = [
     config: {
       name: '采购专员简历模板',
       globalStyle: {
-        width: '210mm',
-        height: '297mm',
+        pageSize: 'A4',
         fontSize: 13,
         lineHeight: 1.3,
         moduleMargin: 15,

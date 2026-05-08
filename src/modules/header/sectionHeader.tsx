@@ -1,5 +1,5 @@
 'use client';
-// PDF/PNG 标题 HTML：./sectionHeaderHtml.ts（改样式请两边对齐）
+// 纸张：GlobalStyle.pageSize；顶栏窄屏 Popover：../../views/edit/components/header；PDF/PNG：./sectionHeaderHtml.ts
 import { GlobalStyle } from '@/modules/utils/common.type';
 import { memo, type CSSProperties } from 'react';
 

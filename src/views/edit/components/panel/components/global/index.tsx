@@ -12,10 +12,12 @@ import {
   Delete,
   Edit,
   FontSize,
+  Notes,
   SlidingVertical,
 } from '@icon-park/react';
 import GridLayout from 'react-grid-layout';
 import { moduleType } from '@/modules/utils/constant';
+import { RESUME_PAGE_SIZE_OPTIONS } from '@/lib/resumePageSize';
 
 function Global() {
   const global = configStore.getConfig?.globalStyle;
@@ -171,6 +173,22 @@ function Global() {
                 <ColorPicker
                   defaultValue={global.color}
                   onChange={(_, rgba) => handleChange(rgba, 'color')}
+                />
+              </FormItem>
+            </Col>
+            <Col span={24}>
+              <FormItem label='纸张大小' icon={<Notes theme='outline' size='15' fill='#333' />}>
+                <Select
+                  value={global.pageSize ?? 'A4'}
+                  style={{ width: '100%' }}
+                  options={RESUME_PAGE_SIZE_OPTIONS}
+                  onChange={(v) => {
+                    global.pageSize = v;
+                    configStore.setConfig({
+                      ...configStore.getConfig,
+                      globalStyle: global,
+                    });
+                  }}
                 />
               </FormItem>
             </Col>

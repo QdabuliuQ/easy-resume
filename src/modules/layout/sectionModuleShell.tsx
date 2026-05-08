@@ -9,22 +9,53 @@ import { memo, type ReactNode } from 'react';
 
 function SectionModuleShell({
   moduleId,
+  activeModuleId,
   headerConfig,
   globalStyle,
+  showHeader = true,
   children,
 }: {
   moduleId: string;
+  activeModuleId?: string;
   headerConfig: SectionHeaderConfig;
   globalStyle: GlobalStyle;
+  showHeader?: boolean;
   children: ReactNode;
 }) {
   const t = normHeaderType(globalStyle);
+  const interactiveModuleId = activeModuleId ?? moduleId;
+
+  if (!showHeader) {
+    if (t === 7) {
+      return (
+        <div
+          id={moduleId}
+          {...{ [RESUME_MODULE_ID_ATTR]: interactiveModuleId }}
+          className='w-full cursor-pointer'
+        >
+          <div className='min-h-0 min-w-0 rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'>
+            {children}
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div
+        id={moduleId}
+        {...{ [RESUME_MODULE_ID_ATTR]: interactiveModuleId }}
+        className='w-full cursor-pointer'
+      >
+        {children}
+      </div>
+    );
+  }
+
   if (t === 7) {
     const ruleColor = globalStyle.color ?? '#333';
     return (
       <div
         id={moduleId}
-        {...{ [RESUME_MODULE_ID_ATTR]: moduleId }}
+        {...{ [RESUME_MODULE_ID_ATTR]: interactiveModuleId }}
         className='grid w-full cursor-pointer grid-cols-[5rem_minmax(0,1fr)] items-stretch gap-[10px]'
       >
         <div className='relative min-h-0 min-w-0'>
@@ -46,7 +77,7 @@ function SectionModuleShell({
   return (
     <div
       id={moduleId}
-      {...{ [RESUME_MODULE_ID_ATTR]: moduleId }}
+      {...{ [RESUME_MODULE_ID_ATTR]: interactiveModuleId }}
       className='w-full cursor-pointer'
     >
       <div className='mb-[5px] w-full'>

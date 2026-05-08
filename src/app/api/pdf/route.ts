@@ -5,6 +5,7 @@ import type { GlobalStyle } from '@/modules/utils/common.type';
 import { loadInlineHtmlForPrint, settleFontsOrTimeout } from './loadInlineHtmlForPrint';
 import { mergeResumeConfig } from './mergeResumeConfig';
 import { renderResumeDocumentHtml } from './renderResumeHtml';
+import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 
 export const runtime = 'nodejs';
@@ -46,10 +47,9 @@ async function generatePdfFromPage(
     } else {
       throw new Error('缺少 html 或 url');
     }
-    const paperW =
-      printMeta?.paperWidth || String(defaultResume.globalStyle.width);
-    const paperH =
-      printMeta?.paperHeight || String(defaultResume.globalStyle.height);
+    const defDim = globalStylePageDimensions(defaultResume.globalStyle);
+    const paperW = printMeta?.paperWidth || defDim.width;
+    const paperH = printMeta?.paperHeight || defDim.height;
     return await page.pdf({
       printBackground: true,
       margin: { top: '0', right: '0', bottom: '0', left: '0' },
@@ -100,13 +100,17 @@ export async function POST(req: Request) {
         }
       );
       const gs = (merged as { globalStyle?: GlobalStyle }).globalStyle;
+      const exportPages = (merged as { exportPages?: Array<unknown> }).exportPages;
       const n =
-        Array.isArray(merged.pages) && merged.pages.length > 0
-          ? merged.pages.length
+        Array.isArray(exportPages) && exportPages.length > 0
+          ? exportPages.length
+          : Array.isArray(merged.pages) && merged.pages.length > 0
+            ? merged.pages.length
           : 1;
+      const dim = globalStylePageDimensions(gs ?? defaultResume.globalStyle);
       printMeta = {
-        paperWidth: String(gs?.width ?? defaultResume.globalStyle.width),
-        paperHeight: String(gs?.height ?? defaultResume.globalStyle.height),
+        paperWidth: dim.width,
+        paperHeight: dim.height,
         pageCount: n,
       };
     } else if (typeof html === 'string' && html.trim()) {

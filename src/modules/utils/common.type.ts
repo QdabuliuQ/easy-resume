@@ -1,8 +1,8 @@
+import type { ResumePageSize } from '@/lib/resumePageSize';
+
 export interface GlobalStyle {
-  /** 版心宽度，CSS 长度（如 `210mm`），与 PDF `@page` / `Page` 一致 */
-  width: string;
-  /** 版心高度，CSS 长度（如 `297mm`） */
-  height: string;
+  /** 纸张规格，宽高由服务端/画布解析为固定 CSS，禁止任意 mm */
+  pageSize: ResumePageSize;
   fontSize: number;
   lineHeight: number;
   /** 模块之间的垂直间距（px），全局统一 */

@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { resumeFontStack } from '@/lib/resumeFont';
+import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import { resumePdfFontLinkTags } from '@/lib/resumePdfFontLinkTags';
 import { wrapSectionModuleHtml } from '@/modules/header/sectionHeaderHtml';
 import {
@@ -104,6 +105,22 @@ function plainTextFromRich(html: string): string {
   return safe.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+function wrapSectionModuleMaybe(
+  title: string,
+  gs: GlobalStyle,
+  bodyHtml: string,
+  showHeader: boolean = true
+): string {
+  if (showHeader) {
+    return wrapSectionModuleHtml(title, gs, bodyHtml);
+  }
+  const headerType = Number(gs.headerType);
+  if (Number.isFinite(headerType) && Math.floor(headerType) === 7) {
+    return `<div style="width:100%;"><div style="min-width:0;border:1px solid #e4e4e7;background:#fafafa;border-radius:2px;padding:8px 12px;">${bodyHtml}</div></div>`;
+  }
+  return `<div style="width:100%;">${bodyHtml}</div>`;
+}
+
 function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle): string {
   const opts = mod.options;
   const name = String(opts.name ?? '');
@@ -159,7 +176,7 @@ function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle)
 </div>`;
 }
 
-function renderCertificate(mod: { options: { title: string; items: Array<{ name: string; date: string }> } }, gs: GlobalStyle): string {
+function renderCertificate(mod: { options: { title: string; items: Array<{ name: string; date: string }> }; showHeader?: boolean }, gs: GlobalStyle): string {
   const { title, items } = mod.options;
   const fs = gs.fontSize;
   const rows = items
@@ -171,20 +188,20 @@ function renderCertificate(mod: { options: { title: string; items: Array<{ name:
 </div>`
     )
     .join('');
-  return wrapSectionModuleHtml(title, gs, rows);
+  return wrapSectionModuleMaybe(title, gs, rows, mod.showHeader !== false);
 }
 
-function renderSkill(mod: { options: { title: string; description: string } }, gs: GlobalStyle): string {
+function renderSkill(mod: { options: { title: string; description: string }; showHeader?: boolean }, gs: GlobalStyle): string {
   const { title, description } = mod.options;
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
   const inner = plainTextFromRich(description)
     ? wrapQuillRichHtml(description, `font-size:${fs}px;line-height:${lh};color:#333;`)
     : '';
-  return wrapSectionModuleHtml(title, gs, inner);
+  return wrapSectionModuleMaybe(title, gs, inner, mod.showHeader !== false);
 }
 
-function renderJob(mod: { options: { title: string; items: Array<Record<string, string>> } }, gs: GlobalStyle): string {
+function renderJob(mod: { options: { title: string; items: Array<Record<string, string>> }; showHeader?: boolean }, gs: GlobalStyle): string {
   const { title, items } = mod.options;
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
@@ -212,10 +229,10 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return wrapSectionModuleHtml(title, gs, blocks);
+  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false);
 }
 
-function renderProject(mod: { options: { title: string; items: Array<Record<string, string>> } }, gs: GlobalStyle): string {
+function renderProject(mod: { options: { title: string; items: Array<Record<string, string>> }; showHeader?: boolean }, gs: GlobalStyle): string {
   const { title, items } = mod.options;
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
@@ -238,10 +255,10 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return wrapSectionModuleHtml(title, gs, blocks);
+  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false);
 }
 
-function renderEducation(mod: { options: { title: string; items: Array<Record<string, unknown>> } }, gs: GlobalStyle): string {
+function renderEducation(mod: { options: { title: string; items: Array<Record<string, unknown>> }; showHeader?: boolean }, gs: GlobalStyle): string {
   const { title, items } = mod.options;
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
@@ -278,10 +295,10 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return wrapSectionModuleHtml(title, gs, blocks);
+  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false);
 }
 
-function renderModule(mod: { type: string; options?: unknown }, gs: GlobalStyle): string {
+function renderModule(mod: { type: string; options?: unknown; showHeader?: boolean }, gs: GlobalStyle): string {
   if (!mod?.options) return '';
   switch (mod.type) {
     case 'info1':
@@ -308,7 +325,7 @@ function renderPage(page: { moduleMargin?: number; modules?: unknown[] }, gs: Gl
     Number(gs.moduleMargin) ||
     Number(page.moduleMargin) ||
     10;
-  const modules = (page.modules ?? []) as Array<{ type: string; options?: unknown }>;
+  const modules = (page.modules ?? []) as Array<{ type: string; options?: unknown; showHeader?: boolean }>;
   const parts: string[] = [];
   for (let i = 0; i < modules.length; i++) {
     if (i > 0) {
@@ -316,10 +333,11 @@ function renderPage(page: { moduleMargin?: number; modules?: unknown[] }, gs: Gl
     }
     parts.push(renderModule(modules[i], gs));
   }
-  const { width, height, backgroundColor, padding = 0 } = gs;
+  const { width: pw, height: ph } = globalStylePageDimensions(gs);
+  const { backgroundColor, padding = 0 } = gs;
   const bg = escapeHtml(backgroundColor);
-  const wCss = escapeHtml(String(width));
-  const hCss = escapeHtml(String(height));
+  const wCss = escapeHtml(String(pw));
+  const hCss = escapeHtml(String(ph));
   return `<div class="pdf-page" style="width:${wCss};height:${hCss};padding:${padding}px;background:${bg};margin:0 auto;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column;">
 ${parts.join('')}
 </div>`;
@@ -328,15 +346,17 @@ ${parts.join('')}
 /** 由简历配置生成完整 HTML 文档，供 Puppeteer 打印（不依赖 /edit、无用户态） */
 export function renderResumeDocumentHtml(resume: {
   pages: Array<{ moduleMargin?: number; modules?: unknown[] }>;
+  exportPages?: Array<{ moduleMargin?: number; modules?: unknown[] }>;
   globalStyle: GlobalStyle;
 }) {
   const gs = resume.globalStyle;
-  const pages = resume.pages ?? [];
+  const { width: pageW, height: pageH } = globalStylePageDimensions(gs);
+  const pages = resume.exportPages ?? resume.pages ?? [];
   const bodyInner = pages.map((p) => renderPage(p, gs)).join('\n');
   const docTitle = 'Resume';
   const canvasBg = escapeHtml(gs.backgroundColor ?? '#fff');
-  const wCss = escapeHtml(String(gs.width));
-  const hCss = escapeHtml(String(gs.height));
+  const wCss = escapeHtml(String(pageW));
+  const hCss = escapeHtml(String(pageH));
   const pageCount = Math.max(1, pages.length);
   const bodyWidthCss = wCss;
   const bodyHeightCss =

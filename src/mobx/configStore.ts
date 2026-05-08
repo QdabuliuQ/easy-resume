@@ -1,8 +1,11 @@
 import { makeAutoObservable } from 'mobx';
 import defaultResume from '@/json/resume';
+import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
+import type { GlobalStyle } from '@/modules/utils/common.type';
 
 export default class ConfigStore {
   config: any = null;
+  exportPages: any[] | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -10,14 +13,29 @@ export default class ConfigStore {
 
   /** 默认 resume 与用户配置叠加，画布/侧边布局应读此 getter，勿手写 import resume */
   get mergedGlobalStyle() {
-    return {
-      ...defaultResume.globalStyle,
-      ...(this.config?.globalStyle ?? {}),
-    };
+    return mergeGlobalStylePaper(
+      defaultResume.globalStyle as GlobalStyle,
+      this.config?.globalStyle ?? {}
+    );
   }
 
   setConfig(value: any) {
-    this.config = value;
+    if (!value || typeof value !== 'object') {
+      this.config = value;
+      return;
+    }
+    const v = JSON.parse(JSON.stringify(value));
+    if (v.globalStyle && typeof v.globalStyle === 'object') {
+      v.globalStyle = mergeGlobalStylePaper(
+        defaultResume.globalStyle as GlobalStyle,
+        v.globalStyle
+      );
+    }
+    this.config = v;
+  }
+
+  setExportPages(value: any[] | null) {
+    this.exportPages = value ? JSON.parse(JSON.stringify(value)) : null;
   }
 
   setConfigOption(id: string, option: any) {
@@ -44,5 +62,9 @@ export default class ConfigStore {
 
   get getConfig() {
     return this.config;
+  }
+
+  get getExportPages() {
+    return this.exportPages;
   }
 }

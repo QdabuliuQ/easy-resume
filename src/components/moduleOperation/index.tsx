@@ -279,7 +279,7 @@ function ModuleOperation(props: { children: React.ReactNode }) {
 
   const showToolbar = activeId !== 'global' && toolbarBox.visible;
   const bracketWidthPx =
-    cssLengthToApproxPx(configStore.mergedGlobalStyle.padding) / 2;
+    cssLengthToApproxPx(configStore.mergedGlobalStyle.padding ?? 0) / 2;
 
   return (
     <>

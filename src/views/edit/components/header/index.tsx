@@ -1,9 +1,9 @@
 'use client';
 import { useDebounceFn } from 'ahooks';
-import { memo, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
 import { observer } from 'mobx-react';
 import { Button, Input, message, Popover, Select, Tooltip } from 'antd';
-import { EditOutlined, RightOutlined } from '@ant-design/icons';
+import { EditOutlined, MenuOutlined, RightOutlined } from '@ant-design/icons';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume';
 import resume from '@/json/resume';
@@ -12,6 +12,11 @@ import type { GlobalStyle } from '@/modules/utils/common.type';
 import ModuleManage from './moduleManage';
 import { withBasePath } from '@/lib/withBasePath';
 import { normResumeFont, type ResumeFontId } from '@/lib/resumeFont';
+import {
+  RESUME_PAGE_SIZE_OPTIONS,
+  normResumePageSize,
+  type ResumePageSize,
+} from '@/lib/resumePageSize';
 
 const RESUME_FONT_OPTIONS: { label: string; value: ResumeFontId }[] = [
   { value: 'system', label: '系统默认' },
@@ -87,6 +92,20 @@ function Header() {
   bgPickerDraftRef.current = bgPickerDraft;
   const ignoreNextBlur = useRef(false);
   const [exportPopOpen, setExportPopOpen] = useState(false);
+  const [toolbarCompact, setToolbarCompact] = useState(false);
+  const [compactMenuOpen, setCompactMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1100px)');
+    const apply = () => setToolbarCompact(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+
+  useEffect(() => {
+    if (!toolbarCompact) setCompactMenuOpen(false);
+  }, [toolbarCompact]);
 
   const name = configStore.getConfig?.name ?? resume.name;
   const rawFs = Number(configStore.mergedGlobalStyle.fontSize);
@@ -156,6 +175,18 @@ function Header() {
     configStore.setConfig(base);
   };
 
+  const setGlobalPageSize = (v: ResumePageSize) => {
+    const base = configStore.getConfig
+      ? JSON.parse(JSON.stringify(configStore.getConfig))
+      : JSON.parse(JSON.stringify(defaultResume));
+    base.globalStyle = {
+      ...defaultResume.globalStyle,
+      ...(base.globalStyle ?? {}),
+      pageSize: v,
+    };
+    configStore.setConfig(base);
+  };
+
   const setGlobalLineHeight = (v: number) => {
     const base = configStore.getConfig
       ? JSON.parse(JSON.stringify(configStore.getConfig))
@@ -181,6 +212,9 @@ function Header() {
   };
 
   const resumeFontVal = normResumeFont(configStore.mergedGlobalStyle.resumeFont);
+  const pageSizeVal = normResumePageSize(
+    configStore.mergedGlobalStyle.pageSize
+  );
 
   const rawMm = Number(configStore.mergedGlobalStyle.moduleMargin);
   const moduleMarginVal = Number.isFinite(rawMm)
@@ -341,6 +375,7 @@ function Header() {
       JSON.stringify({
         ...raw,
         globalStyle: configStore.mergedGlobalStyle,
+        exportPages: configStore.getExportPages,
       }),
     );
   };
@@ -434,6 +469,400 @@ function Header() {
     }
   };
 
+  const tc = toolbarCompact;
+  const selSkin =
+    '[&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[#555] [&_.ant-select-selector]:!bg-[#2a2a2a] [&_.ant-select-selection-item]:!text-white [&_.ant-select-arrow]:!text-[#aaa]';
+  const selClass = (mw: string) =>
+    tc ? `w-full min-w-0 [&_.ant-select-selector]:!w-full ${selSkin}` : `${mw} ${selSkin}`;
+  const selPortal = tc ? { getPopupContainer: () => document.body } : {};
+  const wrapBar = (label: string, node: ReactNode) =>
+    tc ? (
+      <div className='flex flex-col gap-1'>
+        <span className='text-[11px] text-white/45'>{label}</span>
+        {node}
+      </div>
+    ) : (
+      <Tooltip title={label} placement='bottom'>
+        {node}
+      </Tooltip>
+    );
+  const popBodyToDoc = tc ? { getPopupContainer: () => document.body } : {};
+  const fullRowBtn = tc ? 'w-full justify-center' : '';
+
+  const toolbarFields = (
+    <>
+      {wrapBar(
+        '正文字号',
+        <Select
+          value={fontSize}
+          options={fontSizeOptions}
+          onChange={(v) => setGlobalFontSize(v)}
+          className={selClass('min-w-[76px]')}
+          popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+          styles={{
+            popup: {
+              root: { backgroundColor: '#323236', padding: 4 },
+            },
+          }}
+          {...selPortal}
+        />
+      )}
+      {wrapBar(
+        '简历字体',
+        <Select
+          value={resumeFontVal}
+          options={RESUME_FONT_OPTIONS}
+          onChange={(v) => setGlobalResumeFont(v)}
+          popupMatchSelectWidth={false}
+          className={selClass('min-w-[168px]')}
+          popupClassName='min-w-[220px] [&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+          styles={{
+            popup: {
+              root: { backgroundColor: '#323236', padding: 4 },
+            },
+          }}
+          {...selPortal}
+        />
+      )}
+      {wrapBar(
+        '纸张大小（默认 A4）',
+        <Select
+          value={pageSizeVal}
+          options={RESUME_PAGE_SIZE_OPTIONS}
+          onChange={(v) => setGlobalPageSize(v)}
+          popupMatchSelectWidth={false}
+          className={selClass('min-w-[118px]')}
+          popupClassName='min-w-[200px] [&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+          styles={{
+            popup: {
+              root: { backgroundColor: '#323236', padding: 4 },
+            },
+          }}
+          {...selPortal}
+        />
+      )}
+      {wrapBar(
+        '页边距（版心内边距）',
+        <Select
+          value={pagePadding}
+          options={pagePaddingOptions}
+          onChange={(v) => setGlobalPagePadding(v)}
+          className={selClass('min-w-[76px]')}
+          popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+          styles={{
+            popup: {
+              root: { backgroundColor: '#323236', padding: 4 },
+            },
+          }}
+          {...selPortal}
+        />
+      )}
+      {wrapBar(
+        '模块间距',
+        <Select
+          value={moduleMarginVal}
+          options={moduleMarginOptions}
+          onChange={(v) => setGlobalModuleMargin(v)}
+          className={selClass('min-w-[76px]')}
+          popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+          styles={{
+            popup: {
+              root: { backgroundColor: '#323236', padding: 4 },
+            },
+          }}
+          {...selPortal}
+        />
+      )}
+      {wrapBar(
+        '行高',
+        <Select
+          value={lineHeightNorm}
+          options={lineHeightOptions}
+          onChange={(v) => setGlobalLineHeight(v)}
+          className={selClass('min-w-[76px]')}
+          popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+          styles={{
+            popup: {
+              root: { backgroundColor: '#323236', padding: 4 },
+            },
+          }}
+          {...selPortal}
+        />
+      )}
+      {wrapBar(
+        '模块标题样式',
+        <Select
+          virtual={false}
+          value={headerTypeVal}
+          optionLabelProp='title'
+          options={headerTypeOptions}
+          onChange={(v) => setGlobalHeaderType(v)}
+          popupMatchSelectWidth={false}
+          className={selClass('min-w-[88px]')}
+          popupClassName='[&_.ant-select-item]:!min-h-[unset] [&_.ant-select-item]:!py-1 [&_.ant-select-item-option-selected]:!bg-white/10 [&_.ant-select-item-option-active]:!bg-white/8'
+          styles={{
+            popup: {
+              root: { backgroundColor: '#323236', padding: 6, minWidth: 268 },
+            },
+          }}
+          {...selPortal}
+        />
+      )}
+      {wrapBar(
+        '主题色',
+        <Popover
+          trigger='click'
+          placement={tc ? 'left' : 'bottom'}
+          {...popBodyToDoc}
+          onOpenChange={(open) => {
+            if (open) {
+              const raw = configStore.mergedGlobalStyle.color;
+              const next =
+                typeof raw === 'string' && raw.trim()
+                  ? normHex(raw)
+                  : defaultResume.globalStyle.color;
+              setPickerDraft(next);
+              pickerDraftRef.current = next;
+            } else {
+              debouncedThemeFromPicker.cancel();
+              const next = normHex(pickerDraftRef.current);
+              const rawCur = configStore.mergedGlobalStyle.color;
+              const cur =
+                typeof rawCur === 'string' && rawCur.trim()
+                  ? normHex(rawCur)
+                  : defaultResume.globalStyle.color;
+              if (next !== cur) setGlobalThemeColor(pickerDraftRef.current);
+            }
+          }}
+          styles={{
+            body: {
+              backgroundColor: '#323236',
+              padding: 12,
+              borderRadius: 8,
+              border: '1px solid #555',
+            },
+          }}
+          content={
+            <div className='w-[220px]'>
+              <div className='mb-2 text-[11px] text-white/60'>预设</div>
+              <div className='mb-3 flex flex-wrap gap-2'>
+                {THEME_PRESETS.map((c) => (
+                  <button
+                    key={c}
+                    type='button'
+                    aria-label={c}
+                    onClick={() => {
+                      debouncedThemeFromPicker.cancel();
+                      setPickerDraft(c);
+                      setGlobalThemeColor(c);
+                    }}
+                    className={`size-7 shrink-0 rounded-md border-2 transition-transform hover:scale-110 ${
+                      normHex(c) === normHex(themeColor)
+                        ? 'border-white ring-2 ring-white/35'
+                        : 'border-white/25'
+                    }`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+              <div className='mb-1.5 text-[11px] text-white/60'>自定义</div>
+              <input
+                type='color'
+                value={pickerInputValue}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setPickerDraft(v);
+                  debouncedThemeFromPicker.run(v);
+                }}
+                className='h-9 w-full cursor-pointer rounded border border-white/15 bg-transparent p-0'
+              />
+            </div>
+          }
+        >
+          <button
+            type='button'
+            aria-label='主题色'
+            className={`size-[30px] shrink-0 cursor-pointer rounded-md border border-[#555] shadow-inner ${tc ? 'mx-auto' : ''}`}
+            style={{ backgroundColor: themeColor }}
+          />
+        </Popover>
+      )}
+      {wrapBar(
+        '背景色',
+        <Popover
+          trigger='click'
+          placement={tc ? 'left' : 'bottom'}
+          {...popBodyToDoc}
+          onOpenChange={(open) => {
+            if (open) {
+              const raw = configStore.mergedGlobalStyle.backgroundColor;
+              const next = hexForColorInput(
+                typeof raw === 'string' && raw.trim()
+                  ? raw
+                  : defaultResume.globalStyle.backgroundColor,
+                '#ffffff',
+              );
+              setBgPickerDraft(next);
+              bgPickerDraftRef.current = next;
+            } else {
+              debouncedBgFromPicker.cancel();
+              const next = normHex(bgPickerDraftRef.current);
+              const rawCur = configStore.mergedGlobalStyle.backgroundColor;
+              const cur =
+                typeof rawCur === 'string' && rawCur.trim()
+                  ? normHex(rawCur)
+                  : defaultResume.globalStyle.backgroundColor;
+              if (next !== cur) setGlobalBackgroundColor(bgPickerDraftRef.current);
+            }
+          }}
+          styles={{
+            body: {
+              backgroundColor: '#323236',
+              padding: 12,
+              borderRadius: 8,
+              border: '1px solid #555',
+            },
+          }}
+          content={
+            <div className='w-[220px]'>
+              <div className='mb-2 text-[11px] text-white/60'>预设</div>
+              <div className='mb-3 flex flex-wrap gap-2'>
+                {BG_PRESETS.map((c) => (
+                  <button
+                    key={c}
+                    type='button'
+                    aria-label={c}
+                    onClick={() => {
+                      debouncedBgFromPicker.cancel();
+                      setBgPickerDraft(c);
+                      setGlobalBackgroundColor(c);
+                    }}
+                    className={`size-7 shrink-0 rounded-md border-2 transition-transform hover:scale-110 ${
+                      normHex(c) === normHex(pageBgColor)
+                        ? 'border-white ring-2 ring-white/35'
+                        : 'border-white/25'
+                    }`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+              <div className='mb-1.5 text-[11px] text-white/60'>自定义</div>
+              <input
+                type='color'
+                value={bgPickerInputValue}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setBgPickerDraft(v);
+                  debouncedBgFromPicker.run(v);
+                }}
+                className='h-9 w-full cursor-pointer rounded border border-white/15 bg-transparent p-0'
+              />
+            </div>
+          }
+        >
+          <button
+            type='button'
+            aria-label='背景色'
+            className={`size-[30px] shrink-0 cursor-pointer rounded-md border border-[#555] shadow-inner ${tc ? 'mx-auto' : ''}`}
+            style={{ backgroundColor: pageBgColor }}
+          />
+        </Popover>
+      )}
+      {wrapBar(
+        '模块管理',
+        <div className={tc ? 'w-full [&_button]:w-full [&_button]:justify-center' : ''}>
+          <ModuleManage />
+        </div>
+      )}
+      {wrapBar(
+        '导出',
+        <Popover
+          open={exportPopOpen}
+          onOpenChange={setExportPopOpen}
+          placement='bottomRight'
+          trigger='click'
+          arrow={false}
+          {...popBodyToDoc}
+          styles={{
+            root: { zIndex: 1050 },
+            body: {
+              padding: 8,
+              background: '#2e2d31',
+              borderRadius: 10,
+            },
+          }}
+          content={
+            <div className='flex min-w-[132px] flex-col gap-0.5'>
+              <button
+                type='button'
+                disabled={pdfLoading || pngLoading}
+                onClick={() => {
+                  setCompactMenuOpen(false);
+                  setExportPopOpen(false);
+                  void exportPdf();
+                }}
+                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-white/95 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                导出 PDF
+              </button>
+              <button
+                type='button'
+                disabled={pdfLoading || pngLoading}
+                onClick={() => {
+                  setCompactMenuOpen(false);
+                  setExportPopOpen(false);
+                  void exportPng();
+                }}
+                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-white/95 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                导出 PNG
+              </button>
+              <button
+                type='button'
+                disabled={pdfLoading || pngLoading}
+                onClick={() => {
+                  setCompactMenuOpen(false);
+                  setExportPopOpen(false);
+                  exportJson();
+                }}
+                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-white/95 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                导出 JSON
+              </button>
+            </div>
+          }
+        >
+          <button
+            type='button'
+            disabled={pdfLoading || pngLoading}
+            aria-expanded={exportPopOpen}
+            aria-haspopup='menu'
+            className={`flex h-[30px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-70 ${fullRowBtn}`}
+          >
+            {pdfLoading || pngLoading ? (
+              <>
+                <span
+                  className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-white/25 border-t-white'
+                  aria-hidden
+                />
+                <span>导出中…</span>
+              </>
+            ) : (
+              <>
+                <span>导出</span>
+                <RightOutlined
+                  className={`text-[10px] text-white/70 transition-transform duration-200 ${
+                    exportPopOpen ? 'rotate-90' : ''
+                  }`}
+                />
+              </>
+            )}
+          </button>
+        </Popover>
+      )}
+    </>
+  );
+
   return (
     <div className='h-full px-[20px] flex items-center justify-between'>
       <div className='flex items-center gap-1.5 min-w-0 h-full'>
@@ -480,332 +909,48 @@ function Header() {
           </>
         )}
       </div>
-      <div className='flex h-full items-center gap-2'>
-        <Tooltip title='正文字号' placement='bottom'>
-          <Select
-            value={fontSize}
-            options={fontSizeOptions}
-            onChange={(v) => setGlobalFontSize(v)}
-            className='min-w-[76px] [&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[#555] [&_.ant-select-selector]:!bg-[#2a2a2a] [&_.ant-select-selection-item]:!text-white [&_.ant-select-arrow]:!text-[#aaa]'
-            popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
-            styles={{
-              popup: {
-                root: { backgroundColor: '#323236', padding: 4 },
-              },
-            }}
-          />
-        </Tooltip>
-        <Tooltip title='简历字体' placement='bottom'>
-          <Select
-            value={resumeFontVal}
-            options={RESUME_FONT_OPTIONS}
-            onChange={(v) => setGlobalResumeFont(v)}
-            popupMatchSelectWidth={false}
-            className='min-w-[168px] [&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[#555] [&_.ant-select-selector]:!bg-[#2a2a2a] [&_.ant-select-selection-item]:!text-white [&_.ant-select-arrow]:!text-[#aaa]'
-            popupClassName='min-w-[220px] [&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
-            styles={{
-              popup: {
-                root: { backgroundColor: '#323236', padding: 4 },
-              },
-            }}
-          />
-        </Tooltip>
-        <Tooltip title='页边距（版心内边距）' placement='bottom'>
-          <Select
-            value={pagePadding}
-            options={pagePaddingOptions}
-            onChange={(v) => setGlobalPagePadding(v)}
-            className='min-w-[76px] [&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[#555] [&_.ant-select-selector]:!bg-[#2a2a2a] [&_.ant-select-selection-item]:!text-white [&_.ant-select-arrow]:!text-[#aaa]'
-            popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
-            styles={{
-              popup: {
-                root: { backgroundColor: '#323236', padding: 4 },
-              },
-            }}
-          />
-        </Tooltip>
-        <Tooltip title='模块间距' placement='bottom'>
-          <Select
-            value={moduleMarginVal}
-            options={moduleMarginOptions}
-            onChange={(v) => setGlobalModuleMargin(v)}
-            className='min-w-[76px] [&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[#555] [&_.ant-select-selector]:!bg-[#2a2a2a] [&_.ant-select-selection-item]:!text-white [&_.ant-select-arrow]:!text-[#aaa]'
-            popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
-            styles={{
-              popup: {
-                root: { backgroundColor: '#323236', padding: 4 },
-              },
-            }}
-          />
-        </Tooltip>
-        <Tooltip title='行高' placement='bottom'>
-          <Select
-            value={lineHeightNorm}
-            options={lineHeightOptions}
-            onChange={(v) => setGlobalLineHeight(v)}
-            className='min-w-[76px] [&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[#555] [&_.ant-select-selector]:!bg-[#2a2a2a] [&_.ant-select-selection-item]:!text-white [&_.ant-select-arrow]:!text-[#aaa]'
-            popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
-            styles={{
-              popup: {
-                root: { backgroundColor: '#323236', padding: 4 },
-              },
-            }}
-          />
-        </Tooltip>
-        <Tooltip title='模块标题样式' placement='bottom'>
-          <Select
-            virtual={false}
-            value={headerTypeVal}
-            optionLabelProp='title'
-            options={headerTypeOptions}
-            onChange={(v) => setGlobalHeaderType(v)}
-            popupMatchSelectWidth={false}
-            className='min-w-[88px] [&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[#555] [&_.ant-select-selector]:!bg-[#2a2a2a] [&_.ant-select-selection-item]:!text-white [&_.ant-select-arrow]:!text-[#aaa]'
-            popupClassName='[&_.ant-select-item]:!min-h-[unset] [&_.ant-select-item]:!py-1 [&_.ant-select-item-option-selected]:!bg-white/10 [&_.ant-select-item-option-active]:!bg-white/8'
-            styles={{
-              popup: {
-                root: { backgroundColor: '#323236', padding: 6, minWidth: 268 },
-              },
-            }}
-          />
-        </Tooltip>
-        <Tooltip title='主题色' placement='bottom'>
-          <Popover
-            trigger='click'
-            placement='bottom'
-            onOpenChange={(open) => {
-              if (open) {
-                const raw = configStore.mergedGlobalStyle.color;
-                const next =
-                  typeof raw === 'string' && raw.trim()
-                    ? normHex(raw)
-                    : defaultResume.globalStyle.color;
-                setPickerDraft(next);
-                pickerDraftRef.current = next;
-              } else {
-                debouncedThemeFromPicker.cancel();
-                const next = normHex(pickerDraftRef.current);
-                const rawCur = configStore.mergedGlobalStyle.color;
-                const cur =
-                  typeof rawCur === 'string' && rawCur.trim()
-                    ? normHex(rawCur)
-                    : defaultResume.globalStyle.color;
-                if (next !== cur) setGlobalThemeColor(pickerDraftRef.current);
-              }
-            }}
-            styles={{
-              body: {
-                backgroundColor: '#323236',
-                padding: 12,
-                borderRadius: 8,
-                border: '1px solid #555',
-              },
-            }}
-            content={
-              <div className='w-[220px]'>
-                <div className='mb-2 text-[11px] text-white/60'>预设</div>
-                <div className='mb-3 flex flex-wrap gap-2'>
-                  {THEME_PRESETS.map((c) => (
-                    <button
-                      key={c}
-                      type='button'
-                      aria-label={c}
-                      onClick={() => {
-                        debouncedThemeFromPicker.cancel();
-                        setPickerDraft(c);
-                        setGlobalThemeColor(c);
-                      }}
-                      className={`size-7 shrink-0 rounded-md border-2 transition-transform hover:scale-110 ${
-                        normHex(c) === normHex(themeColor)
-                          ? 'border-white ring-2 ring-white/35'
-                          : 'border-white/25'
-                      }`}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
-                <div className='mb-1.5 text-[11px] text-white/60'>自定义</div>
-                <input
-                  type='color'
-                  value={pickerInputValue}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setPickerDraft(v);
-                    debouncedThemeFromPicker.run(v);
-                  }}
-                  className='h-9 w-full cursor-pointer rounded border border-white/15 bg-transparent p-0'
-                />
-              </div>
-            }
-          >
-            <button
-              type='button'
-              aria-label='主题色'
-              className='size-[30px] shrink-0 cursor-pointer rounded-md border border-[#555] shadow-inner'
-              style={{ backgroundColor: themeColor }}
-            />
-          </Popover>
-        </Tooltip>
-        <Tooltip title='背景色' placement='bottom'>
-          <Popover
-            trigger='click'
-            placement='bottom'
-            onOpenChange={(open) => {
-              if (open) {
-                const raw = configStore.mergedGlobalStyle.backgroundColor;
-                const next = hexForColorInput(
-                  typeof raw === 'string' && raw.trim()
-                    ? raw
-                    : defaultResume.globalStyle.backgroundColor,
-                  '#ffffff',
-                );
-                setBgPickerDraft(next);
-                bgPickerDraftRef.current = next;
-              } else {
-                debouncedBgFromPicker.cancel();
-                const next = normHex(bgPickerDraftRef.current);
-                const rawCur = configStore.mergedGlobalStyle.backgroundColor;
-                const cur =
-                  typeof rawCur === 'string' && rawCur.trim()
-                    ? normHex(rawCur)
-                    : defaultResume.globalStyle.backgroundColor;
-                if (next !== cur) setGlobalBackgroundColor(bgPickerDraftRef.current);
-              }
-            }}
-            styles={{
-              body: {
-                backgroundColor: '#323236',
-                padding: 12,
-                borderRadius: 8,
-                border: '1px solid #555',
-              },
-            }}
-            content={
-              <div className='w-[220px]'>
-                <div className='mb-2 text-[11px] text-white/60'>预设</div>
-                <div className='mb-3 flex flex-wrap gap-2'>
-                  {BG_PRESETS.map((c) => (
-                    <button
-                      key={c}
-                      type='button'
-                      aria-label={c}
-                      onClick={() => {
-                        debouncedBgFromPicker.cancel();
-                        setBgPickerDraft(c);
-                        setGlobalBackgroundColor(c);
-                      }}
-                      className={`size-7 shrink-0 rounded-md border-2 transition-transform hover:scale-110 ${
-                        normHex(c) === normHex(pageBgColor)
-                          ? 'border-white ring-2 ring-white/35'
-                          : 'border-white/25'
-                      }`}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
-                <div className='mb-1.5 text-[11px] text-white/60'>自定义</div>
-                <input
-                  type='color'
-                  value={bgPickerInputValue}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setBgPickerDraft(v);
-                    debouncedBgFromPicker.run(v);
-                  }}
-                  className='h-9 w-full cursor-pointer rounded border border-white/15 bg-transparent p-0'
-                />
-              </div>
-            }
-          >
-            <button
-              type='button'
-              aria-label='背景色'
-              className='size-[30px] shrink-0 cursor-pointer rounded-md border border-[#555] shadow-inner'
-              style={{ backgroundColor: pageBgColor }}
-            />
-          </Popover>
-        </Tooltip>
-        <ModuleManage />
+      {toolbarCompact ? (
         <Popover
-          open={exportPopOpen}
-          onOpenChange={setExportPopOpen}
+          open={compactMenuOpen}
+          onOpenChange={setCompactMenuOpen}
           placement='bottomRight'
           trigger='click'
           arrow={false}
+          getPopupContainer={() => document.body}
           styles={{
             root: { zIndex: 1050 },
             body: {
-              padding: 8,
+              padding: 12,
               background: '#2e2d31',
               borderRadius: 10,
+              maxHeight: 'min(78vh, 560px)',
+              overflowY: 'auto',
             },
           }}
           content={
-            <div className='flex min-w-[132px] flex-col gap-0.5'>
-              <button
-                type='button'
-                disabled={pdfLoading || pngLoading}
-                onClick={() => {
-                  setExportPopOpen(false);
-                  void exportPdf();
-                }}
-                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-white/95 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
-              >
-                导出 PDF
-              </button>
-              <button
-                type='button'
-                disabled={pdfLoading || pngLoading}
-                onClick={() => {
-                  setExportPopOpen(false);
-                  void exportPng();
-                }}
-                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-white/95 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
-              >
-                导出 PNG
-              </button>
-              <button
-                type='button'
-                disabled={pdfLoading || pngLoading}
-                onClick={() => {
-                  setExportPopOpen(false);
-                  exportJson();
-                }}
-                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-white/95 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
-              >
-                导出 JSON
-              </button>
+            <div className='w-[min(92vw,300px)] max-w-[92vw]'>
+              <div className='flex flex-col gap-3 pr-0.5'>{toolbarFields}</div>
             </div>
           }
         >
           <button
             type='button'
-            disabled={pdfLoading || pngLoading}
-            aria-expanded={exportPopOpen}
-            aria-haspopup='menu'
-            className='flex h-[30px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-70'
+            aria-expanded={compactMenuOpen}
+            aria-haspopup='dialog'
+            className='flex h-[30px] shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10'
           >
-            {pdfLoading || pngLoading ? (
-              <>
-                <span
-                  className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-white/25 border-t-white'
-                  aria-hidden
-                />
-                <span>导出中…</span>
-              </>
-            ) : (
-              <>
-                <span>导出</span>
-                <RightOutlined
-                  className={`text-[10px] text-white/70 transition-transform duration-200 ${
-                    exportPopOpen ? 'rotate-90' : ''
-                  }`}
-                />
-              </>
-            )}
+            <MenuOutlined className='text-[14px] text-white/85' />
+            <span>排版</span>
+            <RightOutlined
+              className={`text-[10px] text-white/70 transition-transform duration-200 ${
+                compactMenuOpen ? 'rotate-90' : ''
+              }`}
+            />
           </button>
         </Popover>
-      </div>
+      ) : (
+        <div className='flex h-full items-center gap-2'>{toolbarFields}</div>
+      )}
     </div>
   );
 }

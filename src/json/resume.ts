@@ -1,8 +1,7 @@
 export default {
   name: '王浩 - 前端开发工程师',
   globalStyle: {
-    width: '210mm',
-    height: '297mm',
+    pageSize: 'A4',
     fontSize: 13,
     lineHeight: 1.3,
     moduleMargin: 15,

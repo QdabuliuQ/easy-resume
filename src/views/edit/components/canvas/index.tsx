@@ -2,44 +2,49 @@ import {
   memo,
   useEffect,
   useLayoutEffect,
+  type ReactElement,
   useRef,
   useState,
 } from 'react';
 import { useMemoizedFn } from 'ahooks';
 import resume from '@/json/resume';
+import type { GlobalStyle } from '@/modules/utils/common.type';
+import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
+import { globalStylePageDimensions } from '@/lib/resumePageSize';
 
 import { observer } from 'mobx-react';
 import {
-  Certificate,
   Info1,
-  Job,
   Margin,
   Page,
-  Project,
-  Skill,
-  Education,
-  Other,
 } from '@/modules';
 import { createRoot } from 'react-dom/client';
 import { configStore } from '@/mobx';
 import { resumeFontStack } from '@/lib/resumeFont';
-import { getRandomId } from '@/utils';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { flattenModules, findModuleById } from '@/utils/resumePages';
+import { plainTextFromRichHtml, sanitizeRichTextHtml } from '@/utils/sanitizeHtml';
 import ModuleOperation from '@/components/moduleOperation';
 import { CanvasScaleContext } from './canvasScaleContext';
 import { PAGE_STACK_GAP_PX } from './pageStackGap';
 import ResumeFontCdn from './ResumeFontCdn';
+import CanvasModuleFragment, {
+  canSplitModule,
+  isListFlowModule,
+  isTextFlowModule,
+  itemDescriptionField,
+  type CanvasModuleFragmentConfig,
+} from './moduleFragment';
 
 /** 容器内左右留白，用于判断是否需缩小画布（缩放时两侧至少各 40） */
 const CANVAS_SIDE_PAD = 40;
 
 /** 合并默认 globalStyle，避免 cfg 里缺 padding/height 时分页可用高度算错 */
-function mergeGlobalStyle(cfg: any) {
-  return {
-    ...resume.globalStyle,
-    ...(cfg?.globalStyle ?? {}),
-  };
+function mergeGlobalStyle(cfg: any): GlobalStyle {
+  return mergeGlobalStylePaper(
+    resume.globalStyle as GlobalStyle,
+    cfg?.globalStyle ?? {}
+  );
 }
 
 /** 模块间距 px：优先 globalStyle.moduleMargin，兼容旧数据 pages[].moduleMargin */
@@ -54,14 +59,14 @@ function moduleGapPx(gs: any, cfg?: any): number {
 /** 内容区宽度 ≈ width - padding*2，与 Page 版心一致 */
 function contentInnerWidth(gs: any): number {
   const pad = gs?.padding ?? 0;
-  const outer = cssLengthToApproxPx(gs?.width ?? '210mm');
+  const outer = cssLengthToApproxPx(globalStylePageDimensions(gs).width);
   return Math.max(1, outer - pad * 2);
 }
 
 /** 单页可容纳内容高度（与 Page 内 padding 算法一致） */
 function pageContentHeight(gs: any): number {
   const pad = gs?.padding ?? 0;
-  const outer = cssLengthToApproxPx(gs?.height ?? '297mm');
+  const outer = cssLengthToApproxPx(globalStylePageDimensions(gs).height);
   return Math.max(0, outer - pad * 2);
 }
 
@@ -72,40 +77,283 @@ function layoutSig(module: any, gs: any): string {
   const lh = gs?.lineHeight ?? '';
   const ht = gs?.headerType ?? '';
   const rf = gs?.resumeFont ?? '';
-  return `${JSON.stringify(module)}|w:${gs.width}|h:${gs.height}|pad:${pad}|fs:${fs}|lh:${lh}|ht:${ht}|rf:${rf}`;
+  const ps = gs?.pageSize ?? '';
+  return `${JSON.stringify(module)}|ps:${ps}|pad:${pad}|fs:${fs}|lh:${lh}|ht:${ht}|rf:${rf}`;
 }
 
-function moduleComponentForType(
-  type: string
-): React.ComponentType<any> | null {
-  switch (type) {
-    case 'info1':
-      return Info1;
-    case 'certificate':
-      return Certificate;
-    case 'skill':
-      return Skill;
-    case 'job':
-      return Job;
-    case 'project':
-      return Project;
-    case 'education':
-      return Education;
-    case 'other':
-      return Other;
-    default:
-      return null;
+interface PreparedRenderable {
+  key: string;
+  sourceId: string;
+  node: ReactElement;
+  height: number;
+}
+
+interface ExportLayoutModule {
+  type: string;
+  options: Record<string, any>;
+  showHeader?: boolean;
+}
+
+function fragmentDomId(sourceId: string, fragmentIndex: number) {
+  return fragmentIndex === 0 ? sourceId : `${sourceId}__fragment_${fragmentIndex}`;
+}
+
+function buildFragmentConfig(
+  module: any,
+  sourceId: string,
+  showHeader: boolean,
+  fragmentIndex: number
+): CanvasModuleFragmentConfig {
+  return {
+    type: module.type,
+    sourceId,
+    domId: fragmentDomId(sourceId, fragmentIndex),
+    showHeader,
+    options: module.options ?? {},
+  };
+}
+
+function buildModuleElement(
+  module: any,
+  gs: any,
+  sourceId: string,
+  showHeader: boolean,
+  fragmentIndex: number
+): ReactElement | null {
+  if (module.type === 'info1' && showHeader && fragmentIndex === 0) {
+    return <Info1 key={sourceId} config={module} globalStyle={gs} />;
+  }
+  if (!canSplitModule(module)) {
+    return null;
+  }
+  return (
+    <CanvasModuleFragment
+      key={`${sourceId}-${fragmentIndex}-${showHeader ? 'h' : 'c'}`}
+      fragment={buildFragmentConfig(module, sourceId, showHeader, fragmentIndex)}
+      globalStyle={gs}
+    />
+  );
+}
+
+function cloneChildNodesInto(source: Node, target: Node) {
+  for (const child of Array.from(source.childNodes)) {
+    target.appendChild(child.cloneNode(true));
   }
 }
 
-function buildModuleElements(ordered: any[], gs: any): React.ReactNode[] {
-  const out: React.ReactNode[] = [];
-  for (const module of ordered) {
-    const C = moduleComponentForType(module.type);
-    if (!C) continue;
-    out.push(<C key={module.id} config={module} globalStyle={gs} />);
+function nodeHasRenderableContent(node: Node | null) {
+  if (!node) return false;
+  if (node.nodeType === Node.TEXT_NODE) {
+    return (node.textContent ?? '').length > 0;
   }
-  return out;
+  if (node.nodeType !== Node.ELEMENT_NODE) {
+    return false;
+  }
+  const element = node as Element;
+  if (element.tagName === 'BR' || element.tagName === 'IMG') {
+    return true;
+  }
+  if (element.innerHTML.trim()) {
+    return true;
+  }
+  return Array.from(element.childNodes).some((child) => nodeHasRenderableContent(child));
+}
+
+async function splitHtmlNode(
+  node: Node,
+  fits: (candidate: Node | null) => Promise<boolean>
+): Promise<{ head: Node | null; tail: Node | null }> {
+  if (node.nodeType === Node.TEXT_NODE) {
+    const text = node.textContent ?? '';
+    if (!text) {
+      return { head: null, tail: null };
+    }
+    let low = 0;
+    let high = text.length;
+    while (low < high) {
+      const mid = Math.ceil((low + high) / 2);
+      const candidate = document.createTextNode(text.slice(0, mid));
+      if (await fits(candidate)) {
+        low = mid;
+      } else {
+        high = mid - 1;
+      }
+    }
+    if (low <= 0) {
+      return { head: null, tail: document.createTextNode(text) };
+    }
+    const head = document.createTextNode(text.slice(0, low));
+    const rest = text.slice(low);
+    return {
+      head,
+      tail: rest ? document.createTextNode(rest) : null,
+    };
+  }
+
+  if (node.nodeType !== Node.ELEMENT_NODE) {
+    return { head: null, tail: null };
+  }
+
+  const element = node as Element;
+  if (element.childNodes.length === 0) {
+    const fullClone = element.cloneNode(true);
+    if (await fits(fullClone)) {
+      return { head: fullClone, tail: null };
+    }
+    return { head: null, tail: fullClone };
+  }
+
+  const headElement = element.cloneNode(false) as Element;
+  const children = Array.from(element.childNodes);
+
+  for (let index = 0; index < children.length; index += 1) {
+    const child = children[index];
+    const nextWhole = headElement.cloneNode(false) as Element;
+    cloneChildNodesInto(headElement, nextWhole);
+    nextWhole.appendChild(child.cloneNode(true));
+    if (await fits(nextWhole)) {
+      headElement.appendChild(child.cloneNode(true));
+      continue;
+    }
+
+    const splitChild = await splitHtmlNode(child, async (candidate) => {
+      const nested = element.cloneNode(false) as Element;
+      cloneChildNodesInto(headElement, nested);
+      if (candidate) {
+        nested.appendChild(candidate);
+      }
+      return fits(nested);
+    });
+
+    if (splitChild.head) {
+      headElement.appendChild(splitChild.head);
+    }
+
+    const tailElement = element.cloneNode(false) as Element;
+    if (splitChild.tail) {
+      tailElement.appendChild(splitChild.tail);
+    }
+    for (let restIndex = index + 1; restIndex < children.length; restIndex += 1) {
+      tailElement.appendChild(children[restIndex].cloneNode(true));
+    }
+
+    return {
+      head: nodeHasRenderableContent(headElement) ? headElement : null,
+      tail: nodeHasRenderableContent(tailElement) ? tailElement : null,
+    };
+  }
+
+  return {
+    head: nodeHasRenderableContent(headElement) ? headElement : null,
+    tail: null,
+  };
+}
+
+async function splitRichHtmlByHeight(
+  html: string,
+  fitsHtml: (candidateHtml: string) => Promise<boolean>
+) {
+  const safe = sanitizeRichTextHtml(html);
+  if (!safe.trim()) {
+    return { headHtml: '', tailHtml: '' };
+  }
+  const source = document.createElement('div');
+  source.innerHTML = safe;
+  const head = document.createElement('div');
+  const children = Array.from(source.childNodes);
+
+  for (let index = 0; index < children.length; index += 1) {
+    const child = children[index];
+    const trial = document.createElement('div');
+    cloneChildNodesInto(head, trial);
+    trial.appendChild(child.cloneNode(true));
+    if (await fitsHtml(trial.innerHTML)) {
+      head.appendChild(child.cloneNode(true));
+      continue;
+    }
+
+    const splitChild = await splitHtmlNode(child, async (candidate) => {
+      const nested = document.createElement('div');
+      cloneChildNodesInto(head, nested);
+      if (candidate) {
+        nested.appendChild(candidate);
+      }
+      return fitsHtml(nested.innerHTML);
+    });
+
+    if (splitChild.head) {
+      head.appendChild(splitChild.head);
+    }
+
+    const tail = document.createElement('div');
+    if (splitChild.tail) {
+      tail.appendChild(splitChild.tail);
+    }
+    for (let restIndex = index + 1; restIndex < children.length; restIndex += 1) {
+      tail.appendChild(children[restIndex].cloneNode(true));
+    }
+
+    return {
+      headHtml: head.innerHTML,
+      tailHtml: tail.innerHTML,
+    };
+  }
+
+  return {
+    headHtml: head.innerHTML,
+    tailHtml: '',
+  };
+}
+
+function escapeHtmlText(text: string) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function plainTextToParagraphHtml(text: string) {
+  const normalized = text.replace(/\r\n?/g, '\n');
+  if (!normalized.trim()) {
+    return '';
+  }
+  return normalized
+    .split('\n')
+    .map((line) => `<p>${line ? escapeHtmlText(line) : '<br>'}</p>`)
+    .join('');
+}
+
+async function splitPlainTextFallbackByHeight(
+  html: string,
+  fitsHtml: (candidateHtml: string) => Promise<boolean>
+) {
+  const text = plainTextFromRichHtml(html);
+  if (!text) {
+    return { headHtml: '', tailHtml: '' };
+  }
+  let low = 0;
+  let high = text.length;
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2);
+    const candidateHtml = plainTextToParagraphHtml(text.slice(0, mid));
+    if (candidateHtml && (await fitsHtml(candidateHtml))) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
+  }
+  if (low <= 0) {
+    return {
+      headHtml: '',
+      tailHtml: plainTextToParagraphHtml(text),
+    };
+  }
+  return {
+    headHtml: plainTextToParagraphHtml(text.slice(0, low)),
+    tailHtml: plainTextToParagraphHtml(text.slice(low)),
+  };
 }
 
 function Canvas() {
@@ -117,10 +365,9 @@ function Canvas() {
   /** 异步 render 交错完成时禁止旧任务 setConfig 覆盖侧栏已写入的数据 */
   const renderGenerationRef = useRef(0);
 
-  const measureComponentHeight = useMemoizedFn(
-    (Component: React.ComponentType<any>, props: any): Promise<Array<any>> => {
+  const measureElementHeight = useMemoizedFn(
+    (element: ReactElement, gs: any): Promise<number> => {
       return new Promise((resolve) => {
-        // 创建一个隐藏的 div
         const container = document.createElement('div');
         container.style.position = 'absolute';
         container.style.visibility = 'hidden';
@@ -128,32 +375,79 @@ function Canvas() {
         container.style.height = 'auto';
         container.style.width = 'auto';
         document.body.appendChild(container);
-        const gs =
-          props.globalStyle ?? mergeGlobalStyle(configStore.getConfig);
         container.style.width = `${contentInnerWidth(gs)}px`;
         container.style.fontFamily = resumeFontStack(gs.resumeFont);
-        const stableKey = props?.config?.id ?? getRandomId();
-        const module = <Component {...props} key={stableKey} />;
-
-        // 渲染组件
         const root = createRoot(container);
-        root.render(module);
+        root.render(element);
 
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             const height = container.offsetHeight;
             root.unmount();
             document.body.removeChild(container);
-            resolve([height, module]);
+            resolve(height);
           });
         });
       });
     }
   );
 
+  const prepareRenderable = useMemoizedFn(
+    async (
+      module: any,
+      sourceId: string,
+      gs: any,
+      showHeader: boolean,
+      fragmentIndex: number,
+      cache: Map<string, number>,
+      useOriginalCache: boolean
+    ): Promise<PreparedRenderable | null> => {
+      const node = buildModuleElement(module, gs, sourceId, showHeader, fragmentIndex);
+      if (!node) {
+        return null;
+      }
+
+      let height: number | undefined;
+      if (useOriginalCache) {
+        const cached = moduleHeights.current[sourceId];
+        if (cached > 0) {
+          height = cached;
+        }
+      }
+
+      if (height == null) {
+        const signature = `${sourceId}|${showHeader ? '1' : '0'}|${layoutSig(
+          { ...module, id: sourceId },
+          gs
+        )}`;
+        if (cache.has(signature)) {
+          height = cache.get(signature);
+        } else {
+          height = await measureElementHeight(node, gs);
+          cache.set(signature, height);
+        }
+      }
+
+      if (useOriginalCache && height != null) {
+        moduleHeights.current[sourceId] = height;
+      }
+
+      if (height == null) {
+        return null;
+      }
+
+      return {
+        key: `${sourceId}-${fragmentIndex}-${showHeader ? '1' : '0'}`,
+        sourceId,
+        node,
+        height,
+      };
+    }
+  );
+
   const computeLayout = useMemoizedFn(
-    (
-      components: Array<any>,
+    async (
+      ordered: Array<any>,
       cfg: any,
       gs: any,
       update: boolean = true,
@@ -161,43 +455,425 @@ function Canvas() {
     ) => {
       const pageHeight = pageContentHeight(gs);
       const newPages: Array<Array<any>> = [[]];
+      const pageModuleIds: Array<Array<string>> = [[]];
+      const exportPages: Array<{ modules: ExportLayoutModule[] }> = [{ modules: [] }];
+      const fragmentHeightCache = new Map<string, number>();
       let height = 0;
       let pageKey = 1;
+      let hasSplitLayout = false;
 
-      for (const component of components) {
-        if (!component) {
+      const pushToCurrentPage = (renderable: PreparedRenderable, gapBefore: number) => {
+        const idx = newPages.length - 1;
+        if (gapBefore > 0) {
+          newPages[idx].push(
+            <Margin
+              key={`margin-before-${renderable.key}`}
+              height={gapBefore}
+            />
+          );
+          height += gapBefore;
+        }
+        newPages[idx].push(renderable.node);
+        pageModuleIds[idx].push(renderable.sourceId);
+        height += renderable.height;
+      };
+
+      const pushExportModule = (module: any, showHeader: boolean) => {
+        const idx = exportPages.length - 1;
+        exportPages[idx].modules.push({
+          type: module.type,
+          options: JSON.parse(JSON.stringify(module.options ?? {})),
+          showHeader,
+        });
+      };
+
+      const startNextPage = () => {
+        newPages.push([]);
+        pageModuleIds.push([]);
+        exportPages.push({ modules: [] });
+        height = 0;
+      };
+
+      const splitTextModule = async (
+        module: any,
+        sourceId: string,
+        maxHeight: number,
+        showHeader: boolean,
+        fragmentIndex: number
+      ) => {
+        const description = String(module?.options?.description ?? '');
+        if (!plainTextFromRichHtml(description)) {
+          return { renderable: null as PreparedRenderable | null, exportModule: null, remainder: null, didSplit: false };
+        }
+
+        let { headHtml, tailHtml } = await splitRichHtmlByHeight(description, async (candidateHtml) => {
+          const candidate = {
+            ...module,
+            options: {
+              ...module.options,
+              description: candidateHtml,
+            },
+          };
+          const prepared = await prepareRenderable(
+            candidate,
+            sourceId,
+            gs,
+            showHeader,
+            fragmentIndex,
+            fragmentHeightCache,
+            false
+          );
+          return !!prepared && prepared.height <= maxHeight;
+        });
+
+        if (!plainTextFromRichHtml(headHtml)) {
+          ({ headHtml, tailHtml } = await splitPlainTextFallbackByHeight(
+            description,
+            async (candidateHtml) => {
+              const candidate = {
+                ...module,
+                options: {
+                  ...module.options,
+                  description: candidateHtml,
+                },
+              };
+              const prepared = await prepareRenderable(
+                candidate,
+                sourceId,
+                gs,
+                showHeader,
+                fragmentIndex,
+                fragmentHeightCache,
+                false
+              );
+              return !!prepared && prepared.height <= maxHeight;
+            }
+          ));
+        }
+
+        if (!plainTextFromRichHtml(headHtml)) {
+          return { renderable: null as PreparedRenderable | null, exportModule: null, remainder: module, didSplit: false };
+        }
+
+        const headModule = {
+          ...module,
+          options: {
+            ...module.options,
+            description: headHtml,
+          },
+        };
+        const renderable = await prepareRenderable(
+          headModule,
+          sourceId,
+          gs,
+          showHeader,
+          fragmentIndex,
+          fragmentHeightCache,
+          false
+        );
+        const remainder = plainTextFromRichHtml(tailHtml)
+          ? {
+              ...module,
+              options: {
+                ...module.options,
+                description: tailHtml,
+              },
+            }
+          : null;
+        return { renderable, exportModule: headModule, remainder, didSplit: !!remainder };
+      };
+
+      const splitListModule = async (
+        module: any,
+        sourceId: string,
+        maxHeight: number,
+        showHeader: boolean,
+        fragmentIndex: number
+      ) => {
+        const items = Array.isArray(module?.options?.items) ? module.options.items : [];
+        if (!items.length) {
+          return { renderable: null as PreparedRenderable | null, exportModule: null, remainder: null, didSplit: false };
+        }
+
+        let low = 1;
+        let high = items.length;
+        let bestCount = 0;
+        let bestRenderable: PreparedRenderable | null = null;
+
+        while (low <= high) {
+          const mid = Math.floor((low + high) / 2);
+          const candidate = {
+            ...module,
+            options: {
+              ...module.options,
+              items: items.slice(0, mid),
+            },
+          };
+          const prepared = await prepareRenderable(
+            candidate,
+            sourceId,
+            gs,
+            showHeader,
+            fragmentIndex,
+            fragmentHeightCache,
+            false
+          );
+          if (prepared && prepared.height <= maxHeight) {
+            bestCount = mid;
+            bestRenderable = prepared;
+            low = mid + 1;
+          } else {
+            high = mid - 1;
+          }
+        }
+
+        if (bestCount > 0 && bestRenderable) {
+          const remainderItems = items.slice(bestCount);
+          return {
+            renderable: bestRenderable,
+            exportModule: {
+              ...module,
+              options: {
+                ...module.options,
+                items: items.slice(0, bestCount),
+              },
+            },
+            remainder: remainderItems.length
+              ? {
+                  ...module,
+                  options: {
+                    ...module.options,
+                    items: remainderItems,
+                  },
+                }
+              : null,
+            didSplit: remainderItems.length > 0,
+          };
+        }
+
+        const descField = itemDescriptionField(module.type);
+        if (!descField) {
+          return { renderable: null as PreparedRenderable | null, exportModule: null, remainder: module, didSplit: false };
+        }
+
+        const firstItem = items[0];
+        const firstDesc = String(firstItem?.[descField] ?? '');
+        if (!plainTextFromRichHtml(firstDesc)) {
+          return { renderable: null as PreparedRenderable | null, exportModule: null, remainder: module, didSplit: false };
+        }
+
+        const emptyHeadModule = {
+          ...module,
+          options: {
+            ...module.options,
+            items: [{
+              ...firstItem,
+              [descField]: '',
+            }],
+          },
+        };
+        const emptyHeadRenderable = await prepareRenderable(
+          emptyHeadModule,
+          sourceId,
+          gs,
+          showHeader,
+          fragmentIndex,
+          fragmentHeightCache,
+          false
+        );
+
+        let { headHtml, tailHtml } = await splitRichHtmlByHeight(firstDesc, async (candidateHtml) => {
+          const candidate = {
+            ...module,
+            options: {
+              ...module.options,
+              items: [{
+                ...firstItem,
+                [descField]: candidateHtml,
+              }],
+            },
+          };
+          const prepared = await prepareRenderable(
+            candidate,
+            sourceId,
+            gs,
+            showHeader,
+            fragmentIndex,
+            fragmentHeightCache,
+            false
+          );
+          return !!prepared && prepared.height <= maxHeight;
+        });
+
+        if (!plainTextFromRichHtml(headHtml)) {
+          ({ headHtml, tailHtml } = await splitPlainTextFallbackByHeight(
+            firstDesc,
+            async (candidateHtml) => {
+              const candidate = {
+                ...module,
+                options: {
+                  ...module.options,
+                  items: [{
+                    ...firstItem,
+                    [descField]: candidateHtml,
+                  }],
+                },
+              };
+              const prepared = await prepareRenderable(
+                candidate,
+                sourceId,
+                gs,
+                showHeader,
+                fragmentIndex,
+                fragmentHeightCache,
+                false
+              );
+              return !!prepared && prepared.height <= maxHeight;
+            }
+          ));
+        }
+
+        const headDescription = plainTextFromRichHtml(headHtml) ? headHtml : '';
+        if (!headDescription && !(emptyHeadRenderable && emptyHeadRenderable.height <= maxHeight)) {
+          return { renderable: null as PreparedRenderable | null, exportModule: null, remainder: module, didSplit: false };
+        }
+
+        const headModule = {
+          ...module,
+          options: {
+            ...module.options,
+            items: [{
+              ...firstItem,
+              [descField]: headDescription,
+            }],
+          },
+        };
+        const renderable = headDescription
+          ? await prepareRenderable(
+              headModule,
+              sourceId,
+              gs,
+              showHeader,
+              fragmentIndex,
+              fragmentHeightCache,
+              false
+            )
+          : emptyHeadRenderable;
+
+        const remainderItems = [] as any[];
+        if (plainTextFromRichHtml(tailHtml)) {
+          remainderItems.push({
+            ...firstItem,
+            [descField]: tailHtml,
+          });
+        }
+        remainderItems.push(...items.slice(1));
+
+        return {
+          renderable,
+          exportModule: headModule,
+          remainder: remainderItems.length
+            ? {
+                ...module,
+                options: {
+                  ...module.options,
+                  items: remainderItems,
+                },
+              }
+            : null,
+          didSplit: true,
+        };
+      };
+
+      for (const sourceModule of ordered) {
+        if (!sourceModule) {
           continue;
         }
 
-        const moduleHeight =
-          moduleHeights.current[component.props.config.id] ?? 0;
+        let remainingModule = sourceModule;
+        let fragmentIndex = 0;
+        let showHeader = true;
 
-        const idx = newPages.length - 1;
-        const gapBefore =
-          newPages[idx].length !== 0 ? moduleGapPx(gs, cfg) : 0;
+        while (remainingModule) {
+          if (gen != null && gen !== renderGenerationRef.current) {
+            return;
+          }
 
-        if (height + gapBefore + moduleHeight > pageHeight) {
-          if (newPages[idx].length === 0) {
-            newPages[idx].push(component);
-            height += moduleHeight;
-          } else {
-            height = moduleHeight;
-            newPages.push([component]);
+          const idx = newPages.length - 1;
+          const gapBefore = newPages[idx].length !== 0 ? moduleGapPx(gs, cfg) : 0;
+          const availableHeight = pageHeight - height - gapBefore;
+
+          const fullRenderable = await prepareRenderable(
+            remainingModule,
+            sourceModule.id,
+            gs,
+            showHeader,
+            fragmentIndex,
+            fragmentHeightCache,
+            remainingModule === sourceModule && fragmentIndex === 0 && showHeader
+          );
+
+          if (fullRenderable && fullRenderable.height <= availableHeight) {
+            pushToCurrentPage(fullRenderable, gapBefore);
+            pushExportModule(remainingModule, showHeader);
+            break;
           }
-        } else {
-          if (gapBefore > 0) {
-            newPages[idx].push(
-              <Margin
-                key={`margin-before-${component.props.config.id}`}
-                height={gapBefore}
-              />
-            );
-            height += gapBefore;
+
+          if (!canSplitModule(remainingModule)) {
+            if (newPages[idx].length !== 0) {
+              startNextPage();
+              continue;
+            }
+            if (fullRenderable) {
+              pushToCurrentPage(fullRenderable, 0);
+              pushExportModule(remainingModule, showHeader);
+            }
+            break;
           }
-          newPages[idx].push(component);
-          height += moduleHeight;
+
+          const splitResult = isTextFlowModule(remainingModule.type)
+            ? await splitTextModule(
+                remainingModule,
+                sourceModule.id,
+                availableHeight,
+                showHeader,
+                fragmentIndex
+              )
+            : isListFlowModule(remainingModule.type)
+              ? await splitListModule(
+                  remainingModule,
+                  sourceModule.id,
+                  availableHeight,
+                  showHeader,
+                  fragmentIndex
+                )
+                : { renderable: null as PreparedRenderable | null, exportModule: null, remainder: remainingModule, didSplit: false };
+
+          if (!splitResult.renderable) {
+            if (newPages[idx].length !== 0) {
+              startNextPage();
+              continue;
+            }
+            if (fullRenderable) {
+              pushToCurrentPage(fullRenderable, 0);
+              pushExportModule(remainingModule, showHeader);
+            }
+            break;
+          }
+
+          hasSplitLayout = hasSplitLayout || splitResult.didSplit;
+          pushToCurrentPage(splitResult.renderable, gapBefore);
+          pushExportModule(splitResult.exportModule ?? remainingModule, showHeader);
+          remainingModule = splitResult.remainder;
+          fragmentIndex += 1;
+          showHeader = false;
+
+          if (remainingModule) {
+            startNextPage();
+          }
         }
       }
+
       const allPages: Array<React.ReactNode> = [];
 
       pageKey = 1;
@@ -217,6 +893,12 @@ function Canvas() {
         return;
       }
       setPages(allPages);
+      configStore.setExportPages(exportPages);
+
+      if (hasSplitLayout) {
+        return;
+      }
+
       const live = configStore.getConfig ?? cfg; // 首屏 store 为空时用 cfg 写入侧栏
       if (!live) return;
 
@@ -225,19 +907,18 @@ function Canvas() {
         globalStyle: gs,
         pages: [],
       };
-      let pi = 0;
-      for (const page of newPages) {
+      for (let pageIndex = 0; pageIndex < newPages.length; pageIndex += 1) {
         const modulesOut: any[] = [];
-        for (const node of page) {
-          const id = node?.props?.config?.id;
-          if (!id) continue;
+        const seenIds = new Set<string>();
+        for (const id of pageModuleIds[pageIndex]) {
+          if (!id || seenIds.has(id)) continue;
+          seenIds.add(id);
           const m = findModuleById(live, id);
           if (m) modulesOut.push(m);
         }
         nextConfig.pages.push({
           modules: modulesOut,
         });
-        pi++;
       }
       if (update) {
         const snapshot = JSON.stringify(nextConfig);
@@ -263,16 +944,23 @@ function Canvas() {
       }
     }
 
-    const runLayout = (nodes: React.ReactNode[]) => {
+    const runLayout = () => {
       if (myGen !== renderGenerationRef.current) return;
-      computeLayout(nodes, cfg, gs, update, myGen);
+      void computeLayout(ordered, cfg, gs, update, myGen);
     };
 
     const measureOne = async (module: any) => {
-      const C = moduleComponentForType(module.type);
-      if (!C) return;
-      const props = { config: module, globalStyle: gs };
-      const [height] = await measureComponentHeight(C, props);
+      const prepared = await prepareRenderable(
+        module,
+        module.id,
+        gs,
+        true,
+        0,
+        new Map<string, number>(),
+        false
+      );
+      if (!prepared) return;
+      const height = prepared.height;
       moduleHeights.current[module.id] = height;
       measuredSigRef.current[module.id] = layoutSig(module, gs);
     };
@@ -298,7 +986,7 @@ function Canvas() {
         })
       );
       if (myGen !== renderGenerationRef.current) return;
-      runLayout(buildModuleElements(ordered, gs));
+      runLayout();
       return;
     }
 
@@ -313,7 +1001,7 @@ function Canvas() {
       if (myGen !== renderGenerationRef.current) return;
     }
 
-    runLayout(buildModuleElements(ordered, gs));
+    runLayout();
   });
 
   useEffect(() => {
@@ -331,8 +1019,9 @@ function Canvas() {
 
   const globalStyle = configStore.mergedGlobalStyle;
   const pageCount = Math.max(1, pages.length);
-  const pageWPx = cssLengthToApproxPx(globalStyle.width);
-  const pageHPx = cssLengthToApproxPx(globalStyle.height);
+  const { width: pw, height: ph } = globalStylePageDimensions(globalStyle);
+  const pageWPx = cssLengthToApproxPx(pw);
+  const pageHPx = cssLengthToApproxPx(ph);
   const contentW = pageWPx;
   const contentH =
     pageCount * pageHPx +
