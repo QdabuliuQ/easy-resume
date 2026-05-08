@@ -208,6 +208,7 @@ function CanvasModuleFragment({
       moduleId={fragment.domId}
       activeModuleId={fragment.sourceId}
       headerConfig={fragment.options as any}
+      moduleType={fragment.type}
       globalStyle={globalStyle}
       showHeader={fragment.showHeader}
     >

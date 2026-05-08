@@ -1,14 +1,44 @@
 'use client';
 // 纸张：GlobalStyle.pageSize；顶栏窄屏 Popover：../../views/edit/components/header；PDF/PNG：./sectionHeaderHtml.ts
+import {
+  FileDoneOutlined,
+  ProjectOutlined,
+  ReadOutlined,
+  SolutionOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons';
+import { More } from '@icon-park/react';
 import { GlobalStyle } from '@/modules/utils/common.type';
 import { memo, type CSSProperties } from 'react';
 
-export type SectionHeaderConfig = { title: string };
+export type SectionHeaderConfig = { title: string; moduleType?: string };
+
+function HeaderTypeIcon({ moduleType, color }: { moduleType?: string; color: string }) {
+  if (moduleType === 'education') {
+    return <ReadOutlined style={{ color }} />;
+  }
+  if (moduleType === 'job') {
+    return <SolutionOutlined style={{ color }} />;
+  }
+  if (moduleType === 'project') {
+    return <ProjectOutlined style={{ color }} />;
+  }
+  if (moduleType === 'skill') {
+    return <ThunderboltOutlined style={{ color }} />;
+  }
+  if (moduleType === 'certificate') {
+    return <FileDoneOutlined style={{ color }} />;
+  }
+  if (moduleType === 'other') {
+    return <More theme='outline' size={13} fill='#fff' />;
+  }
+  return <ReadOutlined style={{ color: '#fff' }} />;
+}
 
 export function normHeaderType(gs: GlobalStyle): number {
   const n = Number(gs.headerType);
   if (!Number.isFinite(n) || n < 1) return 1;
-  return Math.min(7, Math.floor(n));
+  return Math.min(8, Math.floor(n));
 }
 
 function SectionHeader({
@@ -18,7 +48,7 @@ function SectionHeader({
   config: SectionHeaderConfig;
   globalStyle: GlobalStyle;
 }) {
-  const { title } = config;
+  const { title, moduleType } = config;
   const { color, fontSize } = globalStyle;
   const fsRaw = Number(fontSize);
   const fsNum = Number.isFinite(fsRaw) && fsRaw > 0 ? fsRaw : 13;
@@ -135,6 +165,22 @@ function SectionHeader({
           {title}
         </span>
         <div className='min-h-px min-w-0 flex-1' style={{ backgroundColor: color }} />
+      </div>
+    );
+  }
+  if (t === 8) {
+    return (
+      <div className='flex w-full items-center gap-2 py-1'>
+        <div
+          className='flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[13px]'
+          style={{ backgroundColor: color }}
+          aria-hidden
+        >
+          <HeaderTypeIcon moduleType={moduleType} color='#fff' />
+        </div>
+        <span className='font-bold leading-none' style={{ color, fontSize: fs }}>
+          {title}
+        </span>
       </div>
     );
   }

@@ -44,11 +44,11 @@ const MODULE_MARGIN_OPTIONS = [10, 15, 20, 25, 30, 35, 40].map((n) => ({
   value: n,
 }));
 const HEADER_PREVIEW_TITLE = '模块标题';
-const HEADER_TYPE_VALUES = [1, 2, 3, 4, 5, 6, 7] as const;
+const HEADER_TYPE_VALUES = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 function headerTypeNorm(v: unknown): number {
   const n = Number(v);
   if (!Number.isFinite(n) || n < 1) return 1;
-  return Math.min(7, Math.floor(n));
+  return Math.min(8, Math.floor(n));
 }
 function headerPreviewGlobal(t: number, base: GlobalStyle): GlobalStyle {
   return { ...base, headerType: t };
@@ -314,7 +314,7 @@ function Header() {
             </>
           ) : (
             <SectionHeader
-              config={{ title: HEADER_PREVIEW_TITLE }}
+              config={{ title: HEADER_PREVIEW_TITLE, moduleType: 'education' }}
               globalStyle={headerPreviewGlobal(n, mergedGs)}
             />
           )}

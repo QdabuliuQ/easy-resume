@@ -109,10 +109,11 @@ function wrapSectionModuleMaybe(
   title: string,
   gs: GlobalStyle,
   bodyHtml: string,
-  showHeader: boolean = true
+  showHeader: boolean = true,
+  moduleType?: string
 ): string {
   if (showHeader) {
-    return wrapSectionModuleHtml(title, gs, bodyHtml);
+    return wrapSectionModuleHtml(title, gs, bodyHtml, moduleType);
   }
   const headerType = Number(gs.headerType);
   if (Number.isFinite(headerType) && Math.floor(headerType) === 7) {
@@ -192,7 +193,7 @@ function renderCertificate(mod: { options: { title: string; items: Array<{ name:
 </div>`
     )
     .join('');
-  return wrapSectionModuleMaybe(title, gs, rows, mod.showHeader !== false);
+  return wrapSectionModuleMaybe(title, gs, rows, mod.showHeader !== false, 'certificate');
 }
 
 function renderSkill(mod: { options: { title: string; description: string }; showHeader?: boolean }, gs: GlobalStyle): string {
@@ -202,7 +203,7 @@ function renderSkill(mod: { options: { title: string; description: string }; sho
   const inner = plainTextFromRich(description)
     ? wrapQuillRichHtml(description, `font-size:${fs}px;line-height:${lh};color:#333;`)
     : '';
-  return wrapSectionModuleMaybe(title, gs, inner, mod.showHeader !== false);
+  return wrapSectionModuleMaybe(title, gs, inner, mod.showHeader !== false, 'skill');
 }
 
 function renderJob(mod: { options: { title: string; items: Array<Record<string, string>> }; showHeader?: boolean }, gs: GlobalStyle): string {
@@ -233,7 +234,7 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false);
+  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false, 'job');
 }
 
 function renderProject(mod: { options: { title: string; items: Array<Record<string, string>> }; showHeader?: boolean }, gs: GlobalStyle): string {
@@ -259,7 +260,7 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false);
+  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false, 'project');
 }
 
 function renderEducation(mod: { options: { title: string; items: Array<Record<string, unknown>> }; showHeader?: boolean }, gs: GlobalStyle): string {
@@ -299,7 +300,7 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false);
+  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false, 'education');
 }
 
 function renderModule(mod: { type: string; options?: unknown; showHeader?: boolean }, gs: GlobalStyle): string {

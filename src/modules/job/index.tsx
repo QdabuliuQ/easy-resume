@@ -36,7 +36,7 @@ function Job(props: Props) {
   const { id, options } = config;
   const { fontSize, lineHeight } = globalStyle;
   return (
-    <SectionModuleShell moduleId={id} headerConfig={options} globalStyle={globalStyle}>
+    <SectionModuleShell moduleId={id} headerConfig={options} moduleType={config.type} globalStyle={globalStyle}>
       <div className='w-full'>
         {options.items.map((item, index) => (
           <div

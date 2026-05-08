@@ -208,6 +208,7 @@ function Global() {
                     { value: 5, label: '样式5 · 箭头色带' },
                     { value: 6, label: '样式6 · 双三角 + 横线延伸' },
                     { value: 7, label: '样式7 · 左栏标题 + 竖线 + 右侧内容区' },
+                    { value: 8, label: '样式8 · 图标 + 文本标题' },
                   ]}
                   onChange={(v) => {
                     global.headerType = v;

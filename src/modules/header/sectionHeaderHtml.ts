@@ -4,7 +4,17 @@ import type { GlobalStyle } from '@/modules/utils/common.type';
 export function normHeaderTypeHtml(gs: GlobalStyle): number {
   const n = Number(gs.headerType);
   if (!Number.isFinite(n) || n < 1) return 1;
-  return Math.min(7, Math.floor(n));
+  return Math.min(8, Math.floor(n));
+}
+
+function moduleIconChar(moduleType?: string): string {
+  if (moduleType === 'education') return '读';
+  if (moduleType === 'job') return '职';
+  if (moduleType === 'project') return '项';
+  if (moduleType === 'skill') return '技';
+  if (moduleType === 'certificate') return '证';
+  if (moduleType === 'other') return '其';
+  return '读';
 }
 
 function escapeHtml(s: unknown): string {
@@ -17,7 +27,7 @@ function escapeHtml(s: unknown): string {
 }
 
 /** 模块标题 HTML，视觉与 sectionHeader.tsx 对齐 */
-export function sectionHeaderHtml(title: string, gs: GlobalStyle): string {
+export function sectionHeaderHtml(title: string, gs: GlobalStyle, moduleType?: string): string {
   const c = escapeHtml(gs.color);
   const fsRaw = Number(gs.fontSize);
   const fs = Number.isFinite(fsRaw) && fsRaw > 0 ? fsRaw : 13;
@@ -75,6 +85,12 @@ export function sectionHeaderHtml(title: string, gs: GlobalStyle): string {
 <div style="flex:1;min-height:1px;height:1px;background:${c};"></div>
 </div>`;
   }
+  if (t === 8) {
+    return `<div style="width:100%;display:flex;align-items:center;gap:8px;padding:4px 0;">
+<span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;border-radius:999px;background:${c};color:#fff;font-size:12px;font-weight:700;line-height:1;">${moduleIconChar(moduleType)}</span>
+<span style="font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
+</div>`;
+  }
   return `<div style="position:relative;display:flex;align-items:center;font-weight:bold;padding:7px 0 7px 15px;color:${c};">
 <span style="line-height:1;font-size:${fs}px;">${escT}</span>
 <span style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${c};"></span>
@@ -86,12 +102,13 @@ export function sectionHeaderHtml(title: string, gs: GlobalStyle): string {
 export function wrapSectionModuleHtml(
   title: string,
   gs: GlobalStyle,
-  bodyHtml: string
+  bodyHtml: string,
+  moduleType?: string
 ): string {
   const t = normHeaderTypeHtml(gs);
   if (t === 7) {
-    const head = sectionHeaderHtml(title, gs);
+    const head = sectionHeaderHtml(title, gs, moduleType);
     return `<div style="width:100%;display:grid;grid-template-columns:5rem minmax(0,1fr);align-items:stretch;column-gap:10px;">${head}<div style="min-width:0;border:1px solid #e4e4e7;background:#fafafa;border-radius:2px;padding:8px 12px;">${bodyHtml}</div></div>`;
   }
-  return `<div style="width:100%;">${sectionHeaderHtml(title, gs)}<div style="margin-top:5px;">${bodyHtml}</div></div>`;
+  return `<div style="width:100%;">${sectionHeaderHtml(title, gs, moduleType)}<div style="margin-top:5px;">${bodyHtml}</div></div>`;
 }

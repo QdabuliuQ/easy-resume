@@ -36,7 +36,7 @@ function Education(props: Props) {
   const { fontSize, color, lineHeight } = globalStyle;
 
   return (
-    <SectionModuleShell moduleId={id} headerConfig={options} globalStyle={globalStyle}>
+    <SectionModuleShell moduleId={id} headerConfig={options} moduleType={config.type} globalStyle={globalStyle}>
       <div className='w-full' style={{ fontSize: fontSize + 'px' }}>
         {options.items.map((item, index) => (
           <div key={index} className='w-full text-[#333] not-last:mb-[10px]'>

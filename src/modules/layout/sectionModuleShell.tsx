@@ -11,6 +11,7 @@ function SectionModuleShell({
   moduleId,
   activeModuleId,
   headerConfig,
+  moduleType,
   globalStyle,
   showHeader = true,
   children,
@@ -18,6 +19,7 @@ function SectionModuleShell({
   moduleId: string;
   activeModuleId?: string;
   headerConfig: SectionHeaderConfig;
+  moduleType?: string;
   globalStyle: GlobalStyle;
   showHeader?: boolean;
   children: ReactNode;
@@ -65,7 +67,7 @@ function SectionModuleShell({
             aria-hidden
           />
           <div className='relative z-[1] min-h-0 pr-2'>
-            <SectionHeader config={headerConfig} globalStyle={globalStyle} />
+            <SectionHeader config={{ ...headerConfig, moduleType }} globalStyle={globalStyle} />
           </div>
         </div>
         <div className='min-h-0 min-w-0 rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'>
@@ -81,7 +83,7 @@ function SectionModuleShell({
       className='w-full cursor-pointer'
     >
       <div className='mb-[5px] w-full'>
-        <SectionHeader config={headerConfig} globalStyle={globalStyle} />
+        <SectionHeader config={{ ...headerConfig, moduleType }} globalStyle={globalStyle} />
       </div>
       {children}
     </div>
