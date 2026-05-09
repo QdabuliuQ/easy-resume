@@ -37,7 +37,7 @@ function renderSkillBody(options: Record<string, any>, globalStyle: GlobalStyle)
       style={{ fontSize: `${globalStyle.fontSize}px`, lineHeight: globalStyle.lineHeight }}
       className='text-[#333] [&_li]:my-0.5 [&_p]:my-1'
     />
-  ) : null;
+  ) : <div />;
 }
 
 function renderOtherBody(options: Record<string, any>, globalStyle: GlobalStyle) {
@@ -47,7 +47,7 @@ function renderOtherBody(options: Record<string, any>, globalStyle: GlobalStyle)
       style={{ fontSize: `${globalStyle.fontSize}px`, lineHeight: globalStyle.lineHeight }}
       className='text-[#333] [&_li]:my-0.5 [&_p]:my-1'
     />
-  ) : null;
+  ) : <div />;
 }
 
 function renderJobBody(options: Record<string, any>, globalStyle: GlobalStyle) {

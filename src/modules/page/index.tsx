@@ -12,6 +12,9 @@ export default memo(function Page(props: GlobalStyle & { children: React.ReactNo
     children,
   } = props;
 
+  const innerWidth = `calc(${width} - ${pagePadding * 2}px)`;
+  const innerHeight = `calc(${height} - ${pagePadding * 2}px)`;
+
   return (
     <div
       style={{
@@ -22,7 +25,15 @@ export default memo(function Page(props: GlobalStyle & { children: React.ReactNo
         fontFamily: resumeFontStack(resumeFont),
       }}
     >
-      {children}
+      <div
+        style={{
+          width: innerWidth,
+          height: innerHeight,
+          overflow: 'hidden',
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 });

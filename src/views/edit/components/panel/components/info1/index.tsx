@@ -288,6 +288,32 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
     });
   });
 
+  const salaryValue = useMemo<[string, string]>(() => {
+    const raw = option?.expectedSalary;
+    if (Array.isArray(raw)) {
+      return [
+        raw[0] == null ? '' : String(raw[0]),
+        raw[1] == null ? '' : String(raw[1]),
+      ];
+    }
+    return ['', ''];
+  }, [option]);
+
+  const salaryInputHandler = useMemoizedFn((index: 0 | 1, value: string) => {
+    const current = configStore.getConfigOption(mid)?.expectedSalary;
+    const next: [string, string] = Array.isArray(current)
+      ? [
+          current[0] == null ? '' : String(current[0]),
+          current[1] == null ? '' : String(current[1]),
+        ]
+      : ['', ''];
+    next[index] = value;
+    configStore.setConfigOption(mid, {
+      ...configStore.getConfigOption(mid),
+      expectedSalary: next,
+    });
+  });
+
   const formatLayout = useMemoizedFn((layout: Array<any>) => {
     const sorted = [...layout].sort((a, b) =>
       a.y !== b.y ? a.y - b.y : a.x - b.x
@@ -435,6 +461,14 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                         placeholder={
                           '请选择' + info[item.key as keyof typeof info]
                         }
+                        onChange={(_, dateString) =>
+                          inputHandler(
+                            item.key,
+                            Array.isArray(dateString)
+                              ? dateString.join('/')
+                              : dateString || ''
+                          )
+                        }
                       />
                     ) : item.controllerType === 'select' ? (
                       <Select
@@ -451,16 +485,18 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                       <div className='w-full flex items-center justify-between'>
                         <Input
                           maxLength={30}
-                          defaultValue={option[item.key][0]}
+                          defaultValue={salaryValue[0]}
                           style={{ width: '43%' }}
                           placeholder='薪资'
+                          onChange={(e) => salaryInputHandler(0, e.target.value)}
                         />
                         -
                         <Input
                           maxLength={30}
-                          defaultValue={option[item.key][1]}
+                          defaultValue={salaryValue[1]}
                           style={{ width: '43%' }}
                           placeholder='薪资'
+                          onChange={(e) => salaryInputHandler(1, e.target.value)}
                         />
                       </div>
                     ) : item.controllerType === 'cascader' ? (

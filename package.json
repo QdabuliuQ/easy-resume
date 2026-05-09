@@ -18,6 +18,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@icon-park/react": "^1.4.2",
+    "@upstash/redis": "^1.38.0",
     "ahooks": "^3.8.5",
     "antd": "^5.25.4",
     "commitlint": "^19.8.1",

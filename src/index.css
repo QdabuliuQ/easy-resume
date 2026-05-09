@@ -369,7 +369,7 @@
   justify-content: center;
   gap: 0.5rem;
   border-radius: 0.875rem;
-  border: 1px solid rgb(255 255 255 / 0.08);
+  border: none;
   box-shadow: 0 16px 34px rgb(0 0 0 / 0.12);
 }
 

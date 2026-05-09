@@ -6,15 +6,13 @@ import { loadInlineHtmlForPrint, settleFontsOrTimeout } from '../pdf/loadInlineH
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { mergeResumeConfig } from '../pdf/mergeResumeConfig';
-import { renderResumeDocumentHtml } from '../pdf/renderResumeHtml';
+import { renderResumePngHtml } from '../pdf/renderResumeHtml';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 type PrintMeta = {
   paperWidth: string;
-  paperHeight: string;
-  pageCount: number;
 };
 
 async function generatePngFromPage(
@@ -25,23 +23,15 @@ async function generatePngFromPage(
   const browser = await puppeteer.launch(getPuppeteerLaunchOptions());
   try {
     const page = await browser.newPage();
-    let vw = 1200;
-    let vh = 1600;
-    let pageHPx = cssLengthToApproxPx(
-      globalStylePageDimensions(defaultResume.globalStyle).height
-    );
-    if (printMeta?.paperWidth && printMeta?.paperHeight) {
-      const pageWPx = cssLengthToApproxPx(printMeta.paperWidth);
-      pageHPx = cssLengthToApproxPx(printMeta.paperHeight);
-      vw = Math.min(2400, Math.ceil(pageWPx));
-      vh = Math.min(
-        16384,
-        Math.ceil(printMeta.pageCount * pageHPx)
-      );
-    }
+    // viewport 宽度精确对应页面宽度，高度给一个足够大的初始值；
+    // fullPage:true 截图时会按实际内容高度捕获，不受 viewport.height 限制
+    const pageWPx = printMeta?.paperWidth
+      ? cssLengthToApproxPx(printMeta.paperWidth)
+      : cssLengthToApproxPx(globalStylePageDimensions(defaultResume.globalStyle).width);
+    const vw = Math.min(2400, Math.ceil(pageWPx));
     await page.setViewport({
       width: vw,
-      height: Math.max(vh, Math.ceil(pageHPx)),
+      height: 1200,
       deviceScaleFactor: 2,
     });
     if (pageHtml) {
@@ -79,6 +69,8 @@ function contentDisposition(filename: string) {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
+    const requestOrigin = new URL(req.url).origin;
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
     const { url, html, filename, config } = body as {
       url?: string;
       html?: string;
@@ -92,25 +84,17 @@ export async function POST(req: Request) {
 
     if (config != null && typeof config === 'object') {
       const merged = mergeResumeConfig(config);
-      pageHtml = renderResumeDocumentHtml(
+      pageHtml = renderResumePngHtml(
         merged as {
           pages: Array<{ moduleMargin?: number; modules?: unknown[] }>;
           globalStyle: GlobalStyle;
-        }
+        },
+        { assetOrigin: requestOrigin, basePath }
       );
       const gs = (merged as { globalStyle?: GlobalStyle }).globalStyle;
-      const exportPages = (merged as { exportPages?: Array<unknown> }).exportPages;
-      const n =
-        Array.isArray(exportPages) && exportPages.length > 0
-          ? exportPages.length
-          : Array.isArray(merged.pages) && merged.pages.length > 0
-            ? merged.pages.length
-          : 1;
       const dim = globalStylePageDimensions(gs ?? defaultResume.globalStyle);
       printMeta = {
         paperWidth: dim.width,
-        paperHeight: dim.height,
-        pageCount: n,
       };
     } else if (typeof html === 'string' && html.trim()) {
       pageHtml = html;

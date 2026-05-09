@@ -80,6 +80,8 @@ function contentDisposition(filename: string) {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
+    const requestOrigin = new URL(req.url).origin;
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
     const { url, html, filename, config } = body as {
       url?: string;
       html?: string;
@@ -97,7 +99,8 @@ export async function POST(req: Request) {
         merged as {
           pages: Array<{ moduleMargin?: number; modules?: unknown[] }>;
           globalStyle: GlobalStyle;
-        }
+        },
+        { assetOrigin: requestOrigin, basePath }
       );
       const gs = (merged as { globalStyle?: GlobalStyle }).globalStyle;
       const exportPages = (merged as { exportPages?: Array<unknown> }).exportPages;

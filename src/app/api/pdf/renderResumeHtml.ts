@@ -87,7 +87,7 @@ function wrapQuillRichHtml(html: string, style: string): string {
     rewriteAnchorsForPdfHtml(sanitizeRichText(html))
   );
   if (!body) return '';
-  return `<div class="pdf-rich resume-quill-embed" style="${style}"><div class="ql-editor">${body}</div></div>`;
+  return `<div class="pdf-rich resume-quill-embed" style="width:100%;box-sizing:border-box;${style}"><div class="ql-editor">${body}</div></div>`;
 }
 
 function escapeHtml(s: unknown): string {
@@ -182,7 +182,9 @@ ${avatarHtml}
 }
 
 function renderCertificate(mod: { options: { title: string; items: Array<{ name: string; date: string }> }; showHeader?: boolean }, gs: GlobalStyle): string {
-  const { title, items } = mod.options;
+  const opts = mod.options as Record<string, unknown>;
+  const title = String(opts.title ?? '证书');
+  const items = (opts.items as Array<{ name: string; date: string }>) ?? [];
   const fs = gs.fontSize;
   const rows = items
     .map(
@@ -197,17 +199,22 @@ function renderCertificate(mod: { options: { title: string; items: Array<{ name:
 }
 
 function renderSkill(mod: { options: { title: string; description: string }; showHeader?: boolean }, gs: GlobalStyle): string {
-  const { title, description } = mod.options;
+  const opts = mod.options as Record<string, unknown>;
+  const title = String(opts.title ?? '专业技能');
+  const description = String(opts.description ?? '');
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
   const inner = plainTextFromRich(description)
     ? wrapQuillRichHtml(description, `font-size:${fs}px;line-height:${lh};color:#333;`)
     : '';
+  // 即使 inner 为空也渲染，wrapSectionModuleMaybe 会保留 header
   return wrapSectionModuleMaybe(title, gs, inner, mod.showHeader !== false, 'skill');
 }
 
 function renderJob(mod: { options: { title: string; items: Array<Record<string, string>> }; showHeader?: boolean }, gs: GlobalStyle): string {
-  const { title, items } = mod.options;
+  const opts = mod.options as Record<string, unknown>;
+  const title = String(opts.title ?? '工作经历');
+  const items = (opts.items as Array<Record<string, string>>) ?? [];
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
   const blocks = items
@@ -238,7 +245,9 @@ ${descHtml}
 }
 
 function renderProject(mod: { options: { title: string; items: Array<Record<string, string>> }; showHeader?: boolean }, gs: GlobalStyle): string {
-  const { title, items } = mod.options;
+  const opts = mod.options as Record<string, unknown>;
+  const title = String(opts.title ?? '项目经历');
+  const items = (opts.items as Array<Record<string, string>>) ?? [];
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
   const blocks = items
@@ -264,7 +273,9 @@ ${descHtml}
 }
 
 function renderEducation(mod: { options: { title: string; items: Array<Record<string, unknown>> }; showHeader?: boolean }, gs: GlobalStyle): string {
-  const { title, items } = mod.options;
+  const opts = mod.options as Record<string, unknown>;
+  const title = String(opts.title ?? '教育经历');
+  const items = (opts.items as Array<Record<string, unknown>>) ?? [];
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
   const color = gs.color;
@@ -304,22 +315,23 @@ ${descHtml}
 }
 
 function renderModule(mod: { type: string; options?: unknown; showHeader?: boolean }, gs: GlobalStyle): string {
-  if (!mod?.options) return '';
+  // options 缺失时补空对象，确保 header 仍能渲染
+  const modWithOpts = { ...mod, options: (mod?.options ?? {}) as Record<string, unknown> };
   switch (mod.type) {
     case 'info1':
-      return renderInfo1(mod as { options: Record<string, unknown> }, gs);
+      return renderInfo1(modWithOpts as unknown as { options: Record<string, unknown> }, gs);
     case 'certificate':
-      return renderCertificate(mod as { options: { title: string; items: Array<{ name: string; date: string }> } }, gs);
+      return renderCertificate(modWithOpts as unknown as { options: { title: string; items: Array<{ name: string; date: string }> } }, gs);
     case 'skill':
-      return renderSkill(mod as { options: { title: string; description: string } }, gs);
+      return renderSkill(modWithOpts as unknown as { options: { title: string; description: string } }, gs);
     case 'other':
-      return renderSkill(mod as { options: { title: string; description: string } }, gs);
+      return renderSkill(modWithOpts as unknown as { options: { title: string; description: string } }, gs);
     case 'job':
-      return renderJob(mod as { options: { title: string; items: Array<Record<string, string>> } }, gs);
+      return renderJob(modWithOpts as unknown as { options: { title: string; items: Array<Record<string, string>> } }, gs);
     case 'project':
-      return renderProject(mod as { options: { title: string; items: Array<Record<string, string>> } }, gs);
+      return renderProject(modWithOpts as unknown as { options: { title: string; items: Array<Record<string, string>> } }, gs);
     case 'education':
-      return renderEducation(mod as { options: { title: string; items: Array<Record<string, unknown>> } }, gs);
+      return renderEducation(modWithOpts as unknown as { options: { title: string; items: Array<Record<string, unknown>> } }, gs);
     default:
       return '';
   }
@@ -330,30 +342,139 @@ function renderPage(page: { moduleMargin?: number; modules?: unknown[] }, gs: Gl
     Number(gs.moduleMargin) ||
     Number(page.moduleMargin) ||
     10;
-  const modules = (page.modules ?? []) as Array<{ type: string; options?: unknown; showHeader?: boolean }>;
+  const modules = (page.modules ?? []) as Array<{
+    type: string;
+    options?: unknown;
+    showHeader?: boolean;
+    viewHeight?: number;
+    offsetY?: number;
+    continuation?: boolean;
+  }>;
   const parts: string[] = [];
+  let hasPlacedAnyModule = false;
   for (let i = 0; i < modules.length; i++) {
-    if (i > 0) {
+    const mod = modules[i];
+    if (hasPlacedAnyModule && !mod.continuation) {
       parts.push(`<div style="width:100%;height:${mm}px;flex-shrink:0;"></div>`);
     }
-    parts.push(renderModule(modules[i], gs));
+
+    const rendered = renderModule(mod, gs);
+    if (!rendered) continue;
+
+    const viewHeight = Number(mod.viewHeight);
+    const offsetY = Number(mod.offsetY);
+    const hasViewHeight = Number.isFinite(viewHeight) && viewHeight > 0;
+    const hasOffset = Number.isFinite(offsetY) && offsetY > 0;
+
+    if (hasViewHeight || hasOffset) {
+      const h = hasViewHeight ? viewHeight : 0;
+      const inner = hasOffset
+        ? `<div style="transform:translateY(-${offsetY}px);">${rendered}</div>`
+        : rendered;
+      parts.push(`<div style="width:100%;height:${h}px;overflow:hidden;flex-shrink:0;">${inner}</div>`);
+    } else {
+      parts.push(rendered);
+    }
+    hasPlacedAnyModule = true;
   }
   const { width: pw, height: ph } = globalStylePageDimensions(gs);
   const { backgroundColor, padding = 0 } = gs;
   const bg = escapeHtml(backgroundColor);
   const wCss = escapeHtml(String(pw));
   const hCss = escapeHtml(String(ph));
-  return `<div class="pdf-page" style="width:${wCss};height:${hCss};padding:${padding}px;background:${bg};margin:0 auto;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column;">
+  const innerWCss = `calc(${wCss} - ${padding * 2}px)`;
+  const innerHCss = `calc(${hCss} - ${padding * 2}px)`;
+  return `<div class="pdf-page" style="width:${wCss};height:${hCss};padding:${padding}px;background:${bg};margin:0 auto;box-sizing:border-box;overflow:hidden;">
+<div style="width:${innerWCss};height:${innerHCss};overflow:hidden;display:flex;flex-direction:column;">
 ${parts.join('')}
+</div>
 </div>`;
 }
 
-/** 由简历配置生成完整 HTML 文档，供 Puppeteer 打印（不依赖 /edit、无用户态） */
+function renderContinuousPage(
+  pages: Array<{ moduleMargin?: number; modules?: unknown[] }>,
+  gs: GlobalStyle
+): string {
+  const mm = Number(gs.moduleMargin) || 10;
+  const parts: string[] = [];
+  let firstModule = true;
+
+  for (const page of pages) {
+    const modules = (page.modules ?? []) as Array<{
+      type: string;
+      options?: unknown;
+      showHeader?: boolean;
+    }>;
+
+    for (const module of modules) {
+      const rendered = renderModule(module, gs);
+      if (!rendered) continue;
+      if (!firstModule) {
+        parts.push(`<div style="width:100%;height:${mm}px;flex-shrink:0;"></div>`);
+      }
+      parts.push(rendered);
+      firstModule = false;
+    }
+  }
+
+  const { width: pw } = globalStylePageDimensions(gs);
+  const { backgroundColor, padding = 0 } = gs;
+  const bg = escapeHtml(backgroundColor);
+  const wCss = escapeHtml(String(pw));
+  const innerWCss = `calc(${wCss} - ${padding * 2}px)`;
+
+  return `<div class="png-page" style="width:${wCss};padding:${padding}px;background:${bg};margin:0 auto;box-sizing:border-box;">
+<div style="width:${innerWCss};display:flex;flex-direction:column;">
+${parts.join('')}
+</div>
+</div>`;
+}
+
+/** 共用简历样式：quill 重置 + 字体，PDF 和 PNG 保持完全一致 */
+function buildResumeSharedStyles(fontStack: string, canvasBg: string): string {
+  return `  * { box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; background: ${canvasBg}; }
+  .pdf-page, .png-page { font-family: ${fontStack}; }
+  .pdf-page *, .png-page * { font-family: inherit !important; }
+  .pdf-rich, .pdf-rich * { font-family: ${fontStack} !important; }
+  .resume-quill-embed {
+    --spacing: 0.25rem;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .resume-quill-embed .ql-editor li {
+    margin-block: calc(var(--spacing) * 0.5);
+  }
+  .resume-quill-embed .ql-editor {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    outline: none !important;
+    color: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    white-space: normal;
+    word-wrap: break-word;
+    word-break: break-word;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .resume-quill-embed .ql-editor ol,
+  .resume-quill-embed .ql-editor ul {
+    padding-left: 0 !important;
+    margin: 0 !important;
+  }`;
+}
 export function renderResumeDocumentHtml(resume: {
   pages: Array<{ moduleMargin?: number; modules?: unknown[] }>;
   exportPages?: Array<{ moduleMargin?: number; modules?: unknown[] }>;
   globalStyle: GlobalStyle;
-}) {
+}, opts?: { assetOrigin?: string; basePath?: string }) {
   const gs = resume.globalStyle;
   const { width: pageW, height: pageH } = globalStylePageDimensions(gs);
   const pages = resume.exportPages ?? resume.pages ?? [];
@@ -374,7 +495,10 @@ export function renderResumeDocumentHtml(resume: {
       ? `'Noto Sans SC', ${resumeFontStack(gs.resumeFont)}`
       : resumeFontStack(gs.resumeFont);
   const quillSnow = getQuillSnowCss();
-  const fontLinks = resumePdfFontLinkTags(gs.resumeFont);
+  const fontLinks = resumePdfFontLinkTags(gs.resumeFont, {
+    assetOrigin: opts?.assetOrigin,
+    basePath: opts?.basePath,
+  });
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -385,8 +509,7 @@ export function renderResumeDocumentHtml(resume: {
 ${fontLinks}
 <style>
 ${quillSnow}
-  * { box-sizing: border-box; }
-  html { -webkit-font-smoothing: antialiased; background: ${canvasBg}; }
+${buildResumeSharedStyles(fontStack, canvasBg)}
   @page {
     size: ${wCss} ${hCss};
     margin: 0;
@@ -408,30 +531,56 @@ ${quillSnow}
     page-break-after: auto;
     break-after: auto;
   }
-  .pdf-page { font-family: ${fontStack}; }
-  .pdf-page * { font-family: inherit !important; }
-  .pdf-rich, .pdf-rich * { font-family: ${fontStack} !important; }
-  .resume-quill-embed {
-    --spacing: 0.25rem;
-  }
-  .resume-quill-embed .ql-editor li {
-    margin-block: calc(var(--spacing) * 0.5);
-  }
-  .resume-quill-embed .ql-editor {
-    padding: 0 !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: visible !important;
-    outline: none !important;
-    color: inherit;
-    font-size: inherit;
-    line-height: inherit;
-    white-space: normal;
-    word-wrap: break-word;
-  }
-  .resume-quill-embed .ql-editor ol {
-    padding-left: 0 !important;
+</style>
+</head>
+<body>
+${bodyInner}
+</body>
+</html>`;
+}
+
+export function renderResumePngHtml(
+  resume: {
+    pages: Array<{ moduleMargin?: number; modules?: unknown[] }>;
+    globalStyle: GlobalStyle;
+  },
+  opts?: { assetOrigin?: string; basePath?: string }
+) {
+  const gs = resume.globalStyle;
+  const { width: pageW } = globalStylePageDimensions(gs);
+  const pages = resume.pages ?? [];
+  const bodyInner = renderContinuousPage(pages, gs);
+  const docTitle = 'Resume';
+  const canvasBg = escapeHtml(gs.backgroundColor ?? '#fff');
+  const wCss = escapeHtml(String(pageW));
+
+  const fontStack =
+    gs.resumeFont === 'system'
+      ? `'Noto Sans SC', ${resumeFontStack(gs.resumeFont)}`
+      : resumeFontStack(gs.resumeFont);
+  const quillSnow = getQuillSnowCss();
+  const fontLinks = resumePdfFontLinkTags(gs.resumeFont, {
+    assetOrigin: opts?.assetOrigin,
+    basePath: opts?.basePath,
+  });
+
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${escapeHtml(docTitle)}</title>
+${fontLinks}
+<style>
+${quillSnow}
+${buildResumeSharedStyles(fontStack, canvasBg)}
+  body {
+    margin: 0;
+    padding: 0;
+    width: ${wCss};
+    background: ${canvasBg};
+    font-family: ${fontStack};
+    box-sizing: border-box;
   }
 </style>
 </head>
