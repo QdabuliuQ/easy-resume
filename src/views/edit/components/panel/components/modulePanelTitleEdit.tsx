@@ -53,7 +53,7 @@ function ModulePanelTitleEdit({
             className='panel-title-input text-[15px]'
           />
         ) : (
-          <span className='block truncate text-[15px] font-medium text-white/95'>{display}</span>
+          <span className='block truncate text-[15px] font-medium text-fg/95'>{display}</span>
         )}
       </div>
       {

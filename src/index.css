@@ -5,6 +5,14 @@
   --color-background: #141414;
 }
 
+/* 主题感知前景色：在深色下接近 white，浅色下自动反相为接近黑色。
+   Tailwind v4 的 `bg-fg/8` / `text-fg/95` 等不透明度工具基于 color-mix，
+   因此 --surface-fg-rgb 在 :root[data-theme=...] 下切换即整站联动。 */
+@theme inline {
+  --color-fg: rgb(var(--surface-fg-rgb));
+  --color-surface: rgb(var(--panel-surface-rgb));
+}
+
 @keyframes info1-panel-enter {
   from {
     opacity: 0;
@@ -91,16 +99,108 @@
   }
 }
 
-:root {
+:root,
+[data-theme='dark'] {
   --color-primary: #f9724d;
   --color-primary-gradient-start: #fde76b;
+
+  /* —— 主题极性 —— 深色下"白色叠加层"使用 255 255 255；浅色翻转 */
+  --surface-fg-rgb: 255 255 255;
+  --surface-bg-rgb: 0 0 0;
+  --panel-surface-rgb: 255 255 255;
+
+  /* —— 编辑器外壳（深色基线） —— */
   --editor-shell-bg: #120f12;
   --editor-shell-panel: rgb(31 28 34 / 0.82);
   --editor-shell-panel-strong: rgb(40 35 43 / 0.92);
-  --editor-shell-panel-soft: rgb(255 255 255 / 0.05);
-  --editor-shell-border: rgb(255 255 255 / 0.08);
+  --editor-shell-panel-soft: rgb(var(--surface-fg-rgb) / 0.05);
+  --editor-shell-border: rgb(var(--surface-fg-rgb) / 0.08);
   --editor-shell-shadow: 0 24px 80px rgb(0 0 0 / 0.38);
   --editor-shell-highlight: rgb(253 231 107 / 0.16);
+
+  /* —— 外壳大背景（含装饰径向叠加层） —— */
+  --shell-bg-image:
+    radial-gradient(circle at 12% 18%, rgb(249 114 77 / 0.22), transparent 28%),
+    radial-gradient(circle at 82% 16%, rgb(253 231 107 / 0.12), transparent 24%),
+    radial-gradient(circle at 74% 84%, rgb(96 84 255 / 0.14), transparent 30%),
+    linear-gradient(180deg, #18141a 0%, #0f0d11 100%);
+  --shell-bg-overlay:
+    linear-gradient(135deg, rgb(255 255 255 / 0.04) 0%, transparent 32%),
+    radial-gradient(circle at center, rgb(255 255 255 / 0.03) 0%, transparent 60%);
+  --shell-grid-line: rgb(var(--surface-fg-rgb) / 0.032);
+  --shell-grid-mask: linear-gradient(180deg, rgb(0 0 0 / 0.7), transparent 82%);
+
+  /* —— 文本 —— */
+  --text-strong: rgb(var(--surface-fg-rgb) / 0.96);
+  --text-base: rgb(var(--surface-fg-rgb) / 0.85);
+  --text-muted: rgb(var(--surface-fg-rgb) / 0.6);
+  --text-soft: rgb(var(--surface-fg-rgb) / 0.45);
+
+  /* —— 悬浮操作按钮（画布右下角等） —— */
+  --float-btn-bg: rgb(38 36 43 / 0.92);
+  --float-btn-bg-hover: #302d36;
+  --float-btn-border: rgb(var(--surface-fg-rgb) / 0.15);
+  --float-btn-border-hover: rgb(var(--surface-fg-rgb) / 0.25);
+  --float-btn-fg: rgb(var(--surface-fg-rgb) / 0.9);
+  --float-btn-shadow: 0 10px 28px rgb(0 0 0 / 0.32);
+
+  /* —— 弹层与分割线 —— */
+  --overlay-scrim: rgb(15 13 18 / 0.88);
+  --overlay-panel-bg: rgb(var(--surface-fg-rgb) / 0.04);
+  --overlay-panel-bg-hover: rgb(var(--surface-fg-rgb) / 0.1);
+  --overlay-divider: rgb(var(--surface-fg-rgb) / 0.1);
+
+  --antd-popup-bg: #323236;
+  --antd-popup-panel: #2e2d31;
+  --antd-popup-border: #555555;
+  --antd-select-compact-bg: #2a2a2a;
+  --antd-select-compact-fg: #ffffff;
+  --antd-select-compact-muted: #aaaaaa;
+  --antd-input-bg: #2a2a2a;
+  --antd-input-border: #555555;
+  --antd-input-fg: #ffffff;
+  --menu-selected-inner: rgb(56 54 58 / 0.9);
+  --menu-icon-muted: #97929f;
+
+  --rte-chrome-line: #2d2d2d;
+  --rte-toolbar-bg: #2a2a2e;
+  --rte-editor-bg: #1a1a1d;
+  --rte-host-border: rgb(var(--surface-fg-rgb) / 0.08);
+  --rte-icon-fg: #ffffff;
+  --rte-icon-muted: rgb(var(--surface-fg-rgb) / 0.85);
+
+  --panel-inset-bg: rgb(0 0 0 / 0.1);
+  --panel-inset-bg-strong: rgb(0 0 0 / 0.25);
+  --panel-layer-deep: rgb(0 0 0 / 0.08);
+  --panel-shadow-icon-btn: 0 10px 20px rgb(0 0 0 / 0.12);
+  --panel-shadow-md: 0 18px 34px rgb(0 0 0 / 0.12);
+  --panel-shadow-lg: 0 18px 40px rgb(0 0 0 / 0.16);
+  --panel-shadow-card: 0 14px 40px rgb(0 0 0 / 0.12);
+  --panel-shadow-card-tight: 0 16px 34px rgb(0 0 0 / 0.1);
+  --panel-shadow-hover-card: 0 20px 38px rgb(0 0 0 / 0.14);
+  --panel-shadow-hover-btn: 0 10px 18px rgb(0 0 0 / 0.14);
+  --panel-shadow-primary-glow: 0 10px 18px rgb(249 114 77 / 0.14);
+  --panel-scrim: rgb(28 27 31 / 0.58);
+  --panel-chart-track: #3f3f46;
+  --panel-head-border: rgb(var(--panel-surface-rgb) / 0.14);
+  --panel-head-bg-start: rgb(var(--panel-surface-rgb) / 0.1);
+  --panel-head-bg-end: rgb(var(--panel-surface-rgb) / 0.04);
+  --panel-head-bg-base: rgb(var(--panel-surface-rgb) / 0.06);
+  --resume-panel-bg: var(--editor-shell-panel-strong);
+  --panel-btn-success-bg: #52c41a;
+  --panel-btn-danger-bg: #ff4d4f;
+  --panel-icon-on-accent: #ffffff;
+  --panel-form-icon: rgb(var(--surface-fg-rgb) / 0.72);
+  --panel-form-icon-strong: rgb(var(--surface-fg-rgb) / 0.86);
+  --panel-action-icon: #5caeff;
+  --module-op-icon: rgb(var(--surface-fg-rgb) / 0.42);
+  --module-op-icon-hover: rgb(var(--surface-fg-rgb) / 0.96);
+  --module-op-delete-icon: color-mix(in srgb, var(--panel-tone-rose) 62%, white 38%);
+  --module-op-delete-icon-hover: color-mix(in srgb, var(--panel-btn-danger-bg) 82%, white 18%);
+  --panel-tone-emerald: #34d399;
+  --panel-tone-rose: #f87171;
+  --panel-tone-amber: #fbbf24;
+
   --gradient-primary: linear-gradient(
     90deg,
     var(--color-primary-gradient-start) 0%,
@@ -132,13 +232,113 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: var(--text-strong);
+  background-color: var(--editor-shell-bg);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* 浅色主题：仅翻转极性与表面色，主色保持不变；可作用于 :root 或局部子树 */
+:root[data-theme='light'],
+[data-theme='light'] {
+  --surface-fg-rgb: 30 26 33; /* 接近原暗色面板的中和深灰，避免纯黑 */
+  --surface-bg-rgb: 255 255 255;
+  --panel-surface-rgb: 255 255 255;
+
+  --color-background: #f3eef0;
+  --editor-shell-bg: #f3eef0;
+  --editor-shell-panel: rgb(255 255 255 / 0.86);
+  --editor-shell-panel-strong: rgb(255 255 255 / 0.96);
+  --editor-shell-panel-soft: rgb(var(--surface-fg-rgb) / 0.04);
+  --editor-shell-border: rgb(var(--surface-fg-rgb) / 0.1);
+  --editor-shell-shadow: 0 18px 48px rgb(var(--surface-fg-rgb) / 0.1);
+  --editor-shell-highlight: rgb(249 114 77 / 0.14);
+
+  --shell-bg-image:
+    radial-gradient(circle at 12% 18%, rgb(249 114 77 / 0.14), transparent 28%),
+    radial-gradient(circle at 82% 16%, rgb(253 231 107 / 0.18), transparent 24%),
+    radial-gradient(circle at 74% 84%, rgb(96 84 255 / 0.08), transparent 30%),
+    linear-gradient(180deg, #faf6f5 0%, #ece6e8 100%);
+  --shell-bg-overlay:
+    linear-gradient(135deg, rgb(255 255 255 / 0.5) 0%, transparent 32%),
+    radial-gradient(circle at center, rgb(255 255 255 / 0.3) 0%, transparent 60%);
+  --shell-grid-line: rgb(var(--surface-fg-rgb) / 0.05);
+  --shell-grid-mask: linear-gradient(180deg, rgb(0 0 0 / 0.5), transparent 82%);
+
+  --text-strong: rgb(var(--surface-fg-rgb) / 0.92);
+  --text-base: rgb(var(--surface-fg-rgb) / 0.78);
+  --text-muted: rgb(var(--surface-fg-rgb) / 0.58);
+  --text-soft: rgb(var(--surface-fg-rgb) / 0.42);
+
+  --float-btn-bg: rgb(255 255 255 / 0.94);
+  --float-btn-bg-hover: #ffffff;
+  --float-btn-border: rgb(var(--surface-fg-rgb) / 0.12);
+  --float-btn-border-hover: rgb(var(--surface-fg-rgb) / 0.2);
+  --float-btn-fg: rgb(var(--surface-fg-rgb) / 0.78);
+  --float-btn-shadow: 0 10px 24px rgb(var(--surface-fg-rgb) / 0.12);
+
+  --overlay-scrim: rgb(243 238 240 / 0.92);
+  --overlay-panel-bg: rgb(var(--surface-fg-rgb) / 0.04);
+  --overlay-panel-bg-hover: rgb(var(--surface-fg-rgb) / 0.08);
+  --overlay-divider: rgb(var(--surface-fg-rgb) / 0.1);
+
+  --antd-popup-bg: #ffffff;
+  --antd-popup-panel: #f7f4f5;
+  --antd-popup-border: rgb(var(--surface-fg-rgb) / 0.14);
+  --antd-select-compact-bg: #f3f0f1;
+  --antd-select-compact-fg: rgb(var(--surface-fg-rgb) / 0.92);
+  --antd-select-compact-muted: rgb(var(--surface-fg-rgb) / 0.45);
+  --antd-input-bg: #ffffff;
+  --antd-input-border: rgb(var(--surface-fg-rgb) / 0.18);
+  --antd-input-fg: rgb(var(--surface-fg-rgb) / 0.92);
+  --menu-selected-inner: rgb(255 255 255 / 0.94);
+  --menu-icon-muted: rgb(var(--surface-fg-rgb) / 0.42);
+
+  --rte-chrome-line: rgb(var(--surface-fg-rgb) / 0.12);
+  --rte-toolbar-bg: #f3f1f3;
+  --rte-editor-bg: #ffffff;
+  --rte-host-border: rgb(var(--surface-fg-rgb) / 0.1);
+  --rte-icon-fg: rgb(var(--surface-fg-rgb) / 0.82);
+  --rte-icon-muted: rgb(var(--surface-fg-rgb) / 0.72);
+
+  --panel-inset-bg: rgb(var(--surface-fg-rgb) / 0.045);
+  --panel-inset-bg-strong: rgb(var(--surface-fg-rgb) / 0.09);
+  --panel-layer-deep: rgb(var(--surface-fg-rgb) / 0.055);
+  --panel-shadow-icon-btn: 0 10px 20px rgb(var(--surface-fg-rgb) / 0.07);
+  --panel-shadow-md: 0 18px 34px rgb(var(--surface-fg-rgb) / 0.09);
+  --panel-shadow-lg: 0 18px 40px rgb(var(--surface-fg-rgb) / 0.1);
+  --panel-shadow-card: 0 14px 40px rgb(var(--surface-fg-rgb) / 0.08);
+  --panel-shadow-card-tight: 0 16px 34px rgb(var(--surface-fg-rgb) / 0.07);
+  --panel-shadow-hover-card: 0 20px 38px rgb(var(--surface-fg-rgb) / 0.11);
+  --panel-shadow-hover-btn: 0 10px 18px rgb(var(--surface-fg-rgb) / 0.09);
+  --panel-shadow-primary-glow: 0 10px 18px rgb(249 114 77 / 0.18);
+  --panel-scrim: color-mix(in srgb, var(--editor-shell-bg) 62%, rgb(var(--surface-fg-rgb) / 0.22));
+  --panel-chart-track: rgb(var(--surface-fg-rgb) / 0.28);
+  --panel-head-border: rgb(var(--surface-fg-rgb) / 0.12);
+  --panel-head-bg-start: rgb(255 255 255 / 0.94);
+  --panel-head-bg-end: rgb(255 255 255 / 0.88);
+  --panel-head-bg-base: rgb(var(--surface-fg-rgb) / 0.05);
+  --resume-panel-bg: #ffffff;
+  --panel-btn-success-bg: #52c41a;
+  --panel-btn-danger-bg: #ff4d4f;
+  --panel-icon-on-accent: #ffffff;
+  --panel-form-icon: rgb(var(--surface-fg-rgb) / 0.64);
+  --panel-form-icon-strong: rgb(var(--surface-fg-rgb) / 0.82);
+  --panel-action-icon: color-mix(in srgb, var(--color-primary) 78%, black 22%);
+  --module-op-icon: rgb(var(--surface-fg-rgb) / 0.42);
+  --module-op-icon-hover: rgb(var(--surface-fg-rgb) / 0.92);
+  --module-op-delete-icon: color-mix(in srgb, var(--panel-tone-rose) 68%, white 22%);
+  --module-op-delete-icon-hover: color-mix(in srgb, var(--panel-btn-danger-bg) 88%, black 4%);
+  --panel-tone-emerald: #34d399;
+  --panel-tone-rose: #f87171;
+  --panel-tone-amber: #fbbf24;
+
+  color-scheme: light;
+  color: var(--text-strong);
+  background-color: var(--editor-shell-bg);
 }
 
 @keyframes editor-shell-drift {
@@ -152,20 +352,14 @@
 
 .editor-shell-bg {
   background-color: var(--editor-shell-bg);
-  background-image:
-    radial-gradient(circle at 12% 18%, rgb(249 114 77 / 0.22), transparent 28%),
-    radial-gradient(circle at 82% 16%, rgb(253 231 107 / 0.12), transparent 24%),
-    radial-gradient(circle at 74% 84%, rgb(96 84 255 / 0.14), transparent 30%),
-    linear-gradient(180deg, #18141a 0%, #0f0d11 100%);
+  background-image: var(--shell-bg-image);
 }
 
 .editor-shell-bg::before {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(135deg, rgb(255 255 255 / 0.04) 0%, transparent 32%),
-    radial-gradient(circle at center, rgb(255 255 255 / 0.03) 0%, transparent 60%);
+  background: var(--shell-bg-overlay);
   animation: editor-shell-drift 14s ease-in-out infinite alternate;
   pointer-events: none;
 }
@@ -183,18 +377,22 @@
 
 .editor-shell-inset {
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.045) 0%, rgb(255 255 255 / 0.02) 100%),
+    linear-gradient(
+      180deg,
+      rgb(var(--surface-fg-rgb) / 0.045) 0%,
+      rgb(var(--surface-fg-rgb) / 0.02) 100%
+    ),
     var(--editor-shell-panel-soft);
-  border: 1px solid rgb(255 255 255 / 0.05);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  border: 1px solid rgb(var(--surface-fg-rgb) / 0.05);
+  box-shadow: inset 0 1px 0 rgb(var(--surface-fg-rgb) / 0.04);
 }
 
 .editor-shell-grid {
   background-image:
-    linear-gradient(rgb(255 255 255 / 0.032) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(255 255 255 / 0.032) 1px, transparent 1px);
+    linear-gradient(var(--shell-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--shell-grid-line) 1px, transparent 1px);
   background-size: 28px 28px;
-  mask-image: linear-gradient(180deg, rgb(0 0 0 / 0.7), transparent 82%);
+  mask-image: var(--shell-grid-mask);
 }
 
 .panel-module-head {
@@ -204,12 +402,16 @@
   gap: 0.75rem;
   margin-bottom: 0.875rem;
   padding: 0.75rem 0.875rem;
-  border: 1px solid rgb(255 255 255 / 0.08);
+  border: 1px solid var(--panel-head-border);
   border-radius: 1rem;
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.06) 0%, rgb(255 255 255 / 0.025) 100%),
-    rgb(255 255 255 / 0.03);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+    linear-gradient(
+      180deg,
+      var(--panel-head-bg-start) 0%,
+      var(--panel-head-bg-end) 100%
+    ),
+    var(--panel-head-bg-base);
+  box-shadow: inset 0 1px 0 rgb(var(--panel-surface-rgb) / 0.04);
 }
 
 .panel-module-head-main {
@@ -227,13 +429,31 @@
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  border: 1px solid rgb(255 255 255 / 0.1);
+  border: 1px solid rgb(var(--surface-fg-rgb) / 0.22);
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.08) 0%, rgb(255 255 255 / 0.03) 100%),
-    rgb(255 255 255 / 0.03);
+    linear-gradient(
+      180deg,
+      rgb(var(--surface-fg-rgb) / 0.075) 0%,
+      rgb(var(--surface-fg-rgb) / 0.028) 100%
+    ),
+    rgb(var(--surface-fg-rgb) / 0.045);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    inset 0 1px 0 rgb(var(--surface-fg-rgb) / 0.09),
+    0 1px 2px rgb(var(--surface-fg-rgb) / 0.07),
     0 10px 24px rgb(0 0 0 / 0.12);
+}
+
+.panel-module-head:focus-within .panel-module-icon {
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 58%,
+    rgb(var(--surface-fg-rgb) / 0.26)
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(var(--surface-fg-rgb) / 0.1),
+    0 1px 2px rgb(var(--surface-fg-rgb) / 0.08),
+    0 10px 24px rgb(0 0 0 / 0.12),
+    0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent);
 }
 
 .panel-module-label {
@@ -245,40 +465,52 @@
   white-space: nowrap;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: rgb(255 255 255 / 0.95);
+  color: var(--text-strong);
 }
 
 .panel-module-preview,
 .panel-module-edit,
 .panel-item-shell {
-  border: 1px solid rgb(255 255 255 / 0.08);
+  border: 1px solid rgb(var(--panel-surface-rgb) / 0.12);
   border-radius: 1rem;
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    inset 0 1px 0 rgb(var(--panel-surface-rgb) / 0.04),
     0 16px 34px rgb(0 0 0 / 0.10);
 }
 
 .panel-module-preview {
   padding: 0.875rem 1rem;
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.065) 0%, rgb(255 255 255 / 0.03) 100%),
-    rgb(255 255 255 / 0.035);
+    linear-gradient(
+      180deg,
+      rgb(var(--panel-surface-rgb) / 0.11) 0%,
+      rgb(var(--panel-surface-rgb) / 0.05) 100%
+    ),
+    rgb(var(--panel-surface-rgb) / 0.065);
 }
 
 .panel-module-edit {
   margin-top: 0.375rem;
   padding: 0.75rem;
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.075) 0%, rgb(255 255 255 / 0.03) 100%),
-    rgb(255 255 255 / 0.045);
+    linear-gradient(
+      180deg,
+      rgb(var(--panel-surface-rgb) / 0.15) 0%,
+      rgb(var(--panel-surface-rgb) / 0.08) 100%
+    ),
+    rgb(var(--panel-surface-rgb) / 0.1);
 }
 
 .panel-item-shell {
   margin-bottom: 0.875rem;
   padding: 0.875rem 0.875rem 0.75rem;
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.055) 0%, rgb(255 255 255 / 0.025) 100%),
-    rgb(0 0 0 / 0.08);
+    linear-gradient(
+      180deg,
+      rgb(var(--panel-surface-rgb) / 0.09) 0%,
+      rgb(var(--panel-surface-rgb) / 0.04) 100%
+    ),
+    rgb(var(--panel-surface-rgb) / 0.08);
 }
 
 .panel-item-shell:last-child {
@@ -288,7 +520,7 @@
 .panel-soft-divider {
   margin: 0.875rem 0 0.125rem;
   width: 100%;
-  border-top: 1px dashed rgb(255 255 255 / 0.12);
+  border-top: 1px dashed rgb(var(--panel-surface-rgb) / 0.12);
 }
 
 .panel-toolbar-btn {
@@ -298,10 +530,10 @@
   cursor: pointer;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(var(--panel-surface-rgb) / 0.1);
   border-radius: 0.625rem;
-  background: rgb(255 255 255 / 0.03);
-  color: rgb(255 255 255 / 0.52);
+  background: rgb(var(--panel-surface-rgb) / 0.06);
+  color: var(--text-soft);
   transition:
     color 0.18s ease,
     border-color 0.18s ease,
@@ -310,9 +542,9 @@
 }
 
 .panel-toolbar-btn:hover {
-  color: rgb(255 255 255 / 0.92);
-  border-color: rgb(255 255 255 / 0.12);
-  background: rgb(255 255 255 / 0.07);
+  color: var(--text-strong);
+  border-color: rgb(var(--panel-surface-rgb) / 0.18);
+  background: rgb(var(--panel-surface-rgb) / 0.12);
   transform: translateY(-1px);
 }
 
@@ -324,10 +556,28 @@
 
 .panel-title-input {
   width: 100%;
-  border-color: rgb(255 255 255 / 0.16) !important;
-  background: rgb(255 255 255 / 0.08) !important;
-  color: rgb(255 255 255 / 0.96) !important;
+  border-color: rgb(var(--surface-fg-rgb) / 0.22) !important;
+  background: rgb(var(--surface-fg-rgb) / 0.065) !important;
+  color: var(--text-strong) !important;
   box-shadow: none !important;
+}
+
+.panel-title-input .ant-input {
+  background: transparent !important;
+}
+
+.panel-title-input:focus-within {
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 52%,
+    rgb(var(--surface-fg-rgb) / 0.28)
+  ) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 24%, transparent) !important;
+}
+
+.panel-title-input input::selection {
+  background: color-mix(in srgb, var(--color-primary) 40%, rgb(99 102 241 / 0.88));
+  color: rgb(var(--surface-bg-rgb) / 0.98);
 }
 
 .panel-title-edit-btn {
@@ -341,9 +591,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 0.625rem;
-  border: 1px solid rgb(255 255 255 / 0.06);
-  background: rgb(255 255 255 / 0.03);
-  color: rgb(255 255 255 / 0.55);
+  border: 1px solid rgb(var(--panel-surface-rgb) / 0.06);
+  background: rgb(var(--panel-surface-rgb) / 0.03);
+  color: var(--text-soft);
   outline: none;
   transition:
     color 0.18s ease,
@@ -353,9 +603,9 @@
 }
 
 .panel-title-edit-btn:hover {
-  color: rgb(255 255 255 / 0.92);
-  border-color: rgb(255 255 255 / 0.12);
-  background: rgb(255 255 255 / 0.07);
+  color: var(--text-strong);
+  border-color: rgb(var(--panel-surface-rgb) / 0.12);
+  background: rgb(var(--panel-surface-rgb) / 0.07);
   transform: translateY(-1px);
 }
 
@@ -373,6 +623,64 @@
   box-shadow: 0 16px 34px rgb(0 0 0 / 0.12);
 }
 
+/* —— 画布悬浮操作按钮（GitHub / 主题切换 / 预览） —— */
+.canvas-float-btn {
+  display: inline-flex;
+  height: 42px;
+  width: 42px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid var(--float-btn-border);
+  background: var(--float-btn-bg);
+  color: var(--float-btn-fg);
+  box-shadow: var(--float-btn-shadow);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.canvas-float-btn:hover {
+  border-color: var(--float-btn-border-hover);
+  background: var(--float-btn-bg-hover);
+  color: var(--text-strong);
+}
+
+/* —— 文本预览全屏蒙层 —— */
+.canvas-preview-shell {
+  background: var(--overlay-scrim);
+}
+
+.canvas-preview-toolbar {
+  border-bottom: 1px solid var(--overlay-divider);
+  color: var(--text-base);
+}
+
+.canvas-preview-close {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid var(--overlay-divider);
+  background: var(--overlay-panel-bg);
+  color: var(--text-base);
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.canvas-preview-close:hover {
+  background: var(--overlay-panel-bg-hover);
+  color: var(--text-strong);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .editor-shell-bg::before {
     animation: none;
@@ -382,7 +690,7 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #242424;
+  background-color: var(--editor-shell-bg);
 }
 
 .bg-gradient-primary {
@@ -407,17 +715,4 @@ a {
 }
 a:hover {
   color: #535bf2;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }

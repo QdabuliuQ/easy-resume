@@ -296,8 +296,8 @@ function Header() {
         <div
           className={
             n === 7
-              ? 'grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] items-stretch gap-2 rounded border border-black/10 bg-white px-2 py-1.5 shadow-sm'
-              : 'rounded border border-black/10 bg-white px-2 py-1.5 shadow-sm'
+              ? 'grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] items-stretch gap-2 rounded border border-fg/10 bg-fg/[0.04] px-2 py-1.5 shadow-sm'
+              : 'rounded border border-fg/10 bg-fg/[0.04] px-2 py-1.5 shadow-sm'
           }
         >
           {n === 7 ? (
@@ -477,18 +477,18 @@ function Header() {
   const tc = toolbarCompact;
   // 紧凑模式（移动端弹窗）：Select 有自己的边框和背景
   const selCompactSkin =
-    '[&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[#555] [&_.ant-select-selector]:!bg-[#2a2a2a] [&_.ant-select-selection-item]:!text-white [&_.ant-select-arrow]:!text-[#aaa]';
+    '[&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[color:var(--antd-select-compact-border)] [&_.ant-select-selector]:!bg-[var(--antd-select-compact-bg)] [&_.ant-select-selection-item]:!text-[var(--antd-select-compact-fg)] [&_.ant-select-arrow]:!text-[var(--antd-select-compact-muted)]';
   // 桌面模式：Select 嵌在 pill 壳里，去掉内层边框和背景，避免双重边框
   const selDesktopSkin =
-    '[&_.ant-select-selector]:!min-h-[28px] [&_.ant-select-selector]:!border-none [&_.ant-select-selector]:!bg-transparent [&_.ant-select-selector]:!shadow-none [&_.ant-select-selector]:!px-0 [&_.ant-select-selection-item]:!text-white/90 [&_.ant-select-arrow]:!text-white/50';
+    '[&_.ant-select-selector]:!min-h-[28px] [&_.ant-select-selector]:!border-none [&_.ant-select-selector]:!bg-transparent [&_.ant-select-selector]:!shadow-none [&_.ant-select-selector]:!px-0 [&_.ant-select-selection-item]:!text-fg/90 [&_.ant-select-arrow]:!text-fg/50';
   const selSkin = tc ? selCompactSkin : selDesktopSkin;
   const selClass = (mw: string) =>
     tc ? `w-full min-w-0 [&_.ant-select-selector]:!w-full ${selSkin}` : `${mw} ${selSkin}`;
   const selPortal = tc ? { getPopupContainer: () => document.body } : {};
   const toolbarFieldShellClass =
-    'inline-flex h-[38px] shrink-0 items-center gap-2 rounded-full border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]';
+    'inline-flex h-[38px] shrink-0 items-center gap-2 rounded-full border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--surface-fg-rgb)/0.05),rgb(var(--surface-fg-rgb)/0.025))] px-2.5 shadow-[inset_0_1px_0_rgb(var(--surface-fg-rgb)/0.04)]';
   const toolbarFieldLabelClass =
-    'shrink-0 pl-0.5 text-[13px] font-medium tracking-[0.02em] text-white/48';
+    'shrink-0 pl-0.5 text-[13px] font-medium tracking-[0.02em] text-fg/48';
   const wrapBar = (
     label: string,
     node: ReactNode,
@@ -496,7 +496,7 @@ function Header() {
   ) =>
     tc ? (
       <div className='flex flex-col gap-1'>
-        <span className='text-[13px] text-white/45 pr-[5px]'>{label}</span>
+        <span className='text-[13px] text-fg/45 pr-[5px]'>{label}</span>
         {node}
       </div>
     ) : (
@@ -515,11 +515,11 @@ function Header() {
       type='button'
       aria-expanded={moreConfigOpen}
       aria-haspopup='dialog'
-      className='flex h-[38px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10'
+      className='flex h-[38px] cursor-pointer items-center gap-1.5 rounded-full border border-fg/15 bg-fg/[0.06] px-3.5 text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/10'
     >
       <span>更多</span>
       <RightOutlined
-        className={`text-[10px] text-white/70 transition-transform duration-200 ${
+        className={`text-[10px] text-fg/70 transition-transform duration-200 ${
           moreConfigOpen ? 'rotate-90' : ''
         }`}
       />
@@ -535,10 +535,10 @@ function Header() {
           options={fontSizeOptions}
           onChange={(v) => setGlobalFontSize(v)}
           className={selClass('min-w-[76px]')}
-          popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+          popupClassName='[&_.ant-select-item]:text-fg/90 [&_.ant-select-item-option-selected]:!bg-fg/15 [&_.ant-select-item-option-active]:!bg-fg/10'
           styles={{
             popup: {
-              root: { backgroundColor: '#323236', padding: 4 },
+              root: { backgroundColor: 'var(--antd-popup-bg)', padding: 4 },
             },
           }}
           {...selPortal}
@@ -552,10 +552,10 @@ function Header() {
           onChange={(v) => setGlobalResumeFont(v)}
           popupMatchSelectWidth={false}
           className={selClass('min-w-[168px]')}
-          popupClassName='min-w-[220px] [&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+          popupClassName='min-w-[220px] [&_.ant-select-item]:text-fg/90 [&_.ant-select-item-option-selected]:!bg-fg/15 [&_.ant-select-item-option-active]:!bg-fg/10'
           styles={{
             popup: {
-              root: { backgroundColor: '#323236', padding: 4 },
+              root: { backgroundColor: 'var(--antd-popup-bg)', padding: 4 },
             },
           }}
           {...selPortal}
@@ -571,20 +571,24 @@ function Header() {
           onChange={(v) => setGlobalHeaderType(v)}
           popupMatchSelectWidth={false}
           className={selClass('min-w-[88px]')}
-          popupClassName='[&_.ant-select-item]:!min-h-[unset] [&_.ant-select-item]:!py-1 [&_.ant-select-item-option-selected]:!bg-white/10 [&_.ant-select-item-option-active]:!bg-white/8'
+          popupClassName='[&_.ant-select-item]:!min-h-[unset] [&_.ant-select-item]:!py-1 [&_.ant-select-item-option-selected]:!bg-fg/10 [&_.ant-select-item-option-active]:!bg-fg/8'
           styles={{
             popup: {
-              root: { backgroundColor: '#323236', padding: 6, minWidth: 268 },
+              root: {
+                backgroundColor: 'var(--antd-popup-bg)',
+                padding: 6,
+                minWidth: 268,
+              },
             },
           }}
           {...selPortal}
         />
       )}
       <div className='basis-full'>
-        <div className={tc ? 'mb-1 text-[13px] text-white/45' : 'mb-1 text-[13px] text-white/45'}>
+        <div className={tc ? 'mb-1 text-[13px] text-fg/45' : 'mb-1 text-[13px] text-fg/45'}>
           模块管理
         </div>
-        <ModuleManage inline className='rounded-xl border border-white/[0.08] bg-white/[0.03] p-2.5' />
+        <ModuleManage inline className='rounded-xl border border-fg/[0.08] bg-fg/[0.03] p-2.5' />
       </div>
     </>
   );
@@ -599,10 +603,10 @@ function Header() {
           onChange={(v) => setGlobalPageSize(v)}
           popupMatchSelectWidth={false}
           className={selClass('min-w-[118px]')}
-          popupClassName='min-w-[200px] [&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+          popupClassName='min-w-[200px] [&_.ant-select-item]:text-fg/90 [&_.ant-select-item-option-selected]:!bg-fg/15 [&_.ant-select-item-option-active]:!bg-fg/10'
           styles={{
             popup: {
-              root: { backgroundColor: '#323236', padding: 4 },
+              root: { backgroundColor: 'var(--antd-popup-bg)', padding: 4 },
             },
           }}
           {...selPortal}
@@ -615,10 +619,10 @@ function Header() {
           options={pagePaddingOptions}
           onChange={(v) => setGlobalPagePadding(v)}
           className={selClass('min-w-[76px]')}
-          popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+          popupClassName='[&_.ant-select-item]:text-fg/90 [&_.ant-select-item-option-selected]:!bg-fg/15 [&_.ant-select-item-option-active]:!bg-fg/10'
           styles={{
             popup: {
-              root: { backgroundColor: '#323236', padding: 4 },
+              root: { backgroundColor: 'var(--antd-popup-bg)', padding: 4 },
             },
           }}
           {...selPortal}
@@ -631,10 +635,10 @@ function Header() {
           options={moduleMarginOptions}
           onChange={(v) => setGlobalModuleMargin(v)}
           className={selClass('min-w-[76px]')}
-          popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+          popupClassName='[&_.ant-select-item]:text-fg/90 [&_.ant-select-item-option-selected]:!bg-fg/15 [&_.ant-select-item-option-active]:!bg-fg/10'
           styles={{
             popup: {
-              root: { backgroundColor: '#323236', padding: 4 },
+              root: { backgroundColor: 'var(--antd-popup-bg)', padding: 4 },
             },
           }}
           {...selPortal}
@@ -647,10 +651,10 @@ function Header() {
           options={lineHeightOptions}
           onChange={(v) => setGlobalLineHeight(v)}
           className={selClass('min-w-[76px]')}
-          popupClassName='[&_.ant-select-item]:text-white/90 [&_.ant-select-item-option-selected]:!bg-white/15 [&_.ant-select-item-option-active]:!bg-white/10'
+          popupClassName='[&_.ant-select-item]:text-fg/90 [&_.ant-select-item-option-selected]:!bg-fg/15 [&_.ant-select-item-option-active]:!bg-fg/10'
           styles={{
             popup: {
-              root: { backgroundColor: '#323236', padding: 4 },
+              root: { backgroundColor: 'var(--antd-popup-bg)', padding: 4 },
             },
           }}
           {...selPortal}
@@ -684,15 +688,15 @@ function Header() {
           }}
           styles={{
             body: {
-              backgroundColor: '#323236',
+              backgroundColor: 'var(--antd-popup-bg)',
               padding: 12,
               borderRadius: 8,
-              border: '1px solid #555',
+              border: '1px solid var(--antd-popup-border)',
             },
           }}
           content={
             <div className='w-[220px]'>
-              <div className='mb-2 text-[11px] text-white/60'>预设</div>
+              <div className='mb-2 text-[11px] text-fg/60'>预设</div>
               <div className='mb-3 flex flex-wrap gap-2'>
                 {THEME_PRESETS.map((c) => (
                   <button
@@ -706,14 +710,14 @@ function Header() {
                     }}
                     className={`size-7 shrink-0 rounded-md border-2 transition-transform hover:scale-110 ${
                       normHex(c) === normHex(themeColor)
-                        ? 'border-white ring-2 ring-white/35'
-                        : 'border-white/25'
+                        ? 'border-fg ring-2 ring-fg/35'
+                        : 'border-fg/25'
                     }`}
                     style={{ backgroundColor: c }}
                   />
                 ))}
               </div>
-              <div className='mb-1.5 text-[11px] text-white/60'>自定义</div>
+              <div className='mb-1.5 text-[11px] text-fg/60'>自定义</div>
               <input
                 type='color'
                 value={pickerInputValue}
@@ -722,7 +726,7 @@ function Header() {
                   setPickerDraft(v);
                   debouncedThemeFromPicker.run(v);
                 }}
-                className='h-9 w-full cursor-pointer rounded border border-white/15 bg-transparent p-0'
+                className='h-9 w-full cursor-pointer rounded border border-fg/15 bg-transparent p-0'
               />
             </div>
           }
@@ -730,7 +734,7 @@ function Header() {
           <button
             type='button'
             aria-label='主题色'
-            className={`size-[30px] shrink-0 cursor-pointer rounded-md border border-[#555] shadow-inner ${tc ? 'mx-auto' : ''}`}
+            className={`size-[30px] shrink-0 cursor-pointer rounded-md border shadow-inner border-[color:var(--antd-popup-border)] ${tc ? 'mx-auto' : ''}`}
             style={{ backgroundColor: themeColor }}
           />
         </Popover>
@@ -765,15 +769,15 @@ function Header() {
           }}
           styles={{
             body: {
-              backgroundColor: '#323236',
+              backgroundColor: 'var(--antd-popup-bg)',
               padding: 12,
               borderRadius: 8,
-              border: '1px solid #555',
+              border: '1px solid var(--antd-popup-border)',
             },
           }}
           content={
             <div className='w-[220px]'>
-              <div className='mb-2 text-[11px] text-white/60'>预设</div>
+              <div className='mb-2 text-[11px] text-fg/60'>预设</div>
               <div className='mb-3 flex flex-wrap gap-2'>
                 {BG_PRESETS.map((c) => (
                   <button
@@ -787,14 +791,14 @@ function Header() {
                     }}
                     className={`size-7 shrink-0 rounded-md border-2 transition-transform hover:scale-110 ${
                       normHex(c) === normHex(pageBgColor)
-                        ? 'border-white ring-2 ring-white/35'
-                        : 'border-white/25'
+                        ? 'border-fg ring-2 ring-fg/35'
+                        : 'border-fg/25'
                     }`}
                     style={{ backgroundColor: c }}
                   />
                 ))}
               </div>
-              <div className='mb-1.5 text-[11px] text-white/60'>自定义</div>
+              <div className='mb-1.5 text-[11px] text-fg/60'>自定义</div>
               <input
                 type='color'
                 value={bgPickerInputValue}
@@ -803,7 +807,7 @@ function Header() {
                   setBgPickerDraft(v);
                   debouncedBgFromPicker.run(v);
                 }}
-                className='h-9 w-full cursor-pointer rounded border border-white/15 bg-transparent p-0'
+                className='h-9 w-full cursor-pointer rounded border border-fg/15 bg-transparent p-0'
               />
             </div>
           }
@@ -811,7 +815,7 @@ function Header() {
           <button
             type='button'
             aria-label='背景色'
-            className={`size-[30px] shrink-0 cursor-pointer rounded-md border border-[#555] shadow-inner ${tc ? 'mx-auto' : ''}`}
+            className={`size-[30px] shrink-0 cursor-pointer rounded-md border shadow-inner border-[color:var(--antd-popup-border)] ${tc ? 'mx-auto' : ''}`}
             style={{ backgroundColor: pageBgColor }}
           />
         </Popover>
@@ -830,7 +834,7 @@ function Header() {
               root: { zIndex: 1050 },
               body: {
                 padding: 10,
-                background: '#2e2d31',
+                background: 'var(--antd-popup-panel)',
                 borderRadius: 10,
               },
             }}
@@ -858,7 +862,7 @@ function Header() {
             root: { zIndex: 1050 },
             body: {
               padding: 8,
-              background: '#2e2d31',
+              background: 'var(--antd-popup-panel)',
               borderRadius: 10,
             },
           }}
@@ -872,7 +876,7 @@ function Header() {
                   setExportPopOpen(false);
                   void exportPdf();
                 }}
-                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-white/95 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
+                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
               >
                 导出 PDF
               </button>
@@ -884,7 +888,7 @@ function Header() {
                   setExportPopOpen(false);
                   void exportPng();
                 }}
-                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-white/95 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
+                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
               >
                 导出 PNG
               </button>
@@ -896,7 +900,7 @@ function Header() {
                   setExportPopOpen(false);
                   exportJson();
                 }}
-                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-white/95 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
+                className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
               >
                 导出 JSON
               </button>
@@ -908,12 +912,12 @@ function Header() {
             disabled={pdfLoading || pngLoading}
             aria-expanded={exportPopOpen}
             aria-haspopup='menu'
-            className={`flex h-[38px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-70 ${fullRowBtn}`}
+            className={`flex h-[38px] cursor-pointer items-center gap-1.5 rounded-full border border-fg/15 bg-fg/[0.06] px-3.5 text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/10 disabled:cursor-not-allowed disabled:opacity-70 ${fullRowBtn}`}
           >
             {pdfLoading || pngLoading ? (
               <>
                 <span
-                  className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-white/25 border-t-white'
+                  className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-fg/25 border-t-[var(--text-strong)]'
                   aria-hidden
                 />
                 <span>导出中…</span>
@@ -922,7 +926,7 @@ function Header() {
               <>
                 <span>导出</span>
                 <RightOutlined
-                  className={`text-[10px] text-white/70 transition-transform duration-200 ${
+                  className={`text-[10px] text-fg/70 transition-transform duration-200 ${
                     exportPopOpen ? 'rotate-90' : ''
                   }`}
                 />
@@ -957,9 +961,9 @@ function Header() {
             className='max-w-[280px] min-w-[120px]'
             styles={{
               input: {
-                backgroundColor: '#2a2a2a',
-                color: '#fff',
-                border: '1px solid #555',
+                backgroundColor: 'var(--antd-input-bg)',
+                color: 'var(--antd-input-fg)',
+                border: '1px solid var(--antd-input-border)',
                 borderRadius: 6,
                 paddingInline: 8,
                 height: 28,
@@ -968,7 +972,7 @@ function Header() {
           />
         ) : (
           <>
-            <span className='truncate text-[15px] font-medium leading-[22px] text-white/96' title={name}>
+            <span className='truncate text-[15px] font-medium leading-[22px] text-fg/96' title={name}>
               {name}
             </span>
             <Button
@@ -976,7 +980,7 @@ function Header() {
               size='small'
               icon={<EditOutlined />}
               aria-label='编辑姓名'
-              className='!text-[#aaa] hover:!text-white !p-0 !h-7 !w-7 !min-w-7 inline-flex items-center justify-center shrink-0'
+              className='!text-fg/45 hover:!text-[var(--text-strong)] !p-0 !h-7 !w-7 !min-w-7 inline-flex items-center justify-center shrink-0'
               onClick={startEdit}
             />
           </>
@@ -994,7 +998,7 @@ function Header() {
             root: { zIndex: 1050 },
             body: {
               padding: 12,
-              background: '#2e2d31',
+              background: 'var(--antd-popup-panel)',
               borderRadius: 10,
               maxHeight: 'min(78vh, 560px)',
               overflowY: 'auto',
@@ -1010,12 +1014,12 @@ function Header() {
             type='button'
             aria-expanded={compactMenuOpen}
             aria-haspopup='dialog'
-            className='flex h-[30px] shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10'
+            className='flex h-[30px] shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-fg/15 bg-fg/[0.06] px-3 text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/10'
           >
-            <MenuOutlined className='text-[14px] text-white/85' />
+            <MenuOutlined className='text-[14px] text-fg/85' />
             <span>排版</span>
             <RightOutlined
-              className={`text-[10px] text-white/70 transition-transform duration-200 ${
+              className={`text-[10px] text-fg/70 transition-transform duration-200 ${
                 compactMenuOpen ? 'rotate-90' : ''
               }`}
             />

@@ -120,7 +120,7 @@ export function wrapSectionModuleHtml(
   const t = normHeaderTypeHtml(gs);
   if (t === 7) {
     const head = sectionHeaderHtml(title, gs, moduleType);
-    return `<div style="width:100%;display:grid;grid-template-columns:5rem minmax(0,1fr);align-items:stretch;column-gap:10px;">${head}<div style="min-width:0;border:1px solid #e4e4e7;background:#fafafa;border-radius:2px;padding:8px 12px;">${bodyHtml}</div></div>`;
+    return `<div style="width:100%;display:grid;grid-template-columns:5rem minmax(0,1fr);align-items:stretch;column-gap:10px;">${head}<div style="min-width:0;overflow:hidden;box-sizing:border-box;border:1px solid #e4e4e7;background:#fafafa;border-radius:2px;padding:8px 12px;">${bodyHtml}</div></div>`;
   }
   return `<div style="width:100%;">${sectionHeaderHtml(title, gs, moduleType)}<div style="margin-top:5px;">${bodyHtml}</div></div>`;
 }

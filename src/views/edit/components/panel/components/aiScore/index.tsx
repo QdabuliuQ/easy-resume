@@ -8,7 +8,7 @@ import { moduleType as moduleTypeMeta } from '@/modules/utils/constant';
 
 const PRIMARY_FILL = 'var(--color-primary)';
 const panelShellClass =
-  'overflow-hidden rounded-2xl border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.06)_0%,rgba(255,255,255,0.025)_100%),rgba(255,255,255,0.03)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_18px_34px_rgba(0,0,0,0.12)]';
+  'overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),rgb(var(--panel-surface-rgb)/0.03)] shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04),var(--panel-shadow-md)]';
 
 function clampScore0to100(n: number) {
   if (!Number.isFinite(n)) return 0;
@@ -38,7 +38,7 @@ function GaugeRing({ gradId, score }: { gradId: string; score: number }) {
       <path
         d={d}
         fill='none'
-        stroke='#3f3f46'
+        stroke='var(--panel-chart-track)'
         strokeWidth='14'
         strokeLinecap='round'
         pathLength={100}
@@ -59,7 +59,7 @@ function GaugeRing({ gradId, score }: { gradId: string; score: number }) {
 }
 
 const collapsePanelClass =
-  '[&_.ant-collapse]:!border-white/[0.06] [&_.ant-collapse-item]:!border-white/[0.06] [&_.ant-collapse-header]:!relative [&_.ant-collapse-header]:!z-[2] [&_.ant-collapse-header]:!shrink-0 [&_.ant-collapse-header]:!items-center [&_.ant-collapse-header]:!border-b [&_.ant-collapse-header]:!border-white/[0.06] [&_.ant-collapse-header]:!py-2.5 [&_.ant-collapse-header]:!px-3 [&_.ant-collapse-header]:!text-[13px] [&_.ant-collapse-header]:!text-white/90 [&_.ant-collapse-header]:!rounded-none [&_.ant-collapse-header]:hover:!bg-white/[0.04] [&_.ant-collapse-content]:!relative [&_.ant-collapse-content]:!z-0 [&_.ant-collapse-content]:!border-white/[0.06] [&_.ant-collapse-content-box]:!px-3 [&_.ant-collapse-content-box]:!pb-3 [&_.ant-collapse-content-box]:!pt-1 [&_.ant-collapse-content-box]:!isolate';
+  '[&_.ant-collapse]:!border-fg/[0.06] [&_.ant-collapse-item]:!border-fg/[0.06] [&_.ant-collapse-header]:!relative [&_.ant-collapse-header]:!z-[2] [&_.ant-collapse-header]:!shrink-0 [&_.ant-collapse-header]:!items-center [&_.ant-collapse-header]:!border-b [&_.ant-collapse-header]:!border-fg/[0.06] [&_.ant-collapse-header]:!py-2.5 [&_.ant-collapse-header]:!px-3 [&_.ant-collapse-header]:!text-[13px] [&_.ant-collapse-header]:!text-fg/90 [&_.ant-collapse-header]:!rounded-none [&_.ant-collapse-header]:hover:!bg-surface/[0.04] [&_.ant-collapse-content]:!relative [&_.ant-collapse-content]:!z-0 [&_.ant-collapse-content]:!border-fg/[0.06] [&_.ant-collapse-content-box]:!px-3 [&_.ant-collapse-content-box]:!pb-3 [&_.ant-collapse-content-box]:!pt-1 [&_.ant-collapse-content-box]:!isolate';
 
 const DIM_ICONS: ComponentType<{ theme?: 'outline' | 'filled'; size?: number; fill?: string; className?: string }>[] = [
   Setting,
@@ -69,9 +69,11 @@ const DIM_ICONS: ComponentType<{ theme?: 'outline' | 'filled'; size?: number; fi
 ];
 
 function statusTone(status: string): { dot: string; text: string; fill: string } {
-  if (status === '优秀') return { dot: 'bg-emerald-400', text: 'text-emerald-400', fill: '#34d399' };
-  if (status === '待补充') return { dot: 'bg-red-400', text: 'text-red-400', fill: '#f87171' };
-  return { dot: 'bg-amber-400', text: 'text-amber-400', fill: '#fbbf24' };
+  if (status === '优秀')
+    return { dot: 'bg-emerald-400', text: 'text-emerald-400', fill: 'var(--panel-tone-emerald)' };
+  if (status === '待补充')
+    return { dot: 'bg-red-400', text: 'text-red-400', fill: 'var(--panel-tone-rose)' };
+  return { dot: 'bg-amber-400', text: 'text-amber-400', fill: 'var(--panel-tone-amber)' };
 }
 
 function tokenizeFieldKey(fieldKey: string): Array<string | number> {
@@ -175,9 +177,9 @@ function applyAllFieldOptimizes(list: ResumeAiFieldOptimize[], messageApi: Messa
 
 function EmptyAnalysisHint() {
   return (
-    <div className='rounded-2xl border border-dashed border-white/[0.09] bg-black/10 px-4 py-6 text-center'>
-      <p className='text-[12px] font-medium text-white/72'>暂无分析结果</p>
-      <p className='mt-1 text-[11px] leading-relaxed text-white/42'>
+    <div className='rounded-2xl border border-dashed border-fg/[0.09] bg-[var(--panel-inset-bg)] px-4 py-6 text-center'>
+      <p className='text-[12px] font-medium text-fg/72'>暂无分析结果</p>
+      <p className='mt-1 text-[11px] leading-relaxed text-fg/62'>
         完成一次分析后，这里会展示评分拆解与可直接应用的优化建议。
       </p>
     </div>
@@ -189,7 +191,7 @@ function collapseExpandIcon({ isActive }: { isActive?: boolean }) {
     <Up
       theme='outline'
       size={14}
-      fill='rgba(255,255,255,0.45)'
+      fill='rgb(var(--panel-surface-rgb)/0.45)'
       className={`shrink-0 transition-transform duration-200 ${isActive ? '' : 'rotate-180'}`}
     />
   );
@@ -230,8 +232,8 @@ function AiScore({
         key: 'panel',
         label: (
           <div className='flex min-w-0 items-center gap-2'>
-            <span className='truncate font-medium text-white/92'>评分明细</span>
-            <span className='rounded-full border border-white/[0.08] bg-white/[0.05] px-2 py-0.5 text-[11px] text-white/55'>
+            <span className='truncate font-medium text-fg/92'>评分明细</span>
+            <span className='rounded-full border border-fg/[0.08] bg-surface/[0.05] px-2 py-0.5 text-[11px] text-fg/55'>
               {dimensionRows.length || 0} 项
             </span>
           </div>
@@ -246,21 +248,21 @@ function AiScore({
                   return (
                     <div
                       key={`${row.dimensionName}-${i}`}
-                      className='rounded-2xl border border-white/[0.07] bg-black/10 px-3 py-3 transition-colors hover:border-white/[0.12] hover:bg-white/[0.045]'
+                      className='rounded-2xl border border-fg/[0.07] bg-[var(--panel-inset-bg)] px-3 py-3 transition-colors hover:border-fg/[0.12] hover:bg-surface/[0.045]'
                     >
                       <div className='flex gap-3'>
-                      <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-black/25'>
+                      <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-fg/[0.06] bg-[var(--panel-inset-bg-strong)]'>
                         <Icon theme='filled' size={20} fill={tone.fill} />
                       </div>
                       <div className='min-w-0 flex-1'>
                         <div className='flex flex-wrap items-center gap-2 text-[13px]'>
-                          <span className='font-medium text-white/92'>{row.dimensionName}</span>
-                          <span className={`inline-flex items-center rounded-full border border-white/[0.06] px-2 py-0.5 text-[11px] ${tone.text}`}>
+                          <span className='font-medium text-fg/92'>{row.dimensionName}</span>
+                          <span className={`inline-flex items-center rounded-full border border-fg/[0.06] px-2 py-0.5 text-[11px] ${tone.text}`}>
                             <span className={`mr-1 size-1.5 shrink-0 rounded-full ${tone.dot}`} />
                             {row.status}
                           </span>
                         </div>
-                        <p className='mt-1.5 text-[11px] leading-relaxed text-white/48'>
+                        <p className='mt-1.5 text-[11px] leading-relaxed text-fg/58'>
                           简历说明：{row.remark}
                         </p>
                       </div>
@@ -286,8 +288,8 @@ function AiScore({
         key: 'panel',
         label: (
           <div className='flex min-w-0 items-center gap-2'>
-            <span className='truncate font-medium text-white/92'>AI 优化建议</span>
-            <span className='rounded-full border border-white/[0.08] bg-white/[0.05] px-2 py-0.5 text-[11px] text-white/55'>
+            <span className='truncate font-medium text-fg/92'>AI 优化建议</span>
+            <span className='rounded-full border border-fg/[0.08] bg-surface/[0.05] px-2 py-0.5 text-[11px] text-fg/55'>
               {actionableCount} 条可应用
             </span>
           </div>
@@ -296,10 +298,10 @@ function AiScore({
           <div className='mt-[5px]'>
             {fieldList.length > 0 ? (
               <>
-                <div className='flex items-center justify-between gap-2 rounded-2xl border border-white/[0.07] bg-black/10 px-3 py-2.5'>
+                <div className='flex items-center justify-between gap-2 rounded-2xl border border-fg/[0.07] bg-[var(--panel-inset-bg)] px-3 py-2.5'>
                   <div className='min-w-0'>
-                    <p className='text-[12px] font-medium text-white/88'>可直接写回简历</p>
-                    <p className='mt-0.5 text-[11px] leading-relaxed text-white/42'>
+                    <p className='text-[12px] font-medium text-fg/88'>可直接写回简历</p>
+                    <p className='mt-0.5 text-[11px] leading-relaxed text-fg/62'>
                       优先处理可量化成果、角色职责与技能表述。
                     </p>
                   </div>
@@ -323,7 +325,7 @@ function AiScore({
                   return (
                     <li
                       key={`${f.pageIndex}-${f.moduleId}-${f.fieldKey}`}
-                      className='rounded-2xl border border-white/[0.07] bg-black/10 px-3 py-3 text-[12px] leading-snug text-white/55 transition-[transform,border-color,background-color] duration-200 hover:-translate-y-0.5 hover:border-white/[0.12] hover:bg-white/[0.045]'
+                      className='rounded-2xl border border-fg/[0.07] bg-[var(--panel-inset-bg)] px-3 py-3 text-[12px] leading-snug text-fg/55 transition-[transform,border-color,background-color] duration-200 hover:-translate-y-0.5 hover:border-fg/[0.12] hover:bg-surface/[0.045]'
                       onMouseEnter={() => moduleActiveStore.setModuleActive(f.moduleId)}
                       onMouseLeave={() => {
                         if (moduleActiveStore.getModuleActive === f.moduleId) {
@@ -335,7 +337,7 @@ function AiScore({
                         <Right theme='filled' size={14} fill={PRIMARY_FILL} className='mt-0.5 shrink-0' />
                       <div className='min-w-0 flex-1'>
                         <div className='flex flex-wrap items-center gap-2'>
-                          <span className='rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-white/70'>
+                          <span className='rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2 py-0.5 text-[11px] font-medium text-fg/70'>
                             {moduleTypeLabel(f.moduleType)}
                           </span>
                           {hasVal ? (
@@ -344,15 +346,15 @@ function AiScore({
                             </span>
                           ) : null}
                         </div>
-                        <p className='mt-1.5 text-[12px] leading-relaxed text-white/70'>
+                        <p className='mt-1.5 text-[12px] leading-relaxed text-fg/70'>
                           {f.optimizeReason}
                         </p>
                         {hasVal ? (
-                          <div className='mt-2 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2'>
-                            <span className='block text-[11px] uppercase tracking-[0.18em] text-white/35'>
+                          <div className='mt-2 rounded-xl border border-fg/[0.06] bg-surface/[0.03] px-3 py-2'>
+                            <span className='block text-[11px] uppercase tracking-[0.18em] text-fg/58'>
                               建议修改
                             </span>
-                            <span className='mt-1 block text-[12px] leading-relaxed text-white/60'>
+                            <span className='mt-1 block text-[12px] leading-relaxed text-fg/60'>
                               {f.optimizeValue}
                             </span>
                             <button
@@ -385,39 +387,39 @@ function AiScore({
   return (
     <div className='relative flex h-full min-h-0 flex-col gap-3 overflow-auto px-0.5 pt-0.5 text-left'>
       {loading ? (
-        <div className='absolute inset-0 z-[8] flex flex-col items-center justify-center gap-3 rounded-2xl bg-[#1c1b1f]/58 backdrop-blur-sm'>
+        <div className='absolute inset-0 z-[8] flex flex-col items-center justify-center gap-3 rounded-2xl bg-[var(--panel-scrim)] backdrop-blur-sm'>
           <Spin size='large' />
-          <span className='text-[12px] text-white/55'>正在分析简历…</span>
+          <span className='text-[12px] text-fg/55'>正在分析简历…</span>
         </div>
       ) : null}
       <section className={`${panelShellClass} shrink-0 px-4 pb-4 pt-4`}>
         <div className='mb-3 flex items-center justify-between gap-3'>
           <div>
-            <p className='text-[12px] uppercase tracking-[0.16em] text-white/38'>智能综合评分</p>
+            <p className='text-[12px] uppercase tracking-[0.16em] text-fg/58'>智能综合评分</p>
             <p className={`mt-1 text-[13px] font-medium ${scoreState.tone}`}>{scoreState.label}</p>
           </div>
-          <div className='flex items-center gap-2 text-[11px] text-white/45'>
-            <span className='rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-1'>优秀 {excellentCount}</span>
-            <span className='rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-1'>待补充 {pendingCount}</span>
+          <div className='flex items-center gap-2 text-[11px] text-fg/58'>
+            <span className='rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2 py-1'>优秀 {excellentCount}</span>
+            <span className='rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2 py-1'>待补充 {pendingCount}</span>
           </div>
         </div>
         <div className='relative mx-auto w-full max-w-[220px]'>
           <GaugeRing gradId={gradId} score={score} />
           <div className='pointer-events-none absolute inset-0 flex flex-col items-center justify-end pb-1 pt-6'>
-            <span className='text-[38px] font-bold leading-none text-white/95'>
+            <span className='text-[38px] font-bold leading-none text-fg/95'>
               <span>{score}</span>
               <span className='text-[15px] font-bold relative top-[-2px]'>分</span>
             </span>
           </div>
         </div>
         <div className='mt-3 grid grid-cols-2 gap-2'>
-          <div className='rounded-2xl border border-white/[0.07] bg-black/10 px-3 py-2.5'>
-            <p className='text-[11px] uppercase tracking-[0.14em] text-white/34'>可应用建议</p>
-            <p className='mt-1 text-[16px] font-semibold text-white/92'>{actionableCount}</p>
+          <div className='rounded-2xl border border-fg/[0.07] bg-[var(--panel-inset-bg)] px-3 py-2.5'>
+            <p className='text-[11px] uppercase tracking-[0.14em] text-fg/58'>可应用建议</p>
+            <p className='mt-1 text-[16px] font-semibold text-fg/92'>{actionableCount}</p>
           </div>
-          <div className='rounded-2xl border border-white/[0.07] bg-black/10 px-3 py-2.5'>
-            <p className='text-[11px] uppercase tracking-[0.14em] text-white/34'>分析维度</p>
-            <p className='mt-1 text-[16px] font-semibold text-white/92'>{dimensionRows.length}</p>
+          <div className='rounded-2xl border border-fg/[0.07] bg-[var(--panel-inset-bg)] px-3 py-2.5'>
+            <p className='text-[11px] uppercase tracking-[0.14em] text-fg/58'>分析维度</p>
+            <p className='mt-1 text-[16px] font-semibold text-fg/92'>{dimensionRows.length}</p>
           </div>
         </div>
       </section>

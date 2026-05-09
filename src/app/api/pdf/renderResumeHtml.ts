@@ -1,6 +1,6 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import type { GlobalStyle } from '@/modules/utils/common.type';
+import { inlineQuillHtml } from '@/lib/inlineQuillHtml';
+import { readQuillSnowCss } from '@/lib/quillSnowCss';
 import { resumeFontStack } from '@/lib/resumeFont';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import { resumePdfFontLinkTags } from '@/lib/resumePdfFontLinkTags';
@@ -10,15 +10,6 @@ import {
   normalizeResumeCityDisplay,
 } from '@/utils/resumeCityDisplay';
 import { ensureAnchorsOpenBlank } from '@/utils/sanitizeHtml';
-
-let quillSnowCssCache: string | null = null;
-function getQuillSnowCss(): string {
-  if (quillSnowCssCache == null) {
-    const p = path.join(process.cwd(), 'node_modules/quill/dist/quill.snow.css');
-    quillSnowCssCache = fs.readFileSync(p, 'utf8');
-  }
-  return quillSnowCssCache;
-}
 
 /** PDF 专用：无 JSDOM 环境下的富文本清理（内容来自用户自己的简历 JSON） */
 function sanitizeRichText(html: string): string {
@@ -82,12 +73,20 @@ function rewriteAnchorsForPdfHtml(html: string): string {
   });
 }
 
-function wrapQuillRichHtml(html: string, style: string): string {
+function wrapQuillRichHtml(html: string, gs: GlobalStyle): string {
   const body = ensureAnchorsOpenBlank(
     rewriteAnchorsForPdfHtml(sanitizeRichText(html))
   );
   if (!body) return '';
-  return `<div class="pdf-rich resume-quill-embed" style="width:100%;box-sizing:border-box;${style}"><div class="ql-editor">${body}</div></div>`;
+  const fs = Number(gs.fontSize);
+  const fontSizePx = Number.isFinite(fs) && fs > 0 ? fs : 14;
+  const inlined = inlineQuillHtml(body, {
+    fontSizePx,
+    lineHeight: gs.lineHeight,
+    color: '#333',
+  });
+  const lh = gs.lineHeight;
+  return `<div class="pdf-rich" style="width:100%;box-sizing:border-box;font-size:${fontSizePx}px;line-height:${lh};color:#333;">${inlined}</div>`;
 }
 
 function escapeHtml(s: unknown): string {
@@ -202,10 +201,8 @@ function renderSkill(mod: { options: { title: string; description: string }; sho
   const opts = mod.options as Record<string, unknown>;
   const title = String(opts.title ?? '专业技能');
   const description = String(opts.description ?? '');
-  const fs = gs.fontSize;
-  const lh = gs.lineHeight;
   const inner = plainTextFromRich(description)
-    ? wrapQuillRichHtml(description, `font-size:${fs}px;line-height:${lh};color:#333;`)
+    ? wrapQuillRichHtml(description, gs)
     : '';
   // 即使 inner 为空也渲染，wrapSectionModuleMaybe 会保留 header
   return wrapSectionModuleMaybe(title, gs, inner, mod.showHeader !== false, 'skill');
@@ -216,12 +213,11 @@ function renderJob(mod: { options: { title: string; items: Array<Record<string, 
   const title = String(opts.title ?? '工作经历');
   const items = (opts.items as Array<Record<string, string>>) ?? [];
   const fs = gs.fontSize;
-  const lh = gs.lineHeight;
   const blocks = items
     .map((item, index) => {
       const desc = item.description ?? '';
       const descHtml = plainTextFromRich(desc)
-        ? wrapQuillRichHtml(desc, `font-size:${fs}px;line-height:${lh};color:#333;`)
+        ? wrapQuillRichHtml(desc, gs)
         : '';
       const sub = [item.post, item.department].filter(Boolean).join(' ');
       const subRow =
@@ -249,12 +245,11 @@ function renderProject(mod: { options: { title: string; items: Array<Record<stri
   const title = String(opts.title ?? '项目经历');
   const items = (opts.items as Array<Record<string, string>>) ?? [];
   const fs = gs.fontSize;
-  const lh = gs.lineHeight;
   const blocks = items
     .map((item, index) => {
       const desc = item.description ?? '';
       const descHtml = plainTextFromRich(desc)
-        ? wrapQuillRichHtml(desc, `font-size:${fs}px;line-height:${lh};color:#333;`)
+        ? wrapQuillRichHtml(desc, gs)
         : '';
       const roleRow = item.role
         ? `<div style="display:flex;justify-content:space-between;margin-bottom:5px;"><div style="flex:0.6;">${escapeHtml(item.role)}</div></div>`
@@ -277,7 +272,6 @@ function renderEducation(mod: { options: { title: string; items: Array<Record<st
   const title = String(opts.title ?? '教育经历');
   const items = (opts.items as Array<Record<string, unknown>>) ?? [];
   const fs = gs.fontSize;
-  const lh = gs.lineHeight;
   const color = gs.color;
   const blocks = items
     .map((item, index) => {
@@ -290,7 +284,7 @@ function renderEducation(mod: { options: { title: string; items: Array<Record<st
         .join('');
       const desc = String(item.description ?? '');
       const descHtml = plainTextFromRich(desc)
-        ? wrapQuillRichHtml(desc, `font-size:${fs}px;line-height:${lh};color:#333;`)
+        ? wrapQuillRichHtml(desc, gs)
         : '';
       const degreeLine = item.degree
         ? `<div style="display:flex;justify-content:space-between;margin-bottom:5px;">
@@ -349,6 +343,8 @@ function renderPage(page: { moduleMargin?: number; modules?: unknown[] }, gs: Gl
     viewHeight?: number;
     offsetY?: number;
     continuation?: boolean;
+    fullModuleHeight?: number;
+    measuredModuleHeight?: number;
   }>;
   const parts: string[] = [];
   let hasPlacedAnyModule = false;
@@ -363,15 +359,26 @@ function renderPage(page: { moduleMargin?: number; modules?: unknown[] }, gs: Gl
 
     const viewHeight = Number(mod.viewHeight);
     const offsetY = Number(mod.offsetY);
+    const msMH = Number(mod.measuredModuleHeight);
+    const fullMH = Number(mod.fullModuleHeight);
     const hasViewHeight = Number.isFinite(viewHeight) && viewHeight > 0;
     const hasOffset = Number.isFinite(offsetY) && offsetY > 0;
+    const mh = Number.isFinite(msMH) ? msMH : Number.isFinite(fullMH) ? fullMH : NaN;
 
     if (hasViewHeight || hasOffset) {
-      const h = hasViewHeight ? viewHeight : 0;
+      const clip = hasViewHeight ? viewHeight : 0;
+      const clips =
+        Number.isFinite(mh) && clip > 0 && mh > clip && !hasOffset;
+      const shell: string[] = [
+        'width:100%',
+        clips ? 'overflow:hidden' : 'overflow:visible',
+        'flex-shrink:0',
+      ];
+      if (clip > 0) shell.push(`height:${clip}px`);
       const inner = hasOffset
         ? `<div style="transform:translateY(-${offsetY}px);">${rendered}</div>`
         : rendered;
-      parts.push(`<div style="width:100%;height:${h}px;overflow:hidden;flex-shrink:0;">${inner}</div>`);
+      parts.push(`<div style="${shell.join(';')}">${inner}</div>`);
     } else {
       parts.push(rendered);
     }
@@ -417,13 +424,14 @@ function renderContinuousPage(
     }
   }
 
-  const { width: pw } = globalStylePageDimensions(gs);
+  const { width: pw, height: ph } = globalStylePageDimensions(gs);
   const { backgroundColor, padding = 0 } = gs;
   const bg = escapeHtml(backgroundColor);
   const wCss = escapeHtml(String(pw));
+  const hCss = escapeHtml(String(ph));
   const innerWCss = `calc(${wCss} - ${padding * 2}px)`;
 
-  return `<div class="png-page" style="width:${wCss};padding:${padding}px;background:${bg};margin:0 auto;box-sizing:border-box;">
+  return `<div class="png-page" style="width:${wCss};min-height:${hCss};padding:${padding}px;background:${bg};margin:0 auto;box-sizing:border-box;">
 <div style="width:${innerWCss};display:flex;flex-direction:column;">
 ${parts.join('')}
 </div>
@@ -494,7 +502,7 @@ export function renderResumeDocumentHtml(resume: {
     gs.resumeFont === 'system'
       ? `'Noto Sans SC', ${resumeFontStack(gs.resumeFont)}`
       : resumeFontStack(gs.resumeFont);
-  const quillSnow = getQuillSnowCss();
+  const quillSnow = readQuillSnowCss();
   const fontLinks = resumePdfFontLinkTags(gs.resumeFont, {
     assetOrigin: opts?.assetOrigin,
     basePath: opts?.basePath,
@@ -558,7 +566,7 @@ export function renderResumePngHtml(
     gs.resumeFont === 'system'
       ? `'Noto Sans SC', ${resumeFontStack(gs.resumeFont)}`
       : resumeFontStack(gs.resumeFont);
-  const quillSnow = getQuillSnowCss();
+  const quillSnow = readQuillSnowCss();
   const fontLinks = resumePdfFontLinkTags(gs.resumeFont, {
     assetOrigin: opts?.assetOrigin,
     basePath: opts?.basePath,
@@ -574,10 +582,16 @@ ${fontLinks}
 <style>
 ${quillSnow}
 ${buildResumeSharedStyles(fontStack, canvasBg)}
+  html {
+    height: auto !important;
+    min-height: 0 !important;
+  }
   body {
     margin: 0;
     padding: 0;
     width: ${wCss};
+    height: auto !important;
+    min-height: 0 !important;
     background: ${canvasBg};
     font-family: ${fontStack};
     box-sizing: border-box;

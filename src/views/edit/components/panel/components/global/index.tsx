@@ -125,7 +125,7 @@ function Global() {
             <Col span={12}>
               <FormItem
                 label='字体大小'
-                icon={<FontSize theme='outline' size='15' fill='#333' />}
+                icon={<FontSize theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}
               >
                 <InputNumber
                   value={global.fontSize}
@@ -140,7 +140,7 @@ function Global() {
             <Col span={12}>
               <FormItem
                 label='行高'
-                icon={<AutoLineHeight theme='outline' size='15' fill='#333' />}
+                icon={<AutoLineHeight theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}
               >
                 <InputNumber
                   value={global.lineHeight}
@@ -157,7 +157,7 @@ function Global() {
             <Col span={12}>
               <FormItem
                 label='背景颜色'
-                icon={<BackgroundColor theme='outline' size='15' fill='#333' />}
+                icon={<BackgroundColor theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}
               >
                 <ColorPicker
                   defaultValue={global.backgroundColor}
@@ -168,7 +168,7 @@ function Global() {
             <Col span={12}>
               <FormItem
                 label='主题颜色'
-                icon={<BackgroundColor theme='outline' size='15' fill='#333' />}
+                icon={<BackgroundColor theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}
               >
                 <ColorPicker
                   defaultValue={global.color}
@@ -177,7 +177,7 @@ function Global() {
               </FormItem>
             </Col>
             <Col span={24}>
-              <FormItem label='纸张大小' icon={<Notes theme='outline' size='15' fill='#333' />}>
+              <FormItem label='纸张大小' icon={<Notes theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}>
                 <Select
                   value={global.pageSize ?? 'A4'}
                   style={{ width: '100%' }}
@@ -195,7 +195,7 @@ function Global() {
             <Col span={24}>
               <FormItem
                 label='模块标题样式'
-                icon={<Edit theme='outline' size='15' fill='#333' />}
+                icon={<Edit theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}
               >
                 <Select
                   value={global.headerType ?? 1}
@@ -266,7 +266,7 @@ function Global() {
                         className='drag-handle absolute top-1/2 left-[15px] translate-y-[-50%] cursor-move'
                         theme='outline'
                         size='20'
-                        fill='#1677ff'
+                        fill='var(--panel-action-icon)'
                       />
                       {item.name}
                       <div
@@ -285,13 +285,13 @@ function Global() {
                           }
                         }}
                       >
-                        <Delete theme='outline' size='17' fill='#1677ff' />
+                        <Delete theme='outline' size='17' fill='var(--panel-action-icon)' />
                       </div>
                       <Edit
                         className='absolute top-1/2 right-[42px] translate-y-[-50%] cursor-pointer'
                         theme='outline'
                         size='18'
-                        fill='#1677ff'
+                        fill='var(--panel-action-icon)'
                         onClick={() => editModule(item)}
                       />
                     </div>

@@ -11,7 +11,7 @@ function Edit() {
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
 
   return (
-    <div className='editor-shell-bg relative flex h-screen w-screen flex-col overflow-hidden text-white'>
+    <div className='editor-shell-bg relative flex h-screen w-screen flex-col overflow-hidden text-[var(--text-strong)]'>
       <div className='editor-shell-grid pointer-events-none absolute inset-0 opacity-60' />
       <div className='relative z-[1] flex min-h-0 flex-1 flex-col gap-3 p-3 md:p-4'>
         <div className='editor-shell-card editor-shell-card-strong rounded-[26px] px-2 md:px-3'>

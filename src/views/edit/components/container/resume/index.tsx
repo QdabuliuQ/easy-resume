@@ -29,6 +29,9 @@ type ResumeProps = { menuActiveKey: string };
 const GRADIENT_CTA_CLASS =
   'bg-add-module-gradient relative isolate flex h-10 w-[410px] max-w-full cursor-pointer select-none items-center justify-center gap-2 overflow-hidden rounded-md text-[14px] font-bold text-white shadow-lg shadow-black/20 outline-none backdrop-blur-md backdrop-saturate-200 transition-[filter] duration-200 hover:brightness-125 hover:saturate-150 active:brightness-95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100 disabled:hover:saturate-100';
 
+const PANEL_HERO_CLASS =
+  'mb-4 rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.11),rgb(var(--panel-surface-rgb)/0.05))] px-4 py-3 text-fg shadow-[0_18px_42px_rgba(0,0,0,0.14)]';
+
 function Resume({ menuActiveKey }: ResumeProps) {
   const cfg = configStore.getConfig;
   const { addModuleByType } = useModuleHandle();
@@ -81,19 +84,19 @@ function Resume({ menuActiveKey }: ResumeProps) {
   }, [analyzeLoading]);
 
   return (
-    <div className='relative flex h-full min-h-0 flex-1 flex-col text-black [transform:translateZ(0)]'>
+    <div className='relative flex h-full min-h-0 flex-1 flex-col text-black [transform:translateZ(0)] bg-[var(--resume-panel-bg)]'>
       <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-24'>
         <div className='m-[20px]'>
-          <div className='mb-4 rounded-[20px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] px-4 py-3 text-white shadow-[0_18px_42px_rgba(0,0,0,0.14)]'>
+          <div className={PANEL_HERO_CLASS}>
             <div className='flex items-start justify-between gap-3'>
               <div className='min-w-0'>
-                <p className='text-[11px] font-medium tracking-[0.18em] text-white/40'>
+                <p className='text-[11px] font-medium tracking-[0.18em] text-fg/62'>
                   {isAiScore ? 'AI SCORE' : isResumeTemplate ? 'TEMPLATES' : 'CONFIG'}
                 </p>
-                <h2 className='mt-1 text-[17px] font-semibold text-white/95'>
+                <h2 className='mt-1 text-[17px] font-semibold text-fg/95'>
                   {isAiScore ? 'AI 智能评分' : isResumeTemplate ? '简历模板' : '简历配置面板'}
                 </h2>
-                <p className='mt-1 text-[12px] leading-relaxed text-white/55'>
+                <p className='mt-1 text-[12px] leading-relaxed text-fg/62'>
                   {isAiScore
                     ? '查看评分维度与优化建议，并在当前简历配置上应用可执行修改。'
                     : isResumeTemplate
@@ -101,7 +104,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
                       : '滚动浏览各模块配置，顶部导航用于快速定位，底部按钮负责补充模块。'}
                 </p>
               </div>
-              <div className='shrink-0 rounded-full border border-white/[0.08] bg-white/[0.05] px-3 py-1 text-[11px] font-medium text-white/55'>
+              <div className='shrink-0 rounded-full border border-fg/[0.14] bg-surface/[0.08] px-3 py-1 text-[11px] font-semibold text-fg/68'>
                 {isAiScore ? '分析' : isResumeTemplate ? '模板' : '编辑'}
               </div>
             </div>
@@ -120,7 +123,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
         </div>
       </div>
       {isResumeEdit && (
-      <div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[linear-gradient(180deg,rgba(56,54,58,0),rgba(56,54,58,0.92)_46%,rgba(56,54,58,1))] px-[10px] pb-[10px] pt-8'>
+      <div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[linear-gradient(180deg,transparent,color-mix(in_srgb,var(--editor-shell-panel-strong)_88%,transparent)_46%,var(--editor-shell-bg))] px-[10px] pb-[10px] pt-8'>
         <div className='pointer-events-auto flex justify-center'>
           <Popover
             trigger='click'
@@ -132,7 +135,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
               root: { zIndex: 1050 },
               body: {
                 padding: 8,
-                background: '#323236',
+                background: 'var(--antd-popup-bg)',
                 borderRadius: 8,
               },
             }}
@@ -149,8 +152,8 @@ function Resume({ menuActiveKey }: ResumeProps) {
                       aria-disabled={atLimit}
                       className={`rounded-md px-3 py-2 text-[13px] outline-none ${
                         atLimit
-                          ? 'cursor-not-allowed text-white/40'
-                          : 'cursor-pointer text-white/90 hover:bg-white/10'
+                          ? 'cursor-not-allowed text-fg/52'
+                          : 'cursor-pointer text-fg/92 hover:bg-surface/12'
                       }`}
                       onClick={() => {
                         if (atLimit) return;
@@ -167,7 +170,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
                     >
                       {label}
                       {atLimit ? (
-                        <span className='ml-1 text-[11px] text-white/35'>
+                        <span className='ml-1 text-[11px] text-fg/52'>
                           （{cur}/{max}）
                         </span>
                       ) : null}
@@ -200,7 +203,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
       </div>
       )}
       {isAiScore && (
-        <div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[linear-gradient(180deg,rgba(56,54,58,0),rgba(56,54,58,0.92)_46%,rgba(56,54,58,1))] px-[10px] pb-[10px] pt-8'>
+        <div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[linear-gradient(180deg,transparent,color-mix(in_srgb,var(--editor-shell-panel-strong)_88%,transparent)_46%,var(--editor-shell-bg))] px-[10px] pb-[10px] pt-8'>
           <div className='pointer-events-auto flex justify-center'>
             <button
               type='button'

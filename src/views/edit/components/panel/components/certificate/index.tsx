@@ -19,7 +19,7 @@ import {
   resumeModuleItemLimitMessage,
 } from '@/utils/moduleTypeLimits';
 
-const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
+const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
 function Certificate({ moduleId }: { moduleId?: string } = {}) {
   const { getModule, getModuleIndex } = useModuleHandle();
@@ -176,10 +176,10 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
       {!editOpen && module && (
         <div
           key='preview'
-          className='panel-module-preview info1-panel-animate text-white/95'
+          className='panel-module-preview info1-panel-animate text-fg/95'
         >
           {module.options.items.length === 0 ? (
-            <div className='text-[13px] text-white/75'>暂无证书条目</div>
+            <div className='text-[13px] text-fg/75'>暂无证书条目</div>
           ) : (
             <>
               <div className='flex max-h-[200px] flex-col gap-1.5 overflow-y-auto'>
@@ -188,13 +188,13 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                   .map((item: any, i: number) => (
                     <div
                       key={i}
-                      className='break-all text-[13px] text-white/75'
+                      className='break-all text-[13px] text-fg/75'
                     >
                       {item.name || '—'} · {item.date || '—'}
                     </div>
                   ))}
               </div>
-              <div className='pt-2 text-[12px] text-white/45'>
+              <div className='pt-2 text-[12px] text-fg/58'>
                 共 {module.options.items.length} 条
                 {module.options.items.length > 12
                   ? '（预览仅显示前 12 条）'
@@ -208,7 +208,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
       {editOpen && module ? (
         <div
           key='edit'
-          className='panel-module-edit info1-panel-animate text-white/95'
+          className='panel-module-edit info1-panel-animate text-fg/95'
         >
           <AddGradientButton onClick={addCertificate} disabled={certificateItemsFull}>
             添加证书
@@ -225,7 +225,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                       <Col span={12}>
                         <FormItem
                           label='证书名称'
-                          labelClassName='text-[13px] text-white/85'
+                          labelClassName='text-[13px] text-fg/85'
                           icon={
                             <CertificateIcon
                               theme='outline'
@@ -245,7 +245,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                       <Col span={12}>
                         <FormItem
                           label='获取日期'
-                          labelClassName='text-[13px] text-white/85'
+                          labelClassName='text-[13px] text-fg/85'
                           icon={
                             <Calendar
                               theme='outline'

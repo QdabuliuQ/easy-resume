@@ -53,7 +53,7 @@ function DragHandle({
       ref={setActivatorNodeRef}
       {...listeners}
       {...attributes}
-      className='flex w-4 shrink-0 cursor-grab flex-col gap-[3px] rounded border-0 bg-transparent p-0 text-white/45 outline-none hover:text-white/60 active:cursor-grabbing'
+      className='flex w-4 shrink-0 cursor-grab flex-col gap-[3px] rounded border-0 bg-transparent p-0 text-fg/45 outline-none hover:text-fg/60 active:cursor-grabbing'
       aria-label='拖拽排序'
       onClick={(e) => e.stopPropagation()}
     >
@@ -95,7 +95,7 @@ function SortableModuleRow({
     position: 'relative',
     opacity: isDragging ? 0.96 : undefined,
     boxShadow: isDragging
-      ? '0 14px 40px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(255,255,255,0.12)'
+      ? '0 14px 40px rgba(0, 0, 0, 0.42), 0 0 0 1px rgb(var(--surface-fg-rgb)/0.12)'
       : undefined,
   };
 
@@ -103,7 +103,7 @@ function SortableModuleRow({
     <div
       ref={setNodeRef}
       style={style}
-      className='flex origin-center items-center gap-2 rounded-lg bg-white/[0.06] px-[15px] py-[5px] text-[13px] text-white/90 will-change-transform'
+      className='flex origin-center items-center gap-2 rounded-lg bg-fg/[0.06] px-[15px] py-[5px] text-[13px] text-fg/90 will-change-transform'
     >
       <DragHandle
         listeners={listeners}
@@ -114,7 +114,7 @@ function SortableModuleRow({
       <Space size={4} className='shrink-0'>
         <button
           type='button'
-          className='rounded p-1 text-white/45 transition-colors hover:bg-white/[0.08] hover:text-white cursor-pointer'
+          className='rounded p-1 text-fg/45 transition-colors hover:bg-fg/[0.08] hover:text-fg cursor-pointer'
           aria-label='编辑名称'
           onClick={(e) => {
             e.stopPropagation();
@@ -125,7 +125,7 @@ function SortableModuleRow({
         </button>
         <button
           type='button'
-          className='rounded p-1 text-white/45 transition-colors hover:bg-white/[0.08] hover:text-red-400 cursor-pointer'
+          className='rounded p-1 text-fg/45 transition-colors hover:bg-fg/[0.08] hover:text-red-400 cursor-pointer'
           aria-label='删除'
           onClick={(e) => {
             e.stopPropagation();
@@ -267,7 +267,7 @@ function ModuleManageInner({
       }`}
     >
       {modules.length === 0 ? (
-        <div className='px-3 py-6 text-center text-[13px] text-white/45'>
+        <div className='px-3 py-6 text-center text-[13px] text-fg/45'>
           暂无模块
         </div>
       ) : (
@@ -295,7 +295,7 @@ function ModuleManageInner({
             root: { zIndex: 1050 },
             body: {
               padding: 10,
-              background: '#2e2d31',
+              background: 'var(--antd-popup-panel)',
               borderRadius: 10,
             },
           }}
@@ -304,11 +304,11 @@ function ModuleManageInner({
         >
           <button
             type='button'
-            className='flex h-[30px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10'
+            className='flex h-[30px] cursor-pointer items-center gap-1.5 rounded-full border border-fg/15 bg-fg/[0.06] px-3.5 text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/10'
           >
             <span>模块管理</span>
             <RightOutlined
-              className={`text-[10px] text-white/70 transition-transform duration-200 ${
+              className={`text-[10px] text-fg/70 transition-transform duration-200 ${
                 popOpen ? 'rotate-90' : ''
               }`}
             />

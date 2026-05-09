@@ -79,14 +79,14 @@ function ModuleEdit() {
 
   return (
     <div className='flex flex-col gap-5'>
-      <section className='sticky top-0 z-[1] rounded-[20px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] px-4 py-3 shadow-[0_18px_40px_rgba(0,0,0,0.16)] backdrop-blur-md'>
+      <section className='sticky top-0 z-[1] rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.11),rgb(var(--panel-surface-rgb)/0.05))] px-4 py-3 shadow-[var(--panel-shadow-lg)] backdrop-blur-md'>
         <div className='flex items-start justify-between gap-3'>
           <div className='min-w-0'>
-            <p className='text-[11px] font-medium tracking-[0.18em] text-white/40'>EDIT PANEL</p>
-            <h2 className='mt-1 text-[17px] font-semibold text-white/95'>模块配置</h2>
-            <p className='mt-1 text-[12px] leading-relaxed text-white/55'>按模块分段编辑内容；点击下方模块标签可快速跳转到对应配置区。</p>
+            <p className='text-[11px] font-medium tracking-[0.18em] text-fg/62'>EDIT PANEL</p>
+            <h2 className='mt-1 text-[17px] font-semibold text-fg/95'>模块配置</h2>
+            <p className='mt-1 text-[12px] leading-relaxed text-fg/62'>按模块分段编辑内容；点击下方模块标签可快速跳转到对应配置区。</p>
           </div>
-          <div className='shrink-0 rounded-full border border-white/[0.08] bg-white/[0.05] px-3 py-1 text-[11px] font-medium text-white/55'>
+          <div className='shrink-0 rounded-full border border-fg/[0.14] bg-surface/[0.08] px-3 py-1 text-[11px] font-semibold text-fg/68'>
             {moduleEntries.length} 个模块
           </div>
         </div>
@@ -100,11 +100,11 @@ function ModuleEdit() {
                 onClick={() => moduleActiveStore.setModuleActive(mod.id)}
                 className={`shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
                   selected
-                    ? 'border-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_20%,transparent)] text-[color:var(--color-primary-gradient-start)]'
-                    : 'border-white/[0.08] bg-white/[0.03] text-white/60 hover:bg-white/[0.06] hover:text-white/88'
+                    ? 'border-[color:color-mix(in_srgb,var(--color-primary)_72%,rgb(var(--panel-surface-rgb)/0.28))] bg-[color:color-mix(in_srgb,var(--color-primary)_28%,transparent)] text-[color:var(--color-primary)] shadow-[0_6px_18px_rgb(249_114_77_/_0.2)]'
+                    : 'border-fg/[0.14] bg-surface/[0.07] text-fg/62 hover:bg-surface/[0.12] hover:text-fg/92'
                 }`}
               >
-                <span className='mr-1.5 text-white/35'>{String(mod.index + 1).padStart(2, '0')}</span>
+                <span className={`mr-1.5 ${selected ? 'text-[var(--color-primary)]' : 'text-fg/58'}`}>{String(mod.index + 1).padStart(2, '0')}</span>
                 <span>{mod.label}</span>
               </button>
             );
@@ -126,20 +126,20 @@ function ModuleEdit() {
                 if (el) sectionRefs.current.set(mod.id, el);
                 else sectionRefs.current.delete(mod.id);
               }}
-              className={`rounded-[22px] border px-4 py-4 shadow-[0_14px_40px_rgba(0,0,0,0.12)] transition-colors ${
+              className={`rounded-[22px] border px-4 py-4 shadow-[var(--panel-shadow-card)] transition-colors ${
                 selected
-                  ? 'border-[color:color-mix(in_srgb,var(--color-primary)_50%,transparent)] bg-[linear-gradient(180deg,rgba(249,114,77,0.10),rgba(255,255,255,0.05))]'
-                  : 'border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))]'
+                  ? 'border-[color:color-mix(in_srgb,var(--color-primary)_62%,rgb(var(--panel-surface-rgb)/0.2))] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-primary)_18%,transparent),rgb(var(--panel-surface-rgb)/0.08))] shadow-[0_16px_42px_rgb(249_114_77_/_0.14)]'
+                  : 'border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.09),rgb(var(--panel-surface-rgb)/0.04))]'
               }`}
               style={{ scrollMarginTop: SCROLL_INTO_VIEW_MARGIN_TOP }}
             >
               <div className='mb-3 flex items-center justify-between gap-3'>
                 <div className='min-w-0'>
                   <div className='flex items-center gap-2'>
-                    <span className='rounded-full border border-white/[0.08] bg-black/10 px-2 py-0.5 text-[10px] font-medium tracking-[0.14em] text-white/40'>
+                    <span className='rounded-full border border-fg/[0.08] bg-[var(--panel-inset-bg)] px-2 py-0.5 text-[10px] font-medium tracking-[0.14em] text-fg/62'>
                       {String(mod.index + 1).padStart(2, '0')}
                     </span>
-                    <span className='truncate text-[12px] font-medium text-white/50'>{mod.label}</span>
+                    <span className='truncate text-[12px] font-medium text-fg/62'>{mod.label}</span>
                   </div>
                 </div>
                 {selected ? (
@@ -149,7 +149,7 @@ function ModuleEdit() {
                 ) : null}
               </div>
               {!panelHasOwnTitle.has(mod.type) && (
-                <h3 className='mb-4 text-[15px] font-medium text-white/90'>
+                <h3 className='mb-4 text-[15px] font-medium text-fg/90'>
                   {mod.label}
                 </h3>
               )}

@@ -29,15 +29,15 @@ function Certificate(props: Props) {
 
   return (
     <SectionModuleShell moduleId={id} headerConfig={options} moduleType={config.type} globalStyle={globalStyle}>
-      <div className='w-full'>
+      <div className='min-w-0 w-full'>
         {options.items.map((item, index) => (
           <div
             key={index}
-            className='w-full flex justify-between text-black not-last:mb-[5px]'
+            className='flex min-w-0 w-full justify-between gap-2 text-black not-last:mb-[5px]'
             style={{ fontSize: globalStyle.fontSize + 'px' }}
           >
-            <div className='flex-6'>{item.name}</div>
-            <div className='flex-4 text-right'>{item.date}</div>
+            <div className='min-w-0 flex-[6] break-words'>{item.name}</div>
+            <div className='shrink-0 text-right whitespace-nowrap'>{item.date}</div>
           </div>
         ))}
       </div>

@@ -47,7 +47,7 @@ import {
   resumeModuleItemLimitMessage,
 } from '@/utils/moduleTypeLimits';
 
-const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
+const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
 function intentPostsFromResumeConfig(
   config: { pages?: { modules?: { type?: string; options?: { intentPosts?: string } }[] }[] } | null
@@ -241,17 +241,17 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
       {!editOpen && module && (
         <div
           key='preview'
-          className='panel-module-preview info1-panel-animate text-white/95'
+          className='panel-module-preview info1-panel-animate text-fg/95'
         >
           {module.options.items.length === 0 ? (
-            <div className='text-[13px] text-white/75'>暂无教育经历条目</div>
+            <div className='text-[13px] text-fg/75'>暂无教育经历条目</div>
           ) : (
             <>
               <div className='flex max-h-[240px] flex-col gap-1.5 overflow-y-auto'>
                 {module.options.items.slice(0, 10).map((item: any, i: number) => (
                   <div
                     key={i}
-                    className='break-all text-[13px] text-white/75'
+                    className='break-all text-[13px] text-fg/75'
                   >
                     {item.school || '—'} · {item.major || '—'}{' '}
                     {item.startDate && item.endDate
@@ -260,7 +260,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                   </div>
                 ))}
               </div>
-              <div className='pt-2 text-[12px] text-white/45'>
+              <div className='pt-2 text-[12px] text-fg/58'>
                 共 {module.options.items.length} 条
                 {module.options.items.length > 10
                   ? '（预览仅显示前 10 条）'
@@ -274,7 +274,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
       {editOpen && module ? (
         <div
           key='edit'
-          className='panel-module-edit info1-panel-animate text-white/95'
+          className='panel-module-edit info1-panel-animate text-fg/95'
         >
           <AddGradientButton onClick={handleAdd} disabled={educationItemsFull}>
             添加教育经历
@@ -290,7 +290,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                     <Col span={12}>
                       <FormItem
                         label='学校名称'
-                        labelClassName='text-[13px] text-white/85'
+                        labelClassName='text-[13px] text-fg/85'
                         icon={
                           <School
                             theme='outline'
@@ -310,7 +310,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                     <Col span={12}>
                       <FormItem
                         label='学位'
-                        labelClassName='text-[13px] text-white/85'
+                        labelClassName='text-[13px] text-fg/85'
                         icon={
                           <DegreeHat
                             theme='outline'
@@ -330,7 +330,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                     <Col span={12}>
                       <FormItem
                         label='专业'
-                        labelClassName='text-[13px] text-white/85'
+                        labelClassName='text-[13px] text-fg/85'
                         icon={
                           <Bookmark
                             theme='outline'
@@ -350,7 +350,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                     <Col span={12}>
                       <FormItem
                         label='所在城市'
-                        labelClassName='text-[13px] text-white/85'
+                        labelClassName='text-[13px] text-fg/85'
                         icon={
                           <City theme='outline' size='15' fill={FORM_ICON_FILL} />
                         }
@@ -366,7 +366,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                     <Col span={24}>
                       <FormItem
                         label='学校类型'
-                        labelClassName='text-[13px] text-white/85'
+                        labelClassName='text-[13px] text-fg/85'
                         icon={
                           <Notes theme='outline' size='15' fill={FORM_ICON_FILL} />
                         }
@@ -383,7 +383,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                     <Col span={24}>
                       <FormItem
                         label='学院'
-                        labelClassName='text-[13px] text-white/85'
+                        labelClassName='text-[13px] text-fg/85'
                         icon={
                           <BuildingFour
                             theme='outline'
@@ -403,7 +403,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                     <Col span={24}>
                       <FormItem
                         label='在读时间'
-                        labelClassName='text-[13px] text-white/85'
+                        labelClassName='text-[13px] text-fg/85'
                         icon={
                           <Calendar
                             theme='outline'
@@ -428,7 +428,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                     <Col span={24}>
                       <FormItem
                         label='在校经历'
-                        labelClassName='text-[13px] text-white/85'
+                        labelClassName='text-[13px] text-fg/85'
                         icon={
                           <EditOne
                             theme='outline'

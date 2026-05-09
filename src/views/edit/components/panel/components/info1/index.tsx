@@ -53,7 +53,7 @@ import {
   Workbench,
 } from '@icon-park/react';
 
-const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
+const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
 const SKIP_LAYOUT_KEYS = new Set(['avatar', 'name', 'layout']);
 
@@ -86,7 +86,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
   const uploadButton = useMemo(
     () => (
       <button
-        className='flex h-[112px] w-full flex-col items-center justify-center rounded-lg border border-dashed border-white/15 bg-white/[0.03] p-0 text-white/55 outline-none transition-colors hover:border-[color:var(--color-primary)] hover:bg-white/[0.05] hover:text-white/80'
+        className='flex h-[112px] w-full flex-col items-center justify-center rounded-lg border border-dashed border-fg/15 bg-surface/[0.03] p-0 text-fg/55 outline-none transition-colors hover:border-[color:var(--color-primary)] hover:bg-surface/[0.05] hover:text-fg/80'
         type='button'
       >
         <Avatar theme='outline' size='22' fill='currentColor' />
@@ -397,16 +397,16 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
       {!editOpen && option && (
         <div
           key='preview'
-          className='panel-module-preview info1-panel-animate text-white/95'
+          className='panel-module-preview info1-panel-animate text-fg/95'
         >
           {previewByLayout ? (
-            <div className='flex flex-col gap-2 break-all text-[13px] text-white/75'>
+            <div className='flex flex-col gap-2 break-all text-[13px] text-fg/75'>
               {previewByLayout.map((line, idx) => (
                 <div key={idx}>{line}</div>
               ))}
             </div>
           ) : (
-            <div className='break-all text-[13px] text-white/75'>
+            <div className='break-all text-[13px] text-fg/75'>
               {[
                 option.phone == null || option.phone === ''
                   ? '—'
@@ -423,7 +423,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
       {editOpen && option ? (
         <div
           key='edit'
-          className='panel-module-edit info1-panel-animate text-white/95'
+          className='panel-module-edit info1-panel-animate text-fg/95'
         >
           <p className='mb-3 rounded-md border border-[color:color-mix(in_srgb,var(--color-primary)_52%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)] px-3 py-2.5 text-[11px] font-medium leading-relaxed text-[color:var(--color-primary)] shadow-[inset_0_1px_0_0_color-mix(in_srgb,var(--color-primary)_28%,transparent)]'>
             <span className='font-semibold'>提示</span>
@@ -435,7 +435,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                 <Col key={item.key} span={item.span}>
                   <Form.Item
                     label={
-                      <div className='flex items-center text-white/85 text-[12px]'>
+                      <div className='flex items-center text-fg/85 text-[12px]'>
                         {item.icon ? (
                           <span className='inline-block mr-[7px]'>
                             {item.icon}
@@ -527,7 +527,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                         className='w-full [&_.ant-upload-wrapper]:w-full [&_.ant-upload-select]:!m-0 [&_.ant-upload-select]:!h-auto [&_.ant-upload-select]:!w-full [&_.ant-upload-select]:!border-0 [&_.ant-upload-select]:!bg-transparent'
                       >
                         {showAvatar ? (
-                          <div className='overflow-hidden rounded-lg border border-white/10 bg-black/10'>
+                          <div className='overflow-hidden rounded-lg border border-fg/10 bg-[var(--panel-inset-bg)]'>
                             <img
                               src={avatarValue}
                               alt='avatar'

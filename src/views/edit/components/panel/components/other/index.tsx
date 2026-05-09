@@ -59,7 +59,7 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
             className='panel-module-icon text-base'
             aria-hidden
           >
-            <More theme='outline' size={18} fill='rgba(255,255,255,0.72)' />
+            <More theme='outline' size={18} fill='var(--panel-form-icon)' />
           </div>
           <ModulePanelTitleEdit
             resetKey={moduleActive}
@@ -78,14 +78,14 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
       {!editOpen && module && (
         <div
           key='preview'
-          className='panel-module-preview info1-panel-animate text-white/95'
+          className='panel-module-preview info1-panel-animate text-fg/95'
         >
           {!previewText ? (
-            <div className='text-[13px] text-white/75'>暂无内容</div>
+            <div className='text-[13px] text-fg/75'>暂无内容</div>
           ) : (
             <ResumeQuillHtml
               html={rawHtml}
-              className='max-h-[280px] overflow-y-auto break-words text-[13px] text-white/75 [&_li]:my-0.5 [&_p]:my-1'
+              className='max-h-[280px] overflow-y-auto break-words text-[13px] text-fg/75'
             />
           )}
         </div>
@@ -93,7 +93,7 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
       {editOpen && module ? (
         <div
           key='edit'
-          className='panel-module-edit info1-panel-animate text-white/95'
+          className='panel-module-edit info1-panel-animate text-fg/95'
         >
           <RichTextEditor
             instanceKey={`${moduleActive}-other`}

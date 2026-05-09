@@ -15,7 +15,7 @@ import RichTextEditor from '@/components/richTextEditor';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 
-const FORM_ICON_FILL = 'rgba(255, 255, 255, 0.7)';
+const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
 function intentPostsFromResumeConfig(
   config: { pages?: { modules?: { type?: string; options?: { intentPosts?: string } }[] }[] } | null
@@ -132,14 +132,14 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
       {!editOpen && module && (
         <div
           key='preview'
-          className='panel-module-preview info1-panel-animate text-white/95'
+          className='panel-module-preview info1-panel-animate text-fg/95'
         >
           {!previewText ? (
-            <div className='text-[13px] text-white/75'>暂无技能描述</div>
+            <div className='text-[13px] text-fg/75'>暂无技能描述</div>
           ) : (
             <ResumeQuillHtml
               html={rawHtml}
-              className='skill-rich-html max-h-[280px] overflow-y-auto break-words text-[13px] text-white/75 [&_li]:my-0.5 [&_p]:my-1'
+              className='skill-rich-html max-h-[280px] overflow-y-auto break-words text-[13px] text-fg/75'
             />
           )}
         </div>
@@ -148,7 +148,7 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
       {editOpen && module ? (
         <div
           key='edit'
-          className='panel-module-edit info1-panel-animate text-white/95'
+          className='panel-module-edit info1-panel-animate text-fg/95'
         >
           <RichTextEditor
             instanceKey={`${moduleActive}-skill`}

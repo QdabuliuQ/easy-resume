@@ -13,6 +13,23 @@ export interface CanvasModuleFragmentConfig {
   options: Record<string, any>;
 }
 
+function normalizeSectionListOptions(type: string, raw: unknown): Record<string, any> {
+  const o = raw != null && typeof raw === 'object' ? { ...(raw as Record<string, any>) } : {};
+  const t = typeof o.title === 'string' ? o.title.trim() : '';
+  switch (type) {
+    case 'job':
+      return { ...o, title: t || '工作经历', items: Array.isArray(o.items) ? o.items : [] };
+    case 'project':
+      return { ...o, title: t || '项目经历', items: Array.isArray(o.items) ? o.items : [] };
+    case 'education':
+      return { ...o, title: t || '教育经历', items: Array.isArray(o.items) ? o.items : [] };
+    case 'certificate':
+      return { ...o, title: t || '证书', items: Array.isArray(o.items) ? o.items : [] };
+    default:
+      return o;
+  }
+}
+
 function renderCertificateBody(options: Record<string, any>, globalStyle: GlobalStyle) {
   return (
     <div className='w-full'>
@@ -35,7 +52,7 @@ function renderSkillBody(options: Record<string, any>, globalStyle: GlobalStyle)
     <ResumeQuillHtml
       html={options.description}
       style={{ fontSize: `${globalStyle.fontSize}px`, lineHeight: globalStyle.lineHeight }}
-      className='text-[#333] [&_li]:my-0.5 [&_p]:my-1'
+      className='text-[#333]'
     />
   ) : <div />;
 }
@@ -45,7 +62,7 @@ function renderOtherBody(options: Record<string, any>, globalStyle: GlobalStyle)
     <ResumeQuillHtml
       html={options.description}
       style={{ fontSize: `${globalStyle.fontSize}px`, lineHeight: globalStyle.lineHeight }}
-      className='text-[#333] [&_li]:my-0.5 [&_p]:my-1'
+      className='text-[#333]'
     />
   ) : <div />;
 }
@@ -80,8 +97,11 @@ function renderJobBody(options: Record<string, any>, globalStyle: GlobalStyle) {
           {plainTextFromRichHtml(item.description) ? (
             <ResumeQuillHtml
               html={item.description}
-              style={{ lineHeight: globalStyle.lineHeight }}
-              className='text-[#333] [&_li]:my-0.5 [&_p]:my-1'
+              style={{
+                fontSize: `${globalStyle.fontSize}px`,
+                lineHeight: globalStyle.lineHeight,
+              }}
+              className='text-[#333]'
             />
           ) : null}
         </div>
@@ -113,8 +133,11 @@ function renderProjectBody(options: Record<string, any>, globalStyle: GlobalStyl
           {plainTextFromRichHtml(item.description) ? (
             <ResumeQuillHtml
               html={item.description}
-              style={{ lineHeight: globalStyle.lineHeight }}
-              className='text-[#333] [&_li]:my-0.5 [&_p]:my-1'
+              style={{
+                fontSize: `${globalStyle.fontSize}px`,
+                lineHeight: globalStyle.lineHeight,
+              }}
+              className='text-[#333]'
             />
           ) : null}
         </div>
@@ -168,7 +191,7 @@ function renderEducationBody(options: Record<string, any>, globalStyle: GlobalSt
             <ResumeQuillHtml
               html={item.description}
               style={{ fontSize: `${globalStyle.fontSize}px`, lineHeight: globalStyle.lineHeight }}
-              className='text-[#333] [&_li]:my-0.5 [&_p]:my-1'
+              className='text-[#333]'
             />
           ) : null}
         </div>
@@ -203,16 +226,18 @@ function CanvasModuleFragment({
   fragment: CanvasModuleFragmentConfig;
   globalStyle: GlobalStyle;
 }) {
+  const opts = normalizeSectionListOptions(fragment.type, fragment.options);
+  const frag = { ...fragment, options: opts };
   return (
     <SectionModuleShell
-      moduleId={fragment.domId}
-      activeModuleId={fragment.sourceId}
-      headerConfig={fragment.options as any}
-      moduleType={fragment.type}
+      moduleId={frag.domId}
+      activeModuleId={frag.sourceId}
+      headerConfig={frag.options as any}
+      moduleType={frag.type}
       globalStyle={globalStyle}
-      showHeader={fragment.showHeader}
+      showHeader={frag.showHeader}
     >
-      {renderFragmentBody(fragment, globalStyle)}
+      {renderFragmentBody(frag, globalStyle)}
     </SectionModuleShell>
   );
 }

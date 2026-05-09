@@ -41,8 +41,8 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
             }}
             className={`editor-shell-inset relative flex w-full cursor-pointer select-none flex-col items-center justify-center gap-1 overflow-hidden rounded-[18px] py-3 text-[13px] transition-all duration-200 ${
               selected
-                ? 'scale-110 border-transparent bg-white/[0.08] shadow-[0_12px_30px_rgba(0,0,0,0.24)]'
-                : 'border-transparent bg-transparent hover:border-white/8 hover:bg-white/[0.04]'
+                ? 'scale-110 border-transparent bg-fg/[0.08] shadow-[0_12px_30px_rgba(0,0,0,0.24)]'
+                : 'border-transparent bg-transparent hover:border-fg/8 hover:bg-fg/[0.04]'
             }`}
           >
             {selected ? (
@@ -50,7 +50,7 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
                 aria-hidden
                 className='pointer-events-none absolute inset-0 rounded-[18px] bg-gradient-primary p-px'
               >
-                <span className='block h-full w-full rounded-[17px] bg-[rgb(56,54,58)]/90' />
+                <span className='block h-full w-full rounded-[17px] bg-[var(--menu-selected-inner)]' />
               </span>
             ) : null}
             {selected ? (
@@ -64,7 +64,7 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
                 className={
                   selected
                     ? 'relative z-[1] text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[url(#resume-menu-item-grad)]'
-                    : 'relative z-[1] text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[#97929f]'
+                    : 'relative z-[1] text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[var(--menu-icon-muted)]'
                 }
               />
             ) : item.key === 'resume-template' ? (
@@ -72,14 +72,14 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
                 className={
                   selected
                     ? 'relative z-[1] text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[url(#resume-menu-item-grad)]'
-                    : 'relative z-[1] text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[#97929f]'
+                    : 'relative z-[1] text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[var(--menu-icon-muted)]'
                 }
               />
             ) : (
               <Magic
                 theme='outline'
                 size='23'
-                fill={selected ? `url(#${GRADIENT_ID})` : '#97929f'}
+                fill={selected ? `url(#${GRADIENT_ID})` : 'var(--menu-icon-muted)'}
                 className='relative z-[1] transition-[fill] duration-200'
               />
             )}
@@ -87,7 +87,7 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
               className={
                 selected
                   ? 'bg-gradient-primary relative z-[1] mt-1 bg-clip-text text-[12px] font-medium text-transparent transition-colors duration-200'
-                  : 'relative z-[1] mt-1 text-[12px] text-[#97929f] transition-colors duration-200'
+                  : 'relative z-[1] mt-1 text-[12px] text-[var(--menu-icon-muted)] transition-colors duration-200'
               }
             >
               {item.label}

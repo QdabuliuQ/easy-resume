@@ -5,15 +5,22 @@ import {
   type ReactElement,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
 import { useMemoizedFn } from 'ahooks';
-import { CloseOutlined, EyeOutlined } from '@ant-design/icons';
+import { CloseOutlined, EyeOutlined, GithubOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
 import { Tooltip } from 'antd';
 import { createPortal } from 'react-dom';
 import resume from '@/json/resume';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
+import {
+  getAppTheme,
+  getServerAppTheme,
+  subscribeAppTheme,
+  toggleAppTheme,
+} from '@/lib/themeStore';
 
 import { observer } from 'mobx-react';
 import {
@@ -53,18 +60,34 @@ function moduleGapPx(gs: any, cfg?: any): number {
   return Number(resume.globalStyle.moduleMargin) || 15;
 }
 
-/** 内容区宽度 ≈ width - padding*2，与 Page 版心一致 */
-function contentInnerWidth(gs: any): number {
-  const pad = gs?.padding ?? 0;
-  const outer = cssLengthToApproxPx(globalStylePageDimensions(gs).width);
-  return Math.max(1, outer - pad * 2);
+/** 与 Page 内层 div 的 width 字符串一致，禁止 mm→px 取整导致测量换行与画布不一致 */
+function contentInnerWidthCss(gs: any): string {
+  const { width } = globalStylePageDimensions(gs);
+  const pad = Number(gs?.padding ?? 0);
+  return `calc(${width} - ${pad * 2}px)`;
 }
 
-/** 单页可容纳内容高度（与 Page 内 padding 算法一致） */
-function pageContentHeight(gs: any): number {
-  const pad = gs?.padding ?? 0;
-  const outer = cssLengthToApproxPx(globalStylePageDimensions(gs).height);
-  return Math.max(0, outer - pad * 2);
+/** offsetHeight 常向下取整；用 ceil(bounding height) 补子像素。勿用 scrollHeight（测量容器上易偏大/失真，分页会失效） */
+function readLayoutHeightPx(el: HTMLElement): number {
+  void el.offsetHeight;
+  const rect = Math.ceil(el.getBoundingClientRect().height);
+  const off = el.offsetHeight;
+  const v = Math.max(rect, off);
+  return v > 0 ? v : 1;
+}
+
+/** 与 Page 内层 height 解析值一致（避免 mm 取整 px 导致分页槽高度偏小） */
+function probeInnerPageContentHeightPx(gs: any): number {
+  const { height } = globalStylePageDimensions(gs);
+  const pad = Number(gs?.padding ?? 0);
+  const probe = document.createElement('div');
+  probe.style.cssText =
+    'position:absolute;left:-9999px;top:0;width:1px;margin:0;padding:0;border:none;visibility:hidden;pointer-events:none;box-sizing:border-box';
+  probe.style.height = `calc(${height} - ${pad * 2}px)`;
+  document.body.appendChild(probe);
+  const h = readLayoutHeightPx(probe);
+  document.body.removeChild(probe);
+  return Math.max(0, h);
 }
 
 /** 影响高度的字段变化才应触发重测；附带版心宽高与正文排版（换行、分页） */
@@ -85,6 +108,7 @@ interface ExportLayoutModule {
   viewHeight?: number;
   offsetY?: number;
   continuation?: boolean;
+  measuredModuleHeight?: number;
 }
 
 function buildModuleElement(
@@ -119,27 +143,33 @@ function Canvas() {
   const renderGenerationRef = useRef(0);
 
   const measureElementHeight = useMemoizedFn(
-    (element: ReactElement, gs: any): Promise<number> => {
+    (element: ReactElement, gs: any, domId: string): Promise<number> => {
       return new Promise((resolve) => {
-        const container = document.createElement('div');
-        container.style.position = 'absolute';
-        container.style.visibility = 'hidden';
-        container.style.pointerEvents = 'none';
-        container.style.height = 'auto';
-        container.style.width = 'auto';
-        document.body.appendChild(container);
-        container.style.width = `${contentInnerWidth(gs)}px`;
-        container.style.fontFamily = resumeFontStack(gs.resumeFont);
-        const root = createRoot(container);
-        root.render(element);
-
-        requestAnimationFrame(() => {
+        const measureOffScreen = () => {
+          const container = document.createElement('div');
+          container.style.position = 'absolute';
+          container.style.visibility = 'hidden';
+          container.style.pointerEvents = 'none';
+          container.style.height = 'auto';
+          container.style.width = 'auto';
+          document.body.appendChild(container);
+          container.style.width = contentInnerWidthCss(gs);
+          container.style.boxSizing = 'border-box';
+          container.style.fontFamily = resumeFontStack(gs.resumeFont);
+          const root = createRoot(container);
+          root.render(element);
           requestAnimationFrame(() => {
-            const height = container.offsetHeight;
-            root.unmount();
-            document.body.removeChild(container);
-            resolve(height);
+            requestAnimationFrame(() => {
+              const rootEl = container.firstElementChild as HTMLElement | null;
+              const height = rootEl ? readLayoutHeightPx(rootEl) : readLayoutHeightPx(container);
+              root.unmount();
+              document.body.removeChild(container);
+              resolve(height + 3);
+            });
           });
+        };
+        requestAnimationFrame(() => {
+          requestAnimationFrame(measureOffScreen);
         });
       });
     }
@@ -162,7 +192,7 @@ function Canvas() {
 
     if (myGen !== renderGenerationRef.current) return;
 
-    const pageHeight = pageContentHeight(gs);
+    const pageHeight = probeInnerPageContentHeightPx(gs);
 
     /** 每个分页槽位类型 */
     type ModuleSlot = {
@@ -171,8 +201,9 @@ function Canvas() {
       node: ReactElement;
       /** 该分页片段的可视高度（px） */
       viewHeight: number;
-      /** translateY 向上偏移量（px），0 表示不偏移 */
+      /** 续页向上偏移（px），内层 translateY(-offsetY)，0 表示不偏移 */
       offsetY: number;
+      measuredModuleHeight: number;
     };
     type MarginSlot = { kind: 'margin'; slotKey: string; height: number };
     type Slot = ModuleSlot | MarginSlot;
@@ -197,7 +228,7 @@ function Canvas() {
       if (!node) continue;
 
       /**
-       * canSplit: true  → 允许跨页：当前页裁剪显示，下一页通过 translateY 偏移继续渲染
+       * canSplit: true  → 允许跨页：当前页裁剪，续页内层 translateY(-offsetY) 衔接
        * canSplit: false → 不允许跨页：整体放入一页（放不下时换新页）
        */
       const canSplit = module.type !== 'info1';
@@ -206,7 +237,7 @@ function Canvas() {
       const sig = layoutSig(module, gs);
       let moduleHeight = moduleHeights.current[module.id];
       if (!moduleHeight || measuredSigRef.current[module.id] !== sig) {
-        moduleHeight = await measureElementHeight(node, gs);
+        moduleHeight = await measureElementHeight(node, gs, module.id);
         if (myGen !== renderGenerationRef.current) return;
         moduleHeights.current[module.id] = moduleHeight;
         measuredSigRef.current[module.id] = sig;
@@ -215,7 +246,7 @@ function Canvas() {
       if (moduleHeight < 0) continue;
       if (moduleHeight === 0) moduleHeight = 1;
 
-      /** 已在前页展示的高度（即下一次渲染的 translateY 偏移） */
+      /** 已在前页展示的高度（即下一次 translateY 偏移量） */
       let shownSoFar = 0;
       /** 还需要展示的高度 */
       let remaining = moduleHeight;
@@ -248,6 +279,7 @@ function Canvas() {
             node,
             viewHeight: remaining,
             offsetY: shownSoFar,
+            measuredModuleHeight: moduleHeight,
           });
           exportPages[curIdx].modules.push({
             type: module.type,
@@ -256,6 +288,7 @@ function Canvas() {
             viewHeight: remaining,
             offsetY: shownSoFar,
             continuation: shownSoFar > 0,
+            measuredModuleHeight: moduleHeight,
           });
           if (!addedToConfig) {
             pageModuleIds[curIdx].push(module.id);
@@ -278,6 +311,7 @@ function Canvas() {
               node,
               viewHeight: remaining,
               offsetY: 0,
+              measuredModuleHeight: moduleHeight,
             });
             exportPages[curIdx].modules.push({
               type: module.type,
@@ -286,6 +320,7 @@ function Canvas() {
               viewHeight: remaining,
               offsetY: 0,
               continuation: false,
+              measuredModuleHeight: moduleHeight,
             });
             if (!addedToConfig) {
               pageModuleIds[curIdx].push(module.id);
@@ -307,6 +342,7 @@ function Canvas() {
             node,
             viewHeight: clipH,
             offsetY: shownSoFar,
+            measuredModuleHeight: moduleHeight,
           });
           exportPages[curIdx].modules.push({
             type: module.type,
@@ -315,6 +351,7 @@ function Canvas() {
             viewHeight: clipH,
             offsetY: shownSoFar,
             continuation: shownSoFar > 0,
+            measuredModuleHeight: moduleHeight,
           });
           if (!addedToConfig) {
             pageModuleIds[curIdx].push(module.id);
@@ -350,11 +387,16 @@ function Canvas() {
           </div>
         ) : slot.node;
 
-        // 所有模块槽位都使用固定可视高度，确保“计算高度”与“实际渲染高度”一致
+        const mh = slot.measuredModuleHeight;
+        const clips = mh > slot.viewHeight && slot.offsetY === 0;
         return (
           <div
             key={slot.slotKey}
-            style={{ height: slot.viewHeight, overflow: 'hidden', flexShrink: 0 }}
+            style={{
+              height: slot.viewHeight,
+              overflow: clips ? 'hidden' : 'visible',
+              flexShrink: 0,
+            }}
           >
             {inner}
           </div>
@@ -362,7 +404,10 @@ function Canvas() {
       });
 
       return (
-        <div key={pageIndex + 1}>
+        <div
+          key={pageIndex + 1}
+          className='overflow-hidden rounded-[2px] border border-[color:var(--editor-shell-border)] shadow-[0_12px_28px_rgba(0,0,0,0.12)]'
+        >
           <Page {...gs}>{children}</Page>
         </div>
       );
@@ -415,6 +460,11 @@ function Canvas() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewClosing, setPreviewClosing] = useState(false);
   const previewCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const appTheme = useSyncExternalStore(
+    subscribeAppTheme,
+    getAppTheme,
+    getServerAppTheme,
+  );
 
   const globalStyle = configStore.mergedGlobalStyle;
   const pageCount = Math.max(1, pages.length);
@@ -488,14 +538,14 @@ function Canvas() {
     previewOpen && typeof document !== 'undefined'
       ? createPortal(
           <div
-            className={`${previewClosing ? 'canvas-preview-overlay-exit-animate' : 'canvas-preview-overlay-animate'} fixed inset-0 z-[1400] flex min-h-0 flex-col bg-[#0f0d12]/88 backdrop-blur-sm`}
+            className={`${previewClosing ? 'canvas-preview-overlay-exit-animate' : 'canvas-preview-overlay-animate'} canvas-preview-shell fixed inset-0 z-[1400] flex min-h-0 flex-col backdrop-blur-sm`}
           >
-            <div className='flex items-center justify-between border-b border-white/10 px-5 py-3.5'>
-              <span className='text-[13px] font-medium text-white/88'>文本预览</span>
+            <div className='canvas-preview-toolbar flex items-center justify-between px-5 py-3.5'>
+              <span className='text-[13px] font-medium'>文本预览</span>
               <button
                 type='button'
                 onClick={closePreview}
-                className='cursor-pointer inline-flex size-8 items-center justify-center rounded-lg border border-white/12 bg-white/[0.04] text-white/75 transition-colors hover:bg-white/[0.1] hover:text-white'
+                className='canvas-preview-close'
                 aria-label='关闭预览'
               >
                 <CloseOutlined className='text-[12px]' />
@@ -527,7 +577,8 @@ function Canvas() {
       <div style={{ width: contentW * scale, height: contentH * scale }}>
         <div
           style={{
-            width: contentW,
+            width: pw,
+            boxSizing: 'border-box',
             transform: `scale(${scale})`,
             transformOrigin: 'top left',
           }}
@@ -540,12 +591,38 @@ function Canvas() {
         </div>
       </div>
 
-      <div className='pointer-events-none fixed right-[20px] bottom-[20px] z-20'>
+      <div className='pointer-events-none fixed right-[20px] bottom-[20px] z-20 flex flex-col items-end gap-2'>
+        <Tooltip title={appTheme === 'dark' ? '切换为浅色主题' : '切换为深色主题'} placement='left'>
+          <button
+            type='button'
+            onClick={toggleAppTheme}
+            className='canvas-float-btn'
+            aria-label='切换主题'
+          >
+            {appTheme === 'dark' ? (
+              <SunOutlined className='text-[17px]' />
+            ) : (
+              <MoonOutlined className='text-[17px]' />
+            )}
+          </button>
+        </Tooltip>
+
+        <Tooltip title='GitHub' placement='left'>
+          <button
+            type='button'
+            onClick={() => window.open('https://github.com/QdabuliuQ/easy-resume', '_blank', 'noopener,noreferrer')}
+            className='canvas-float-btn'
+            aria-label='打开 GitHub'
+          >
+            <GithubOutlined className='text-[17px]' />
+          </button>
+        </Tooltip>
+
         <Tooltip title='简历预览' placement='left'>
           <button
             type='button'
             onClick={openPreview}
-            className='cursor-pointer pointer-events-auto inline-flex h-[42px] w-[42px] items-center justify-center rounded-full border border-white/15 bg-[#26242b]/92 text-white/90 shadow-[0_10px_28px_rgba(0,0,0,0.32)] backdrop-blur-sm transition-colors hover:border-white/25 hover:bg-[#302d36]'
+            className='canvas-float-btn'
             aria-label='简历预览'
           >
             <EyeOutlined className='text-[17px]' />

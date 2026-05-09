@@ -34,7 +34,7 @@ function Skill(props: Props) {
         <ResumeQuillHtml
           html={options.description}
           style={{ fontSize: fontSize + 'px', lineHeight: lineHeight }}
-          className='text-[#333] [&_li]:my-0.5 [&_p]:my-1'
+          className='text-[#333]'
         />
       ) : null}
     </SectionModuleShell>

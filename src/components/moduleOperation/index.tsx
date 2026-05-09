@@ -33,17 +33,26 @@ function findModuleRoot(host: HTMLElement | null, id: string): HTMLElement | nul
   return null;
 }
 
+function countModuleRoots(host: HTMLElement, id: string): number {
+  const nodes = host.querySelectorAll(`[${RESUME_MODULE_ID_ATTR}]`);
+  let n = 0;
+  for (let i = 0; i < nodes.length; i++) {
+    if (nodes[i].getAttribute(RESUME_MODULE_ID_ATTR) === id) n++;
+  }
+  return n;
+}
+
 const toolbarShellClass =
-  'flex shrink-0 flex-col gap-1 rounded-[16px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_18px_30px_rgba(0,0,0,0.22)] backdrop-blur-xl';
+  'flex shrink-0 flex-col gap-1.5 rounded-[18px] border border-[color:var(--editor-shell-border)] bg-[color:var(--editor-shell-panel-strong)] p-1.5 shadow-[var(--panel-shadow-lg)] backdrop-blur-xl';
 
 const toolbarBadgeClass =
-  'mb-0.5 flex h-6 min-w-0 items-center justify-center rounded-[10px] border border-[color:color-mix(in_srgb,var(--color-primary)_26%,white_10%)] bg-[linear-gradient(90deg,color-mix(in_srgb,var(--color-primary-gradient-start)_22%,rgba(255,255,255,0.10)),color-mix(in_srgb,var(--color-primary)_22%,rgba(255,255,255,0.04)))] px-2 text-[11px] font-semibold tracking-[0.18em] text-white/96 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]';
+  'mb-0.5 flex h-6 min-w-0 items-center justify-center rounded-[10px] border border-[color:color-mix(in_srgb,var(--color-primary)_24%,var(--editor-shell-border))] bg-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--overlay-panel-bg))] px-2 text-[11px] font-semibold tracking-[0.18em] text-[color:var(--color-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]';
 
 const toolbarButtonClass =
-  'box-border flex h-9 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[12px] border border-white/[0.06] bg-white/[0.05] text-white/78 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:color-mix(in_srgb,var(--color-primary)_34%,white_12%)] hover:bg-[color:color-mix(in_srgb,var(--color-primary)_16%,rgba(255,255,255,0.06))] hover:text-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_20px_rgba(0,0,0,0.16)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)] active:translate-y-0 active:bg-[color:color-mix(in_srgb,var(--color-primary)_22%,rgba(255,255,255,0.05))]';
+  'box-border flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[14px] border border-[color:var(--float-btn-border)] bg-[color:var(--float-btn-bg)] text-[color:var(--module-op-icon)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04),var(--panel-shadow-icon-btn)] transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:var(--float-btn-border-hover)] hover:bg-[color:var(--float-btn-bg-hover)] hover:text-[color:var(--module-op-icon-hover)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),var(--panel-shadow-hover-btn)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)] active:translate-y-0 active:bg-[color:color-mix(in_srgb,var(--float-btn-bg-hover)_82%,var(--overlay-panel-bg))]';
 
 const toolbarDeleteButtonClass =
-  'box-border flex h-9 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[12px] border border-[color:rgba(249,114,77,0.24)] bg-[linear-gradient(180deg,rgba(249,114,77,0.18),rgba(249,114,77,0.10))] text-[rgb(255,235,228)] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:rgba(249,114,77,0.42)] hover:bg-[linear-gradient(180deg,rgba(249,114,77,0.24),rgba(249,114,77,0.14))] hover:text-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_10px_20px_rgba(249,114,77,0.16)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:rgba(249,114,77,0.65)] active:translate-y-0';
+  'box-border flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[14px] border border-[color:color-mix(in_srgb,var(--panel-tone-rose)_22%,var(--float-btn-border))] bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_10%,var(--float-btn-bg))] text-[color:var(--module-op-delete-icon)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),var(--panel-shadow-icon-btn)] transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:color-mix(in_srgb,var(--panel-tone-rose)_34%,var(--float-btn-border-hover))] hover:bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_18%,var(--float-btn-bg-hover))] hover:text-[color:var(--module-op-delete-icon-hover)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),var(--panel-shadow-primary-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,var(--panel-tone-rose)_54%,transparent)] active:translate-y-0 active:bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_24%,var(--float-btn-bg))]';
 
 function ModuleOperation(props: { children: React.ReactNode }) {
   const [modal, contextHolder] = Modal.useModal();
@@ -115,7 +124,10 @@ function ModuleOperation(props: { children: React.ReactNode }) {
         canvasScale > 0 && Number.isFinite(canvasScale) ? canvasScale : 1;
       const top = (elRect.top - hostRect.top) / s;
       const left = (elRect.left - hostRect.left) / s + toolbarLeftOffset;
-      const moduleHeight = elRect.height / s;
+      const pad = Number(configStore.mergedGlobalStyle.padding ?? 0);
+      const splitBonus =
+        countModuleRoots(host, id) > 1 ? pad * 2 + 20 : 0;
+      const moduleHeight = elRect.height / s + splitBonus;
       const motion = source === 'active' ? 'smooth' : 'snap';
       setToolbarBox({
         top,

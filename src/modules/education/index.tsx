@@ -32,18 +32,22 @@ interface Props {
 
 function Education(props: Props) {
   const { config, globalStyle } = props;
-  const { id, options } = config;
+  const { id } = config;
+  const raw = config.options ?? { title: '', items: [] as EducationProps['options']['items'] };
+  const title = typeof raw.title === 'string' && raw.title.trim() ? raw.title : '教育经历';
+  const items = Array.isArray(raw.items) ? raw.items : [];
+  const options = { ...raw, title, items };
   const { fontSize, color, lineHeight } = globalStyle;
 
   return (
     <SectionModuleShell moduleId={id} headerConfig={options} moduleType={config.type} globalStyle={globalStyle}>
-      <div className='w-full' style={{ fontSize: fontSize + 'px' }}>
+      <div className='min-w-0 w-full' style={{ fontSize: fontSize + 'px' }}>
         {options.items.map((item, index) => (
-          <div key={index} className='w-full text-[#333] not-last:mb-[10px]'>
-            <div className='flex justify-between mb-[5px]'>
-              <div className='flex-7 flex items-center'>
-                <span className='font-bold'>{item.school}</span>
-                <div className='ml-[10px] flex items-center'>
+          <div key={index} className='min-w-0 w-full text-[#333] not-last:mb-[10px]'>
+            <div className='mb-[5px] flex min-w-0 justify-between gap-2'>
+              <div className='flex min-w-0 flex-[7] flex-wrap items-center gap-x-[10px] gap-y-1'>
+                <span className='min-w-0 font-bold break-words'>{item.school}</span>
+                <div className='flex shrink-0 flex-wrap items-center'>
                   {item.tags.map((tag, index) => (
                     <div
                       key={index}
@@ -59,16 +63,16 @@ function Education(props: Props) {
                   ))}
                 </div>
               </div>
-              <div className='flex-3 text-right'>
+              <div className='shrink-0 text-right whitespace-nowrap'>
                 {item.startDate} - {item.endDate}
               </div>
             </div>
             {item.degree && (
-              <div className='flex justify-between mb-[5px]'>
-                <div className='flex-7'>
+              <div className='mb-[5px] flex min-w-0 justify-between gap-2'>
+                <div className='min-w-0 flex-[7] break-words'>
                   {item.major} {item.degree} {item.academy}
                 </div>
-                <div className='flex-3 text-right'>
+                <div className='shrink-0 text-right'>
                   {normalizeResumeCityDisplay(item.city)}
                 </div>
               </div>
@@ -77,7 +81,7 @@ function Education(props: Props) {
               <ResumeQuillHtml
                 html={item.description}
                 style={{ fontSize: fontSize + 'px', lineHeight }}
-                className='text-[#333] [&_li]:my-0.5 [&_p]:my-1'
+                className='text-[#333]'
               />
             ) : null}
           </div>

@@ -42,11 +42,14 @@ async function generatePngFromPage(
     } else {
       throw new Error('缺少 html 或 url');
     }
-    const png = await page.screenshot({
-      type: 'png',
-      fullPage: true,
-      omitBackground: false,
-    });
+    const root = await page.$('.png-page');
+    const png = root
+      ? await root.screenshot({ type: 'png', omitBackground: false })
+      : await page.screenshot({
+          type: 'png',
+          fullPage: true,
+          omitBackground: false,
+        });
     return png;
   } finally {
     await browser.close();

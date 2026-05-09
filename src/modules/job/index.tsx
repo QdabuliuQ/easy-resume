@@ -33,31 +33,35 @@ function Job(props: Props) {
     return null;
   }
   const { config, globalStyle } = props;
-  const { id, options } = config;
+  const { id } = config;
+  const raw = config.options ?? { title: '', items: [] as JobProps['options']['items'] };
+  const title = typeof raw.title === 'string' && raw.title.trim() ? raw.title : '工作经历';
+  const items = Array.isArray(raw.items) ? raw.items : [];
+  const options = { ...raw, title, items };
   const { fontSize, lineHeight } = globalStyle;
   return (
     <SectionModuleShell moduleId={id} headerConfig={options} moduleType={config.type} globalStyle={globalStyle}>
-      <div className='w-full'>
+      <div className='min-w-0 w-full'>
         {options.items.map((item, index) => (
           <div
             key={index}
-            className='w-full text-[#333] not-last:mb-[10px]'
+            className='min-w-0 w-full text-[#333] not-last:mb-[10px]'
             style={{ fontSize: fontSize + 'px' }}
           >
-            <div className='flex justify-between mb-[5px]'>
-              <div className='flex-5 font-bold'>{item.company}</div>
-              <div className='flex-5 text-right'>
+            <div className='mb-[5px] flex min-w-0 justify-between gap-2'>
+              <div className='min-w-0 flex-[5] break-words font-bold'>{item.company}</div>
+              <div className='shrink-0 text-right whitespace-nowrap'>
                 {item.startDate} - {item.endDate}
               </div>
             </div>
             {(item.post || item.department || item.city) && (
-              <div className='flex justify-between mb-[5px]'>
-                <div className='flex-6'>
+              <div className='mb-[5px] flex min-w-0 justify-between gap-2'>
+                <div className='min-w-0 flex-[6] break-words'>
                   {item.post}
                   {item.post ? ' ' : ''}
                   {item.department}
                 </div>
-                <div className='flex-2 text-right'>
+                <div className='shrink-0 text-right'>
                   {normalizeResumeCityDisplay(item.city)}
                 </div>
               </div>
@@ -65,8 +69,8 @@ function Job(props: Props) {
             {plainTextFromRichHtml(item.description) ? (
               <ResumeQuillHtml
                 html={item.description}
-                style={{ lineHeight: lineHeight }}
-                className='text-[#333] [&_li]:my-0.5 [&_p]:my-1'
+                style={{ fontSize: `${fontSize}px`, lineHeight }}
+                className='text-[#333]'
               />
             ) : null}
           </div>

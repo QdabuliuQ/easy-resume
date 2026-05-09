@@ -35,7 +35,7 @@ function SectionModuleShell({
           {...{ [RESUME_MODULE_ID_ATTR]: interactiveModuleId }}
           className='w-full cursor-pointer'
         >
-          <div className='min-h-0 min-w-0 rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'>
+          <div className='min-h-0 min-w-0 overflow-hidden rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'>
             {children}
           </div>
         </div>
@@ -70,7 +70,7 @@ function SectionModuleShell({
             <SectionHeader config={{ ...headerConfig, moduleType }} globalStyle={globalStyle} />
           </div>
         </div>
-        <div className='min-h-0 min-w-0 rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'>
+        <div className='min-h-0 min-w-0 overflow-hidden rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'>
           {children}
         </div>
       </div>
