@@ -192,7 +192,13 @@ function SortableModuleList({
   );
 }
 
-function ModuleManageInner() {
+function ModuleManageInner({
+  inline = false,
+  className,
+}: {
+  inline?: boolean;
+  className?: string;
+}) {
   const [popOpen, setPopOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
@@ -255,7 +261,11 @@ function ModuleManageInner() {
   });
 
   const list = (
-    <div className='max-h-[min(380px,calc(100vh-160px))] w-[272px] overflow-x-hidden overflow-y-auto'>
+    <div
+      className={`max-h-[min(380px,calc(100vh-160px))] overflow-x-hidden overflow-y-auto ${
+        inline ? 'w-full min-w-0' : 'w-[272px]'
+      }`}
+    >
       {modules.length === 0 ? (
         <div className='px-3 py-6 text-center text-[13px] text-white/45'>
           暂无模块
@@ -273,34 +283,38 @@ function ModuleManageInner() {
 
   return (
     <>
-      <Popover
-        open={popOpen}
-        onOpenChange={setPopOpen}
-        placement='bottomRight'
-        trigger='click'
-        styles={{
-          root: { zIndex: 1050 },
-          body: {
-            padding: 10,
-            background: '#2e2d31',
-            borderRadius: 10,
-          },
-        }}
-        arrow={false}
-        content={list}
-      >
-        <button
-          type='button'
-          className='flex h-[30px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10'
+      {inline ? (
+        <div className={className}>{list}</div>
+      ) : (
+        <Popover
+          open={popOpen}
+          onOpenChange={setPopOpen}
+          placement='bottomRight'
+          trigger='click'
+          styles={{
+            root: { zIndex: 1050 },
+            body: {
+              padding: 10,
+              background: '#2e2d31',
+              borderRadius: 10,
+            },
+          }}
+          arrow={false}
+          content={list}
         >
-          <span>模块管理</span>
-          <RightOutlined
-            className={`text-[10px] text-white/70 transition-transform duration-200 ${
-              popOpen ? 'rotate-90' : ''
-            }`}
-          />
-        </button>
-      </Popover>
+          <button
+            type='button'
+            className='flex h-[30px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10'
+          >
+            <span>模块管理</span>
+            <RightOutlined
+              className={`text-[10px] text-white/70 transition-transform duration-200 ${
+                popOpen ? 'rotate-90' : ''
+              }`}
+            />
+          </button>
+        </Popover>
+      )}
 
       <Modal
         title='编辑模块名称'

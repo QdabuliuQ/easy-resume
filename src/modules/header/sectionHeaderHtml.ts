@@ -7,14 +7,26 @@ export function normHeaderTypeHtml(gs: GlobalStyle): number {
   return Math.min(8, Math.floor(n));
 }
 
-function moduleIconChar(moduleType?: string): string {
-  if (moduleType === 'education') return '读';
-  if (moduleType === 'job') return '职';
-  if (moduleType === 'project') return '项';
-  if (moduleType === 'skill') return '技';
-  if (moduleType === 'certificate') return '证';
-  if (moduleType === 'other') return '其';
-  return '读';
+function moduleIconSvg(moduleType?: string): string {
+  if (moduleType === 'education') {
+    return '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.5 6.5h10a2 2 0 0 1 2 2v9h-10a2 2 0 0 0-2 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M6.5 4.5h10a2 2 0 0 1 2 2v11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 9.5h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  }
+  if (moduleType === 'job') {
+    return '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 7V5.8A1.8 1.8 0 0 1 10.3 4h3.4a1.8 1.8 0 0 1 1.8 1.8V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 9h15v7.7A1.8 1.8 0 0 1 17.7 18.5H6.3A1.8 1.8 0 0 1 4.5 16.7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 12h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  }
+  if (moduleType === 'project') {
+    return '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.5 7.5h5l1.6 1.8h8.4v7.4a1.8 1.8 0 0 1-1.8 1.8H6.3a1.8 1.8 0 0 1-1.8-1.8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4.5 9.3V7.2A1.7 1.7 0 0 1 6.2 5.5h2.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  if (moduleType === 'skill') {
+    return '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.2 3.8 7.8 12h3.7l-1 8.2 5.7-8.8h-3.8z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></svg>';
+  }
+  if (moduleType === 'certificate') {
+    return '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 4.5h6l3 3v11a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 18.5V6A1.5 1.5 0 0 1 8.5 4.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 4.8v3h3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m9.5 14 1.6 1.6 3.4-3.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  if (moduleType === 'other') {
+    return '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="6.5" cy="12" r="1.7" fill="currentColor"/><circle cx="12" cy="12" r="1.7" fill="currentColor"/><circle cx="17.5" cy="12" r="1.7" fill="currentColor"/></svg>';
+  }
+  return moduleIconSvg('education');
 }
 
 function escapeHtml(s: unknown): string {
@@ -87,7 +99,7 @@ export function sectionHeaderHtml(title: string, gs: GlobalStyle, moduleType?: s
   }
   if (t === 8) {
     return `<div style="width:100%;display:flex;align-items:center;gap:8px;padding:4px 0;">
-<span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;border-radius:999px;background:${c};color:#fff;font-size:12px;font-weight:700;line-height:1;">${moduleIconChar(moduleType)}</span>
+<span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;border-radius:999px;background:${c};color:#fff;line-height:1;">${moduleIconSvg(moduleType)}</span>
 <span style="font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
 </div>`;
   }

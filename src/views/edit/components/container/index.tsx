@@ -20,7 +20,7 @@ export default function Container({ menuActiveKey }: ContainerProps) {
   }
 
   return (
-    <div className='flex h-full min-h-0 w-[450px] min-w-[450px] shrink-0 flex-col bg-[#38363a]'>
+    <div className='editor-shell-inset flex h-full min-h-0 w-[450px] min-w-[450px] shrink-0 flex-col overflow-hidden rounded-[28px] bg-transparent'>
       <div className='flex min-h-0 flex-1 flex-col'>
         <Resume menuActiveKey={menuActiveKey} />
       </div>

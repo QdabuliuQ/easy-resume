@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
- 
-export function middleware(request) {
-  // This middleware ensures that client-side routing patterns work with Next.js
-  // Add custom route handling logic here if needed
+
+export function middleware() {
   return NextResponse.next();
 }
- 
+
 export const config = {
   matcher: [
     /*

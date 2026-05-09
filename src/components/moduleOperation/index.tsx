@@ -1,4 +1,4 @@
-import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { ArrowCircleUp, DeleteOne } from '@icon-park/react';
 import { useMemoizedFn } from 'ahooks';
@@ -6,6 +6,7 @@ import { Modal } from 'antd';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { observer } from 'mobx-react';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
+import { moduleType } from '@/modules/utils/constant';
 import { flattenModules } from '@/utils/resumePages';
 
 import {
@@ -32,6 +33,18 @@ function findModuleRoot(host: HTMLElement | null, id: string): HTMLElement | nul
   return null;
 }
 
+const toolbarShellClass =
+  'flex shrink-0 flex-col gap-1 rounded-[16px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_18px_30px_rgba(0,0,0,0.22)] backdrop-blur-xl';
+
+const toolbarBadgeClass =
+  'mb-0.5 flex h-6 min-w-0 items-center justify-center rounded-[10px] border border-[color:color-mix(in_srgb,var(--color-primary)_26%,white_10%)] bg-[linear-gradient(90deg,color-mix(in_srgb,var(--color-primary-gradient-start)_22%,rgba(255,255,255,0.10)),color-mix(in_srgb,var(--color-primary)_22%,rgba(255,255,255,0.04)))] px-2 text-[11px] font-semibold tracking-[0.18em] text-white/96 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]';
+
+const toolbarButtonClass =
+  'box-border flex h-9 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[12px] border border-white/[0.06] bg-white/[0.05] text-white/78 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:color-mix(in_srgb,var(--color-primary)_34%,white_12%)] hover:bg-[color:color-mix(in_srgb,var(--color-primary)_16%,rgba(255,255,255,0.06))] hover:text-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_20px_rgba(0,0,0,0.16)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)] active:translate-y-0 active:bg-[color:color-mix(in_srgb,var(--color-primary)_22%,rgba(255,255,255,0.05))]';
+
+const toolbarDeleteButtonClass =
+  'box-border flex h-9 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[12px] border border-[color:rgba(249,114,77,0.24)] bg-[linear-gradient(180deg,rgba(249,114,77,0.18),rgba(249,114,77,0.10))] text-[rgb(255,235,228)] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:rgba(249,114,77,0.42)] hover:bg-[linear-gradient(180deg,rgba(249,114,77,0.24),rgba(249,114,77,0.14))] hover:text-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_10px_20px_rgba(249,114,77,0.16)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:rgba(249,114,77,0.65)] active:translate-y-0';
+
 function ModuleOperation(props: { children: React.ReactNode }) {
   const [modal, contextHolder] = Modal.useModal();
   const hostRef = useRef<HTMLDivElement>(null);
@@ -53,6 +66,23 @@ function ModuleOperation(props: { children: React.ReactNode }) {
   /** 工具条：未选中模块时为 0，选中后过渡到 1 */
   const [toolbarOpacity, setToolbarOpacity] = useState(0);
   const prevActiveIdRef = useRef(moduleActiveStore.getModuleActive);
+
+  const orderedModules = useMemo(
+    () => flattenModules(configStore.getConfig),
+    [configStore.getConfig]
+  );
+
+  const activeModuleMeta = useMemo(() => {
+    if (activeId === 'global') return null;
+    const index = orderedModules.findIndex((mod) => mod.id === activeId);
+    if (index < 0) return null;
+    const mod = orderedModules[index];
+    return {
+      index,
+      label:
+        (moduleType as Record<string, { name: string }>)[mod.type]?.name ?? mod.type,
+    };
+  }, [activeId, orderedModules]);
 
   const toolbarLeftOffset =
     -(36 + (configStore.mergedGlobalStyle.padding ?? 0));
@@ -132,16 +162,14 @@ function ModuleOperation(props: { children: React.ReactNode }) {
   }, [updateToolbarPos]);
 
   useEffect(() => {
-    const config = configStore.getConfig;
-    const ordered = flattenModules(config);
-    if (!ordered.length || activeId === 'global') {
+    if (!orderedModules.length || activeId === 'global') {
       setIsFirst(false);
       setIsLast(false);
       return;
     }
-    setIsFirst(activeId === ordered[0].id);
-    setIsLast(activeId === ordered[ordered.length - 1].id);
-  }, [activeId, configStore.getConfig]);
+    setIsFirst(activeId === orderedModules[0].id);
+    setIsLast(activeId === orderedModules[orderedModules.length - 1].id);
+  }, [activeId, orderedModules]);
 
   useEffect(() => {
     const prev = prevActiveIdRef.current;
@@ -295,7 +323,7 @@ function ModuleOperation(props: { children: React.ReactNode }) {
           <div
             style={{
               top: 0,
-              left: 0,
+              left: -36,
               transform: `translate3d(${toolbarBox.left}px, ${toolbarBox.top}px, 0)`,
               opacity: toolbarOpacity,
               transition:
@@ -308,68 +336,79 @@ function ModuleOperation(props: { children: React.ReactNode }) {
             className='absolute flex items-start'
             aria-label='模块操作'
           >
-            <div className='flex shrink-0 flex-col overflow-hidden rounded-bl-[6px] rounded-tl-[6px]'>
-              {!isFirst && (
-                <button
-                  type='button'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    upHandle();
-                  }}
-                  className='bg-gradient-primary box-border flex h-8 w-9 shrink-0 cursor-pointer items-center justify-center border-b border-white/10 text-white transition-[filter] hover:brightness-110'
-                  aria-label='上移'
-                >
-                  <ArrowCircleUp theme='outline' size='17' fill='#fff' />
-                </button>
-              )}
-              {!isLast && (
-                <button
-                  type='button'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    downHandle();
-                  }}
-                  className='bg-gradient-primary box-border flex h-8 w-9 shrink-0 cursor-pointer items-center justify-center border-b border-white/10 text-white transition-[filter] hover:brightness-110'
-                  aria-label='下移'
-                >
-                  <ArrowCircleUp
-                    className='rotate-180'
-                    theme='outline'
-                    size='17'
-                    fill='#fff'
-                  />
-                </button>
-              )}
-              <button
-                type='button'
-                onClick={(e) => {
-                  e.stopPropagation();
-                  modal.confirm({
-                    title: '删除模块',
-                    content: '确定删除该模块吗？删除后不可恢复。',
-                    okText: '删除',
-                    cancelText: '取消',
-                    okButtonProps: { danger: true },
-                    centered: true,
-                    onOk: () => deleteHandle(),
-                  });
-                }}
-                className='box-border flex h-8 w-9 shrink-0 cursor-pointer items-center justify-center bg-red-400 text-white hover:bg-red-500'
-                aria-label='删除'
+            <div className='flex items-start'>
+              <div
+                className={toolbarShellClass}
+                aria-label={activeModuleMeta ? `当前模块：${activeModuleMeta.label}` : '当前模块操作'}
+                title={activeModuleMeta?.label}
               >
-                <DeleteOne theme='outline' size='17' fill='#fff' />
-              </button>
+                {activeModuleMeta ? (
+                  <div className={toolbarBadgeClass}>
+                    {String(activeModuleMeta.index + 1).padStart(2, '0')}
+                  </div>
+                ) : null}
+                {!isFirst && (
+                  <button
+                    type='button'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      upHandle();
+                    }}
+                    className={toolbarButtonClass}
+                    aria-label='上移'
+                  >
+                    <ArrowCircleUp theme='outline' size='17' fill='currentColor' />
+                  </button>
+                )}
+                {!isLast && (
+                  <button
+                    type='button'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downHandle();
+                    }}
+                    className={toolbarButtonClass}
+                    aria-label='下移'
+                  >
+                    <ArrowCircleUp
+                      className='rotate-180'
+                      theme='outline'
+                      size='17'
+                      fill='currentColor'
+                    />
+                  </button>
+                )}
+                <button
+                  type='button'
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    modal.confirm({
+                      title: '删除模块',
+                      content: '确定删除该模块吗？删除后不可恢复。',
+                      okText: '删除',
+                      cancelText: '取消',
+                      okButtonProps: { danger: true },
+                      centered: true,
+                      onOk: () => deleteHandle(),
+                    });
+                  }}
+                  className={toolbarDeleteButtonClass}
+                  aria-label='删除'
+                >
+                  <DeleteOne theme='outline' size='17' fill='currentColor' />
+                </button>
+              </div>
+              {toolbarBox.moduleHeight > 0 ? (
+                <span
+                  aria-hidden
+                  className={bracketStyles.bracket}
+                  style={{
+                    height: toolbarBox.moduleHeight,
+                    width: bracketWidthPx,
+                  }}
+                />
+              ) : null}
             </div>
-            {toolbarBox.moduleHeight > 0 ? (
-              <span
-                aria-hidden
-                className={bracketStyles.bracket}
-                style={{
-                  height: toolbarBox.moduleHeight,
-                  width: bracketWidthPx,
-                }}
-              />
-            ) : null}
           </div>
         ) : null}
         {props.children}

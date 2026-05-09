@@ -50,7 +50,7 @@ function ModulePanelTitleEdit({
             onChange={(e) => setDraft(e.target.value)}
             onBlur={commit}
             onPressEnter={(e) => (e.target as HTMLInputElement).blur()}
-            className='w-full border-white/20 bg-white/10 text-[15px] text-white/95'
+            className='panel-title-input text-[15px]'
           />
         ) : (
           <span className='block truncate text-[15px] font-medium text-white/95'>{display}</span>
@@ -67,7 +67,7 @@ function ModulePanelTitleEdit({
               setDraft(title);
               setEditing(true);
             }}
-            className='relative z-[1] inline-flex size-7 shrink-0 items-center justify-center rounded-md text-white/55 outline-none cursor-pointer hover:text-white/90 disabled:pointer-events-none disabled:opacity-60'
+            className='panel-title-edit-btn disabled:pointer-events-none disabled:opacity-60'
           >
             <Edit theme='outline' size={16} fill='currentColor' />
           </button>

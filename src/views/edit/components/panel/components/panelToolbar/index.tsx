@@ -36,10 +36,10 @@ function PanelToolbar({ moduleId }: { moduleId: string }) {
   return (
     <>
       {contextHolder}
-      <div className='flex shrink-0 items-center gap-0.5'>
+      <div className='flex shrink-0 items-center gap-3'>
         <button
           type='button'
-          className='flex h-7 w-7 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0 text-white/45 transition-colors hover:text-red-500'
+          className='panel-toolbar-btn panel-toolbar-btn-danger border-0 p-0'
           onClick={onDelete}
           aria-label='删除模块'
         >
@@ -47,7 +47,7 @@ function PanelToolbar({ moduleId }: { moduleId: string }) {
         </button>
         <button
           type='button'
-          className='flex h-7 w-7 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0 text-white/45 transition-colors hover:text-white/90'
+          className='panel-toolbar-btn border-0 p-0'
           onClick={toggleEdit}
           aria-expanded={editOpen}
           aria-label={editOpen ? '切换为预览' : '切换为编辑'}

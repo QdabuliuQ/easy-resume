@@ -53,10 +53,10 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
   const previewText = plainTextFromRichHtml(rawHtml);
   return (
     <div className='[&_.ant-form-item]:!mb-2.5'>
-      <div className='mb-3 flex min-w-0 items-center justify-between gap-2'>
-        <div className='flex min-w-0 flex-1 items-center'>
+      <div className='panel-module-head'>
+        <div className='panel-module-head-main'>
           <div
-            className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-base'
+            className='panel-module-icon text-base'
             aria-hidden
           >
             <More theme='outline' size={18} fill='rgba(255,255,255,0.72)' />
@@ -78,7 +78,7 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
       {!editOpen && module && (
         <div
           key='preview'
-          className='info1-panel-animate rounded-lg border border-white/[0.08] bg-white/[0.06] px-3.5 py-3 text-white/95'
+          className='panel-module-preview info1-panel-animate text-white/95'
         >
           {!previewText ? (
             <div className='text-[13px] text-white/75'>暂无内容</div>
@@ -93,7 +93,7 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
       {editOpen && module ? (
         <div
           key='edit'
-          className='info1-panel-animate mt-1 rounded-lg border border-white/[0.08] bg-white/[0.06] p-[10px] text-white/95'
+          className='panel-module-edit info1-panel-animate text-white/95'
         >
           <RichTextEditor
             instanceKey={`${moduleActive}-other`}

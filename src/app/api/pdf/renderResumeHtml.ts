@@ -369,7 +369,10 @@ export function renderResumeDocumentHtml(resume: {
       ? hCss
       : `calc(${pageCount} * (${hCss}))`;
 
-  const fontStack = resumeFontStack(gs.resumeFont);
+  const fontStack =
+    gs.resumeFont === 'system'
+      ? `'Noto Sans SC', ${resumeFontStack(gs.resumeFont)}`
+      : resumeFontStack(gs.resumeFont);
   const quillSnow = getQuillSnowCss();
   const fontLinks = resumePdfFontLinkTags(gs.resumeFont);
 

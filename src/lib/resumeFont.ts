@@ -3,7 +3,7 @@ export type ResumeFontId = 'system' | 'noto-sans-sc' | 'noto-serif-sc';
 export const DEFAULT_RESUME_FONT: ResumeFontId = 'system';
 
 const SYSTEM_STACK =
-  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif";
+  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', 'Noto Serif SC', sans-serif";
 
 export function normResumeFont(v: unknown): ResumeFontId {
   if (v === 'system') return 'system';

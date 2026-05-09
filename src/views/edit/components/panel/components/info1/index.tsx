@@ -329,8 +329,8 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
 
   return (
     <div className='[&_.ant-form-item-label]:!pb-[5px] [&_.ant-form-item-label]:!h-[30px]'>
-      <div className='mb-3 flex items-center justify-between'>
-        <div className='flex items-center'>
+      <div className='panel-module-head'>
+        <div className='panel-module-head-main'>
           <svg
             width={0}
             height={0}
@@ -351,7 +351,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
             </defs>
           </svg>
           <div
-            className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-base [&_.anticon_svg_path]:!fill-[var(--info1-icon-fill)]'
+            className='panel-module-icon text-base [&_.anticon_svg_path]:!fill-[var(--info1-icon-fill)]'
             style={
               {
                 ['--info1-icon-fill']: 'url(#info1-user-grad)',
@@ -361,7 +361,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
           >
             <UserOutlined />
           </div>
-          <span className='text-[15px] font-medium text-white/95 ml-[10px]'>
+          <span className='panel-module-label'>
             基本信息
           </span>
         </div>
@@ -371,7 +371,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
       {!editOpen && option && (
         <div
           key='preview'
-          className='info1-panel-animate rounded-lg border border-white/[0.08] bg-white/[0.06] px-3.5 py-3 text-white/95'
+          className='panel-module-preview info1-panel-animate text-white/95'
         >
           {previewByLayout ? (
             <div className='flex flex-col gap-2 break-all text-[13px] text-white/75'>
@@ -397,7 +397,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
       {editOpen && option ? (
         <div
           key='edit'
-          className='info1-panel-animate mt-1 rounded-lg border border-white/[0.08] bg-white/[0.06] p-[10px] text-white/95'
+          className='panel-module-edit info1-panel-animate text-white/95'
         >
           <p className='mb-3 rounded-md border border-[color:color-mix(in_srgb,var(--color-primary)_52%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)] px-3 py-2.5 text-[11px] font-medium leading-relaxed text-[color:var(--color-primary)] shadow-[inset_0_1px_0_0_color-mix(in_srgb,var(--color-primary)_28%,transparent)]'>
             <span className='font-semibold'>提示</span>

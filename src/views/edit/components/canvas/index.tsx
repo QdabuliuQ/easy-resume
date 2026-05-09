@@ -7,6 +7,9 @@ import {
   useState,
 } from 'react';
 import { useMemoizedFn } from 'ahooks';
+import { CloseOutlined, EyeOutlined } from '@ant-design/icons';
+import { Tooltip } from 'antd';
+import { createPortal } from 'react-dom';
 import resume from '@/json/resume';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
@@ -37,7 +40,8 @@ import CanvasModuleFragment, {
 } from './moduleFragment';
 
 /** 容器内左右留白，用于判断是否需缩小画布（缩放时两侧至少各 40） */
-const CANVAS_SIDE_PAD = 40;
+const CANVAS_SIDE_PAD = 70;
+const PREVIEW_EXIT_MS = 200;
 
 /** 合并默认 globalStyle，避免 cfg 里缺 padding/height 时分页可用高度算错 */
 function mergeGlobalStyle(cfg: any): GlobalStyle {
@@ -1016,6 +1020,9 @@ function Canvas() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewClosing, setPreviewClosing] = useState(false);
+  const previewCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const globalStyle = configStore.mergedGlobalStyle;
   const pageCount = Math.max(1, pages.length);
@@ -1058,10 +1065,71 @@ function Canvas() {
     return () => ro.disconnect();
   }, [updateScale]);
 
+  useEffect(() => {
+    return () => {
+      if (previewCloseTimerRef.current) {
+        clearTimeout(previewCloseTimerRef.current);
+      }
+    };
+  }, []);
+
+  const openPreview = useMemoizedFn(() => {
+    if (previewCloseTimerRef.current) {
+      clearTimeout(previewCloseTimerRef.current);
+      previewCloseTimerRef.current = null;
+    }
+    setPreviewClosing(false);
+    setPreviewOpen(true);
+  });
+
+  const closePreview = useMemoizedFn(() => {
+    if (!previewOpen || previewClosing) return;
+    setPreviewClosing(true);
+    previewCloseTimerRef.current = setTimeout(() => {
+      setPreviewOpen(false);
+      setPreviewClosing(false);
+      previewCloseTimerRef.current = null;
+    }, PREVIEW_EXIT_MS);
+  });
+
+  const previewOverlay =
+    previewOpen && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            className={`${previewClosing ? 'canvas-preview-overlay-exit-animate' : 'canvas-preview-overlay-animate'} fixed inset-0 z-[1400] flex min-h-0 flex-col bg-[#0f0d12]/88 backdrop-blur-sm`}
+          >
+            <div className='flex items-center justify-between border-b border-white/10 px-5 py-3.5'>
+              <span className='text-[13px] font-medium text-white/88'>文本预览</span>
+              <button
+                type='button'
+                onClick={closePreview}
+                className='cursor-pointer inline-flex size-8 items-center justify-center rounded-lg border border-white/12 bg-white/[0.04] text-white/75 transition-colors hover:bg-white/[0.1] hover:text-white'
+                aria-label='关闭预览'
+              >
+                <CloseOutlined className='text-[12px]' />
+              </button>
+            </div>
+
+            <div className='min-h-0 flex-1 overflow-auto px-5 py-5'>
+              <div
+                className={`${previewClosing ? 'canvas-preview-content-exit-animate' : 'canvas-preview-content-animate'} mx-auto flex w-fit flex-col gap-[30px]`}
+              >
+                {pages.map((page, idx) => (
+                  <div key={`text-preview-page-${idx}`} className='shrink-0'>
+                    {page}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
   return (
     <div
       ref={containerRef}
-      className='flex h-full w-full min-h-0 flex-col items-center justify-start overflow-auto rounded-md'
+      className='relative flex h-full w-full min-h-0 flex-col items-center justify-start overflow-auto rounded-md'
     >
       <ResumeFontCdn font={globalStyle.resumeFont} />
       <div style={{ width: contentW * scale, height: contentH * scale }}>
@@ -1079,6 +1147,22 @@ function Canvas() {
           </CanvasScaleContext.Provider>
         </div>
       </div>
+
+      <div className='pointer-events-none fixed right-[20px] bottom-[20px] z-20'>
+        <Tooltip title='简历预览' placement='left'>
+          <button
+            type='button'
+            onClick={openPreview}
+            className='cursor-pointer pointer-events-auto inline-flex h-[42px] w-[42px] items-center justify-center rounded-full border border-white/15 bg-[#26242b]/92 text-white/90 shadow-[0_10px_28px_rgba(0,0,0,0.32)] backdrop-blur-sm transition-colors hover:border-white/25 hover:bg-[#302d36]'
+            aria-label='简历预览'
+          >
+            <EyeOutlined className='text-[17px]' />
+          </button>
+        </Tooltip>
+      </div>
+
+      {previewOverlay}
+
     </div>
   );
 }

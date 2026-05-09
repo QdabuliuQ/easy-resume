@@ -4,11 +4,12 @@ import { VersionUpdateNotifier } from '@/components/versionUpdateNotifier';
 import { AntdProvider } from './providers';
 
 export const metadata: Metadata = {
-  title: 'Easy Resume',
+  title: 'EasyResume',
   description: 'Resume editor',
   icons: {
-    icon: '/printer-paper.ico',
-    shortcut: '/printer-paper.ico',
+    icon: '/easy-resume/logo.png',
+    shortcut: '/easy-resume/logo.png',
+    apple: '/easy-resume/logo.png',
   },
 };
 

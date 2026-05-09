@@ -44,6 +44,7 @@ job 白名单：post、description
 project 白名单：name、role、description
 education 白名单：major、description
 other 白名单：description
+注意：info1.options.avatar 字段默认存在，仅作为头像占位，不参与任何校验与优化，不得在 fieldOptimizeList 中输出该字段。
 
 ### 三、评分&分析规则
 1. 基于传入的完整简历pages整体结构，给出简历整体综合评分，分值范围 0-100 整数；
@@ -86,11 +87,11 @@ pageIndex、moduleType、moduleId、fieldKey、optimizeReason、optimizeValue
   "fieldOptimizeList": [
     {
       "pageIndex": 0,
-      "moduleType": "info1",
-      "moduleId": "1",
-      "fieldKey": "stature",
-      "optimizeReason": "身高属于非求职必要隐私信息，简历无需展示",
-      "optimizeValue": ""
+      "moduleType": "job",
+      "moduleId": "job-1",
+      "fieldKey": "description",
+      "optimizeReason": "项目成果描述偏空泛，缺少量化结果与关键动作",
+      "optimizeValue": "负责核心后台系统重构，主导接口性能优化与缓存策略升级，将高峰期接口 P95 从 420ms 降至 180ms，错误率下降 38%，支撑日均 80 万次请求稳定运行。"
     }
   ]
 }

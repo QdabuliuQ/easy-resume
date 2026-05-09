@@ -50,7 +50,25 @@ function Resume({ menuActiveKey }: ResumeProps) {
     setAnalyzeLoading(true);
     void (async () => {
       try {
-        const payload = { pages: cfg.pages, globalStyle: cfg.globalStyle ?? undefined };
+        const pagesForAnalyze = (cfg.pages ?? []).map((page) => {
+          const modules = Array.isArray(page.modules)
+            ? page.modules.map((module) => {
+                if (String(module?.type ?? '') !== 'info1') return module;
+                const options =
+                  module?.options && typeof module.options === 'object'
+                    ? (({ avatar: _avatar, ...restOptions }) => restOptions)(
+                        module.options as Record<string, unknown>,
+                      )
+                    : module?.options;
+                return { ...module, options };
+              })
+            : page.modules;
+          return { ...page, modules };
+        });
+        const payload = {
+          pages: pagesForAnalyze,
+          globalStyle: cfg.globalStyle ?? undefined,
+        };
         const result = await analyzeResumeWithBigmodel(payload);
         setAiAnalysis(result);
         setHasAiAnalysis(true);
@@ -64,8 +82,30 @@ function Resume({ menuActiveKey }: ResumeProps) {
 
   return (
     <div className='relative flex h-full min-h-0 flex-1 flex-col text-black [transform:translateZ(0)]'>
-      <div className='min-h-0 flex-1 overflow-auto pb-20'>
+      <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-24'>
         <div className='m-[20px]'>
+          <div className='mb-4 rounded-[20px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] px-4 py-3 text-white shadow-[0_18px_42px_rgba(0,0,0,0.14)]'>
+            <div className='flex items-start justify-between gap-3'>
+              <div className='min-w-0'>
+                <p className='text-[11px] font-medium tracking-[0.18em] text-white/40'>
+                  {isAiScore ? 'AI SCORE' : isResumeTemplate ? 'TEMPLATES' : 'CONFIG'}
+                </p>
+                <h2 className='mt-1 text-[17px] font-semibold text-white/95'>
+                  {isAiScore ? 'AI 智能评分' : isResumeTemplate ? '简历模板' : '简历配置面板'}
+                </h2>
+                <p className='mt-1 text-[12px] leading-relaxed text-white/55'>
+                  {isAiScore
+                    ? '查看评分维度与优化建议，并在当前简历配置上应用可执行修改。'
+                    : isResumeTemplate
+                      ? '选择模板会直接替换当前简历配置，建议先导出 JSON 备份。'
+                      : '滚动浏览各模块配置，顶部导航用于快速定位，底部按钮负责补充模块。'}
+                </p>
+              </div>
+              <div className='shrink-0 rounded-full border border-white/[0.08] bg-white/[0.05] px-3 py-1 text-[11px] font-medium text-white/55'>
+                {isAiScore ? '分析' : isResumeTemplate ? '模板' : '编辑'}
+              </div>
+            </div>
+          </div>
           {isAiScore ? (
             <AiScore
               loading={analyzeLoading}
@@ -80,7 +120,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
         </div>
       </div>
       {isResumeEdit && (
-      <div className='pointer-events-none fixed bottom-0 left-0 right-0 z-10 p-[10px]'>
+      <div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[linear-gradient(180deg,rgba(56,54,58,0),rgba(56,54,58,0.92)_46%,rgba(56,54,58,1))] px-[10px] pb-[10px] pt-8'>
         <div className='pointer-events-auto flex justify-center'>
           <Popover
             trigger='click'
@@ -160,7 +200,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
       </div>
       )}
       {isAiScore && (
-        <div className='pointer-events-none fixed bottom-0 left-0 right-0 z-10 p-[10px]'>
+        <div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[linear-gradient(180deg,rgba(56,54,58,0),rgba(56,54,58,0.92)_46%,rgba(56,54,58,1))] px-[10px] pb-[10px] pt-8'>
           <div className='pointer-events-auto flex justify-center'>
             <button
               type='button'

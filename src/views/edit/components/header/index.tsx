@@ -94,6 +94,7 @@ function Header() {
   const [exportPopOpen, setExportPopOpen] = useState(false);
   const [toolbarCompact, setToolbarCompact] = useState(false);
   const [compactMenuOpen, setCompactMenuOpen] = useState(false);
+  const [moreConfigOpen, setMoreConfigOpen] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1100px)');
@@ -105,6 +106,10 @@ function Header() {
 
   useEffect(() => {
     if (!toolbarCompact) setCompactMenuOpen(false);
+  }, [toolbarCompact]);
+
+  useEffect(() => {
+    if (toolbarCompact) setMoreConfigOpen(false);
   }, [toolbarCompact]);
 
   const name = configStore.getConfig?.name ?? resume.name;
@@ -470,29 +475,61 @@ function Header() {
   };
 
   const tc = toolbarCompact;
-  const selSkin =
+  // 紧凑模式（移动端弹窗）：Select 有自己的边框和背景
+  const selCompactSkin =
     '[&_.ant-select-selector]:!min-h-[30px] [&_.ant-select-selector]:!border-[#555] [&_.ant-select-selector]:!bg-[#2a2a2a] [&_.ant-select-selection-item]:!text-white [&_.ant-select-arrow]:!text-[#aaa]';
+  // 桌面模式：Select 嵌在 pill 壳里，去掉内层边框和背景，避免双重边框
+  const selDesktopSkin =
+    '[&_.ant-select-selector]:!min-h-[28px] [&_.ant-select-selector]:!border-none [&_.ant-select-selector]:!bg-transparent [&_.ant-select-selector]:!shadow-none [&_.ant-select-selector]:!px-0 [&_.ant-select-selection-item]:!text-white/90 [&_.ant-select-arrow]:!text-white/50';
+  const selSkin = tc ? selCompactSkin : selDesktopSkin;
   const selClass = (mw: string) =>
     tc ? `w-full min-w-0 [&_.ant-select-selector]:!w-full ${selSkin}` : `${mw} ${selSkin}`;
   const selPortal = tc ? { getPopupContainer: () => document.body } : {};
-  const wrapBar = (label: string, node: ReactNode) =>
+  const toolbarFieldShellClass =
+    'inline-flex h-[38px] shrink-0 items-center gap-2 rounded-full border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]';
+  const toolbarFieldLabelClass =
+    'shrink-0 pl-0.5 text-[13px] font-medium tracking-[0.02em] text-white/48';
+  const wrapBar = (
+    label: string,
+    node: ReactNode,
+    desktopVariant: 'field' | 'bare' = 'field'
+  ) =>
     tc ? (
       <div className='flex flex-col gap-1'>
-        <span className='text-[11px] text-white/45'>{label}</span>
+        <span className='text-[13px] text-white/45 pr-[5px]'>{label}</span>
         {node}
       </div>
     ) : (
-      <Tooltip title={label} placement='bottom'>
-        {node}
-      </Tooltip>
+      desktopVariant === 'bare' ? node : (
+        <div className={toolbarFieldShellClass}>
+          <span className={`${toolbarFieldLabelClass} pr-[5px]` }>{label}</span>
+          {node}
+        </div>
+      )
     );
   const popBodyToDoc = tc ? { getPopupContainer: () => document.body } : {};
   const fullRowBtn = tc ? 'w-full justify-center' : '';
 
-  const toolbarFields = (
+  const moreConfigButton = (
+    <button
+      type='button'
+      aria-expanded={moreConfigOpen}
+      aria-haspopup='dialog'
+      className='flex h-[38px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10'
+    >
+      <span>更多</span>
+      <RightOutlined
+        className={`text-[10px] text-white/70 transition-transform duration-200 ${
+          moreConfigOpen ? 'rotate-90' : ''
+        }`}
+      />
+    </button>
+  );
+
+  const secondaryToolbarFields = (
     <>
       {wrapBar(
-        '正文字号',
+        '字号',
         <Select
           value={fontSize}
           options={fontSizeOptions}
@@ -508,7 +545,7 @@ function Header() {
         />
       )}
       {wrapBar(
-        '简历字体',
+        '字体',
         <Select
           value={resumeFontVal}
           options={RESUME_FONT_OPTIONS}
@@ -525,7 +562,37 @@ function Header() {
         />
       )}
       {wrapBar(
-        '纸张大小（默认 A4）',
+        '标题样式',
+        <Select
+          virtual={false}
+          value={headerTypeVal}
+          optionLabelProp='title'
+          options={headerTypeOptions}
+          onChange={(v) => setGlobalHeaderType(v)}
+          popupMatchSelectWidth={false}
+          className={selClass('min-w-[88px]')}
+          popupClassName='[&_.ant-select-item]:!min-h-[unset] [&_.ant-select-item]:!py-1 [&_.ant-select-item-option-selected]:!bg-white/10 [&_.ant-select-item-option-active]:!bg-white/8'
+          styles={{
+            popup: {
+              root: { backgroundColor: '#323236', padding: 6, minWidth: 268 },
+            },
+          }}
+          {...selPortal}
+        />
+      )}
+      <div className='basis-full'>
+        <div className={tc ? 'mb-1 text-[13px] text-white/45' : 'mb-1 text-[13px] text-white/45'}>
+          模块管理
+        </div>
+        <ModuleManage inline className='rounded-xl border border-white/[0.08] bg-white/[0.03] p-2.5' />
+      </div>
+    </>
+  );
+
+  const toolbarFields = (
+    <>
+      {wrapBar(
+        '纸张',
         <Select
           value={pageSizeVal}
           options={RESUME_PAGE_SIZE_OPTIONS}
@@ -542,7 +609,7 @@ function Header() {
         />
       )}
       {wrapBar(
-        '页边距（版心内边距）',
+        '页边距',
         <Select
           value={pagePadding}
           options={pagePaddingOptions}
@@ -558,7 +625,7 @@ function Header() {
         />
       )}
       {wrapBar(
-        '模块间距',
+        '间距',
         <Select
           value={moduleMarginVal}
           options={moduleMarginOptions}
@@ -584,25 +651,6 @@ function Header() {
           styles={{
             popup: {
               root: { backgroundColor: '#323236', padding: 4 },
-            },
-          }}
-          {...selPortal}
-        />
-      )}
-      {wrapBar(
-        '模块标题样式',
-        <Select
-          virtual={false}
-          value={headerTypeVal}
-          optionLabelProp='title'
-          options={headerTypeOptions}
-          onChange={(v) => setGlobalHeaderType(v)}
-          popupMatchSelectWidth={false}
-          className={selClass('min-w-[88px]')}
-          popupClassName='[&_.ant-select-item]:!min-h-[unset] [&_.ant-select-item]:!py-1 [&_.ant-select-item-option-selected]:!bg-white/10 [&_.ant-select-item-option-active]:!bg-white/8'
-          styles={{
-            popup: {
-              root: { backgroundColor: '#323236', padding: 6, minWidth: 268 },
             },
           }}
           {...selPortal}
@@ -769,10 +817,33 @@ function Header() {
         </Popover>
       )}
       {wrapBar(
-        '模块管理',
-        <div className={tc ? 'w-full [&_button]:w-full [&_button]:justify-center' : ''}>
-          <ModuleManage />
-        </div>
+        '更多设置',
+        tc ? secondaryToolbarFields : (
+          <Popover
+            open={moreConfigOpen}
+            onOpenChange={setMoreConfigOpen}
+            placement='bottomRight'
+            trigger='click'
+            arrow={false}
+            {...popBodyToDoc}
+            styles={{
+              root: { zIndex: 1050 },
+              body: {
+                padding: 10,
+                background: '#2e2d31',
+                borderRadius: 10,
+              },
+            }}
+            content={
+              <div className='flex max-w-[min(72vw,720px)] flex-wrap gap-2.5'>
+                {secondaryToolbarFields}
+              </div>
+            }
+          >
+            {moreConfigButton}
+          </Popover>
+        ),
+        'bare'
       )}
       {wrapBar(
         '导出',
@@ -837,7 +908,7 @@ function Header() {
             disabled={pdfLoading || pngLoading}
             aria-expanded={exportPopOpen}
             aria-haspopup='menu'
-            className={`flex h-[30px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-70 ${fullRowBtn}`}
+            className={`flex h-[38px] cursor-pointer items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[13px] font-medium text-white/95 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-70 ${fullRowBtn}`}
           >
             {pdfLoading || pngLoading ? (
               <>
@@ -858,14 +929,16 @@ function Header() {
               </>
             )}
           </button>
-        </Popover>
+        </Popover>,
+        'bare'
       )}
     </>
   );
 
   return (
-    <div className='h-full px-[20px] flex items-center justify-between'>
-      <div className='flex items-center gap-1.5 min-w-0 h-full'>
+    <div className='flex h-full items-center justify-between gap-4 px-4 md:px-5'>
+      <div className='flex min-w-0 items-center gap-2 h-full'>
+        <div className='bg-gradient-primary-br h-9 w-1.5 shrink-0 rounded-full opacity-90' />
         {editing ? (
           <Input
             autoFocus
@@ -895,7 +968,7 @@ function Header() {
           />
         ) : (
           <>
-            <span className='text-white text-[14px] leading-[22px] truncate' title={name}>
+            <span className='truncate text-[15px] font-medium leading-[22px] text-white/96' title={name}>
               {name}
             </span>
             <Button
@@ -949,7 +1022,13 @@ function Header() {
           </button>
         </Popover>
       ) : (
-        <div className='flex h-full items-center gap-2'>{toolbarFields}</div>
+        <div className='flex min-w-0 flex-1 items-center justify-end overflow-hidden'>
+          <div className='flex min-w-0 flex-1 items-center justify-end overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'>
+            <div className='flex min-w-max items-center gap-2.5 pl-1'>
+              {toolbarFields}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -126,8 +126,8 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
 
   return (
     <div className='[&_.ant-form-item]:!mb-2.5'>
-      <div className='mb-3 flex min-w-0 items-center justify-between gap-2'>
-        <div className='flex min-w-0 flex-1 items-center'>
+      <div className='panel-module-head'>
+        <div className='panel-module-head-main'>
           <svg
             width={0}
             height={0}
@@ -148,7 +148,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
             </defs>
           </svg>
           <div
-            className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-base [&_.anticon_svg_path]:!fill-[var(--cert-icon-fill)]'
+            className='panel-module-icon text-base [&_.anticon_svg_path]:!fill-[var(--cert-icon-fill)]'
             style={
               {
                 ['--cert-icon-fill']: `url(#${iconGradId})`,
@@ -176,7 +176,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
       {!editOpen && module && (
         <div
           key='preview'
-          className='info1-panel-animate rounded-lg border border-white/[0.08] bg-white/[0.06] px-3.5 py-3 text-white/95'
+          className='panel-module-preview info1-panel-animate text-white/95'
         >
           {module.options.items.length === 0 ? (
             <div className='text-[13px] text-white/75'>暂无证书条目</div>
@@ -208,7 +208,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
       {editOpen && module ? (
         <div
           key='edit'
-          className='info1-panel-animate mt-1 rounded-lg border border-white/[0.08] bg-white/[0.06] p-[10px] text-white/95'
+          className='panel-module-edit info1-panel-animate text-white/95'
         >
           <AddGradientButton onClick={addCertificate} disabled={certificateItemsFull}>
             添加证书
@@ -218,7 +218,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
               {module.options.items.map((item: any, index: number) => (
                 <div
                   key={index}
-                  className='mb-[10px] flex w-full flex-col items-end last:mb-0'
+                  className='panel-item-shell flex w-full flex-col items-end'
                 >
                   <Form layout='vertical' className='w-full'>
                     <Row gutter={15}>
@@ -272,6 +272,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                     handleDelete={() => handleDelete(index)}
                     handleCopy={() => handleCopy(index)}
                     copyDisabled={certificateItemsFull}
+                    flush
                   />
                   {index !== module.options.items.length - 1 && <SplitLine />}
                 </div>

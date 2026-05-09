@@ -11,15 +11,24 @@ function Edit() {
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
 
   return (
-    <div className='flex h-screen w-screen flex-col overflow-hidden'>
-      <div className='h-[50px] w-full bg-[#444145]'>
-        <Header />
-      </div>
-      <div className='flex min-h-0 flex-1'>
-        <Menu activeKey={menuActiveKey} onActiveKeyChange={setMenuActiveKey} />
-        <Container menuActiveKey={menuActiveKey} />
-        <div className='box-border flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden'>
-          <Canvas />
+    <div className='editor-shell-bg relative flex h-screen w-screen flex-col overflow-hidden text-white'>
+      <div className='editor-shell-grid pointer-events-none absolute inset-0 opacity-60' />
+      <div className='relative z-[1] flex min-h-0 flex-1 flex-col gap-3 p-3 md:p-4'>
+        <div className='editor-shell-card editor-shell-card-strong rounded-[26px] px-2 md:px-3'>
+          <div className='h-[62px] w-full'>
+            <Header />
+          </div>
+        </div>
+        <div className='flex min-h-0 flex-1 gap-3'>
+          <div className='editor-shell-card h-full min-h-0 rounded-[28px] overflow-hidden'>
+            <Menu activeKey={menuActiveKey} onActiveKeyChange={setMenuActiveKey} />
+          </div>
+          <div className='editor-shell-card h-full min-h-0 rounded-[28px] overflow-hidden'>
+            <Container menuActiveKey={menuActiveKey} />
+          </div>
+          <div className='editor-shell-card editor-shell-card-strong box-border flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[32px]'>
+            <Canvas />
+          </div>
         </div>
       </div>
     </div>
