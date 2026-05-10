@@ -10,7 +10,7 @@
 <p align="center">Online resume editor built on Next.js 14 (App Router): visually compose modules, rich text editing, drag-and-drop layout, with PDF / PNG export via Puppeteer.</p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/license/QdabuliuQ/easy-resume" alt="License">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
   <img src="https://img.shields.io/github/v/release/QdabuliuQ/easy-resume" alt="Release">
   <img src="https://img.shields.io/badge/Maintenance-Active-green" alt="Maintenance">
   <br>
