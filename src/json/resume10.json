@@ -1,0 +1,183 @@
+{
+  "id": "sales",
+  "title": "销售简历模板",
+  "config": {
+    "name": "销售简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#383838",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 1
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "name": "王俊",
+              "phone": "13912345678",
+              "email": "wangjun_sale@163.com",
+              "city": "广东/佛山",
+              "status": "在职",
+              "intentCity": [
+                [
+                  "广东",
+                  "佛山"
+                ],
+                [
+                  "广东",
+                  "广州"
+                ],
+                [
+                  "广东",
+                  "东莞"
+                ]
+              ],
+              "intentPosts": "销售代表、业务经理、渠道销售",
+              "wechat": "wangjun_sales",
+              "birthday": "1993-06-25",
+              "gender": "男",
+              "stature": "",
+              "weight": "",
+              "ethnic": "汉族",
+              "origin": "四川/成都",
+              "maritalStatus": "已婚",
+              "politicalStatus": "群众",
+              "site": "",
+              "expectedSalary": [
+                "8k",
+                "20k"
+              ],
+              "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAQAElEQVR4AeydvZMcx3nGe1eiqHKpyiqWYzlxJgdwooy4Q5VZZIDcgRGI/4BRDg1SBdC0nVJQZidk4NRWYAZySVXHA2MbCOxI5cAOLAeSi7QhlQhQt+rf7Pbd7Ox8T8909/SDut7Z6c+3f++8T/fM7uG2Rv9EQASyJSAByNb1mrgIGCMB0FUgAhkTkABk7HxNPW8CzF4CAAUlEciUgAQgU8dr2iIAAQkAFJREIFMCEoBMHa9p503AzV4C4EjoKAIZEpAAZOh0TVkEHAEJgCOhowhkSEACkKHTNeW8CZRnLwEo09B7EciMgAQgM4druiJQJiABKNPQexHIjIAEIDOHa7p5E6jOXgJQJaJzEciIgAQgI2drqiJQJSABqBLRuQhkREACkJGzNdW8CdTNXgJQR0V5IpAJAQlAJo7WNEWgjoAEoI6K8kQgEwISgEwcrWnmTaBp9hKAJjLKF4EMCEgAVuLku2+9e36THjy6+1ZTevd8JVPWNDwQkAB4gLh0F/tAtwH+5jsXd4v0YGd2Vxc3yTw0O9OQrmybB7u7b5Js+4NQGP3LkoAEIAG37wPervBHwW4D3Ozsak4aOwnb9iAUhSBIDMaCjLpdm3ESgDY6gcuKwLdBf72yFwE/o1EVMZhxJHUdCQEJQCSOcGa4oGdFLgJ/7qB3A1ePVgywgWcJ1SKdr4eABCASX7rADxr0dSwQAntrUFekvPQJSAAi8GGxyvIQL9Rq38UAEeChof2koauqyuMi0GWNBKCL0Izl+1WfJ/g80JtxIF9dW5HCZl/dqZ/wBCQAAXxAEN11D/cCjD9pSInAJHyxNZYALOwRgj+6+/yhDHa7h0ObqH6cBCQAC/rl5l5/wUFnGWpXfOvQdY2oHacHlW8ivlvUp45ro+P8BPqMIAHoQ2liHS78/ZY/kXv9PvPlVsDexty1DweLHY09vznaedoHh+Y63XxLkfpFsp8sIIiw6TOc6sxDQAIwD9frXosLnOCI9Qn/taVj3uzOx7Qq2pTEoSwIRZleFiMgAZgR9U3wzzjIWro+CIITg7VMK/Z5SABm8pCCfwJYKwYSggn8jDF9W0sA+pIaUE/BPwBWW1WEwD4raKuismkEJADT+J20VvCfIJmWgQjYB408MJzWkVrXEZAA1FGZklc88JvSgdrWEiiE4J2L2jJljiYgARiN7rThXfux2GmucvwR2J3DuNhl+et0dT0NmZAEYAitlrr7LeqEj8Va+lZRmYBlbHdZEoEyk/HvJQDj2V23LILfblGvM/RmfgISAS+MJQATMRYrkYJ/IsWRzSUCI8HdNJMA3LAY+e5q/LfhRo6oZiUC+sWkEgxjhp5IAIYSK9XX1r8EI9hb+2BQ3xUYTV8CMBqdbaitv4UQwY/1QyHGEZiSmgkSgJEe0wU3EtxczawIzNX1mvuVAIzwbhH8uuBGkJu3SeGXeYeIuvcxxkkAxlBT8I+hNn8b65fiU5n5R1rNCBKAga7UKjMQ2NLV9anAIOISgEG4bGW7ythX/URLgE8F9AdQ+7pHAtCXlK2n1d9C0E+UBMYaJQEYQk6r/xBa4erqNqA3ewlAT1Ra/XuCiqKabgP6ukEC0JfUbnPWt6rqRUBAu4BeTpAA9MJEpZ2+8w8GpegITDFIAtCDnrb/PSBFV0WC3cclEoA+lPTwrw+l6OroS0HdLpEAdDDSRdQBSMVJE5AAdLpPv+/fiSjWChk8CJyKXgLQRXDF2/8//P3XDKkLgcrXS0ACsF7fnsyMYH//3nfMPz54q0h/+affMSR3zvFPXv8DQzpprIxVEpAAtLh1LU//CWiCm2D/9rdea5mxKYLf1edIam0QdaE+CehyjwSgi1DC5W7FHxvEtCMhHhwTRrFK031MSgLQRjHhb/8RsH1W/Lbpl8voL0Uh0Kc4ZS+evpcAnDIp5aS5hSRYSaWJeHtLvyRvHaqjoAQkAA34U105CE5Sw7S8ZNN/irsBL5NfWScSgBU5lMAkLTUlxiK58XjmQOKTBhIiUU7UJbn6Oo4n4KulBKCRZFpfACLwQgQXY5IIeJ45kPikgVRFSz0SosCxWq7z5QlIAJZnPsuIIQOKsesCvm2itEE0EK62eiqbl4AEoIlvQp8AEExDA7Bp2kvmYzM7hjlF4OMf/dUnS84ptbEkAKl5rMZeBKAmO5msuUUgGRA9DfVZTQLgk2aAvlIPfodsLfNw80nlKAFIxVMNdq4lcLgd4JlAwzRHZm+0/e8gJwHoABRz8VqC3zFGBOZ8HuDG0fGGgATghkVy79YmADjA65w2u0v6XFPyPRcJgG+iC/XnNVAWsrnPMNoF9KHkr44EoIllJKtH05a4Kb9pOinl+xO3rZ4BdDh+21Gu4sAE/u0//7fWAlbK2oIVZDK3NQtcTC6SADR6Yxt89WgKAn8rZOPkgxf4mOPavgQ0h1O2c3SqPvsTaLvQWQnremoShrq6qeY1zb3/fPQRYB9WEoAGSjGvHtODo2HSkWVPErpInuFEhvTEHAnACZJyxvyrSNtFXlfWtmMoW76G9znNNZS/JAChyNtx6wLcZuunB4Eudh//6G8e9egmmSpzGSoBaCO72bzXVjy1jK1801N++qacI4kLnpTTqsj86+ZblwcjpeEEJADDmXlrQUA3debKOPIdeX5jjtRUf635BDupPL/qebmseL8xswp3McZKXiQALY7cPwic7zkAK1zT8K6MoHfvm+quPZ+AJzFPd+S90nQCEoDpDEf14C7kf/+v4y/6uBXflY/qfIWN4OFS1/TWdv/fNd8p5RKALnozPwcoD88FrhW/TOT4PXyOc2rOtP2vgdKcJQFoZlOUzHUb4C5mHgJq1S9QD3rJ/bZoEKyWyhKAFjjXRZ53AQS86xsh0KrvaEw/avs/jKEEoAev/S6gR8WeVcqrFwLQ1ezJs2fmjfv3j9L7H31oSF1t5yzHLlKdbXOO29j3Crf/jXP1VCAB6A3S36cB5R1A2/AuuP74/p+Zy2dPj9L7H1oBsOlrZ7eDCAHig12kOtuWtcv6xga/Vv+2q6m+TAJQz+U01+NtQHkHcDrQPscFGMFFztmtPzKknzz+gfne228XiXwSYkDAIRicz5kYg7EYk3GwiRTGLgJ/e+fjf/7rOwp+vDE8SQB6MtvfBtgLrmf9pmp9tvwEfznACK4fP35sSLdv3TLf+64VAJteXD4xiIEbi9X4fXtr4M59H+mbMejXBT02kbrsQjho5yvB8YfvvGV++ODNh19cXj56efHpua++c+pHAjDE2x53AW3DloPfBVdTfcQAISAgqUNb38FW9GuFhb55j+j0sQvhoj7J7WR47yvtdrtz0sZsHu62u4u1CYEvTm39SADa6FTK/uEv3jhn5alk9z7l3r9PewKM4CHI+nZOXScCcwTbk6fPClOwDdEpTjpe2BUgTrRxtnU0mVRcFoJJHWXUWALQ09msLlxgfQK42iWB777PXy2rOyfACJ66srY8RADhoH1bvTFlU/rGnjHzGWMnbfAT/uK9UjsBCUA7n6KUi4mLqjixLwSzPfT6QTCW/Jx/zkCbs+9eMAdUwl96LtANTALQzchwMZWr8RSfVb2cV31Puf4MdpXKwudfMQ8XHtHbcEt1JAHoIM3qX1eFVZ0grysjn/K6MuUtR4AHhNoFtPOWALTzMdvN9qypCtv7ujIFfx2VMHlX2yt9PNiCXgLQAociVhGOdenb33rNVEVgyPOBuj6V55dAm4D7HSnN3iQALX7rs31EAEh0Q/AjCrxXEoGxBJZsJwHwQBsBWCL4+SYeX8Ml8Qs4c3zhZygO7MAeEvYNba/6YQlIAFr4v3Ln9d5/HWjulZ/gct/Ew2S+7OO+lst5iIRN2OHGxj4EwZ3HcLzaXV3GYEesNkgAOjyz2Wx6i0BHV5OKCa66DkLuAupsQhBC2lTHSHnNBCQAzWz2Jb8xUf8PswTc3tBlX1MJ8lfPzh4tS2baaEu3lgB0EOc2IIZdQNN36ZvyO6Y1ubjtW4FtZZMHHtDBzuyiFu8BU5mtqgSgD9oIdgH8Qk3VVPJCBhu/d1BnUzUvxDmirdW/m7wEoJuRYRcQejUh0N1v1hF4JH7Jpof5s1WJ0abryUYg2te2RPxGAtDTOawmoUUAUwl6Ao/EeQwpJptY+e1HkhtEOwY2Q2wIUVcCMIA6IsDFhRBwoQ1oGmVVHuTxUV6Uxg00Cn9srjZ3Xrn9+p2BTbOuLgEY4X6EgAsNMeCiK1IkHxcOmQ7fI6j7KG9IH6HquoAv2B8CX6v+cG9IAIYzO2rBRUc6ytTJ7AT4gg/cXZp9wJUOIAFYqWM1rbQIhLJWAhCKvMYVgQgISAAicIJMGE5ge7WN4ivawy2Pq8U2LnPStYZ70nStl+W5EpAA5Op5zTsaAiENkQB4oq8tqSeQPbvh6X/PqqrWQkAC0AJHRSKwdgISgLV7uGV+/DIRqaWKilZOQAKwcge3TY/v8JPa6sRYxrcAY7RrjE2h20gAPHmAe1JdmJ5gdnSjT1w6AA0olgAMgKWqIrA2AhIAnx7V76D7pNnYF7+M1ViogkEEJACDcLVX5jagvYZKpxJY023WVBY+2ksAfFAs9aELtARjhre6//cLVQLgl6d6E4GkCEgAfLtLzwF8Ez3qT/f/Rzgmn0gAJiM87oDnALoNOGbi64z/is1XX6H7iWV8CcAMntB96gxQbZf6fQsLwfOPBMAzULrTNhUKfhOrP7srv72qNwnATNeAbgNmAqtuvRKQAHjFWepMDwNLMKa/XdOuajoNfz1IAPyxPOqJ7ap2AUdIRp+w/R/dWA1bCUgAWvFMLAy4C+APfnzt7Lbhj3+MnQVt37h/39DX2D58tNPq74NifR8SgHouXnJD7gKePH1WzKH44x8ffVi8H/JC0NP28tnTIc2819Xq7x3pUYcSgCMc/k/4C0L+e+3u8cePHxv3p8P56z8EdHcrU+wYilX/w71o0Eeo/zOA4H/17OxRH7tTqRObnRKABTzCn69aYJiTIRAB9z/+IALcEiAEJLb3NODoEoFfXvVpSx/UC5EU/PNTlwDMz9iEvBVg9f7J4x8YgpmpIgQkAh1B4OiS2+6z6hdtvvs2TYKkndm9F2TgzAaVACzl8IAPBG/fumUQgheXTwxCQIBXp00eQU9i1adNtc5S53x6otV/GdoSgGU4F7uAGFY1hIAARwzKiTyCnrQQkuZhAopls1HTS2LsQQKwoFdY1WIQgQWnPHgo+HDLNLihGowiIAEYhW18I4lAMzuCHz7NNVTim4AEwDfRHv1xkXOf26NqNlUU/GFcLQEIw93w/QCJwB5+DsG/n2l8rxKAkD7Rwy6DCLIjCumGnMeWAAT0Pg+77GfxNgY2nwQ0I9jQrPzshIIZoIGNBCCCi4AgIBgiMGUxE5ivVv7FcDcOJAFoRLNsAcFAUCw7apjR+Go08w0z+vKjxjyiBCAi7xAUaxYBe6/zCcHPrU9E2LM2RQIQmfsRAYKEYInMkJiaEwAACAdJREFUtEnmMB9udRT8kzB6bywB8I50eocECcGyht0AgY+gMZ/pZNSDbwISAN9EPfbHboBPCVIVAuwm8BE0j1iS6ip2YyUAsXvI2ocQEEyspvY0+h/sZNXH7uiNzdxACUAiFwDBxGqKEJBiNNsFPnZq1Y/RQ6c2SQBOmUSdgxCQYrk1cEGPPQr8qC+dWuMkALVY0sgsC8GLl18u9m3Cl19+WXyFl22+gr75WkmhRAKQgpc6bEQIPv/l/1/+/LPPzOfPn5tf/frXxqcgEPAk+nbp57/47D1t8zsck0CxBCABJw0xkUBFAP7vl8/PEYRffP75JwQteeVEvbrk6tCGRB8cSa7+EHtUN24CEoC4/TPZut1ud07gusB2RwK6Lrly2pAmG6AOoiYgAYjaPTIuVQKp2C0BSMVTHXb+3je/aX7n618v0itf/WpH7eHF9En63W98wzAWaXgvahEbAQlAbB6ZYI8TABekHF0ewetS0xCu3B1pSx8EO0cSZU3tlZ8eAQlAej7rbTHBShCTCF6XCOi65MrdkXb00XtAVUyOgAQgOZfJ4NgJpGSfBCAlb8lWEfBMQALgGai6E4GUCEgAUvKWbBUBzwQkAJ6Bqru8CaQ2ewlAah6TvSLgkYAEwCPMkF1tN9uzkONr7DQJSADS9Ftwq6+2V+fBjZABkwlIACYjjKMDfulnSUu04zilnWKOBCBFr1VsfnnxqVbjChOd9iMgAejHKepaIbbj7DgkPFFfFr2MkwD0whR3pY3ZPAxi4VdMmHGDTHadg0oAEvfrF5eXj0JNgV1AqLFjGzdVeyQAqXruYHew1f8w/ssnn14c3uqQIAEJQIJOcyaHXP2dDewC9CzA0UjvKAFIz2eFxQR/6NW/MIQXPQuAQpJJApCg21hxowl+y6/YBWR8K2ARJPsjAUjMdQT/bruL7r5bIpDYhXQwVwJwAJHCIdbgd+wkAo5EOkcJQCK+4p4/xpW/ig8ReHH5ZIe91TKdx0dAAhCfT04s4qO2mO75TwysycDeHESgZupJZUkAInYXW35WU1bViM1sNA0RQLwaK6ggOAEJQHAX1BvA6pnClr/e+ptcxAsRYz43uXoXCwEJQCBPvPzg3rlLX3xw7xHp5ffvXRRH+5Eaq2cg02YZlvm8/OjhhZsj8yQ5BrMMqk47CUgAOhH5qeAudALgxffv7XYbc+HSZmMeknbGnBfHf/3bc/M//2JW8+/5z4z56cdm99l/nLs5Mk+SYwAT2CAKqcx7DXZKAGb0YhH0dlXnwnYXOgHQa8ifWQFABEi9GkRY6RD45qf/ZMzz/+40EDaIAmJAQgxg2NlQFUYTkACMRtfckIv2Oujtqs6F3Vy7pQQRIKUmAgMDv4kAYoBwOjFoqqf88QQkAOPZnbSsBv5JhbEZiMDTvzNJ3BYgVj1X/CE4EAN2BKQh7VS3nYAEoJ1Pr9LZAr86esxC4FZ9bKza7ekcESDFIAKephS8GwnARBdwMbJNHb3NHzM+QWYfqkWxI3CBP8Oq34QGEdBtQROdYfkSgGG8jmpzn8/FeJS51AkP1RACttxLjVkeJ0Dgl4fnPezxAe+VxhGQAIzgdr3ltw/4RjT32wQRWPr5AKKz4IrfBoydF7sBfNJWT2X1BCQA9Vwac4Ns+RutKRUsIQSs+ogNY5WGjuEtt2H4Zglb1jSGBGCAN7nA2HYOaLJ8VYKTIGWV9jU6gc8zB1Z9X33O0A++wUczdL3aLiUAPV3LhcUF1rN6+GoIwVQRKAc+zxzCz6rTAnyErzorqkJBQAJQYGh/4YLiwmqvFWEpIjB2N4B4sOInEvhl+vgKn5Xz9L6egASgnst1Lg+XuKCuM1J8M0QICHxEgzYpzvVgMz7Dd4dTb4e1dSQB6PAoD5c6qqRTTFAT3AR51Wq33adOtSzRc3wnEWh3ngSghc9qP2MmyBEBkgv8RLf7Le7bF22M/nzZnkTtqwSgFosx3EPyGXNDcfrZiABprYF/8BA+XK2QH+Y45SABqKFH8HMPWVOkrAQJFCLwwb3Jf0I9wal3miwB6ESkCqsgoFuBWjdKACpYtPpXgKzkVLuAekdKACpctPWvAFnTqXYBJ96UAJSQsPqXTvV2ZQTYBYz18cpQXE9HAnCNwhit/mb1/+TjYxdLAA48tDIcQGRw0JeDbpwsAbhhoXe5ENCzgGtPSwAOKLQ1PIDI4MCzgCHTXHNdCYD1rrb/FkJmP7oN2DtcArDnoNfcCOg2oPC4BMBi0PbfQsjsR7cBe4dnLwDaCu4vhBxf+/h+7VyyF4CrGP5n37VfZZpftASyF4BoPSPDZicg8TdGAjD7ZaYBRCBeAtkLwHZjzuJ1jyybk0CX7+ccO5a+sxeAWBwhO0QgBIHsBUAfB4W47DRmLAQkADvz3k4pSwZXO3MZSyCGsiN7AXj1z//+kVK+DJoCL5f87AUgF0drniJQR0ACUEdFeSKQCQEJQCaO1jRFoI6ABKCOivKyJpDT5CUAOXlbcxWBCgEJQAWITkUgJwISgJy8rbmKQIWABKACRKd5E8ht9hKA3Dyu+YpAiYAEoARDb0UgNwISgNw8rvmKQImABKAEQ2/zJpDj7CUAOXpdcxaBAwEJwAGEDiKQIwEJQI5e15xF4EBAAnAAoUPeBHKdvQQgV89r3iJgCUgALAT9iECuBCQAuXpe8xYBS0ACYCHoJ28COc9eApCz9zX37AlIALK/BAQgZwISgJy9r7lnT0ACkP0lkDeA3Gf/WwAAAP//Zfw7kwAAAAZJREFUAwDQOdmICBV5rAAAAABJRU5ErkJggg==",
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "擅长陌生拜访、渠道巡店与老客户续约挖潜，能根据不同决策人调整话术侧重点；熟悉询价报价、样品寄送、框架协议与招投标入门流程（报名、保证金、技术偏离表配合）；会用 CRM 或多维表格管理线索阶段、预计成交金额与下次跟进日；具备商务谈判、价格拆分与异议处理经验，能联动仓储物流跟进到货时效与售后换货；习惯回款节点台账预警并协同财务对账开票。"
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "约 7 年建材相关行业销售经验，熟悉瓷砖卫浴等产品卖点与铺贴常见问题，能快速响应工地突发补货；目标感强，能适应珠三角及周边出差、展会驻场与晚间客户宴请节奏；性格外向但有边界感，诚信待客不搞过度承诺，老客户转介绍占比稳定；遇事先给备选方案而不是只抱怨瓶颈。"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "佛山建材贸易公司",
+                  "post": "销售主管",
+                  "department": "销售部",
+                  "city": "广东 - 佛山",
+                  "startDate": "2018-03-01",
+                  "endDate": "2025-05-01",
+                  "description": "负责佛山及周边渠道客户开发与样板工地跟进，制定月度拜访计划；参与询价报价、合同条款磋商与样品配送；维护核心经销商库存与促销政策传达；跟踪回款进度并协调物流与售后投诉。"
+                },
+                {
+                  "company": "成都某建材门市",
+                  "post": "销售代表",
+                  "department": "销售部",
+                  "city": "四川 - 成都",
+                  "startDate": "2016-08-01",
+                  "endDate": "2018-02-01",
+                  "description": "驻店接待零售客户，讲解产品规格与铺贴注意事项；协助清点送货单与简单售后登记。"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "区域经销商年会订货支持",
+                  "role": "销售主管",
+                  "startDate": "2024-01-01",
+                  "endDate": "2024-02-28",
+                  "description": "提前两周对齐展区动线与样板上架清单，打印阶梯订货政策与授信边界一页纸；会议三天盯紧签到—宣讲—洽谈—签约全流程时间点，现场复核大额订单条款与返利点数录入 ERP；会后导出未打款客户分ABC级回访清单，联合客服跟进物流时效异议，两个月内补单率显著提升。"
+                },
+                {
+                  "name": "薄弱县域渠道「破冰」试点",
+                  "role": "销售主管",
+                  "startDate": "2022-06-01",
+                  "endDate": "2023-02-01",
+                  "description": "选定三家县域经销商共创门头物料与乡镇路演话术；每周复盘进店客流与成交户型数据；沉淀可复制的小型推介会流程后在区域内滚动复制。"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "佛山职业技术学院",
+                  "degree": "专科",
+                  "major": "市场营销",
+                  "startDate": "2012-09-01",
+                  "endDate": "2015-06-01",
+                  "city": "广东 - 佛山",
+                  "tags": [],
+                  "academy": "经济管理学院",
+                  "description": "主修市场营销、销售技巧、消费者行为学、商务谈判、渠道管理。"
+                }
+              ]
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "大学英语四级考试合格证书",
+                  "date": "2014-06-01"
+                },
+                {
+                  "name": "全国计算机等级考试一级合格证书",
+                  "date": "2013-12-01"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

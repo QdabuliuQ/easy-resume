@@ -11,6 +11,7 @@ import {
   RESUME_MODULE_MAX_COUNT,
 } from '@/utils/moduleTypeLimits';
 import AiScore from '../../panel/components/aiScore';
+import GeneralSettings from '../../panel/components/generalSettings';
 import ModuleEdit from '../../panel/components/moduleEdit';
 import ResumeTemplate from '../../panel/components/resumeTemplate';
 
@@ -41,6 +42,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const [aiAnalysis, setAiAnalysis] = useState<ResumeAiAnalyzeResult | null>(null);
   const isAiScore = menuActiveKey === 'ai-score';
   const isResumeTemplate = menuActiveKey === 'resume-template';
+  const isGeneralSettings = menuActiveKey === 'general-settings';
   const isResumeEdit = menuActiveKey === 'resume';
 
   const onStartAnalyze = useCallback(() => {
@@ -91,21 +93,35 @@ function Resume({ menuActiveKey }: ResumeProps) {
             <div className='flex items-start justify-between gap-3'>
               <div className='min-w-0'>
                 <p className='text-[11px] font-medium tracking-[0.18em] text-fg/62'>
-                  {isAiScore ? 'AI SCORE' : isResumeTemplate ? 'TEMPLATES' : 'CONFIG'}
+                  {isAiScore
+                    ? 'AI SCORE'
+                    : isResumeTemplate
+                      ? 'TEMPLATES'
+                      : isGeneralSettings
+                        ? 'GLOBAL'
+                        : 'CONFIG'}
                 </p>
                 <h2 className='mt-1 text-[17px] font-semibold text-fg/95'>
-                  {isAiScore ? 'AI 智能评分' : isResumeTemplate ? '简历模板' : '简历配置面板'}
+                  {isAiScore
+                    ? 'AI 智能评分'
+                    : isResumeTemplate
+                      ? '简历模板'
+                      : isGeneralSettings
+                        ? '通用配置'
+                        : '简历配置面板'}
                 </h2>
                 <p className='mt-1 text-[12px] leading-relaxed text-fg/62'>
                   {isAiScore
                     ? '查看评分维度与优化建议，并在当前简历配置上应用可执行修改。'
                     : isResumeTemplate
                       ? '选择模板会直接替换当前简历配置，建议先导出 JSON 备份。'
-                      : '滚动浏览各模块配置，顶部导航用于快速定位，底部按钮负责补充模块。'}
+                      : isGeneralSettings
+                        ? '选中的文件夹会同步和备份您的简历JSON文件'
+                        : '滚动浏览各模块配置，顶部导航用于快速定位，底部按钮负责补充模块。'}
                 </p>
               </div>
               <div className='shrink-0 rounded-full border border-fg/[0.14] bg-surface/[0.08] px-3 py-1 text-[11px] font-semibold text-fg/68'>
-                {isAiScore ? '分析' : isResumeTemplate ? '模板' : '编辑'}
+                {isAiScore ? '分析' : isResumeTemplate ? '模板' : isGeneralSettings ? '全局' : '编辑'}
               </div>
             </div>
           </div>
@@ -117,6 +133,8 @@ function Resume({ menuActiveKey }: ResumeProps) {
             />
           ) : isResumeTemplate ? (
             <ResumeTemplate />
+          ) : isGeneralSettings ? (
+            <GeneralSettings />
           ) : (
             <ModuleEdit />
           )}

@@ -1,0 +1,186 @@
+{
+  "id": "teacher",
+  "title": "教师简历模板",
+  "config": {
+    "name": "教师简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#383838",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 1
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "name": "陈浩",
+              "phone": "13765432109",
+              "email": "chenhao_teacher@163.com",
+              "city": "广东/惠州",
+              "status": "在职",
+              "intentCity": [
+                [
+                  "广东",
+                  "惠州"
+                ],
+                [
+                  "广东",
+                  "东莞"
+                ],
+                [
+                  "广东",
+                  "深圳"
+                ]
+              ],
+              "intentPosts": "小学教师、初中教师、语文教师",
+              "wechat": "chenhao_edu",
+              "birthday": "1994-12-05",
+              "gender": "男",
+              "stature": "",
+              "weight": "",
+              "ethnic": "汉族",
+              "origin": "广东/梅州",
+              "maritalStatus": "未婚",
+              "politicalStatus": "中共党员",
+              "site": "",
+              "expectedSalary": [
+                "8k",
+                "15k"
+              ],
+              "avatar": "data:image/png;base64,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",
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "精通布鲁姆目标动词拆解与课时重难点表述，熟练教案五环结构与板书设计；擅长多媒体课件（PPT、希沃白板）与微课片段录制；熟悉班级常规、小组合作学习与差异化提问；能设计分层作业（基础—提升—拓展）与作文面批记录表；运用班级优化大师等工具管理积分与家校通知；注重整本书阅读任务单与思维导图训练读写结合。"
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "约 6 年一线语文教学经历，课堂纪律清晰且鼓励学生发言，擅长用追问引导学生回到文本证据；习惯小组合作分工明确、轮流汇报避免少数人包办；家校沟通及时具体，除成绩外反馈书写习惯与共读书进度；班主任工作中关注课间安全与心理健康苗头，能与家长协同制定改进计划。"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "惠州公立中小学",
+                  "post": "语文教师",
+                  "department": "教务处",
+                  "city": "广东 - 惠州",
+                  "startDate": "2019-09-01",
+                  "endDate": "2025-05-01",
+                  "description": "承担语文日常教学与晨读午练指导，完成备课、听课与教学反思；批改作文与配套练习并做个别辅导；担任班主任期间管理班级常规、家校联系本与家长会；组织学生朗诵、读书角等活动；参与科组集体备课与区级教研公开课。"
+                },
+                {
+                  "company": "梅州某九年一贯制学校",
+                  "post": "语文实习教师",
+                  "department": "小学部",
+                  "city": "广东 - 梅州",
+                  "startDate": "2018-09-01",
+                  "endDate": "2019-06-01",
+                  "description": "跟岗听课并试讲阅读课；协助批改抄写生字与同步练习；参与班级晨会与放学路队管理。"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "校本「经典诵读」特色课程建设",
+                  "role": "语文教师",
+                  "startDate": "2022-03-01",
+                  "endDate": "2023-06-01",
+                  "description": "参与选定诵读篇目与年级梯度目标，编写每周晨读打卡单与期末展示评分表；指导学生排练班级朗诵节目并承担串词撰写；收集过程性资料形成科组阶段性总结。"
+                },
+                {
+                  "name": "区级公开课《记叙文细节描写》",
+                  "role": "执教教师",
+                  "startDate": "2024-09-01",
+                  "endDate": "2024-11-01",
+                  "description": "三轮磨课调整提问序列与当堂练笔时间分配；设计同伴互评量表提升反馈质量；课后根据教研员建议整理教学反思供科组内部分享。"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "华南师范大学",
+                  "degree": "本科",
+                  "major": "汉语言文学（师范）",
+                  "startDate": "2015-09-01",
+                  "endDate": "2019-06-01",
+                  "city": "广东 - 广州",
+                  "tags": [
+                    "211",
+                    "双一流"
+                  ],
+                  "academy": "文学院",
+                  "description": "主修现代汉语、文学概论、教育学、心理学、学科教学法。"
+                }
+              ]
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "教师资格证书（初级中学语文）",
+                  "date": "2018-06-01"
+                },
+                {
+                  "name": "普通话水平测试二级甲等证书",
+                  "date": "2017-05-01"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

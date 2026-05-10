@@ -1,5 +1,7 @@
 'use client';
-import RichTextEditor from '@/components/richTextEditor';
+import RichTextEditor, {
+  RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH,
+} from '@/components/richTextEditor';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
@@ -99,7 +101,8 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
             instanceKey={`${moduleActive}-other`}
             html={module.options.description ?? ''}
             onHtmlChange={updateDescription}
-            placeholder='请输入内容…'
+            maxPlainLength={RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH}
+            placeholder='支持粗体、列表、链接；请输入内容…'
           />
         </div>
       ) : null}

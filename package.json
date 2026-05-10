@@ -34,7 +34,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-grid-layout": "^1.5.1",
-    "react-image-crop": "^11.0.10"
+    "react-image-crop": "^11.0.10",
+    "typed.js": "^3.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

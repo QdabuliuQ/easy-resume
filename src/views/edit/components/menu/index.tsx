@@ -1,13 +1,47 @@
-import { AppstoreOutlined, ProfileOutlined } from '@ant-design/icons';
+'use client';
+import {
+  AppstoreOutlined,
+  ProfileOutlined,
+  SettingOutlined,
+  UploadOutlined,
+} from '@ant-design/icons';
+import { message, Modal } from 'antd';
 import { Magic } from '@icon-park/react';
+import { useRef } from 'react';
+import { configStore } from '@/mobx';
+import { flushResumeBackupImmediate } from '@/lib/resumeConfigBackup';
+import {
+  getResumeImportValidationError,
+  normalizeResumeImportPayload,
+} from '@/lib/validateResumeImportJson';
 
 const GRADIENT_ID = 'resume-menu-item-grad';
 
-const menuItems = [
+const IMPORT_MENU = { label: '导入模板', key: 'import-template' as const };
+const PANEL_MENU_ITEMS = [
   { label: '简历模板', key: 'resume-template' as const },
   { label: '简历编辑', key: 'resume' as const },
   { label: 'AI 智能评分', key: 'ai-score' as const },
-];
+  { label: '通用配置', key: 'general-settings' as const },
+] as const;
+
+function MenuItemIcon({ menuKey, selected }: { menuKey: string; selected: boolean }) {
+  const antIconCls = selected
+    ? 'relative z-[1] text-[28px] transition-[fill] duration-200 [&_svg]:!fill-[url(#resume-menu-item-grad)]'
+    : 'relative z-[1] text-[28px] transition-[fill] duration-200 [&_svg]:!fill-[var(--menu-icon-muted)]';
+  if (menuKey === 'import-template') return <UploadOutlined className={antIconCls} />;
+  if (menuKey === 'resume') return <ProfileOutlined className={antIconCls} />;
+  if (menuKey === 'resume-template') return <AppstoreOutlined className={antIconCls} />;
+  if (menuKey === 'general-settings') return <SettingOutlined className={antIconCls} />;
+  return (
+    <Magic
+      theme='outline'
+      size='28'
+      fill={selected ? `url(#${GRADIENT_ID})` : 'var(--menu-icon-muted)'}
+      className='relative z-[1] transition-[fill] duration-200'
+    />
+  );
+}
 
 type MenuProps = {
   activeKey: string;
@@ -15,8 +49,104 @@ type MenuProps = {
 };
 
 export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
+  const [modal, contextHolder] = Modal.useModal();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const pickImportFile = () => fileRef.current?.click();
+  const confirmThenPickImport = () => {
+    modal.confirm({
+      title: '确认导入',
+      content: '导入将覆盖当前简历模板，是否继续？',
+      okText: '继续',
+      cancelText: '取消',
+      centered: true,
+      onOk: () => {
+        pickImportFile();
+      },
+    });
+  };
+  const onImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    e.target.value = '';
+    if (!f) return;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(await f.text());
+    } catch {
+      message.error('模板错误');
+      return;
+    }
+    const normalized = normalizeResumeImportPayload(parsed);
+    const err = getResumeImportValidationError(normalized);
+    if (err) {
+      message.error('模板错误');
+      return;
+    }
+    configStore.setConfig(normalized);
+    message.success('导入成功');
+    flushResumeBackupImmediate(configStore.getConfig);
+  };
+  const renderMenuItem = (item: { label: string; key: string }) => {
+    const selected = item.key !== 'import-template' && activeKey === item.key;
+    const isImport = item.key === 'import-template';
+    const accent = selected || isImport;
+    const tileCls = isImport
+      ? 'scale-[1.03] border-transparent bg-[var(--color-primary)]/12 shadow-[0_10px_26px_color-mix(in_srgb,var(--color-primary)_22%,transparent)] hover:bg-[var(--color-primary)]/18 hover:shadow-[0_14px_34px_color-mix(in_srgb,var(--color-primary)_28%,transparent)]'
+      : selected
+        ? 'z-[1] scale-110 border-transparent bg-fg/[0.08] shadow-[0_12px_30px_rgba(0,0,0,0.24)]'
+        : 'border border-fg/[0.08] bg-[var(--panel-inset-bg)] shadow-[inset_0_1px_0_rgb(var(--surface-fg-rgb)/0.07)] hover:border-fg/[0.12] hover:bg-[var(--panel-inset-bg-strong)]';
+    return (
+      <div
+        key={item.key}
+        role='button'
+        tabIndex={0}
+        onClick={() => (isImport ? confirmThenPickImport() : onActiveKeyChange(item.key))}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            isImport ? confirmThenPickImport() : onActiveKeyChange(item.key);
+          }
+        }}
+        className={`editor-shell-inset relative flex w-full cursor-pointer select-none flex-col items-center justify-center gap-1 overflow-hidden rounded-[18px] py-3 text-[13px] transition-all duration-200 ${tileCls}`}
+      >
+        {accent ? (
+          <span
+            aria-hidden
+            className='pointer-events-none absolute inset-0 rounded-[18px] bg-gradient-primary p-px'
+          >
+            <span className='block h-full w-full rounded-[17px] bg-[var(--menu-selected-inner)]' />
+          </span>
+        ) : null}
+        {accent ? (
+          <span
+            aria-hidden
+            className='bg-gradient-primary absolute inset-x-2 top-0 z-[2] h-px opacity-90'
+          />
+        ) : null}
+        <MenuItemIcon menuKey={item.key} selected={accent} />
+        <span
+          className={
+            accent
+              ? 'bg-gradient-primary relative z-[1] bg-clip-text text-[12px] font-medium text-transparent transition-colors duration-200'
+              : 'relative z-[1] text-[12px] text-[var(--menu-icon-muted)] transition-colors duration-200'
+          }
+        >
+          {item.label}
+        </span>
+      </div>
+    );
+  };
   return (
-    <div className='relative flex h-full min-h-0 w-[108px] shrink-0 flex-col gap-[10px] bg-transparent px-[10px] py-[10px]'>
+    <>
+      {contextHolder}
+      <div className='relative flex h-full min-h-0 w-[108px] shrink-0 flex-col justify-between bg-transparent px-[10px] py-[10px]'>
+      <input
+        ref={fileRef}
+        type='file'
+        accept='.json,application/json'
+        className='sr-only'
+        aria-hidden
+        onChange={onImportFile}
+      />
       <svg width={0} height={0} className='absolute' aria-hidden>
         <defs>
           <linearGradient id={GRADIENT_ID} x1='0%' y1='0%' x2='100%' y2='0%'>
@@ -25,76 +155,9 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
           </linearGradient>
         </defs>
       </svg>
-      {menuItems.map((item) => {
-        const selected = activeKey === item.key;
-        return (
-          <div
-            key={item.key}
-            role='button'
-            tabIndex={0}
-            onClick={() => onActiveKeyChange(item.key)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onActiveKeyChange(item.key);
-              }
-            }}
-            className={`editor-shell-inset relative flex w-full cursor-pointer select-none flex-col items-center justify-center gap-1 overflow-hidden rounded-[18px] py-3 text-[13px] transition-all duration-200 ${
-              selected
-                ? 'scale-110 border-transparent bg-fg/[0.08] shadow-[0_12px_30px_rgba(0,0,0,0.24)]'
-                : 'border-transparent bg-transparent hover:border-fg/8 hover:bg-fg/[0.04]'
-            }`}
-          >
-            {selected ? (
-              <span
-                aria-hidden
-                className='pointer-events-none absolute inset-0 rounded-[18px] bg-gradient-primary p-px'
-              >
-                <span className='block h-full w-full rounded-[17px] bg-[var(--menu-selected-inner)]' />
-              </span>
-            ) : null}
-            {selected ? (
-              <span
-                aria-hidden
-                className='bg-gradient-primary absolute inset-x-2 top-0 z-[2] h-px opacity-80'
-              />
-            ) : null}
-            {item.key === 'resume' ? (
-              <ProfileOutlined
-                className={
-                  selected
-                    ? 'relative z-[1] text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[url(#resume-menu-item-grad)]'
-                    : 'relative z-[1] text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[var(--menu-icon-muted)]'
-                }
-              />
-            ) : item.key === 'resume-template' ? (
-              <AppstoreOutlined
-                className={
-                  selected
-                    ? 'relative z-[1] text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[url(#resume-menu-item-grad)]'
-                    : 'relative z-[1] text-[23px] transition-[fill] duration-200 [&_svg]:!fill-[var(--menu-icon-muted)]'
-                }
-              />
-            ) : (
-              <Magic
-                theme='outline'
-                size='23'
-                fill={selected ? `url(#${GRADIENT_ID})` : 'var(--menu-icon-muted)'}
-                className='relative z-[1] transition-[fill] duration-200'
-              />
-            )}
-            <span
-              className={
-                selected
-                  ? 'bg-gradient-primary relative z-[1] mt-1 bg-clip-text text-[12px] font-medium text-transparent transition-colors duration-200'
-                  : 'relative z-[1] mt-1 text-[12px] text-[var(--menu-icon-muted)] transition-colors duration-200'
-              }
-            >
-              {item.label}
-            </span>
-          </div>
-        );
-      })}
+      <div className='flex min-h-0 flex-col gap-[10px]'>{PANEL_MENU_ITEMS.map(renderMenuItem)}</div>
+      <div className='flex shrink-0 flex-col gap-[10px]'>{renderMenuItem(IMPORT_MENU)}</div>
     </div>
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import defaultResume from '@/json/resume';
+import defaultResume from '@/json/resume.json';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { normResumeFont } from '@/lib/resumeFont';
 import type { GlobalStyle } from '@/modules/utils/common.type';

@@ -1,5 +1,9 @@
-import { memo, useState } from 'react';
+'use client';
+import { memo, useLayoutEffect, useState } from 'react';
 import { observer } from 'mobx-react';
+import { useSearchParams } from 'next/navigation';
+import { resumeTemplates } from '@/json/resumeTemplates';
+import { configStore } from '@/mobx';
 import Canvas from './components/canvas';
 import Container from './components/container';
 import Header from './components/header';
@@ -8,7 +12,17 @@ import Menu from './components/menu/index';
 const DEFAULT_MENU_KEY = 'resume';
 
 function Edit() {
+  const searchParams = useSearchParams();
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
+  useLayoutEffect(() => {
+    const raw = searchParams.get('template');
+    if (raw == null || raw === '') return;
+    const n = Number.parseInt(raw, 10);
+    if (!Number.isFinite(n) || n < 1 || n > resumeTemplates.length) return;
+    const tpl = resumeTemplates[n - 1];
+    if (!tpl?.config) return;
+    configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
+  }, [searchParams]);
 
   return (
     <div className='editor-shell-bg relative flex h-screen w-screen flex-col overflow-hidden text-[var(--text-strong)]'>
@@ -27,7 +41,7 @@ function Edit() {
             <Container menuActiveKey={menuActiveKey} />
           </div>
           <div className='editor-shell-card editor-shell-card-strong box-border flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[32px]'>
-            <Canvas />
+            <Canvas onOpenGeneralSettings={() => setMenuActiveKey('general-settings')} />
           </div>
         </div>
       </div>

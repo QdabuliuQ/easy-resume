@@ -14,8 +14,10 @@ for (const p of ['ftp', 'ftps'] as const) {
   }
 }
 
-/** 富文本纯文本字数上限（与各模块公用） */
+/** 默认可编辑纯文本上限（段落类模块可传 maxPlainLength 覆盖） */
 export const RICH_TEXT_MAX_PLAIN_LENGTH = 300;
+/** 专业技能 / 个人优势等长段落模块上限 */
+export const RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH = 2000;
 
 function getQuillPlainCharCount(q: Quill): number {
   const L = q.getLength();
@@ -71,6 +73,7 @@ function RichTextEditor({
   onHtmlChange,
   placeholder,
   onAiPolishClick,
+  maxPlainLength = RICH_TEXT_MAX_PLAIN_LENGTH,
 }: {
   instanceKey: string;
   html: string;
@@ -78,6 +81,7 @@ function RichTextEditor({
   placeholder?: string;
   /** 点击 AI 润色时调用；ctx.onStreamingHtml 可流式写入当前累积 HTML；返回最终 HTML（会再走 sanitize 并写回编辑器） */
   onAiPolishClick?: (richTextHtml: string, ctx?: AiPolishStreamContext) => Promise<string>;
+  maxPlainLength?: number;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
@@ -120,7 +124,7 @@ function RichTextEditor({
       }
     }
     const beforeClamp = sanitizeRichTextHtml(q.root.innerHTML);
-    clampQuillPlainLength(q, RICH_TEXT_MAX_PLAIN_LENGTH);
+    clampQuillPlainLength(q, maxPlainLength);
     const afterClamp = sanitizeRichTextHtml(q.root.innerHTML);
     setPlainCount(getQuillPlainCharCount(q));
     if (beforeClamp !== afterClamp) {
@@ -128,7 +132,7 @@ function RichTextEditor({
     }
 
     const onTextChange = () => {
-      clampQuillPlainLength(q, RICH_TEXT_MAX_PLAIN_LENGTH);
+      clampQuillPlainLength(q, maxPlainLength);
       setPlainCount(getQuillPlainCharCount(q));
       onHtmlChangeRef.current(sanitizeRichTextHtml(q.root.innerHTML));
     };
@@ -147,7 +151,7 @@ function RichTextEditor({
       }
       el.innerHTML = '';
     };
-  }, [instanceKey]);
+  }, [instanceKey, maxPlainLength]);
 
   useEffect(() => {
     const q = quillRef.current;
@@ -167,7 +171,7 @@ function RichTextEditor({
     } else {
       q.setText('');
     }
-    clampQuillPlainLength(q, RICH_TEXT_MAX_PLAIN_LENGTH);
+    clampQuillPlainLength(q, maxPlainLength);
     setPlainCount(getQuillPlainCharCount(q));
     onHtmlChangeRef.current(sanitizeRichTextHtml(q.root.innerHTML));
   });
@@ -228,7 +232,7 @@ function RichTextEditor({
       </div>
       <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-neutral-400">
         <span aria-live="polite">
-          {plainCount}/{RICH_TEXT_MAX_PLAIN_LENGTH}
+          {plainCount}/{maxPlainLength}
         </span>
       </div>
       <div className="mt-2 flex justify-end">

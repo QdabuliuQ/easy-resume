@@ -1,5 +1,6 @@
 import { makeAutoObservable } from 'mobx';
-import defaultResume from '@/json/resume';
+import defaultResume from '@/json/resume.json';
+import { scheduleResumeConfigBackup } from '@/lib/resumeConfigBackup';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 
@@ -32,6 +33,7 @@ export default class ConfigStore {
       );
     }
     this.config = v;
+    if (typeof window !== 'undefined') scheduleResumeConfigBackup(v);
   }
 
   setExportPages(value: any[] | null) {
@@ -44,6 +46,7 @@ export default class ConfigStore {
         if (module.id === id) {
           module.options = option;
           this.config = JSON.parse(JSON.stringify(this.config));
+          if (typeof window !== 'undefined') scheduleResumeConfigBackup(this.config);
           return;
         }
       }

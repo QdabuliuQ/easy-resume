@@ -166,14 +166,15 @@ function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle)
       `<div style="display:flex;align-items:center;flex-wrap:wrap;${i < layout.length - 1 ? 'margin-bottom:5px;' : ''}">${rowParts.join('')}</div>`
     );
   }
-  const avatarHtml = showAvatar
-    ? `<img src="${encodeURI(avatarSrc)}" alt="" width="90" style="width:100%;aspect-ratio:5/7;object-fit:cover;display:block;" />`
-    : `<div style="width:100%;aspect-ratio:5/7;"></div>`;
-  return `<div style="width:100%;display:flex;justify-content:space-between;align-items:center;">
-<div style="flex:1;min-width:0;">
-<div style="margin-bottom:10px;font-size:24px;font-weight:bold;color:#333;line-height:1;">${escapeHtml(name)}</div>
-<div style="width:100%">${rows.join('')}</div>
-</div>
+  const leftInner = `<div style="margin-bottom:10px;font-size:24px;font-weight:bold;color:#333;line-height:1;">${escapeHtml(name)}</div>
+<div style="width:100%">${rows.join('')}</div>`;
+  const leftCol = `<div style="${showAvatar ? 'flex:1;min-width:0;' : 'width:100%;'}">${leftInner}</div>`;
+  if (!showAvatar) {
+    return `<div style="width:100%;display:flex;align-items:center;">${leftCol}</div>`;
+  }
+  const avatarHtml = `<img src="${encodeURI(avatarSrc)}" alt="" width="90" style="width:100%;aspect-ratio:5/7;object-fit:cover;display:block;" />`;
+  return `<div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+${leftCol}
 <div style="width:90px;min-width:90px;max-width:90px;flex-shrink:0;">
 ${avatarHtml}
 </div>

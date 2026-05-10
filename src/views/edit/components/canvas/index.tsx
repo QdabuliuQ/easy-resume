@@ -8,13 +8,28 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { useMemoizedFn } from 'ahooks';
-import { CloseOutlined, EyeOutlined, GithubOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
+import {
+  CheckCircleOutlined,
+  CloseOutlined,
+  EyeOutlined,
+  GithubOutlined,
+  HomeOutlined,
+  MoonOutlined,
+  SunOutlined,
+  WarningOutlined,
+} from '@ant-design/icons';
+import { useRouter } from 'next/navigation';
 import { Tooltip } from 'antd';
 import { createPortal } from 'react-dom';
-import resume from '@/json/resume';
+import resume from '@/json/resume.json';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
+import {
+  getBackupReady,
+  getServerBackupReady,
+  subscribeBackupDirectory,
+} from '@/lib/backupDirectoryStore';
 import {
   getAppTheme,
   getServerAppTheme,
@@ -133,7 +148,10 @@ function buildModuleElement(
   );
 }
 
-function Canvas() {
+type CanvasProps = { onOpenGeneralSettings?: () => void };
+
+function Canvas({ onOpenGeneralSettings }: CanvasProps) {
+  const router = useRouter();
   const moduleHeights = useRef<{ [propName: string]: number }>({});
   /** 与 moduleHeights 对应，用于跳过未改动的模块测量 */
   const measuredSigRef = useRef<Record<string, string>>({});
@@ -446,7 +464,7 @@ function Canvas() {
   });
 
   useEffect(() => {
-    render(resume);
+    render(configStore.getConfig ?? resume);
   }, [resume]);
 
   useEffect(() => {
@@ -464,6 +482,11 @@ function Canvas() {
     subscribeAppTheme,
     getAppTheme,
     getServerAppTheme,
+  );
+  const backupReady = useSyncExternalStore(
+    subscribeBackupDirectory,
+    getBackupReady,
+    getServerBackupReady,
   );
 
   const globalStyle = configStore.mergedGlobalStyle;
@@ -592,6 +615,33 @@ function Canvas() {
       </div>
 
       <div className='pointer-events-none fixed right-[20px] bottom-[20px] z-20 flex flex-col items-end gap-2'>
+        {backupReady ? (
+          <Tooltip title='已启用本地备份，修改后将写入「简历名称.json」' placement='left'>
+            <span className='pointer-events-auto inline-flex'>
+              <button
+                type='button'
+                disabled
+                className='inline-flex h-[42px] w-[42px] cursor-default items-center justify-center rounded-full border border-emerald-500/45 bg-emerald-500/20 text-emerald-500 shadow-[0_16px_34px_rgb(0_0_0/0.12)] backdrop-blur-[8px]'
+                aria-label='备份已启用'
+              >
+                <CheckCircleOutlined className='text-[17px]' />
+              </button>
+            </span>
+          </Tooltip>
+        ) : (
+          <Tooltip title='无法自动备份，请到通用配置选择备份文件夹' placement='left'>
+            <span className='pointer-events-auto inline-flex'>
+              <button
+                type='button'
+                onClick={() => onOpenGeneralSettings?.()}
+                className='inline-flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-full border border-red-500/45 bg-red-500/20 text-red-500 shadow-[0_16px_34px_rgb(0_0_0/0.12)] backdrop-blur-[8px]'
+                aria-label='打开通用配置'
+              >
+                <WarningOutlined className='text-[17px]' />
+              </button>
+            </span>
+          </Tooltip>
+        )}
         <Tooltip title={appTheme === 'dark' ? '切换为浅色主题' : '切换为深色主题'} placement='left'>
           <button
             type='button'
@@ -604,6 +654,17 @@ function Canvas() {
             ) : (
               <MoonOutlined className='text-[17px]' />
             )}
+          </button>
+        </Tooltip>
+
+        <Tooltip title='首页' placement='left'>
+          <button
+            type='button'
+            onClick={() => router.push('/')}
+            className='canvas-float-btn'
+            aria-label='返回首页'
+          >
+            <HomeOutlined className='text-[17px]' />
           </button>
         </Tooltip>
 

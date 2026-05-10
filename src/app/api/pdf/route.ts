@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
 import { getPuppeteerLaunchOptions } from '@/lib/puppeteerLaunchOptions';
-import defaultResume from '@/json/resume';
+import defaultResume from '@/json/resume.json';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { loadInlineHtmlForPrint, settleFontsOrTimeout } from './loadInlineHtmlForPrint';
 import { mergeResumeConfig } from './mergeResumeConfig';

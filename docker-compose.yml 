@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  resy-resume:
+    build: .
+    ports:
+      - "3010:3010"
+    restart: always

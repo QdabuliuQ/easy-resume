@@ -122,9 +122,9 @@ function Info1(props: Props) {
     <div
       id={id}
       {...{ [RESUME_MODULE_ID_ATTR]: id }}
-      className='flex w-full cursor-pointer items-center justify-between'
+      className={`flex w-full cursor-pointer items-center ${showAvatar ? 'justify-between gap-3' : ''}`}
     >
-      <div className='flex-1'>
+      <div className={showAvatar ? 'min-w-0 flex-1' : 'w-full'}>
         <div
           className='mb-[10px] font-bold text-[#333] leading-none'
           style={{ fontSize: fontSize * 1.7 }}
@@ -133,17 +133,11 @@ function Info1(props: Props) {
         </div>
         <div className='w-full'>{itemLayout}</div>
       </div>
-      <div className='w-[90px] min-w-[90px] max-w-[90px]'>
-        {showAvatar ? (
-          <img
-            className='w-full aspect-5/7 object-cover'
-            src={avatarSrc}
-            alt='avatar'
-          />
-        ) : (
-          <div className='w-full aspect-5/7' aria-hidden />
-        )}
-      </div>
+      {showAvatar ? (
+        <div className='w-[90px] min-w-[90px] max-w-[90px] shrink-0'>
+          <img className='aspect-5/7 w-full object-cover' src={avatarSrc} alt='avatar' />
+        </div>
+      ) : null}
     </div>
   );
 }

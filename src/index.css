@@ -28,6 +28,20 @@
   animation: info1-panel-enter 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+@keyframes home-templates-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.home-templates-marquee-track {
+  animation: home-templates-marquee linear infinite;
+  will-change: transform;
+}
+
 @keyframes canvas-preview-overlay-enter {
   from {
     opacity: 0;

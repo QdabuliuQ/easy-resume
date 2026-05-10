@@ -1,21 +1,18 @@
-import FormItem from '@/components/formItem';
 import { polishSkillDescriptionWithBigmodel } from '@/api/skillDescriptionPolish';
+import RichTextEditor, {
+  RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH,
+} from '@/components/richTextEditor';
+import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { SkillProps } from '@/modules/skill';
-import { DocSuccess } from '@icon-park/react';
 import { ThunderboltOutlined } from '@ant-design/icons';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
-import { Form } from 'antd';
 import { observer } from 'mobx-react';
 import { memo, useEffect, useId, useState, type CSSProperties } from 'react';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
-import RichTextEditor from '@/components/richTextEditor';
-import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
-
-const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
 function intentPostsFromResumeConfig(
   config: { pages?: { modules?: { type?: string; options?: { intentPosts?: string } }[] }[] } | null
@@ -154,7 +151,8 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
             instanceKey={`${moduleActive}-skill`}
             html={module.options.description ?? ''}
             onHtmlChange={updateDescription}
-            placeholder='请输入技能…'
+            maxPlainLength={RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH}
+            placeholder='支持粗体、列表、链接；请输入专业技能…'
             onAiPolishClick={(richTextHtml, ctx) =>
               polishSkillDescriptionWithBigmodel(
                 { richTextHtml, intentPosts: intentPostsForPolish },

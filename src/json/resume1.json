@@ -1,0 +1,171 @@
+{
+  "id": "fe",
+  "title": "前端工程师简历模板",
+  "config": {
+    "name": "前端工程师简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#383838",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 1
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "name": "陈峰",
+              "phone": "13512345678",
+              "email": "chenfeng@163.com",
+              "city": "广东/深圳",
+              "status": "在职",
+              "intentCity": "深圳、广州、东莞",
+              "intentPosts": "前端开发工程师,Vue开发",
+              "wechat": "chenfeng_fe",
+              "birthday": "1996-03-12",
+              "gender": "男",
+              "stature": "",
+              "weight": "",
+              "ethnic": "汉族",
+              "origin": "广东/广州",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": "https://github.com/chenfeng-fe",
+              "expectedSalary": [
+                "18k",
+                "28k"
+              ],
+              "avatar": "data:image/png;base64,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",
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "精通 HTML/CSS/JavaScript（ES6+），熟悉语义化标签、Flex/Grid 布局与移动端适配方案；熟练 Vue3（Composition API、Pinia）、React（Hooks）与 Next.js App Router，能结合 TypeScript 约束组件 props 与接口类型；掌握 Vite、Webpack 分包与 Monorepo（pnpm workspace）协作流程；擅长低代码画布、物料注册、属性面板联动及数据可视化（ECharts）与中后台表格表单场景；熟悉 REST 联调、鉴权与文件上传下载、前端性能（路由懒加载、虚拟列表、缓存策略）、Chrome DevTools 与 Lighthouse 排障，Git 分支管理与 Code Review 习惯良好。"
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "约 5 年前端经验，能从需求评审阶段介入，评估工期与交互可行性并给出折中方案；熟悉敏捷迭代、任务拆分与 Code Review，注重可读性与可维护性；善于把重复页面抽象为可配置组件或 JSON Schema 驱动渲染，减少复制粘贴；线上问题能结合监控与埋点快速定位，沟通风格务实，能在产品视觉还原与后端接口约束之间推动各方达成共识。"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "深圳智慧科技有限公司",
+                  "post": "前端开发工程师",
+                  "department": "研发部",
+                  "city": "广东 - 深圳",
+                  "startDate": "2021-03-01",
+                  "endDate": "2025-04-01",
+                  "description": "负责企业低代码平台、数据可视化大屏与中后台建设；基于 Vue3 + Vite + TypeScript 搭建工程骨架与路由权限；沉淀表格、表单、图表等通用组件，推动 ESLint/CI 规范落地；参与首屏与列表渲染优化、埋点与错误监控接入。"
+                },
+                {
+                  "company": "广州软通科技",
+                  "post": "前端开发工程师",
+                  "department": "技术部",
+                  "city": "广东 - 广州",
+                  "startDate": "2019-07-01",
+                  "endDate": "2021-02-01",
+                  "description": "参与企业官网、营销 H5、运营管理后台迭代；负责移动端适配与主流浏览器兼容；配合后端完成登录态、文件上传、分页筛选等常见场景；按版本节奏发布并修复线上反馈问题。"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "企业低代码开发平台",
+                  "role": "前端核心开发",
+                  "startDate": "2022-05-01",
+                  "endDate": "2024-11-01",
+                  "description": "负责画布区拖拽排序、对齐辅助线与撤销重做交互；建设组件物料注册表（版本号、默认属性、预览缩略图），串联属性面板与表单渲染引擎，支持校验规则与联动显隐；封装表格增强、步骤条、富文本等 30+ 业务组件并维护 Storybook/文档站；与后端对接预览域名、发布草稿与回滚策略，缩短运营活动页与内部审批类页面交付周期，收集业务反馈持续迭代物料规范。"
+                },
+                {
+                  "name": "数据可视化运营看板",
+                  "role": "前端开发",
+                  "startDate": "2023-02-01",
+                  "endDate": "2024-08-01",
+                  "description": "基于 ECharts 搭建区域销售、转化漏斗等多图表联动与钻取路径；区分实时接口与 T+1 离线任务数据口径，统一 loading、空态与错误提示；实现大屏多分辨率自适应与暗色主题变量；针对点位过密场景做采样与 dataZoom，合理设置定时刷新与页面可见性暂停，降低浏览器长时间驻留时的卡顿与内存占用。"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "广东工业大学",
+                  "degree": "本科",
+                  "major": "计算机科学与技术",
+                  "startDate": "2015-09-01",
+                  "endDate": "2019-06-01",
+                  "city": "广东 - 广州",
+                  "tags": [],
+                  "academy": "计算机学院",
+                  "description": "主修程序设计、数据结构、计算机网络、数据库原理、软件工程；选修 Web 开发与人机交互相关课程。"
+                }
+              ]
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "全国计算机等级考试二级合格证书",
+                  "date": "2017-06-01"
+                },
+                {
+                  "name": "大学英语四级考试合格证书",
+                  "date": "2016-12-01"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

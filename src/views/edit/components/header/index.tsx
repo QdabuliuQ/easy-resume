@@ -1,12 +1,12 @@
 'use client';
+import Link from 'next/link';
 import { useDebounceFn } from 'ahooks';
 import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
 import { observer } from 'mobx-react';
 import { Button, Input, message, Popover, Select, Tooltip } from 'antd';
 import { EditOutlined, MenuOutlined, RightOutlined } from '@ant-design/icons';
 import { configStore } from '@/mobx';
-import defaultResume from '@/json/resume';
-import resume from '@/json/resume';
+import defaultResume from '@/json/resume.json';
 import SectionHeader from '@/modules/header/sectionHeader';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import ModuleManage from './moduleManage';
@@ -112,7 +112,7 @@ function Header() {
     if (toolbarCompact) setMoreConfigOpen(false);
   }, [toolbarCompact]);
 
-  const name = configStore.getConfig?.name ?? resume.name;
+  const name = configStore.getConfig?.name ?? defaultResume.name;
   const rawFs = Number(configStore.mergedGlobalStyle.fontSize);
   const fontSize = Number.isFinite(rawFs)
     ? rawFs
@@ -346,7 +346,7 @@ function Header() {
   );
   const commit = () => {
     const trimmed = draft.trim();
-    const base = configStore.getConfig ?? JSON.parse(JSON.stringify(resume));
+    const base = configStore.getConfig ?? JSON.parse(JSON.stringify(defaultResume));
     configStore.setConfig({ ...base, name: trimmed || name });
     ignoreNextBlur.current = true;
     setEditing(false);
@@ -942,7 +942,22 @@ function Header() {
   return (
     <div className='flex h-full items-center justify-between gap-4 px-4 md:px-5'>
       <div className='flex min-w-0 items-center gap-2 h-full'>
-        <div className='bg-gradient-primary-br h-9 w-1.5 shrink-0 rounded-full opacity-90' />
+        <Link
+          href='/'
+          prefetch={false}
+          className='flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg outline-none ring-[var(--text-strong)]/35 transition-opacity hover:opacity-90 focus-visible:ring-2'
+          aria-label='返回首页'
+        >
+          <img
+            src={withBasePath('/logo.png')}
+            alt=''
+            width={34}
+            height={34}
+            className='h-[32px] w-[32px] object-contain'
+            draggable={false}
+          />
+        </Link>
+        <div className='bg-gradient-primary-br h-[30px] w-[4px] shrink-0 rounded-full opacity-90' />
         {editing ? (
           <Input
             autoFocus
@@ -1027,7 +1042,7 @@ function Header() {
         </Popover>
       ) : (
         <div className='flex min-w-0 flex-1 items-center justify-end overflow-hidden'>
-          <div className='flex min-w-0 flex-1 items-center justify-end overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'>
+          <div className='flex min-w-0 flex-1 items-center justify-end'>
             <div className='flex min-w-max items-center gap-2.5 pl-1'>
               {toolbarFields}
             </div>

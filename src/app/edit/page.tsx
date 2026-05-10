@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 import Loading from '@/components/loading';
 
 const Edit = dynamic(() => import('@/views/edit'), {
@@ -11,7 +12,9 @@ const Edit = dynamic(() => import('@/views/edit'), {
 export default function EditPage() {
   return (
     <div className='min-h-full w-full'>
-      <Edit />
+      <Suspense fallback={<Loading />}>
+        <Edit />
+      </Suspense>
     </div>
   );
 }
