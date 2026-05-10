@@ -1,11 +1,3 @@
-<p align="center"><strong>Language / 文档语言</strong><br>
-<a href="./README.md"><code> English </code></a>
-&nbsp;·&nbsp;
-<a href="./README.zh.md"><code> 简体中文 </code></a>
-</p>
-
-<hr />
-
 <h1 align="center">Easy Resume</h1>
 
 <p align="center">
@@ -14,12 +6,8 @@
   <a href="./README.zh.md">简体中文</a>
 </p>
 
-<p align="center">AI resume editor · Fast editing · Data security · Local backup · AI-assisted</p>
+<p align="center">AI resume editor · Fast editing · Data security · Local storage backup · AI-assisted</p>
 <p align="center">Online resume editor built on Next.js 14 (App Router): visually compose modules, rich text editing, drag-and-drop layout, with PDF / PNG export via Puppeteer.</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/QdabuliuQ/resy-resume/main/images/banner.png" width="820" alt="Resy Resume">
-</p>
 
 <p align="center">
   <img src="https://img.shields.io/github/license/QdabuliuQ/easy-resume" alt="License">
@@ -36,12 +24,12 @@
 </p>
 
 <p align="center">
-  <img src="./screenshots/preview.png" width="800" alt="Easy Resume project preview">
+  <img src="./screenshots/preview.png" width="800" alt="Easy Resume preview">
 </p>
 
 ## ✨ Features
 
-- Modular resume editing (profile, experience, projects, education, skills, certifications, etc.)
+- Modular resume editing (profile, work experience, projects, education, skills, certifications, etc.)
 - Canvas preview with grid layout (`react-grid-layout`)
 - Quill rich text with sanitized HTML (DOMPurify)
 - Server-rendered resume HTML; PDF/PNG export APIs
@@ -61,7 +49,7 @@
 ## 💻 Requirements
 
 - **Node.js** ≥ 18.17 (see `package.json` `engines`)
-- **PDF/PNG**: Chromium must be available in production; default executable `/usr/bin/chromium-browser`, or override via env (see below)
+- **PDF/PNG**: Chromium must be available in production; default executable `/usr/bin/chromium-browser`, or set via environment variables (see table below)
 
 ## 🚀 Quick start
 
@@ -73,16 +61,16 @@ npm install
 npm run dev
 ```
 
-The dev server port is chosen by Next.js. This app uses **`basePath: /easy-resume`**, so open something like `http://localhost:3000/easy-resume/edit` (check the terminal for the actual port).
+The dev server port is assigned by Next.js. This app uses **`basePath: /easy-resume`**, so local URLs look like `http://localhost:3000/easy-resume/edit` (use the port printed in the terminal).
 
-Production:
+Production build and run:
 
 ```bash
 npm run build
 npm run start
 ```
 
-`start` listens on **3010**.
+The `start` script listens on **3010**.
 
 ## 📜 Scripts
 
@@ -92,9 +80,9 @@ npm run start
 | `npm run build` | Production build |
 | `npm run start` | Production server (port 3010) |
 | `npm run lint` | ESLint |
-| `npm run lint:pritter` | Prettier write `src/` |
+| `npm run lint:pritter` | Prettier format `src/` |
 | `npm run prepare` | Husky (runs after `npm install`) |
-| `npm run commit` | Gitmoji interactive commit (`gitmoji-cli` required) |
+| `npm run commit` | Gitmoji interactive commit (install `gitmoji-cli` globally or locally) |
 
 ## 🔐 Environment variables
 
@@ -110,18 +98,18 @@ Create `.env.local` as needed (do not commit secrets).
 ```
 src/
   app/           # App Router: pages, layout, API routes (pdf/png/version/chat, etc.)
-  components/    # Shared UI
-  views/edit/    # Editor shell (canvas, sidebar, header)
+  components/    # Shared components
+  views/edit/    # Editor shell (canvas, sidebar, header, etc.)
   modules/       # Resume module renderers & types
   mobx/          # Global state
-  lib/           # Puppeteer, fonts, API helpers
+  lib/           # Puppeteer, fonts, API proxies, helpers
   utils/         # Utilities
-  json/          # Default resume / template data
+  json/          # Default resume & template data
 public/          # Static assets (fonts, etc.)
 middleware.ts    # Next.js middleware
 ```
 
-## 🐳 Docker
+## 🐳 Docker deployment
 
 ```bash
 docker-compose up -d

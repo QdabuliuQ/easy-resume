@@ -1,11 +1,3 @@
-<p align="center"><strong>文档语言 / Language</strong><br>
-<a href="./README.md"><code> English </code></a>
-&nbsp;·&nbsp;
-<a href="./README.zh.md"><code> 简体中文 </code></a>
-</p>
-
-<hr />
-
 <h1 align="center">Easy Resume</h1>
 
 <p align="center">
@@ -16,9 +8,6 @@
 
 <p align="center">AI 简历编辑器 | 快捷编辑 · 数据安全 · 本地存储备份 · AI 协助</p>
 <p align="center">基于 Next.js 14（App Router） 的在线简历编辑器：可视化编排模块、富文本编辑、拖拽布局，并支持通过 Puppeteer 导出 PDF / PNG。
-</p>
-<p align="center">
-  <img src="https://raw.githubusercontent.com/QdabuliuQ/resy-resume/main/images/banner.png" width="820" alt="Resy Resume">
 </p>
 
 <p align="center">
