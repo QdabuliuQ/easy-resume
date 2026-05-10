@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
@@ -27,8 +28,20 @@ import {
   toggleAppTheme,
 } from '@/lib/themeStore';
 import { withBasePath } from '@/lib/withBasePath';
-import HomeResumeTemplateMarquee from '@/components/homeResumeTemplateMarquee';
 import Typed from 'typed.js';
+
+const HomeResumeTemplateMarquee = dynamic(
+  () => import('@/components/homeResumeTemplateMarquee'),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className='relative min-h-[200px] w-full border-y border-fg/10 bg-[rgb(var(--surface-fg-rgb)/0.03)] py-6 md:min-h-[220px]'
+        aria-hidden
+      />
+    ),
+  }
+);
 
 type HighlightBlock = {
   title: string;

@@ -1,6 +1,19 @@
 /** 曾用于保存目录句柄，现已改为仅 localStorage 存文件夹名；启动时删除以免误以为仍持久化授权 */
 const LEGACY_IDB_NAME = 'easy-resume-fs-access';
 
+type WindowWithDirectoryPicker = Window & {
+  showDirectoryPicker?(options?: { mode?: 'read' | 'readwrite' }): Promise<FileSystemDirectoryHandle>;
+};
+
+type DirectoryHandleReadWrite = FileSystemDirectoryHandle & {
+  queryPermission?(descriptor?: { mode?: 'read' | 'readwrite' }): Promise<PermissionState>;
+  requestPermission?(descriptor?: { mode?: 'read' | 'readwrite' }): Promise<PermissionState>;
+};
+
+function win(): WindowWithDirectoryPicker {
+  return window as WindowWithDirectoryPicker;
+}
+
 export function removeLegacyDirectoryHandleDatabase(): void {
   if (typeof indexedDB === 'undefined') return;
   try {
@@ -11,13 +24,14 @@ export function removeLegacyDirectoryHandleDatabase(): void {
 }
 
 export function supportsDirectoryPicker(): boolean {
-  return typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
+  return typeof window !== 'undefined' && typeof win().showDirectoryPicker === 'function';
 }
 
 export async function pickDirectory(): Promise<FileSystemDirectoryHandle | null> {
-  if (!supportsDirectoryPicker()) return null;
+  const pick = win().showDirectoryPicker;
+  if (typeof pick !== 'function') return null;
   try {
-    return await window.showDirectoryPicker({ mode: 'readwrite' });
+    return await pick.call(window, { mode: 'readwrite' });
   } catch (e) {
     const err = e as DOMException;
     if (err?.name === 'AbortError') return null;
@@ -26,10 +40,14 @@ export async function pickDirectory(): Promise<FileSystemDirectoryHandle | null>
 }
 
 export async function ensureReadWritePermission(handle: FileSystemDirectoryHandle): Promise<boolean> {
+  const h = handle as DirectoryHandleReadWrite;
   const opts = { mode: 'readwrite' as const };
   try {
-    if ((await handle.queryPermission(opts)) === 'granted') return true;
-    return (await handle.requestPermission(opts)) === 'granted';
+    const q = h.queryPermission;
+    const r = h.requestPermission;
+    if (typeof q !== 'function' || typeof r !== 'function') return false;
+    if ((await q.call(h, opts)) === 'granted') return true;
+    return (await r.call(h, opts)) === 'granted';
   } catch {
     return false;
   }
