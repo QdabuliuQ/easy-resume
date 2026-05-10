@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: http://www.qdabuliuq.cn/easy-resume
+
+# Sitemaps
+Sitemap: http://www.qdabuliuq.cn/easy-resume/sitemap.xml

@@ -1,15 +1,39 @@
 import type { Metadata } from 'next';
 import '../index.css';
 import { VersionUpdateNotifier } from '@/components/versionUpdateNotifier';
+import {
+  SITE_DESCRIPTION_DEFAULT,
+  SITE_NAME,
+  getSiteUrl,
+  siteJsonLdGraph,
+} from '@/lib/siteMeta';
 import { AntdProvider } from './providers';
 
 export const metadata: Metadata = {
-  title: 'EasyResume',
-  description: 'Resume editor',
+  metadataBase: getSiteUrl(),
+  title: {
+    default: `${SITE_NAME} — AI 简历编辑器`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION_DEFAULT,
+  applicationName: SITE_NAME,
+  referrer: 'origin-when-cross-origin',
   icons: {
     icon: '/easy-resume/logo.png',
     shortcut: '/easy-resume/logo.png',
     apple: '/easy-resume/logo.png',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'zh_CN',
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} — AI 简历编辑器`,
+    description: SITE_DESCRIPTION_DEFAULT,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${SITE_NAME} — AI 简历编辑器`,
+    description: SITE_DESCRIPTION_DEFAULT,
   },
 };
 
@@ -26,6 +50,12 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
       <body className="min-h-screen bg-background antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(siteJsonLdGraph()),
+          }}
+        />
         <AntdProvider>
           <VersionUpdateNotifier />
           {children}
