@@ -7,7 +7,6 @@
     "lint:pritter": "prettier --write src/",
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "next-sitemap --config next-sitemap.config.cjs",
     "lint": "eslint .",
     "prepare": "husky install",
     "commit": "gitmoji -c",
