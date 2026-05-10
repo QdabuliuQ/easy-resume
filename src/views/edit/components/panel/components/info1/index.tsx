@@ -1,3 +1,4 @@
+'use client';
 import { observer } from 'mobx-react';
 import { memo, useMemo, useRef, type CSSProperties } from 'react';
 import { UserOutlined } from '@ant-design/icons';
@@ -21,7 +22,6 @@ import {
   intentCity,
   status,
   ethnic,
-  info,
 } from '@/modules/utils/constant';
 import { useMemoizedFn } from 'ahooks';
 import CropperImage from '@/components/cropperImage';
@@ -31,6 +31,7 @@ import { configStore, moduleActiveStore } from '@/mobx';
 import dayjs from 'dayjs';
 import InfoLayout from '@/components/infoLayout';
 import PanelToolbar from '../panelToolbar';
+import { useTranslations } from 'next-intl';
 import {
   AutoHeightOne,
   Avatar,
@@ -79,6 +80,7 @@ function formatPreviewValue(key: string, opt: Record<string, unknown>): string {
 }
 
 function Info1({ moduleId }: { moduleId?: string } = {}) {
+  const ti = useTranslations('Edit.info1');
   const [form] = Form.useForm();
   const cropperRef = useRef<any>(null);
   const mid = moduleId ?? moduleActiveStore.getModuleActive;
@@ -90,10 +92,10 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
         type='button'
       >
         <Avatar theme='outline' size='22' fill='currentColor' />
-        <div className='mt-2 text-[12px]'>上传头像</div>
+        <div className='mt-2 text-[12px]'>{ti('uploadAvatar')}</div>
       </button>
     ),
-    []
+    [ti]
   );
 
   const option = useMemo(() => {
@@ -269,7 +271,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
     const extOk = /\.(jpe?g|png)$/i.test(file.name ?? '');
     const ok = mimeOk || (!file.type && extOk);
     if (!ok) {
-      message.error('请上传 jpeg、jpg、png 格式的图片');
+      message.error(ti('imageFormatError'));
       return Upload.LIST_IGNORE;
     }
     cropperRef.current.showModal(await fileToBase64(file), (image: string) => {
@@ -388,7 +390,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
             <UserOutlined />
           </div>
           <span className='panel-module-label'>
-            基本信息
+            {ti('basicInfoLabel')}
           </span>
         </div>
         <PanelToolbar moduleId={mid} />
@@ -426,8 +428,8 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
           className='panel-module-edit info1-panel-animate text-fg/95'
         >
           <p className='mb-3 rounded-md border border-[color:color-mix(in_srgb,var(--color-primary)_52%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)] px-3 py-2.5 text-[11px] font-medium leading-relaxed text-[color:var(--color-primary)] shadow-[inset_0_1px_0_0_color-mix(in_srgb,var(--color-primary)_28%,transparent)]'>
-            <span className='font-semibold'>提示</span>
-            ：若修改字段后页面未展示，请到下方「字段布局」中开启对应字段的显示开关。
+            <span className='font-semibold'>{ti('hintTitle')}</span>
+            ：{ti('hintBody')}
           </p>
           <Form form={form} variant='filled' layout='vertical'>
             <Row gutter={15}>
@@ -441,7 +443,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                             {item.icon}
                           </span>
                         ) : null}
-                        {info[item.key as keyof typeof info]}
+                        {ti(`fields.${item.key}` as never)}
                       </div>
                     }
                   >
@@ -449,18 +451,14 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                       <Input
                         maxLength={30}
                         defaultValue={option[item.key]}
-                        placeholder={
-                          '请输入' + info[item.key as keyof typeof info]
-                        }
+                        placeholder={`${ti('enterPrefix')}${ti(`fields.${item.key}` as never)}`}
                         onChange={(e) => inputHandler(item.key, e.target.value)}
                       />
                     ) : item.controllerType === 'date-picker' ? (
                       <DatePicker
                         defaultValue={option[item.key]}
                         style={{ width: '100%' }}
-                        placeholder={
-                          '请选择' + info[item.key as keyof typeof info]
-                        }
+                        placeholder={`${ti('selectPrefix')}${ti(`fields.${item.key}` as never)}`}
                         onChange={(_, dateString) =>
                           inputHandler(
                             item.key,
@@ -474,9 +472,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                       <Select
                         defaultValue={option[item.key]}
                         options={item.options}
-                        placeholder={
-                          '请选择' + info[item.key as keyof typeof info]
-                        }
+                        placeholder={`${ti('selectPrefix')}${ti(`fields.${item.key}` as never)}`}
                         showSearch
                         filterOption={filterOption}
                         onChange={(value) => inputHandler(item.key, value)}
@@ -487,7 +483,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                           maxLength={30}
                           defaultValue={salaryValue[0]}
                           style={{ width: '43%' }}
-                          placeholder='薪资'
+                          placeholder={ti('salaryPh')}
                           onChange={(e) => salaryInputHandler(0, e.target.value)}
                         />
                         -
@@ -495,7 +491,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                           maxLength={30}
                           defaultValue={salaryValue[1]}
                           style={{ width: '43%' }}
-                          placeholder='薪资'
+                          placeholder={ti('salaryPh')}
                           onChange={(e) => salaryInputHandler(1, e.target.value)}
                         />
                       </div>
@@ -510,9 +506,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                         }
                         defaultValue={option[item.key]}
                         options={item.options}
-                        placeholder={
-                          '请选择' + info[item.key as keyof typeof info]
-                        }
+                        placeholder={`${ti('selectPrefix')}${ti(`fields.${item.key}` as never)}`}
                         onChange={(value) => {
                           configStore.setConfigOption(mid, {
                             ...configStore.getConfigOption(mid),

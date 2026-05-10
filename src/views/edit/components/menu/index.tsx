@@ -7,24 +7,15 @@ import {
 } from '@ant-design/icons';
 import { message, Modal } from 'antd';
 import { Magic } from '@icon-park/react';
-import { useRef } from 'react';
+import { useTranslations } from 'next-intl';
+import { useMemo, useRef } from 'react';
 import { configStore } from '@/mobx';
 import { flushResumeBackupImmediate } from '@/lib/resumeConfigBackup';
 import {
   getResumeImportValidationError,
   normalizeResumeImportPayload,
 } from '@/lib/validateResumeImportJson';
-
 const GRADIENT_ID = 'resume-menu-item-grad';
-
-const IMPORT_MENU = { label: '导入模板', key: 'import-template' as const };
-const PANEL_MENU_ITEMS = [
-  { label: '简历模板', key: 'resume-template' as const },
-  { label: '简历编辑', key: 'resume' as const },
-  { label: 'AI 智能评分', key: 'ai-score' as const },
-  { label: '通用配置', key: 'general-settings' as const },
-] as const;
-
 function MenuItemIcon({ menuKey, selected }: { menuKey: string; selected: boolean }) {
   const antIconCls = selected
     ? 'relative z-[1] text-[28px] transition-[fill] duration-200 [&_svg]:!fill-[url(#resume-menu-item-grad)]'
@@ -42,22 +33,32 @@ function MenuItemIcon({ menuKey, selected }: { menuKey: string; selected: boolea
     />
   );
 }
-
 type MenuProps = {
   activeKey: string;
   onActiveKeyChange: (key: string) => void;
 };
-
 export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
+  const t = useTranslations('Edit.menu');
+  const importMenu = useMemo(() => ({ label: t('importTemplate'), key: 'import-template' as const }), [t]);
+  const panelMenuItems = useMemo(
+    () =>
+      [
+        { label: t('resumeTemplate'), key: 'resume-template' as const },
+        { label: t('resume'), key: 'resume' as const },
+        { label: t('aiScore'), key: 'ai-score' as const },
+        { label: t('generalSettings'), key: 'general-settings' as const },
+      ] as const,
+    [t],
+  );
   const [modal, contextHolder] = Modal.useModal();
   const fileRef = useRef<HTMLInputElement>(null);
   const pickImportFile = () => fileRef.current?.click();
   const confirmThenPickImport = () => {
     modal.confirm({
-      title: '确认导入',
-      content: '导入将覆盖当前简历模板，是否继续？',
-      okText: '继续',
-      cancelText: '取消',
+      title: t('confirmImportTitle'),
+      content: t('confirmImportContent'),
+      okText: t('okContinue'),
+      cancelText: t('cancel'),
       centered: true,
       onOk: () => {
         pickImportFile();
@@ -72,17 +73,17 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
     try {
       parsed = JSON.parse(await f.text());
     } catch {
-      message.error('模板错误');
+      message.error(t('templateError'));
       return;
     }
     const normalized = normalizeResumeImportPayload(parsed);
     const err = getResumeImportValidationError(normalized);
     if (err) {
-      message.error('模板错误');
+      message.error(t('templateError'));
       return;
     }
     configStore.setConfig(normalized);
-    message.success('导入成功');
+    message.success(t('importOk'));
     flushResumeBackupImmediate(configStore.getConfig);
   };
   const renderMenuItem = (item: { label: string; key: string }) => {
@@ -155,8 +156,8 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
           </linearGradient>
         </defs>
       </svg>
-      <div className='flex min-h-0 flex-col gap-[10px]'>{PANEL_MENU_ITEMS.map(renderMenuItem)}</div>
-      <div className='flex shrink-0 flex-col gap-[10px]'>{renderMenuItem(IMPORT_MENU)}</div>
+      <div className='flex min-h-0 flex-col gap-[10px]'>{panelMenuItems.map((item) => renderMenuItem(item))}</div>
+      <div className='flex shrink-0 flex-col gap-[10px]'>{renderMenuItem(importMenu)}</div>
     </div>
     </>
   );

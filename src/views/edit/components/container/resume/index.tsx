@@ -1,6 +1,8 @@
+'use client';
 import { message, Popover, Tooltip } from 'antd';
 import { observer } from 'mobx-react';
-import { memo, useCallback, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { analyzeResumeWithBigmodel, type ResumeAiAnalyzeResult } from '@/api/resumeAiScoreAnalyze';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore } from '@/mobx';
@@ -14,26 +16,26 @@ import AiScore from '../../panel/components/aiScore';
 import GeneralSettings from '../../panel/components/generalSettings';
 import ModuleEdit from '../../panel/components/moduleEdit';
 import ResumeTemplate from '../../panel/components/resumeTemplate';
-
-const ADD_MODULE_LIST: { type: ResumeModuleType; label: string }[] = [
-  { type: 'info1', label: '个人信息' },
-  { type: 'certificate', label: '证书' },
-  { type: 'skill', label: '技能' },
-  { type: 'job', label: '工作经历' },
-  { type: 'project', label: '项目经历' },
-  { type: 'education', label: '教育经历' },
-  { type: 'other', label: '其他' },
-];
-
 type ResumeProps = { menuActiveKey: string };
-
 const GRADIENT_CTA_CLASS =
   'bg-add-module-gradient relative isolate flex h-10 w-[410px] max-w-full cursor-pointer select-none items-center justify-center gap-2 overflow-hidden rounded-md text-[14px] font-bold text-white shadow-lg shadow-black/20 outline-none backdrop-blur-md backdrop-saturate-200 transition-[filter] duration-200 hover:brightness-125 hover:saturate-150 active:brightness-95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100 disabled:hover:saturate-100';
-
 const PANEL_HERO_CLASS =
   'mb-4 rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.11),rgb(var(--panel-surface-rgb)/0.05))] px-4 py-3 text-fg shadow-[0_18px_42px_rgba(0,0,0,0.14)]';
-
 function Resume({ menuActiveKey }: ResumeProps) {
+  const tr = useTranslations('Edit.resumeContainer');
+  const addModuleList = useMemo(
+    () =>
+      [
+        { type: 'info1' as const, label: tr('tabInfo1') },
+        { type: 'certificate' as const, label: tr('tabCertificate') },
+        { type: 'skill' as const, label: tr('tabSkill') },
+        { type: 'job' as const, label: tr('tabJob') },
+        { type: 'project' as const, label: tr('tabProject') },
+        { type: 'education' as const, label: tr('tabEducation') },
+        { type: 'other' as const, label: tr('tabOther') },
+      ] satisfies { type: ResumeModuleType; label: string }[],
+    [tr],
+  );
   const cfg = configStore.getConfig;
   const { addModuleByType } = useModuleHandle();
   const [addOpen, setAddOpen] = useState(false);
@@ -44,18 +46,17 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const isResumeTemplate = menuActiveKey === 'resume-template';
   const isGeneralSettings = menuActiveKey === 'general-settings';
   const isResumeEdit = menuActiveKey === 'resume';
-
   const onStartAnalyze = useCallback(() => {
     if (analyzeLoading) return;
-    const cfg = configStore.getConfig;
-    if (!cfg?.pages?.length) {
-      message.warning('暂无简历配置，请先编辑简历');
+    const cfgInner = configStore.getConfig;
+    if (!cfgInner?.pages?.length) {
+      message.warning(tr('noConfigWarn'));
       return;
     }
     setAnalyzeLoading(true);
     void (async () => {
       try {
-        const pagesForAnalyze = (cfg.pages ?? []).map((page) => {
+        const pagesForAnalyze = (cfgInner.pages ?? []).map((page) => {
           const modules = Array.isArray(page.modules)
             ? page.modules.map((module) => {
                 if (String(module?.type ?? '') !== 'info1') return module;
@@ -72,19 +73,18 @@ function Resume({ menuActiveKey }: ResumeProps) {
         });
         const payload = {
           pages: pagesForAnalyze,
-          globalStyle: cfg.globalStyle ?? undefined,
+          globalStyle: cfgInner.globalStyle ?? undefined,
         };
         const result = await analyzeResumeWithBigmodel(payload);
         setAiAnalysis(result);
         setHasAiAnalysis(true);
       } catch (e) {
-        message.error(e instanceof Error ? e.message : '分析失败');
+        message.error(e instanceof Error ? e.message : tr('analyzeFail'));
       } finally {
         setAnalyzeLoading(false);
       }
     })();
-  }, [analyzeLoading]);
-
+  }, [analyzeLoading, tr]);
   return (
     <div className='relative flex h-full min-h-0 flex-1 flex-col text-black [transform:translateZ(0)] bg-[var(--resume-panel-bg)]'>
       <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-24'>
@@ -103,25 +103,25 @@ function Resume({ menuActiveKey }: ResumeProps) {
                 </p>
                 <h2 className='mt-1 text-[17px] font-semibold text-fg/95'>
                   {isAiScore
-                    ? 'AI 智能评分'
+                    ? tr('panelTitleAi')
                     : isResumeTemplate
-                      ? '简历模板'
+                      ? tr('panelTitleTemplate')
                       : isGeneralSettings
-                        ? '通用配置'
-                        : '简历配置面板'}
+                        ? tr('panelTitleGeneral')
+                        : tr('panelTitleDefault')}
                 </h2>
                 <p className='mt-1 text-[12px] leading-relaxed text-fg/62'>
                   {isAiScore
-                    ? '查看评分维度与优化建议，并在当前简历配置上应用可执行修改。'
+                    ? tr('panelDescAi')
                     : isResumeTemplate
-                      ? '选择模板会直接替换当前简历配置，建议先导出 JSON 备份。'
+                      ? tr('panelDescTemplate')
                       : isGeneralSettings
-                        ? '选中的文件夹会同步和备份您的简历JSON文件'
-                        : '滚动浏览各模块配置，顶部导航用于快速定位，底部按钮负责补充模块。'}
+                        ? tr('panelDescGeneral')
+                        : tr('panelDescDefault')}
                 </p>
               </div>
               <div className='shrink-0 rounded-full border border-fg/[0.14] bg-surface/[0.08] px-3 py-1 text-[11px] font-semibold text-fg/68'>
-                {isAiScore ? '分析' : isResumeTemplate ? '模板' : isGeneralSettings ? '全局' : '编辑'}
+                {isAiScore ? tr('chipAi') : isResumeTemplate ? tr('chipTemplate') : isGeneralSettings ? tr('chipGeneral') : tr('chipEdit')}
               </div>
             </div>
           </div>
@@ -159,7 +159,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
             }}
             content={
               <div className='flex min-w-[168px] flex-col'>
-                {ADD_MODULE_LIST.map(({ type, label }) => {
+                {addModuleList.map(({ type, label }) => {
                   const atLimit = isResumeModuleTypeAtLimit(cfg, type);
                   const cur = countResumeModulesByType(cfg, type);
                   const max = RESUME_MODULE_MAX_COUNT[type];
@@ -197,7 +197,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
                   return atLimit ? (
                     <Tooltip
                       key={type}
-                      title={`该模块最多 ${max} 个，已达上限`}
+                      title={tr('maxModulesTooltip', { max })}
                       placement='left'
                     >
                       {row}
@@ -214,7 +214,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
               tabIndex={0}
               className={GRADIENT_CTA_CLASS}
             >
-              <span className='relative z-[1] drop-shadow-sm'>添加模块</span>
+              <span className='relative z-[1] drop-shadow-sm'>{tr('addModule')}</span>
             </div>
           </Popover>
         </div>
@@ -236,7 +236,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
                   aria-hidden
                 />
               ) : null}
-              <span className='relative z-[1] drop-shadow-sm'>开始分析</span>
+              <span className='relative z-[1] drop-shadow-sm'>{tr('startAnalyze')}</span>
             </button>
           </div>
         </div>
@@ -244,5 +244,4 @@ function Resume({ menuActiveKey }: ResumeProps) {
     </div>
   );
 }
-
 export default memo(observer(Resume));

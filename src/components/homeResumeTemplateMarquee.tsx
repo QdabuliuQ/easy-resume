@@ -10,7 +10,8 @@ import { cssLengthToApproxPx } from '@/utils/cssLength';
 import CanvasModuleFragment from '@/views/edit/components/canvas/moduleFragment';
 import ResumeFontCdn from '@/views/edit/components/canvas/ResumeFontCdn';
 import { EyeOutlined } from '@ant-design/icons';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import {
   memo,
   useEffect,
@@ -22,18 +23,6 @@ import {
   type TransitionEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
-
-/** bar：色条展示（偏淡）；color：写入 GlobalStyle.color（白底可读） */
-const MARQUEE_PREVIEW_SWATCHES = [
-  { label: '黑色', bar: '#525252', color: '#262626' },
-  { label: '红', bar: '#fecaca', color: '#b91c1c' },
-  { label: '橙', bar: '#fed7aa', color: '#c2410c' },
-  { label: '黄', bar: '#fef9c3', color: '#854d0e' },
-  { label: '绿', bar: '#bbf7d0', color: '#166534' },
-  { label: '青', bar: '#a5f3fc', color: '#0e7490' },
-  { label: '蓝', bar: '#bfdbfe', color: '#1d4ed8' },
-  { label: '紫', bar: '#ddd6fe', color: '#6d28d9' },
-] as const;
 
 function renderPageModules(modules: unknown[], gs: GlobalStyle): ReactNode[] {
   const mm = Number(gs.moduleMargin) || 15;
@@ -68,11 +57,13 @@ const TemplatePageScaled = memo(function TemplatePageScaled({
   scale,
   templateIndex1Based,
   resumeTextColor,
+  useTemplateLabel,
 }: {
   template: ResumeTemplateItem;
   scale: number;
   templateIndex1Based?: number;
   resumeTextColor: string;
+  useTemplateLabel: string;
 }) {
   const gs = useMemo(() => {
     const merged = mergeGlobalStylePaper(
@@ -120,7 +111,7 @@ const TemplatePageScaled = memo(function TemplatePageScaled({
               onClick={(e) => e.stopPropagation()}
             >
               <span className='rounded-full bg-gradient-to-r from-[var(--color-primary-gradient-start)] to-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgb(0_0_0/0.35)]'>
-                立即使用模板
+                {useTemplateLabel}
               </span>
             </Link>
           </div>
@@ -139,14 +130,23 @@ const SWATCH_ROTATE_MS = 2600;
 function MarqueeTemplateThumb({
   template,
   resumeTextColor,
+  useTemplateLabel,
+  previewLabel,
 }: {
   template: ResumeTemplateItem;
   resumeTextColor: string;
+  useTemplateLabel: string;
+  previewLabel: string;
 }) {
   return (
     <div className='relative'>
       <div className='pointer-events-none'>
-        <TemplatePageScaled template={template} scale={STRIP_SCALE} resumeTextColor={resumeTextColor} />
+        <TemplatePageScaled
+          template={template}
+          scale={STRIP_SCALE}
+          resumeTextColor={resumeTextColor}
+          useTemplateLabel={useTemplateLabel}
+        />
       </div>
       <div className='pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-md opacity-0 transition-opacity duration-200 ease-out group-hover/slide:opacity-100'>
         <div
@@ -157,7 +157,7 @@ function MarqueeTemplateThumb({
           <EyeOutlined aria-hidden />
         </span>
         <span className='relative z-[1] text-[11px] font-semibold tracking-wide text-[var(--color-primary)] drop-shadow-sm'>
-          预览
+          {previewLabel}
         </span>
       </div>
     </div>
@@ -171,7 +171,7 @@ function Mask({
   afterClose,
   style,
   reduceMotion,
-  ariaLabel = '简历预览',
+  ariaLabel,
 }: {
   open: boolean;
   children?: ReactNode;
@@ -179,7 +179,7 @@ function Mask({
   afterClose?: () => void;
   style?: CSSProperties;
   reduceMotion?: boolean;
-  ariaLabel?: string;
+  ariaLabel: string;
 }) {
   const [showPortal, setShowPortal] = useState(false);
   const [entered, setEntered] = useState(false);
@@ -267,19 +267,21 @@ function Mask({
 }
 
 export default function HomeResumeTemplateMarquee({ reduceMotion }: { reduceMotion: boolean }) {
+  const tm = useTranslations('Home.marquee');
+  const swatches = tm.raw('swatches') as { label: string; bar: string; color: string }[];
   const [paused, setPaused] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [preview, setPreview] = useState<ResumeTemplateItem | null>(null);
   const [previewIndex1Based, setPreviewIndex1Based] = useState<number | null>(null);
   const [swatchIdx, setSwatchIdx] = useState(0);
-  const resumeTextColor = MARQUEE_PREVIEW_SWATCHES[swatchIdx]?.color ?? MARQUEE_PREVIEW_SWATCHES[0].color;
+  const resumeTextColor = swatches[swatchIdx]?.color ?? swatches[0].color;
   useEffect(() => {
     if (preview !== null || reduceMotion) return;
     const id = window.setInterval(() => {
-      setSwatchIdx((i) => (i + 1) % MARQUEE_PREVIEW_SWATCHES.length);
+      setSwatchIdx((i) => (i + 1) % swatches.length);
     }, SWATCH_ROTATE_MS);
     return () => window.clearInterval(id);
-  }, [preview, reduceMotion]);
+  }, [preview, reduceMotion, swatches.length]);
   const trackStyle: CSSProperties | undefined = reduceMotion
     ? undefined
     : {
@@ -293,9 +295,9 @@ export default function HomeResumeTemplateMarquee({ reduceMotion }: { reduceMoti
       <div
         className='flex w-full min-h-[38px] shrink-0 items-end justify-stretch bg-[rgb(var(--surface-fg-rgb)/0.02)]'
         role='toolbar'
-        aria-label='预览正文颜色'
+        aria-label={tm('previewToolbar')}
       >
-        {MARQUEE_PREVIEW_SWATCHES.map((s, i) => {
+        {swatches.map((s, i) => {
           const on = i === swatchIdx;
           return (
             <button
@@ -318,40 +320,50 @@ export default function HomeResumeTemplateMarquee({ reduceMotion }: { reduceMoti
       >
         {reduceMotion ? (
           <div className='flex flex-wrap justify-center gap-6 px-4 md:gap-7'>
-            {resumeTemplates.map((t) => (
+            {resumeTemplates.map((tpl) => (
               <button
-                key={t.id}
+                key={tpl.id}
                 type='button'
                 onClick={() => {
-                  setPreview(t);
-                  setPreviewIndex1Based(resumeTemplates.findIndex((x) => x.id === t.id) + 1);
+                  setPreview(tpl);
+                  setPreviewIndex1Based(resumeTemplates.findIndex((x) => x.id === tpl.id) + 1);
                   setPreviewOpen(true);
                 }}
                 className={slideBtn}
               >
-                <MarqueeTemplateThumb template={t} resumeTextColor={resumeTextColor} />
+                <MarqueeTemplateThumb
+                  template={tpl}
+                  resumeTextColor={resumeTextColor}
+                  useTemplateLabel={tm('useTemplate')}
+                  previewLabel={tm('preview')}
+                />
                 <span className='mt-2 block w-full max-w-full truncate px-0.5 text-center text-xs text-fg/55'>
-                  {t.title}
+                  {tpl.title}
                 </span>
               </button>
             ))}
           </div>
         ) : (
           <div className='home-templates-marquee-track flex w-max gap-7 px-4 md:gap-9' style={trackStyle}>
-            {LOOP.map((t, i) => (
+            {LOOP.map((tpl, i) => (
               <button
-                key={`${t.id}-${i}`}
+                key={`${tpl.id}-${i}`}
                 type='button'
                 onClick={() => {
-                  setPreview(t);
-                  setPreviewIndex1Based(resumeTemplates.findIndex((x) => x.id === t.id) + 1);
+                  setPreview(tpl);
+                  setPreviewIndex1Based(resumeTemplates.findIndex((x) => x.id === tpl.id) + 1);
                   setPreviewOpen(true);
                 }}
                 className={slideBtn}
               >
-                <MarqueeTemplateThumb template={t} resumeTextColor={resumeTextColor} />
+                <MarqueeTemplateThumb
+                  template={tpl}
+                  resumeTextColor={resumeTextColor}
+                  useTemplateLabel={tm('useTemplate')}
+                  previewLabel={tm('preview')}
+                />
                 <span className='mt-2 block w-full max-w-full truncate px-0.5 text-center text-xs text-fg/55'>
-                  {t.title}
+                  {tpl.title}
                 </span>
               </button>
             ))}
@@ -361,7 +373,9 @@ export default function HomeResumeTemplateMarquee({ reduceMotion }: { reduceMoti
       <Mask
         open={previewOpen}
         reduceMotion={reduceMotion}
-        ariaLabel={preview ? `${preview.title} 预览` : '模板预览'}
+        ariaLabel={
+          preview ? `${preview.title} ${tm('previewSuffix')}` : tm('templatePreviewFallback')
+        }
         onClick={() => setPreviewOpen(false)}
         afterClose={() => {
           setPreview(null);
@@ -374,6 +388,7 @@ export default function HomeResumeTemplateMarquee({ reduceMotion }: { reduceMoti
             scale={0.72}
             templateIndex1Based={previewIndex1Based ?? undefined}
             resumeTextColor={resumeTextColor}
+            useTemplateLabel={tm('useTemplate')}
           />
         ) : null}
       </Mask>

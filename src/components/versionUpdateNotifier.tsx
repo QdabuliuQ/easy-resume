@@ -1,6 +1,7 @@
 'use client';
 
 import { App, Button, Space } from 'antd';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 import { withBasePath } from '@/lib/withBasePath';
 
@@ -9,6 +10,7 @@ const NOTIFY_KEY = 'easy-resume-version-update';
 const STORAGE_KEY = 'easy-resume:dismissed-version-build-id';
 
 export function VersionUpdateNotifier() {
+  const t = useTranslations('Version');
   const { notification } = App.useApp();
   const baselineRef = useRef<string | null>(null);
   const dismissedRef = useRef<string | null>(null);
@@ -62,8 +64,8 @@ export function VersionUpdateNotifier() {
       showingForRef.current = buildId;
       notification.open({
         key: NOTIFY_KEY,
-        message: '发现新版本',
-        description: '站点已发布更新，请刷新页面以使用最新版本。',
+        message: t('newVersion'),
+        description: t('description'),
         duration: 0,
         placement: 'topRight',
         btn: (
@@ -74,10 +76,10 @@ export function VersionUpdateNotifier() {
                 closeNotify();
               }}
             >
-              稍后
+              {t('later')}
             </Button>
             <Button type='primary' onClick={() => window.location.reload()}>
-              立即刷新
+              {t('refreshNow')}
             </Button>
           </Space>
         ),
@@ -94,7 +96,7 @@ export function VersionUpdateNotifier() {
       window.clearInterval(id);
       notification.destroy(NOTIFY_KEY);
     };
-  }, []);
+  }, [t]);
 
   return null;
 }

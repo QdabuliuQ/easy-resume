@@ -2,15 +2,18 @@
 
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
+import { usePathname, useRouter } from '@/i18n/navigation';
 import {
   DownOutlined,
   GithubOutlined,
+  GlobalOutlined,
   LeftOutlined,
   MoonOutlined,
   RightOutlined,
   SunOutlined,
 } from '@ant-design/icons';
+import { Popover } from 'antd';
 import {
   memo,
   useEffect,
@@ -22,8 +25,8 @@ import {
   type PointerEvent,
 } from 'react';
 import {
-  getAppTheme,
-  getServerAppTheme,
+  getServerThemeSnapshot,
+  getThemeSnapshot,
   subscribeAppTheme,
   toggleAppTheme,
 } from '@/lib/themeStore';
@@ -43,56 +46,16 @@ const HomeResumeTemplateMarquee = dynamic(
   }
 );
 
-type HighlightBlock = {
-  title: string;
-  desc: string;
-  bullets: [string, string];
-};
-
-const HIGHLIGHTS: HighlightBlock[] = [
-  {
-    title: 'AI 智能建议',
-    desc: '结合岗位表达习惯给出优化建议，让句子更结果导向、更可读。',
-    bullets: ['智能润色与重写提示', '用词与语气一致性检查'],
-  },
-  {
-    title: '本地优先，数据自控',
-    desc: '内容编辑与预览在本地完成，导出 PDF、PNG 与 JSON，备份与迁移更可控。',
-    bullets: ['无需注册即可上手', '多格式导出便于投递'],
-  },
-];
-
-const FAQ_ITEMS: { q: string; a: string }[] = [
-  {
-    q: 'EasyResume 免费吗？',
-    a: '核心编辑与导出能力可直接使用，适合个人求职者快速完成简历版本迭代。',
-  },
-  {
-    q: '简历数据存在哪里？',
-    a: '数据优先保存在你的浏览器本地环境中，你可按需导出备份，避免云端不明存储带来的顾虑。',
-  },
-  {
-    q: '支持哪些导出格式？',
-    a: '支持导出 PDF、PNG 与 JSON，便于投递、预览与版本管理。',
-  },
-  {
-    q: '多设备如何同步？',
-    a: '一键导出简历 JSON 配置文件，任意设备均可导入恢复，随时随地同步简历数据。',
-  },
-];
-
-const HERO_LINES = [
-  '编辑更快捷，简历更专业',
-  '极速轻松编辑，安全智能定制',
-  '高效制作简历，安全守护隐私',
-  'AI 一键优化，快速成就好简历',
-  '快节奏编辑，高标准求职',
-];
-
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_58%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-bg)]';
 
-const HeroTypingTitle = memo(function HeroTypingTitle({ reduceMotion }: { reduceMotion: boolean }) {
+const HeroTypingTitle = memo(function HeroTypingTitle({
+  reduceMotion,
+  lines,
+}: {
+  reduceMotion: boolean;
+  lines: string[];
+}) {
   const elRef = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const el = elRef.current;
@@ -100,10 +63,10 @@ const HeroTypingTitle = memo(function HeroTypingTitle({ reduceMotion }: { reduce
     let iv: number | undefined;
     if (reduceMotion) {
       let idx = 0;
-      el.textContent = HERO_LINES[0];
+      el.textContent = lines[0];
       iv = window.setInterval(() => {
-        idx = (idx + 1) % HERO_LINES.length;
-        el.textContent = HERO_LINES[idx];
+        idx = (idx + 1) % lines.length;
+        el.textContent = lines[idx];
       }, 2800);
       return () => {
         if (iv !== undefined) window.clearInterval(iv);
@@ -111,7 +74,7 @@ const HeroTypingTitle = memo(function HeroTypingTitle({ reduceMotion }: { reduce
     }
     el.textContent = '';
     const typed = new Typed(el, {
-      strings: HERO_LINES,
+      strings: lines,
       typeSpeed: 46,
       backSpeed: 30,
       backDelay: 2280,
@@ -126,7 +89,7 @@ const HeroTypingTitle = memo(function HeroTypingTitle({ reduceMotion }: { reduce
     return () => {
       typed.destroy();
     };
-  }, [reduceMotion]);
+  }, [reduceMotion, lines]);
   return (
     <h1 className='min-h-[2.2lh] max-w-none text-4xl font-semibold leading-[1.15] tracking-tight text-fg/96 md:min-h-[1.15lh] md:text-[clamp(2.25rem,4vw+1rem,3.75rem)]'>
       <span ref={elRef} className='inline align-top' />
@@ -137,9 +100,13 @@ const HeroTypingTitle = memo(function HeroTypingTitle({ reduceMotion }: { reduce
 function HeroPreviewCompare({
   reduceMotion,
   onDragStateChange,
+  compareFigure,
+  compareSlider,
 }: {
   reduceMotion: boolean;
   onDragStateChange?: (dragging: boolean) => void;
+  compareFigure: string;
+  compareSlider: string;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
@@ -284,7 +251,7 @@ function HeroPreviewCompare({
     }
   };
   return (
-    <figure className='mx-auto w-[80vw] max-w-[min(900px,92vw)]' aria-label='深浅主题预览对比，拖拽中线切换'>
+    <figure className='mx-auto w-[80vw] max-w-[min(900px,92vw)]' aria-label={compareFigure}>
       <div
         ref={wrapRef}
         className='relative w-full touch-none overflow-hidden rounded-2xl border border-white/[0.09] bg-[rgb(22_20_24)] shadow-[0_28px_80px_rgb(0_0_0/0.45)] ring-1 ring-white/[0.04]'
@@ -351,7 +318,7 @@ function HeroPreviewCompare({
           aria-valuenow={Math.round(pct)}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label='对比拖拽位置'
+          aria-label={compareSlider}
           aria-orientation='horizontal'
           onKeyDown={onHandleKey}
           className={`group absolute inset-y-0 z-10 flex w-10 -translate-x-1/2 cursor-ew-resize flex-col items-center outline-none ${focusRing}`}
@@ -379,13 +346,29 @@ function HeroPreviewCompare({
   );
 }
 
+type HighlightBlock = {
+  title: string;
+  desc: string;
+  bullets: [string, string];
+};
 export default function Home() {
   const router = useRouter();
-  const appTheme = useSyncExternalStore(
+  const pathname = usePathname();
+  const locale = useLocale();
+  const t = useTranslations('Home');
+  const [langOpen, setLangOpen] = useState(false);
+  const highlights = t.raw('highlights') as HighlightBlock[];
+  const faq = t.raw('faq') as { q: string; a: string }[];
+  const heroLines = t.raw('heroLines') as string[];
+  const moduleTags = t.raw('moduleTags') as string[];
+  const themeSnap = useSyncExternalStore(
     subscribeAppTheme,
-    getAppTheme,
-    getServerAppTheme,
+    getThemeSnapshot,
+    getServerThemeSnapshot,
   );
+  const [themePref, appTheme] = themeSnap.split('|') as ['dark' | 'light' | 'system', 'dark' | 'light'];
+  const themeNavHint =
+    themePref === 'dark' ? t('themeToLight') : themePref === 'light' ? t('themeToSystem') : t('themeToDark');
   const reduceMotion = useSyncExternalStore(
     (onStoreChange) => {
       const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -562,7 +545,7 @@ export default function Home() {
             <span
               role='link'
               tabIndex={0}
-              aria-label='首页'
+              aria-label={t('navHome')}
               onClick={pushPath('/')}
               onKeyDown={navKey(pushPath('/'))}
               className={`flex min-w-0 max-w-[65%] cursor-pointer items-center gap-2 rounded-lg sm:max-w-none ${focusRing}`}
@@ -573,10 +556,61 @@ export default function Home() {
               <span className='truncate text-sm font-semibold tracking-[0.12em] text-fg/90'>EASYRESUME</span>
             </span>
             <div className='flex shrink-0 items-center gap-2 sm:gap-2.5'>
+              <Popover
+                arrow={false}
+                trigger='click'
+                open={langOpen}
+                onOpenChange={setLangOpen}
+                placement='bottomRight'
+                styles={{ body: { padding: 8 } }}
+                content={
+                  <div className='flex min-w-[148px] flex-col gap-0.5'>
+                    <button
+                      type='button'
+                      onClick={() => {
+                        router.replace(pathname, { locale: 'zh' });
+                        setLangOpen(false);
+                      }}
+                      className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${locale === 'zh'
+                        ? 'bg-fg/10 font-medium text-fg/90'
+                        : 'text-fg/65 hover:bg-fg/[0.06]'
+                        }`}
+                    >
+                      {t('langZh')}
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => {
+                        router.replace(pathname, { locale: 'en' });
+                        setLangOpen(false);
+                      }}
+                      className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${locale === 'en'
+                        ? 'bg-fg/10 font-medium text-fg/90'
+                        : 'text-fg/65 hover:bg-fg/[0.06]'
+                        }`}
+                    >
+                      {t('langEn')}
+                    </button>
+                  </div>
+                }
+              >
+                <button
+                  type='button'
+                  aria-expanded={langOpen}
+                  aria-haspopup='dialog'
+                  aria-label={t('langSwitch')}
+                  className={`inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-fg/14 bg-fg/[0.05] text-fg/68 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/[0.09] hover:text-fg/88 sm:w-auto sm:gap-1.5 sm:px-3 ${focusRing}`}
+                >
+                  <GlobalOutlined className='text-[15px]' />
+                  <span className='hidden max-w-[7rem] truncate text-xs font-medium sm:inline'>
+                    {locale === 'zh' ? t('langZh') : t('langEn')}
+                  </span>
+                </button>
+              </Popover>
               <span
                 role='button'
                 tabIndex={0}
-                aria-label='在 GitHub 打开源码'
+                aria-label={t('navGh')}
                 onClick={openGh}
                 onKeyDown={navKey(openGh)}
                 className={`inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-fg/14 bg-fg/[0.05] text-fg/68 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/[0.09] hover:text-fg/88 sm:hidden ${focusRing}`}
@@ -586,7 +620,7 @@ export default function Home() {
               <span
                 role='button'
                 tabIndex={0}
-                aria-label='在 GitHub 打开源码'
+                aria-label={t('navGh')}
                 onClick={openGh}
                 onKeyDown={navKey(openGh)}
                 className={`hidden h-9 cursor-pointer items-center gap-1.5 rounded-full border border-fg/14 bg-fg/[0.05] px-3 text-xs font-medium text-fg/65 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/[0.09] hover:text-fg/88 sm:inline-flex ${focusRing}`}
@@ -597,7 +631,7 @@ export default function Home() {
               <button
                 type='button'
                 onClick={toggleAppTheme}
-                aria-label={appTheme === 'dark' ? '切换为浅色' : '切换为深色'}
+                aria-label={themeNavHint}
                 className={`cursor-pointer inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-fg/14 bg-fg/[0.06] text-fg/85 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/10 ${focusRing}`}
               >
                 {appTheme === 'dark' ? (
@@ -613,7 +647,7 @@ export default function Home() {
                 onKeyDown={navKey(pushPath('/edit'))}
                 className={`inline-flex h-9 cursor-pointer items-center justify-center rounded-full border border-fg/14 bg-fg/[0.07] px-4 text-sm font-medium text-fg/58 transition-[transform,background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:bg-fg/11 hover:text-fg/78 motion-reduce:hover:translate-y-0 active:translate-y-0 ${focusRing}`}
               >
-                立即开始
+                {t('navStart')}
               </span>
             </div>
           </div>
@@ -630,11 +664,11 @@ export default function Home() {
                   color: 'color-mix(in srgb, var(--color-primary-gradient-start) 52%, var(--text-strong))',
                 }}
               >
-                智能简历编辑
+                {t('heroBadge')}
               </p>
-              <HeroTypingTitle reduceMotion={reduceMotion} />
+              <HeroTypingTitle reduceMotion={reduceMotion} lines={heroLines} />
               <p className='max-w-[62ch] text-base leading-[1.75] text-fg/58 md:text-[17px] text-center mt-[15px]'>
-                模块化编辑与 AI 建议协同，导出 PDF、PNG、JSON。为投递前的紧凑排期而设计：少折腾格式，多把时间花在内容与策略上。
+                {t('heroSub')}
               </p>
               <div className='flex flex-wrap items-center gap-3 mt-[15px]'>
                 <span
@@ -645,7 +679,7 @@ export default function Home() {
                   className={`inline-flex h-12 min-w-[158px] translate-y-0 cursor-pointer items-center justify-center rounded-xl px-6 text-sm font-semibold text-white shadow-[0_16px_40px_rgb(var(--surface-fg-rgb)/0.12)] transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-[2px] hover:shadow-[0_20px_44px_rgb(var(--surface-fg-rgb)/0.14)] motion-reduce:hover:translate-y-0 active:translate-y-0 ${focusRing}`}
                   style={{ background: 'var(--gradient-primary)', WebkitBackfaceVisibility: 'hidden' }}
                 >
-                  立即开始
+                  {t('ctaStart')}
                 </span>
                 <span
                   role='button'
@@ -654,13 +688,18 @@ export default function Home() {
                   onKeyDown={navKey(toFeatures)}
                   className={`inline-flex h-12 cursor-pointer items-center justify-center rounded-xl border border-fg/16 bg-fg/[0.04] px-5 text-sm font-medium text-fg/72 transition-[transform,background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:bg-fg/[0.07] hover:text-fg/88 motion-reduce:hover:translate-y-0 active:translate-y-0 ${focusRing}`}
                 >
-                  了解功能
+                  {t('ctaFeatures')}
                 </span>
               </div>
             </div>
           </div>
 
-          <HeroPreviewCompare reduceMotion={reduceMotion} onDragStateChange={setIsComparing} />
+          <HeroPreviewCompare
+            reduceMotion={reduceMotion}
+            onDragStateChange={setIsComparing}
+            compareFigure={t('compareFigure')}
+            compareSlider={t('compareSlider')}
+          />
 
         </section>
 
@@ -675,15 +714,15 @@ export default function Home() {
               className={`max-w-[52ch] ${transitionReveal} ${revealClass('features-title')}`}
             >
               <h2 className='text-2xl font-semibold tracking-tight text-fg/94 md:text-[1.75rem]'>
-                为什么选择 EasyResume
+                {t('featuresTitle')}
               </h2>
               <p className='mt-3 text-sm leading-7 text-fg/56 md:text-[15px]'>
-                面向真实求职流程取舍：编辑节奏清晰，导出稳定，隐私边界清楚。
+                {t('featuresDesc')}
               </p>
             </div>
 
             <div className='mt-14 flex flex-col gap-16 md:gap-20'>
-              {HIGHLIGHTS.map((block, idx) => (
+              {highlights.map((block, idx) => (
                 <div
                   key={block.title}
                   data-reveal={`hl-${idx}`}
@@ -734,13 +773,13 @@ export default function Home() {
             >
               <div className='rounded-2xl border border-[var(--editor-shell-border)] bg-[var(--editor-shell-panel)] px-6 py-8 transition-[border-color,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-fg/14 hover:shadow-[var(--editor-shell-shadow)] md:flex md:items-start md:justify-between md:gap-10 md:px-10 md:py-10'>
                 <div className='max-w-[52ch]'>
-                  <h3 className='text-lg font-semibold text-fg/92 md:text-xl'>模块化编辑</h3>
+                  <h3 className='text-lg font-semibold text-fg/92 md:text-xl'>{t('moduleTitle')}</h3>
                   <p className='mt-2 text-sm leading-7 text-fg/58 md:text-[15px]'>
-                    工作经历、项目、教育、技能分区管理，结构一眼看清；改动集中在内容层，减少来回拖动与对齐成本。
+                    {t('moduleDesc')}
                   </p>
                 </div>
                 <div className='mt-6 flex flex-wrap gap-2 md:mt-0 md:max-w-[340px] md:justify-end'>
-                  {['工作经历', '项目', '教育', '技能'].map((label) => (
+                  {moduleTags.map((label) => (
                     <span
                       key={label}
                       className='rounded-full border border-fg/12 bg-fg/[0.04] px-3 py-1.5 text-xs font-medium text-fg/68'
@@ -760,11 +799,11 @@ export default function Home() {
               data-reveal='faq-title'
               className={`max-w-xl ${transitionReveal} ${revealClass('faq-title')}`}
             >
-              <h2 className='text-2xl font-semibold tracking-tight text-fg/94 md:text-[1.75rem]'>常见问题</h2>
-              <p className='mt-2 text-sm leading-relaxed text-fg/56'>投递前最常问到的几件事，提前说清楚。</p>
+              <h2 className='text-2xl font-semibold tracking-tight text-fg/94 md:text-[1.75rem]'>{t('faqTitle')}</h2>
+              <p className='mt-2 text-sm leading-relaxed text-fg/56'>{t('faqDesc')}</p>
             </div>
             <div className='mt-10 grid items-start gap-4 sm:grid-cols-2 lg:mt-12 lg:gap-5'>
-              {FAQ_ITEMS.map((item, i) => (
+              {faq.map((item, i) => (
                 <details
                   key={item.q}
                   data-reveal={`faq-${i}`}
@@ -793,9 +832,9 @@ export default function Home() {
             className={`overflow-hidden rounded-3xl px-6 py-12 text-center md:px-12 md:py-14 ${transitionReveal} ${revealClass('closing-cta')}`}
             style={{ background: 'var(--gradient-primary)', WebkitBackfaceVisibility: 'hidden' }}
           >
-            <h2 className='text-xl font-semibold text-white md:text-2xl'>准备好升级你的简历了吗</h2>
+            <h2 className='text-xl font-semibold text-white md:text-2xl'>{t('closingTitle')}</h2>
             <p className='mx-auto mt-3 max-w-[46ch] text-sm leading-7 text-white/85'>
-              直接进入编辑器，从模块化结构开始，把内容打磨到可投递状态。
+              {t('closingDesc')}
             </p>
             <span
               role='button'
@@ -804,7 +843,7 @@ export default function Home() {
               onKeyDown={navKey(pushPath('/edit'))}
               className={`mt-8 inline-flex h-11 min-h-11 min-w-[148px] cursor-pointer items-center justify-center rounded-full bg-white px-8 text-sm font-semibold text-[rgb(30_26_33/0.92)] shadow-[0_12px_28px_rgb(0_0_0/0.18)] transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:shadow-[0_14px_32px_rgb(0_0_0/0.22)] motion-reduce:hover:translate-y-0 active:translate-y-0 ${focusRing}`}
             >
-              免费开始使用
+              {t('closingCta')}
             </span>
           </div>
         </section>

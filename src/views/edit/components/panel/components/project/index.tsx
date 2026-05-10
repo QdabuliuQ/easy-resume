@@ -1,3 +1,4 @@
+'use client';
 import FormItem from '@/components/formItem';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
@@ -27,6 +28,7 @@ import {
   canAddResumeModuleItem,
   resumeModuleItemLimitMessage,
 } from '@/utils/moduleTypeLimits';
+import { useTranslations } from 'next-intl';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
@@ -54,6 +56,7 @@ function intentPostsFromResumeConfig(
 }
 
 function Project({ moduleId }: { moduleId?: string } = {}) {
+  const tp = useTranslations('Edit.project');
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
@@ -203,7 +206,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
           <ModulePanelTitleEdit
             resetKey={moduleActive}
             title={module?.options?.title ?? ''}
-            fallbackTitle='项目经历'
+            fallbackTitle={tp('fallbackTitle')}
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
@@ -222,7 +225,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
         >
 
           {module.options.items.length === 0 ? (
-            <div className='text-[13px] text-fg/75'>暂无项目经历条目</div>
+            <div className='text-[13px] text-fg/75'>{tp('emptyInline')}</div>
           ) : (
             <>
               <div className='flex max-h-[280px] flex-col gap-1.5 overflow-y-auto'>
@@ -244,10 +247,8 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                 ))}
               </div>
               <div className='pt-2 text-[12px] text-fg/58'>
-                共 {module.options.items.length} 条
-                {module.options.items.length > 10
-                  ? '（预览仅显示前 10 条）'
-                  : ''}
+                {tp('itemCount', { n: module.options.items.length })}
+                {module.options.items.length > 10 ? tp('previewCap') : ''}
               </div>
             </>
           )}
@@ -260,7 +261,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
           className='panel-module-edit info1-panel-animate text-fg/95'
         >
           <AddGradientButton onClick={handleAdd} disabled={projectItemsFull}>
-            添加项目经历
+            {tp('add')}
           </AddGradientButton>
           {module.options.items.length > 0 ? (
             module.options.items.map((item: any, index: number) => (
@@ -272,7 +273,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                   <Row gutter={15}>
                     <Col span={12}>
                       <FormItem
-                        label='项目名称'
+                        label={tp('name')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <Book theme='outline' size='15' fill={FORM_ICON_FILL} />
@@ -281,14 +282,14 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.name}
-                          placeholder='请输入项目名称'
+                          placeholder={tp('namePh')}
                           onChange={(e) => handleChange(e, index, 'name')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={12}>
                       <FormItem
-                        label='担任角色'
+                        label={tp('role')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <Avatar
@@ -301,14 +302,14 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.role}
-                          placeholder='请输入担任角色'
+                          placeholder={tp('rolePh')}
                           onChange={(e) => handleChange(e, index, 'role')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={24}>
                       <FormItem
-                        label='项目时间'
+                        label={tp('period')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <Calendar
@@ -326,14 +327,14 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                             item.endDate ? dayjs(item.endDate) : undefined,
                           ]}
                           format='YYYY-MM'
-                          placeholder={['开始时间', '结束时间']}
+                          placeholder={[tp('periodPhStart'), tp('periodPhEnd')]}
                           onChange={(e) => handleChange(e, index, 'date')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={24}>
                       <FormItem
-                        label='项目描述'
+                        label={tp('desc')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <EditOne
@@ -350,7 +351,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                             onHtmlChange={(next) =>
                               handleDescriptionHtml(index, next)
                             }
-                            placeholder='请输入项目描述…'
+                            placeholder={tp('descPh')}
                             onAiPolishClick={(richTextHtml, ctx) =>
                               polishProjectDescriptionWithBigmodel(
                                 {
@@ -382,7 +383,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
               </div>
             ))
           ) : (
-            <Empty description='暂无项目经历' />
+            <Empty description={tp('empty')} />
           )}
         </div>
       ) : null}

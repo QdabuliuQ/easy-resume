@@ -2,6 +2,7 @@
 import { AppstoreOutlined } from '@ant-design/icons';
 import { Modal, message } from 'antd';
 import { useMemoizedFn } from 'ahooks';
+import { useTranslations } from 'next-intl';
 import { memo, useMemo, type ReactNode } from 'react';
 import defaultResume from '@/json/resume.json';
 import { resumeTemplates, type ResumeTemplateItem } from '@/json/resumeTemplates';
@@ -85,6 +86,7 @@ const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
 });
 
 function ResumeTemplate() {
+  const tr = useTranslations('Edit.resumeTemplate');
   const [modal, contextHolder] = Modal.useModal();
   const templateCards = useMemo(
     () =>
@@ -97,12 +99,12 @@ function ResumeTemplate() {
 
         return {
           ...template,
-          orderLabel: `${String(index + 1).padStart(2, '0')} 号模板`,
+          orderLabel: tr('orderLabel', { n: String(index + 1).padStart(2, '0') }),
           pageCount,
           moduleCount,
         };
       }),
-    []
+    [tr]
   );
 
   const onPick = useMemoizedFn((tpl: (typeof resumeTemplates)[number]) => {
@@ -113,21 +115,21 @@ function ResumeTemplate() {
           <span className='flex h-8 w-8 items-center justify-center rounded-xl border border-fg/[0.08] bg-surface/[0.05]'>
             <AppstoreOutlined className='text-[15px] [&_svg]:!fill-[var(--color-primary)]' />
           </span>
-          <span>替换当前简历？</span>
+          <span>{tr('replaceTitle')}</span>
         </div>
       ),
       content: (
         <div className='space-y-2'>
           <span className='block text-[13px] leading-relaxed !text-fg/70'>
-            将用所选模板覆盖当前编辑内容，此操作不可撤销。
+            {tr('replaceBody')}
           </span>
           <span className='inline-flex rounded-full border border-fg/[0.08] bg-surface/[0.05] px-2.5 py-1 text-[11px] font-medium text-fg/58'>
-            推荐先导出 JSON 备份当前简历
+            {tr('replaceRecommend')}
           </span>
         </div>
       ),
-      okText: '确定替换',
-      cancelText: '取消',
+      okText: tr('okReplace'),
+      cancelText: tr('cancel'),
       centered: true,
       okButtonProps: {
         danger: true,
@@ -159,7 +161,7 @@ function ResumeTemplate() {
       onOk: () => {
         configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
         moduleActiveStore.setModuleActive('global');
-        message.success('已应用模板');
+        message.success(tr('appliedOk'));
       },
     });
   });
@@ -172,14 +174,14 @@ function ResumeTemplate() {
           <div className='flex flex-wrap items-center justify-between gap-2'>
             <div className='flex min-w-0 flex-wrap items-center gap-2'>
               <span className='inline-flex items-center rounded-full border border-fg/[0.08] bg-surface/[0.045] px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.16em] text-fg/58'>
-                模板库
+                {tr('libraryTitle')}
               </span>
               <span className='inline-flex items-center rounded-full border border-[color:color-mix(in_srgb,var(--color-primary)_26%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_12%,transparent)] px-2.5 py-0.5 text-[11px] font-medium text-[color:var(--color-primary)]'>
-                共 {templateCards.length} 套
+                {tr('templateCount', { n: templateCards.length })}
               </span>
             </div>
             <span className='text-[11px] leading-relaxed text-fg/62'>
-              预览为每套模板首页，点击卡片应用整套模板
+              {tr('previewHint')}
             </span>
           </div>
         </div>
@@ -187,18 +189,18 @@ function ResumeTemplate() {
         <section className={`${panelShellClass} shrink-0 px-4 py-4`}>
           <div className='flex items-start justify-between gap-3'>
             <div className='min-w-0'>
-              <p className='text-[12px] uppercase tracking-[0.16em] text-fg/58'>使用说明</p>
+              <p className='text-[12px] uppercase tracking-[0.16em] text-fg/58'>{tr('usageTitle')}</p>
               <p className='mt-1 text-[13px] leading-relaxed text-fg/72'>
-                选择模板后会覆盖当前内容，适合在开始新简历或重构现有排版时使用。
+                {tr('usageBody')}
               </p>
             </div>
             <span className='shrink-0 rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2.5 py-1 text-[11px] font-medium text-fg/62'>
-              建议先备份
+              {tr('backupTitle')}
             </span>
           </div>
           <div className='mt-3 rounded-2xl border border-fg/[0.07] bg-[var(--panel-inset-bg)] px-3 py-2.5'>
             <p className='text-[11px] leading-relaxed text-fg/58'>
-              应用模板前可先导出 JSON，避免覆盖后无法恢复原始内容。
+              {tr('backupBody')}
             </p>
           </div>
         </section>
@@ -226,7 +228,7 @@ function ResumeTemplate() {
                 </div>
                 <div className='border-t border-fg/[0.06] px-3 py-2.5'>
                   <span className='flex justify-center items-center whitespace-nowrap rounded-lg border border-[color:color-mix(in_srgb,var(--color-primary)_24%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_12%,transparent)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--color-primary)] transition-colors group-hover:border-[color:color-mix(in_srgb,var(--color-primary)_38%,transparent)] group-hover:bg-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)]'>
-                    应用模板
+                    {tr('apply')}
                   </span>
                 </div>
               </button>

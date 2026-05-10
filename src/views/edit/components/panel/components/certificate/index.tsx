@@ -1,3 +1,4 @@
+'use client';
 import FormItem from '@/components/formItem';
 import { FileDoneOutlined } from '@ant-design/icons';
 import { configStore, moduleActiveStore } from '@/mobx';
@@ -18,10 +19,12 @@ import {
   canAddResumeModuleItem,
   resumeModuleItemLimitMessage,
 } from '@/utils/moduleTypeLimits';
+import { useTranslations } from 'next-intl';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
 function Certificate({ moduleId }: { moduleId?: string } = {}) {
+  const tc = useTranslations('Edit.certificate');
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
@@ -65,7 +68,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
       return;
     }
     module.options.items.unshift({
-      name: '证书',
+      name: tc('moduleName'),
       date: '2020-01-01',
     });
     updateModule(module);
@@ -161,7 +164,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
           <ModulePanelTitleEdit
             resetKey={moduleActive}
             title={module?.options?.title ?? ''}
-            fallbackTitle='证书荣誉'
+            fallbackTitle={tc('fallbackTitle')}
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
@@ -179,7 +182,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
           className='panel-module-preview info1-panel-animate text-fg/95'
         >
           {module.options.items.length === 0 ? (
-            <div className='text-[13px] text-fg/75'>暂无证书条目</div>
+            <div className='text-[13px] text-fg/75'>{tc('emptyInline')}</div>
           ) : (
             <>
               <div className='flex max-h-[200px] flex-col gap-1.5 overflow-y-auto'>
@@ -195,10 +198,8 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                   ))}
               </div>
               <div className='pt-2 text-[12px] text-fg/58'>
-                共 {module.options.items.length} 条
-                {module.options.items.length > 12
-                  ? '（预览仅显示前 12 条）'
-                  : ''}
+                {tc('itemCount', { n: module.options.items.length })}
+                {module.options.items.length > 12 ? tc('previewCap') : ''}
               </div>
             </>
           )}
@@ -211,7 +212,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
           className='panel-module-edit info1-panel-animate text-fg/95'
         >
           <AddGradientButton onClick={addCertificate} disabled={certificateItemsFull}>
-            添加证书
+            {tc('add')}
           </AddGradientButton>
           {module.options.items.length > 0 ? (
             <div className='mb-[10px] flex flex-col items-end'>
@@ -224,7 +225,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                     <Row gutter={15}>
                       <Col span={12}>
                         <FormItem
-                          label='证书名称'
+                          label={tc('name')}
                           labelClassName='text-[13px] text-fg/85'
                           icon={
                             <CertificateIcon
@@ -237,14 +238,14 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                           <Input
                             maxLength={30}
                             value={item.name}
-                            placeholder='请输入证书名称'
+                            placeholder={tc('namePh')}
                             onChange={(e) => handleChange(index, 'name', e)}
                           />
                         </FormItem>
                       </Col>
                       <Col span={12}>
                         <FormItem
-                          label='获取日期'
+                          label={tc('date')}
                           labelClassName='text-[13px] text-fg/85'
                           icon={
                             <Calendar
@@ -257,7 +258,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                           <DatePicker
                             style={{ width: '100%' }}
                             value={dayjs(item.date)}
-                            placeholder='请选择获取日期'
+                            placeholder={tc('datePh')}
                             onChange={(e) => handleChange(index, 'date', e)}
                           />
                         </FormItem>
@@ -279,7 +280,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
               ))}
             </div>
           ) : (
-            <Empty description='暂无证书' className='mb-5' />
+            <Empty description={tc('empty')} className='mb-5' />
           )}
         </div>
       ) : null}

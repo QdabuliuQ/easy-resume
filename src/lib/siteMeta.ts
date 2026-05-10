@@ -17,8 +17,9 @@ export function getSiteUrl(): URL {
   return new URL('http://localhost:3010/easy-resume');
 }
 
-export function siteJsonLdGraph(): Record<string, unknown> {
+export function siteJsonLdGraph(opts?: { locale?: string }): Record<string, unknown> {
   const base = getSiteUrl().href.replace(/\/$/, '');
+  const inLanguage = opts?.locale === 'en' ? 'en' : 'zh-CN';
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -28,7 +29,7 @@ export function siteJsonLdGraph(): Record<string, unknown> {
         name: SITE_NAME,
         url: base,
         description: SITE_DESCRIPTION_DEFAULT,
-        inLanguage: 'zh-CN',
+        inLanguage,
       },
       {
         '@type': 'SoftwareApplication',

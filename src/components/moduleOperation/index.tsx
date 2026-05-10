@@ -1,8 +1,10 @@
+'use client';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { ArrowCircleUp, DeleteOne } from '@icon-park/react';
 import { useMemoizedFn } from 'ahooks';
 import { Modal } from 'antd';
+import { useTranslations } from 'next-intl';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { observer } from 'mobx-react';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
@@ -55,6 +57,7 @@ const toolbarDeleteButtonClass =
   'box-border flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[14px] border border-[color:color-mix(in_srgb,var(--panel-tone-rose)_22%,var(--float-btn-border))] bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_10%,var(--float-btn-bg))] text-[color:var(--module-op-delete-icon)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),var(--panel-shadow-icon-btn)] transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:color-mix(in_srgb,var(--panel-tone-rose)_34%,var(--float-btn-border-hover))] hover:bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_18%,var(--float-btn-bg-hover))] hover:text-[color:var(--module-op-delete-icon-hover)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),var(--panel-shadow-primary-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,var(--panel-tone-rose)_54%,transparent)] active:translate-y-0 active:bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_24%,var(--float-btn-bg))]';
 
 function ModuleOperation(props: { children: React.ReactNode }) {
+  const tm = useTranslations('Edit.moduleOperation');
   const [modal, contextHolder] = Modal.useModal();
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasScale = useCanvasScale();
@@ -346,12 +349,16 @@ function ModuleOperation(props: { children: React.ReactNode }) {
               willChange: toolbarBox.motion === 'smooth' ? 'transform' : 'auto',
             }}
             className='absolute flex items-start'
-            aria-label='模块操作'
+            aria-label={tm('toolbarAria')}
           >
             <div className='flex items-start'>
               <div
                 className={toolbarShellClass}
-                aria-label={activeModuleMeta ? `当前模块：${activeModuleMeta.label}` : '当前模块操作'}
+                aria-label={
+                  activeModuleMeta
+                    ? tm('currentModule', { label: activeModuleMeta.label })
+                    : tm('currentModuleFallback')
+                }
                 title={activeModuleMeta?.label}
               >
                 {activeModuleMeta ? (
@@ -367,7 +374,7 @@ function ModuleOperation(props: { children: React.ReactNode }) {
                       upHandle();
                     }}
                     className={toolbarButtonClass}
-                    aria-label='上移'
+                    aria-label={tm('moveUpAria')}
                   >
                     <ArrowCircleUp theme='outline' size='17' fill='currentColor' />
                   </button>
@@ -380,7 +387,7 @@ function ModuleOperation(props: { children: React.ReactNode }) {
                       downHandle();
                     }}
                     className={toolbarButtonClass}
-                    aria-label='下移'
+                    aria-label={tm('moveDownAria')}
                   >
                     <ArrowCircleUp
                       className='rotate-180'
@@ -395,17 +402,17 @@ function ModuleOperation(props: { children: React.ReactNode }) {
                   onClick={(e) => {
                     e.stopPropagation();
                     modal.confirm({
-                      title: '删除模块',
-                      content: '确定删除该模块吗？删除后不可恢复。',
-                      okText: '删除',
-                      cancelText: '取消',
+                      title: tm('deleteModuleTitle'),
+                      content: tm('deleteModuleContent'),
+                      okText: tm('deleteOk'),
+                      cancelText: tm('cancel'),
                       okButtonProps: { danger: true },
                       centered: true,
                       onOk: () => deleteHandle(),
                     });
                   }}
                   className={toolbarDeleteButtonClass}
-                  aria-label='删除'
+                  aria-label={tm('deleteAria')}
                 >
                   <DeleteOne theme='outline' size='17' fill='currentColor' />
                 </button>

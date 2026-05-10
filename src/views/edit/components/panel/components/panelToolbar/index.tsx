@@ -1,12 +1,15 @@
+'use client';
 import { DeleteOutlined, DownOutlined } from '@ant-design/icons';
 import { Modal } from 'antd';
 import { useMemoizedFn } from 'ahooks';
+import { useTranslations } from 'next-intl';
 import { memo, type MouseEvent } from 'react';
 import { observer } from 'mobx-react';
 import { useModuleHandle } from '@/hooks/module';
 import { moduleActiveStore } from '@/mobx';
 
 function PanelToolbar({ moduleId }: { moduleId: string }) {
+  const tp = useTranslations('Edit.panelToolbar');
   const { removeModuleFromConfig } = useModuleHandle();
   const [modal, contextHolder] = Modal.useModal();
 
@@ -23,10 +26,10 @@ function PanelToolbar({ moduleId }: { moduleId: string }) {
   const onDelete = useMemoizedFn((e: MouseEvent) => {
     e.stopPropagation();
     modal.confirm({
-      title: '删除模块',
-      content: '确定删除该模块吗？删除后不可恢复。',
-      okText: '删除',
-      cancelText: '取消',
+      title: tp('deleteModuleTitle'),
+      content: tp('deleteModuleContent'),
+      okText: tp('deleteOk'),
+      cancelText: tp('cancel'),
       okButtonProps: { danger: true },
       centered: true,
       onOk: () => removeModuleFromConfig(moduleId),
@@ -41,7 +44,7 @@ function PanelToolbar({ moduleId }: { moduleId: string }) {
           type='button'
           className='panel-toolbar-btn panel-toolbar-btn-danger border-0 p-0'
           onClick={onDelete}
-          aria-label='删除模块'
+          aria-label={tp('deleteModuleAria')}
         >
           <DeleteOutlined className='text-[15px]' />
         </button>
@@ -50,7 +53,7 @@ function PanelToolbar({ moduleId }: { moduleId: string }) {
           className='panel-toolbar-btn border-0 p-0'
           onClick={toggleEdit}
           aria-expanded={editOpen}
-          aria-label={editOpen ? '切换为预览' : '切换为编辑'}
+          aria-label={editOpen ? tp('togglePreview') : tp('toggleEdit')}
         >
           <DownOutlined
             className={`text-[15px] transition-transform duration-200 ease-in-out ${

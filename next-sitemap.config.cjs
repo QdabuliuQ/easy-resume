@@ -10,7 +10,7 @@ module.exports = {
   autoLastmod: true,
   changefreq: 'weekly',
   priority: 0.7,
-  exclude: ['/edit', '/edit/*', '/api/*'],
+  exclude: ['/zh/edit', '/zh/edit/*', '/en/edit', '/en/edit/*', '/api/*'],
   robotsTxtOptions: {
     policies: [{ userAgent: '*', allow: '/' }],
   },

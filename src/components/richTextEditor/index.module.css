@@ -122,29 +122,29 @@
 }
 
 .host :global(.ql-snow .ql-tooltip::before) {
-  content: '访问链接：' !important;
+  content: var(--rte-q-tip-visit, 'Visit URL:') !important;
 }
 
 .host :global(.ql-snow .ql-tooltip[data-mode='link']::before) {
-  content: '访问链接：' !important;
+  content: var(--rte-q-tip-visit, 'Visit URL:') !important;
 }
 
 .host :global(.ql-snow .ql-tooltip[data-mode='formula']::before) {
-  content: '请输入公式：' !important;
+  content: var(--rte-q-tip-formula, 'Enter formula:') !important;
 }
 
 .host :global(.ql-snow .ql-tooltip[data-mode='video']::before) {
-  content: '请输入视频地址：' !important;
+  content: var(--rte-q-tip-video, 'Enter video URL:') !important;
 }
 
 .host :global(.ql-snow .ql-tooltip a.ql-action::after) {
-  content: '编辑' !important;
+  content: var(--rte-q-tip-edit, 'Edit') !important;
 }
 
 .host :global(.ql-snow .ql-tooltip.ql-editing a.ql-action::after) {
-  content: '保存' !important;
+  content: var(--rte-q-tip-save, 'Save') !important;
 }
 
 .host :global(.ql-snow .ql-tooltip a.ql-remove::before) {
-  content: '移除' !important;
+  content: var(--rte-q-tip-remove, 'Remove') !important;
 }

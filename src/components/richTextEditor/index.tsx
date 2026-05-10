@@ -1,7 +1,9 @@
+'use client';
 import { message } from 'antd';
 import { useMemoizedFn } from 'ahooks';
+import { useLocale, useTranslations } from 'next-intl';
 import Quill from 'quill';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { sanitizeRichTextHtml, unwrapFencedHtml } from '@/utils/sanitizeHtml';
 import 'quill/dist/quill.snow.css';
 import { Magic } from '@icon-park/react';
@@ -14,9 +16,7 @@ for (const p of ['ftp', 'ftps'] as const) {
   }
 }
 
-/** 默认可编辑纯文本上限（段落类模块可传 maxPlainLength 覆盖） */
 export const RICH_TEXT_MAX_PLAIN_LENGTH = 300;
-/** 专业技能 / 个人优势等长段落模块上限 */
 export const RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH = 2000;
 
 function getQuillPlainCharCount(q: Quill): number {
@@ -44,25 +44,32 @@ export const DEFAULT_QUILL_TOOLBAR_ROWS = [
     { list: 'bullet' },
   ],
 ] as const;
-const TOOLBAR_BTN_ZH: Record<string, string> = {
-  bold: '粗体',
-  italic: '斜体',
-  underline: '下划线',
-  strike: '删除线',
-  link: '插入链接',
+
+type ToolbarTrKey = 'bold' | 'italic' | 'underline' | 'strike' | 'link' | 'listOrdered' | 'listBullet';
+
+const QL_TO_TR: Partial<Record<string, ToolbarTrKey>> = {
+  bold: 'bold',
+  italic: 'italic',
+  underline: 'underline',
+  strike: 'strike',
+  link: 'link',
 };
-function localizeQuillSnowToolbar(toolbarEl: Element) {
+
+function localizeQuillSnowToolbar(toolbarEl: Element, tr: (key: ToolbarTrKey) => string) {
   toolbarEl.querySelectorAll('button').forEach((btn) => {
     const ql = Array.from(btn.classList).find((c) => c.startsWith('ql-') && c !== 'ql-active');
     if (!ql) return;
     const key = ql.slice('ql-'.length);
-    let zh = TOOLBAR_BTN_ZH[key];
+    let label: string | undefined;
     if (key === 'list') {
-      zh = btn.getAttribute('value') === 'ordered' ? '有序列表' : '无序列表';
+      label = btn.getAttribute('value') === 'ordered' ? tr('listOrdered') : tr('listBullet');
+    } else {
+      const tk = QL_TO_TR[key];
+      if (tk) label = tr(tk);
     }
-    if (zh) {
-      btn.setAttribute('aria-label', zh);
-      btn.setAttribute('title', zh);
+    if (label) {
+      btn.setAttribute('aria-label', label);
+      btn.setAttribute('title', label);
     }
   });
 }
@@ -79,16 +86,29 @@ function RichTextEditor({
   html: string;
   onHtmlChange: (next: string) => void;
   placeholder?: string;
-  /** 点击 AI 润色时调用；ctx.onStreamingHtml 可流式写入当前累积 HTML；返回最终 HTML（会再走 sanitize 并写回编辑器） */
   onAiPolishClick?: (richTextHtml: string, ctx?: AiPolishStreamContext) => Promise<string>;
   maxPlainLength?: number;
 }) {
+  const tr = useTranslations('Edit.richText');
+  const locale = useLocale();
   const hostRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
   const onHtmlChangeRef = useRef(onHtmlChange);
   onHtmlChangeRef.current = onHtmlChange;
   const [polishing, setPolishing] = useState(false);
   const [plainCount, setPlainCount] = useState(0);
+
+  const tipCssVars = useMemo(() => {
+    const q = JSON.stringify;
+    return {
+      '--rte-q-tip-visit': q(tr('tooltipVisitLink')),
+      '--rte-q-tip-formula': q(tr('tooltipFormula')),
+      '--rte-q-tip-video': q(tr('tooltipVideo')),
+      '--rte-q-tip-edit': q(tr('tooltipEdit')),
+      '--rte-q-tip-save': q(tr('tooltipSave')),
+      '--rte-q-tip-remove': q(tr('tooltipRemove')),
+    } as CSSProperties;
+  }, [tr]);
 
   useEffect(() => {
     const el = hostRef.current;
@@ -97,7 +117,7 @@ function RichTextEditor({
 
     const q = new Quill(el, {
       theme: 'snow',
-      placeholder: placeholder ?? '请输入内容',
+      placeholder: placeholder ?? tr('placeholderDefault'),
       modules: {
         toolbar: {
           container: [...DEFAULT_QUILL_TOOLBAR_ROWS],
@@ -106,13 +126,9 @@ function RichTextEditor({
     });
     quillRef.current = q;
     const tb = el.previousElementSibling;
-    if (tb?.classList.contains('ql-toolbar')) localizeQuillSnowToolbar(tb);
+    if (tb?.classList.contains('ql-toolbar')) localizeQuillSnowToolbar(tb, tr);
     const tipInput = el.querySelector('.ql-tooltip input[type="text"]');
-    if (tipInput)
-      tipInput.setAttribute(
-        'data-link',
-        '完整地址即可跳转任意网站（如 https://github.com/user/repo）',
-      );
+    if (tipInput) tipInput.setAttribute('data-link', tr('linkHint'));
 
     const initial = sanitizeRichTextHtml(html ?? '');
     if (initial) {
@@ -141,8 +157,6 @@ function RichTextEditor({
     return () => {
       quillRef.current = null;
       q.off('text-change', onTextChange);
-      // 数组型 toolbar 会 insertBefore 到 quill.container 之前，仅清空 innerHTML 不会删掉工具栏；
-      // Strict Mode 下会重复挂载，若不移除则会出现多个 .ql-toolbar.ql-snow。
       let prev = el.previousElementSibling;
       while (prev?.classList.contains('ql-toolbar')) {
         const toRemove = prev;
@@ -151,7 +165,8 @@ function RichTextEditor({
       }
       el.innerHTML = '';
     };
-  }, [instanceKey, maxPlainLength]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- omit html/tr: syncing html here would reset editor every keystroke
+  }, [instanceKey, maxPlainLength, locale]);
 
   useEffect(() => {
     const q = quillRef.current;
@@ -182,11 +197,11 @@ function RichTextEditor({
     const richTextHtml = sanitizeRichTextHtml(q.root.innerHTML);
     const plain = richTextHtml.replace(/<[^>]*>/g, '').trim();
     if (!plain) {
-      message.warning('请先输入内容');
+      message.warning(tr('needContentWarn'));
       return;
     }
     if (!onAiPolishClick) {
-      message.info('AI 润色接口接入后即可使用');
+      message.info(tr('aiPendingInfo'));
       return;
     }
     setPolishing(true);
@@ -198,12 +213,12 @@ function RichTextEditor({
         },
       });
       applyHtmlToQuill(q, polished);
-      message.success('润色完成');
+      message.success(tr('polishOk'));
     } catch (e) {
       const errText =
         e instanceof Error && e.message?.trim()
           ? e.message.trim()
-          : '润色失败，请稍后重试';
+          : tr('polishFail');
       message.error(errText);
     } finally {
       setPolishing(false);
@@ -213,7 +228,7 @@ function RichTextEditor({
   return (
     <div className="min-w-0">
       <div className="relative min-w-0">
-        <div className={styles.host}>
+        <div className={styles.host} style={tipCssVars}>
           <div ref={hostRef} className="min-w-0" />
         </div>
         {polishing ? (
@@ -226,7 +241,7 @@ function RichTextEditor({
               className="inline-block size-7 shrink-0 animate-spin rounded-full border-2 border-white/30 border-t-white"
               aria-hidden
             />
-            <span>AI生成中...</span>
+            <span>{tr('aiGenerating')}</span>
           </div>
         ) : null}
       </div>
@@ -265,7 +280,7 @@ function RichTextEditor({
           ) : (
             <Magic theme="outline" size="13" fill="#fff"/>
           )}
-          AI润色
+          {tr('aiPolish')}
         </div>
       </div>
     </div>

@@ -9,12 +9,14 @@ import { OtherProps } from '@/modules/other';
 import { More } from '@icon-park/react';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import { observer } from 'mobx-react';
+import { useTranslations } from 'next-intl';
 import { memo, useEffect, useState } from 'react';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 
 function Other({ moduleId }: { moduleId?: string } = {}) {
+  const to = useTranslations('Edit.other');
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
@@ -66,7 +68,7 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
           <ModulePanelTitleEdit
             resetKey={moduleActive}
             title={module?.options?.title ?? ''}
-            fallbackTitle='其他'
+            fallbackTitle={to('fallbackTitle')}
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
@@ -83,7 +85,7 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
           className='panel-module-preview info1-panel-animate text-fg/95'
         >
           {!previewText ? (
-            <div className='text-[13px] text-fg/75'>暂无内容</div>
+            <div className='text-[13px] text-fg/75'>{to('emptyInline')}</div>
           ) : (
             <ResumeQuillHtml
               html={rawHtml}
@@ -102,7 +104,7 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
             html={module.options.description ?? ''}
             onHtmlChange={updateDescription}
             maxPlainLength={RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH}
-            placeholder='支持粗体、列表、链接；请输入内容…'
+            placeholder={to('placeholder')}
           />
         </div>
       ) : null}

@@ -1,4 +1,6 @@
+'use client';
 import { memo, useLayoutEffect, useMemo, useRef, type ComponentType } from 'react';
+import { useTranslations } from 'next-intl';
 import { observer } from 'mobx-react';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { moduleType } from '@/modules/utils/constant';
@@ -41,6 +43,7 @@ const panelHasOwnTitle = new Set([
 const SCROLL_INTO_VIEW_MARGIN_TOP = 170;
 
 function ModuleEdit() {
+  const tm = useTranslations('Edit.moduleEditPanel');
   const config = configStore.getConfig;
   const activeId = moduleActiveStore.getModuleActive;
   const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
@@ -82,12 +85,12 @@ function ModuleEdit() {
       <section className='sticky top-0 z-[1] rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.11),rgb(var(--panel-surface-rgb)/0.05))] px-4 py-3 shadow-[var(--panel-shadow-lg)] backdrop-blur-md'>
         <div className='flex items-start justify-between gap-3'>
           <div className='min-w-0'>
-            <p className='text-[11px] font-medium tracking-[0.18em] text-fg/62'>EDIT PANEL</p>
-            <h2 className='mt-1 text-[17px] font-semibold text-fg/95'>模块配置</h2>
-            <p className='mt-1 text-[12px] leading-relaxed text-fg/62'>按模块分段编辑内容；点击下方模块标签可快速跳转到对应配置区。</p>
+            <p className='text-[11px] font-medium tracking-[0.18em] text-fg/62'>{tm('kicker')}</p>
+            <h2 className='mt-1 text-[17px] font-semibold text-fg/95'>{tm('title')}</h2>
+            <p className='mt-1 text-[12px] leading-relaxed text-fg/62'>{tm('subtitle')}</p>
           </div>
           <div className='shrink-0 rounded-full border border-fg/[0.14] bg-surface/[0.08] px-3 py-1 text-[11px] font-semibold text-fg/68'>
-            {moduleEntries.length} 个模块
+            {tm('moduleCount', { n: moduleEntries.length })}
           </div>
         </div>
         <div className='mt-3 flex gap-2 overflow-x-auto pb-1'>
@@ -144,7 +147,7 @@ function ModuleEdit() {
                 </div>
                 {selected ? (
                   <span className='shrink-0 rounded-full bg-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--color-primary)]'>
-                    当前编辑
+                    {tm('currentEditing')}
                   </span>
                 ) : null}
               </div>

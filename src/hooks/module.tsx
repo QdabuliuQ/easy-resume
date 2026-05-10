@@ -1,7 +1,8 @@
+'use client';
 import { message } from 'antd';
+import { useTranslations } from 'next-intl';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { useMemoizedFn } from 'ahooks';
-import { moduleType } from '@/modules/utils/constant';
 import {
   createEmptyResumeModule,
   type ResumeModuleType,
@@ -12,6 +13,28 @@ import {
 } from '@/utils/moduleTypeLimits';
 
 export function useModuleHandle() {
+  const th = useTranslations('Edit.hooks');
+  const tr = useTranslations('Edit.resumeContainer');
+  const typeLabel = useMemoizedFn((type: ResumeModuleType) => {
+    switch (type) {
+      case 'info1':
+        return tr('tabInfo1');
+      case 'certificate':
+        return tr('tabCertificate');
+      case 'skill':
+        return tr('tabSkill');
+      case 'job':
+        return tr('tabJob');
+      case 'project':
+        return tr('tabProject');
+      case 'education':
+        return tr('tabEducation');
+      case 'other':
+        return tr('tabOther');
+      default:
+        return type;
+    }
+  });
   const clickModule = useMemoizedFn((id: string) => {
     moduleActiveStore.setModuleActive(id);
   });
@@ -79,9 +102,7 @@ export function useModuleHandle() {
     const max = RESUME_MODULE_MAX_COUNT[type];
     const cur = countResumeModulesByType(config, type);
     if (cur >= max) {
-      const name =
-        (moduleType as Record<string, { name: string }>)[type]?.name ?? type;
-      message.warning(`${name}最多添加 ${max} 个`);
+      message.warning(th('maxModules', { name: typeLabel(type), max }));
       return;
     }
     const mod = createEmptyResumeModule(type);

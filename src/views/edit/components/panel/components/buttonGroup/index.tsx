@@ -1,5 +1,7 @@
+'use client';
 import { ArrowCircleUp, ArrowCircleDown, Delete, Copy } from '@icon-park/react';
 import { Modal, Tooltip } from 'antd';
+import { useTranslations } from 'next-intl';
 import { memo } from 'react';
 
 const circleBtn =
@@ -28,29 +30,30 @@ function ButtonGroup(props: {
   copyDisabled?: boolean;
   flush?: boolean;
 }) {
+  const tb = useTranslations('Edit.buttonGroup');
   if (props.flush) {
     return (
       <div className={flushWrapClass}>
         <div className={flushClusterClass}>
           {props.showUp && (
-            <Tooltip placement='top' title='上移'>
+            <Tooltip placement='top' title={tb('moveUp')}>
               <button
                 type='button'
                 className={flushBtnClass}
                 onClick={props.handleUp}
-                aria-label='上移'
+                aria-label={tb('moveUp')}
               >
                 <ArrowCircleUp theme='outline' size='15' fill='currentColor' />
               </button>
             </Tooltip>
           )}
           {props.showDown && (
-            <Tooltip placement='top' title='下移'>
+            <Tooltip placement='top' title={tb('moveDown')}>
               <button
                 type='button'
                 className={flushBtnClass}
                 onClick={props.handleDown}
-                aria-label='下移'
+                aria-label={tb('moveDown')}
               >
                 <ArrowCircleDown theme='outline' size='15' fill='currentColor' />
               </button>
@@ -58,30 +61,30 @@ function ButtonGroup(props: {
           )}
           <Tooltip
             placement='top'
-            title={props.copyDisabled ? '已达条目上限，无法复制' : '复制'}
+            title={props.copyDisabled ? tb('copyDisabled') : tb('copy')}
           >
             <button
               type='button'
               disabled={props.copyDisabled}
               className={flushBtnClass}
               onClick={props.handleCopy}
-              aria-label='复制'
+              aria-label={tb('copy')}
             >
               <Copy theme='outline' size='15' fill='currentColor' />
             </button>
           </Tooltip>
         </div>
-        <Tooltip placement='top' title='删除'>
+        <Tooltip placement='top' title={tb('delete')}>
           <button
             type='button'
             className={flushDeleteBtnClass}
-            aria-label='删除'
+            aria-label={tb('delete')}
             onClick={() => {
               Modal.confirm({
-                title: '删除',
-                content: '确定删除吗？',
-                okText: '确定',
-                cancelText: '取消',
+                title: tb('confirmDeleteTitle'),
+                content: tb('confirmDeleteContent'),
+                okText: tb('ok'),
+                cancelText: tb('cancel'),
                 okButtonProps: { danger: true },
                 centered: true,
                 onOk: props.handleDelete,
@@ -99,12 +102,12 @@ function ButtonGroup(props: {
     <div className='mt-3 flex w-full items-center justify-between rounded-xl border border-fg/[0.06] bg-[var(--panel-inset-bg)] px-3 py-2'>
       <div className='flex items-center gap-[10px]'>
         {props.showUp && (
-          <Tooltip placement='top' title='上移'>
+          <Tooltip placement='top' title={tb('moveUp')}>
             <button
               type='button'
               className={circleGradient}
               onClick={props.handleUp}
-              aria-label='上移'
+              aria-label={tb('moveUp')}
             >
               <ArrowCircleUp
                 theme='outline'
@@ -115,12 +118,12 @@ function ButtonGroup(props: {
           </Tooltip>
         )}
         {props.showDown && (
-          <Tooltip placement='top' title='下移'>
+          <Tooltip placement='top' title={tb('moveDown')}>
             <button
               type='button'
               className={circleGradient}
               onClick={props.handleDown}
-              aria-label='下移'
+              aria-label={tb('moveDown')}
             >
               <ArrowCircleDown
                 theme='outline'
@@ -133,7 +136,7 @@ function ButtonGroup(props: {
         <Tooltip
           placement='top'
           title={
-            props.copyDisabled ? '已达条目上限，无法复制' : '复制'
+            props.copyDisabled ? tb('copyDisabled') : tb('copy')
           }
         >
           <button
@@ -141,7 +144,7 @@ function ButtonGroup(props: {
             disabled={props.copyDisabled}
             className={`${circleBtn} bg-[var(--panel-btn-success-bg)] text-[var(--panel-icon-on-accent)] disabled:cursor-not-allowed disabled:opacity-45`}
             onClick={props.handleCopy}
-            aria-label='复制'
+            aria-label={tb('copy')}
           >
             <Copy
               theme='outline'
@@ -152,17 +155,17 @@ function ButtonGroup(props: {
           </button>
         </Tooltip>
       </div>
-      <Tooltip placement='top' title='删除'>
+      <Tooltip placement='top' title={tb('delete')}>
         <button
           type='button'
           className={`${circleBtn} bg-[var(--panel-btn-danger-bg)] text-[var(--panel-icon-on-accent)]`}
-          aria-label='删除'
+          aria-label={tb('delete')}
           onClick={() => {
             Modal.confirm({
-              title: '删除',
-              content: '确定删除吗？',
-              okText: '确定',
-              cancelText: '取消',
+              title: tb('confirmDeleteTitle'),
+              content: tb('confirmDeleteContent'),
+              okText: tb('ok'),
+              cancelText: tb('cancel'),
               okButtonProps: { danger: true },
               centered: true,
               onOk: props.handleDelete,

@@ -1,4 +1,6 @@
+'use client';
 import { Modal } from 'antd';
+import { useTranslations } from 'next-intl';
 import { forwardRef, memo, useImperativeHandle, useRef, useState } from 'react';
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -7,6 +9,7 @@ import { useMemoizedFn } from 'ahooks';
 const scale = 1;
 
 function CropperImage(props: any, ref: any) {
+  const t = useTranslations('Edit.cropper');
   const cropperRef = useRef<any>(null);
   const [show, setShow] = useState(false);
   const [image, setImage] = useState('');
@@ -91,9 +94,9 @@ function CropperImage(props: any, ref: any) {
       open={show}
       onCancel={hideModal}
       centered
-      title='图片裁剪'
-      okText='确定'
-      cancelText='取消'
+      title={t('title')}
+      okText={t('ok')}
+      cancelText={t('cancel')}
       onOk={cropImage}
     >
       <div className='flex justify-center items-center'>
@@ -106,7 +109,7 @@ function CropperImage(props: any, ref: any) {
           <img
             ref={imgRef}
             src={image}
-            alt='裁剪图片'
+            alt={t('alt')}
             style={{ maxHeight: '400px' }}
             onLoad={onImageLoad}
           />

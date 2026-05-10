@@ -1,4 +1,6 @@
-import { memo, useEffect, useState } from 'react';
+'use client';
+import { memo, useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 import { configStore, moduleActiveStore } from '@/mobx';
 import { observer } from 'mobx-react';
@@ -20,8 +22,22 @@ import { moduleType } from '@/modules/utils/constant';
 import { RESUME_PAGE_SIZE_OPTIONS } from '@/lib/resumePageSize';
 
 function Global() {
+  const tg = useTranslations('Edit.globalPanel');
   const global = configStore.getConfig?.globalStyle;
   const [form] = Form.useForm();
+  const headerStyleOptions = useMemo(
+    () => [
+      { value: 1, label: tg('style1') },
+      { value: 2, label: tg('style2') },
+      { value: 3, label: tg('style3') },
+      { value: 4, label: tg('style4') },
+      { value: 5, label: tg('style5') },
+      { value: 6, label: tg('style6') },
+      { value: 7, label: tg('style7') },
+      { value: 8, label: tg('style8') },
+    ],
+    [tg],
+  );
 
   const { run: handleChange } = useDebounceFn(
     (value: number, key: string) => {
@@ -120,11 +136,11 @@ function Global() {
     <div className='[&_.ant-color-picker-trigger]:!w-full [&_.ant-color-picker-trigger_.ant-color-picker-clear]:!w-full [&_.ant-color-picker-trigger_.ant-color-picker-clear::after]:!w-full [&_.ant-color-picker-trigger_.ant-color-picker-clear::after]:rotate-[354deg] [&_.ant-color-picker-trigger_.ant-color-picker-color-block]:!w-full [&_.react-grid-placeholder]:!bg-transparent'>
       {global && (
         <Form form={form} variant='filled' layout='vertical'>
-          <Title title='全局样式' />
+          <Title title={tg('globalStyleTitle')} />
           <Row gutter={15}>
             <Col span={12}>
               <FormItem
-                label='字体大小'
+                label={tg('fontSize')}
                 icon={<FontSize theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}
               >
                 <InputNumber
@@ -132,14 +148,14 @@ function Global() {
                   style={{ width: '100%' }}
                   min={1}
                   max={100}
-                  addonAfter='PX'
+                  addonAfter={tg('fontSizeUnit')}
                   onChange={(value) => handleChange(value, 'fontSize')}
                 />
               </FormItem>
             </Col>
             <Col span={12}>
               <FormItem
-                label='行高'
+                label={tg('lineHeight')}
                 icon={<AutoLineHeight theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}
               >
                 <InputNumber
@@ -149,14 +165,14 @@ function Global() {
                   max={100}
                   step={0.1}
                   precision={1}
-                  addonAfter='倍'
+                  addonAfter={tg('lineHeightSuffix')}
                   onChange={(value) => handleChange(value, 'lineHeight')}
                 />
               </FormItem>
             </Col>
             <Col span={12}>
               <FormItem
-                label='背景颜色'
+                label={tg('bgColor')}
                 icon={<BackgroundColor theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}
               >
                 <ColorPicker
@@ -167,7 +183,7 @@ function Global() {
             </Col>
             <Col span={12}>
               <FormItem
-                label='主题颜色'
+                label={tg('themeColor')}
                 icon={<BackgroundColor theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}
               >
                 <ColorPicker
@@ -177,7 +193,7 @@ function Global() {
               </FormItem>
             </Col>
             <Col span={24}>
-              <FormItem label='纸张大小' icon={<Notes theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}>
+              <FormItem label={tg('paperSize')} icon={<Notes theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}>
                 <Select
                   value={global.pageSize ?? 'A4'}
                   style={{ width: '100%' }}
@@ -194,22 +210,13 @@ function Global() {
             </Col>
             <Col span={24}>
               <FormItem
-                label='模块标题样式'
+                label={tg('moduleHeaderStyle')}
                 icon={<Edit theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}
               >
                 <Select
                   value={global.headerType ?? 1}
                   style={{ width: '100%' }}
-                  options={[
-                    { value: 1, label: '样式1 · 左侧竖条 + 浅底' },
-                    { value: 2, label: '样式2 · 居中标题 + 通栏横线' },
-                    { value: 3, label: '样式3 · 斜切色块 + 装饰 + 横线' },
-                    { value: 4, label: '样式4 · 左对齐 + 底部分割线' },
-                    { value: 5, label: '样式5 · 箭头色带' },
-                    { value: 6, label: '样式6 · 双三角 + 横线延伸' },
-                    { value: 7, label: '样式7 · 左栏标题 + 竖线 + 右侧内容区' },
-                    { value: 8, label: '样式8 · 图标 + 文本标题' },
-                  ]}
+                  options={headerStyleOptions}
                   onChange={(v) => {
                     global.headerType = v;
                     configStore.setConfig({
@@ -222,7 +229,7 @@ function Global() {
             </Col>
           </Row>
           {/* Glassmorphism 风格模块排列说明 */}
-          <Title title='模块排列' />
+          <Title title={tg('moduleArrange')} />
           <div className='w-full bg-gray-100 rounded-lg p-[5px] overflow-y-auto max-h-[400px]'>
             <GridLayout
               className=''
@@ -248,10 +255,10 @@ function Global() {
                 ? moduleLayout.map((item: any, index: number) => {
                     const openDeleteConfirm = () => {
                       Modal.confirm({
-                        title: '提示',
-                        content: '确定要删除吗？',
-                        okText: '确定',
-                        cancelText: '取消',
+                        title: tg('tipTitle'),
+                        content: tg('tipDeleteContent'),
+                        okText: tg('ok'),
+                        cancelText: tg('cancel'),
                         okButtonProps: { danger: true },
                         centered: true,
                         onOk: () => confirmDelete(index),

@@ -1,7 +1,8 @@
 'use client';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { useDebounceFn } from 'ahooks';
-import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
+import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { observer } from 'mobx-react';
 import { Button, Input, message, Popover, Select, Tooltip } from 'antd';
 import { EditOutlined, MenuOutlined, RightOutlined } from '@ant-design/icons';
@@ -17,12 +18,6 @@ import {
   normResumePageSize,
   type ResumePageSize,
 } from '@/lib/resumePageSize';
-
-const RESUME_FONT_OPTIONS: { label: string; value: ResumeFontId }[] = [
-  { value: 'system', label: '系统默认' },
-  { value: 'noto-serif-sc', label: '思源宋体' },
-  { value: 'noto-sans-sc', label: '思源黑体' },
-];
 
 const FONT_SIZE_OPTIONS = Array.from({ length: 9 }, (_, i) => {
   const n = 10 + i;
@@ -43,7 +38,6 @@ const MODULE_MARGIN_OPTIONS = [10, 15, 20, 25, 30, 35, 40].map((n) => ({
   label: `${n}px`,
   value: n,
 }));
-const HEADER_PREVIEW_TITLE = '模块标题';
 const HEADER_TYPE_VALUES = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 function headerTypeNorm(v: unknown): number {
   const n = Number(v);
@@ -78,6 +72,16 @@ function hexForColorInput(s: string, fb: string) {
   return fb;
 }
 function Header() {
+  const t = useTranslations('Edit.header');
+  const resumeFontOptions = useMemo(
+    () =>
+      [
+        { value: 'system' as const, label: t('fontSystem') },
+        { value: 'noto-serif-sc' as const, label: t('fontSerif') },
+        { value: 'noto-sans-sc' as const, label: t('fontSans') },
+      ] satisfies { label: string; value: ResumeFontId }[],
+    [t],
+  );
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -290,7 +294,7 @@ function Header() {
   const headerTypeVal = headerTypeNorm(mergedGs.headerType);
   const headerTypeOptions = HEADER_TYPE_VALUES.map((n) => ({
     value: n,
-    title: `样式 ${n}`,
+    title: t('headerStyleTemplate', { n }),
     label: (
       <div className='py-1.5'>
         <div
@@ -310,7 +314,7 @@ function Header() {
                 />
                 <div className='relative z-[1] min-h-0 pr-2'>
                   <SectionHeader
-                    config={{ title: HEADER_PREVIEW_TITLE }}
+                    config={{ title: t('moduleTitlePreview') }}
                     globalStyle={headerPreviewGlobal(n, mergedGs)}
                   />
                 </div>
@@ -319,7 +323,7 @@ function Header() {
             </>
           ) : (
             <SectionHeader
-              config={{ title: HEADER_PREVIEW_TITLE, moduleType: 'education' }}
+              config={{ title: t('moduleTitlePreview'), moduleType: 'education' }}
               globalStyle={headerPreviewGlobal(n, mergedGs)}
             />
           )}
@@ -389,7 +393,7 @@ function Header() {
     if (typeof window === 'undefined' || pdfLoading) return;
     setPdfLoading(true);
     try {
-      const base = (name || '简历').trim() || '简历';
+      const base = (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
       const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
       const res = await fetch(withBasePath('/api/pdf'), {
         method: 'POST',
@@ -402,7 +406,7 @@ function Header() {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(
-          typeof data.error === 'string' ? data.error : `请求失败 ${res.status}`
+          typeof data.error === 'string' ? data.error : t('requestFailed', { status: res.status })
         );
       }
       const blob = await res.blob();
@@ -412,9 +416,9 @@ function Header() {
       a.download = `${safe}.pdf`;
       a.click();
       URL.revokeObjectURL(href);
-      message.success('已导出 PDF');
+      message.success(t('exportPdfOk'));
     } catch (e) {
-      message.error(e instanceof Error ? e.message : '导出失败');
+      message.error(e instanceof Error ? e.message : t('exportFail'));
     } finally {
       setPdfLoading(false);
     }
@@ -424,7 +428,7 @@ function Header() {
     if (typeof window === 'undefined' || pngLoading) return;
     setPngLoading(true);
     try {
-      const base = (name || '简历').trim() || '简历';
+      const base = (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
       const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
       const res = await fetch(withBasePath('/api/png'), {
         method: 'POST',
@@ -437,7 +441,7 @@ function Header() {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(
-          typeof data.error === 'string' ? data.error : `请求失败 ${res.status}`
+          typeof data.error === 'string' ? data.error : t('requestFailed', { status: res.status })
         );
       }
       const blob = await res.blob();
@@ -447,9 +451,9 @@ function Header() {
       a.download = `${safe}.png`;
       a.click();
       URL.revokeObjectURL(href);
-      message.success('已导出 PNG');
+      message.success(t('exportPngOk'));
     } catch (e) {
-      message.error(e instanceof Error ? e.message : '导出失败');
+      message.error(e instanceof Error ? e.message : t('exportFail'));
     } finally {
       setPngLoading(false);
     }
@@ -458,7 +462,7 @@ function Header() {
   const exportJson = () => {
     try {
       const cfg = snapshotForExport();
-      const base = (name || '简历').trim() || '简历';
+      const base = (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
       const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
       const json = JSON.stringify(cfg, null, 2);
       const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
@@ -468,9 +472,9 @@ function Header() {
       a.download = `${safe}.json`;
       a.click();
       URL.revokeObjectURL(href);
-      message.success('已导出 JSON');
+      message.success(t('exportJsonOk'));
     } catch (e) {
-      message.error(e instanceof Error ? e.message : '导出失败');
+      message.error(e instanceof Error ? e.message : t('exportFail'));
     }
   };
 
@@ -517,7 +521,7 @@ function Header() {
       aria-haspopup='dialog'
       className='flex h-[38px] cursor-pointer items-center gap-1.5 rounded-full border border-fg/15 bg-fg/[0.06] px-3.5 text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/10'
     >
-      <span>更多</span>
+      <span>{t('more')}</span>
       <RightOutlined
         className={`text-[10px] text-fg/70 transition-transform duration-200 ${
           moreConfigOpen ? 'rotate-90' : ''
@@ -529,7 +533,7 @@ function Header() {
   const secondaryToolbarFields = (
     <>
       {wrapBar(
-        '字号',
+        t('fontSizeLabel'),
         <Select
           value={fontSize}
           options={fontSizeOptions}
@@ -545,10 +549,10 @@ function Header() {
         />
       )}
       {wrapBar(
-        '字体',
+        t('fontFamilyLabel'),
         <Select
           value={resumeFontVal}
-          options={RESUME_FONT_OPTIONS}
+          options={resumeFontOptions}
           onChange={(v) => setGlobalResumeFont(v)}
           popupMatchSelectWidth={false}
           className={selClass('min-w-[168px]')}
@@ -562,7 +566,7 @@ function Header() {
         />
       )}
       {wrapBar(
-        '标题样式',
+        t('headerStyleLabel'),
         <Select
           virtual={false}
           value={headerTypeVal}
@@ -586,7 +590,7 @@ function Header() {
       )}
       <div className='basis-full'>
         <div className={tc ? 'mb-1 text-[13px] text-fg/45' : 'mb-1 text-[13px] text-fg/45'}>
-          模块管理
+          {t('moduleManage')}
         </div>
         <ModuleManage inline className='rounded-xl border border-fg/[0.08] bg-fg/[0.03] p-2.5' />
       </div>
@@ -596,7 +600,7 @@ function Header() {
   const toolbarFields = (
     <>
       {wrapBar(
-        '纸张',
+        t('paperLabel'),
         <Select
           value={pageSizeVal}
           options={RESUME_PAGE_SIZE_OPTIONS}
@@ -613,7 +617,7 @@ function Header() {
         />
       )}
       {wrapBar(
-        '页边距',
+        t('pagePaddingLabel'),
         <Select
           value={pagePadding}
           options={pagePaddingOptions}
@@ -629,7 +633,7 @@ function Header() {
         />
       )}
       {wrapBar(
-        '间距',
+        t('moduleMarginLabel'),
         <Select
           value={moduleMarginVal}
           options={moduleMarginOptions}
@@ -645,7 +649,7 @@ function Header() {
         />
       )}
       {wrapBar(
-        '行高',
+        t('lineHeightLabel'),
         <Select
           value={lineHeightNorm}
           options={lineHeightOptions}
@@ -661,7 +665,7 @@ function Header() {
         />
       )}
       {wrapBar(
-        '主题色',
+        t('themeColorLabel'),
         <Popover
           trigger='click'
           placement={tc ? 'left' : 'bottom'}
@@ -696,7 +700,7 @@ function Header() {
           }}
           content={
             <div className='w-[220px]'>
-              <div className='mb-2 text-[11px] text-fg/60'>预设</div>
+              <div className='mb-2 text-[11px] text-fg/60'>{t('preset')}</div>
               <div className='mb-3 flex flex-wrap gap-2'>
                 {THEME_PRESETS.map((c) => (
                   <button
@@ -717,7 +721,7 @@ function Header() {
                   />
                 ))}
               </div>
-              <div className='mb-1.5 text-[11px] text-fg/60'>自定义</div>
+              <div className='mb-1.5 text-[11px] text-fg/60'>{t('custom')}</div>
               <input
                 type='color'
                 value={pickerInputValue}
@@ -733,14 +737,14 @@ function Header() {
         >
           <button
             type='button'
-            aria-label='主题色'
+            aria-label={t('themeColorAria')}
             className={`size-[30px] shrink-0 cursor-pointer rounded-md border shadow-inner border-[color:var(--antd-popup-border)] ${tc ? 'mx-auto' : ''}`}
             style={{ backgroundColor: themeColor }}
           />
         </Popover>
       )}
       {wrapBar(
-        '背景色',
+        t('bgColorLabel'),
         <Popover
           trigger='click'
           placement={tc ? 'left' : 'bottom'}
@@ -777,7 +781,7 @@ function Header() {
           }}
           content={
             <div className='w-[220px]'>
-              <div className='mb-2 text-[11px] text-fg/60'>预设</div>
+              <div className='mb-2 text-[11px] text-fg/60'>{t('preset')}</div>
               <div className='mb-3 flex flex-wrap gap-2'>
                 {BG_PRESETS.map((c) => (
                   <button
@@ -798,7 +802,7 @@ function Header() {
                   />
                 ))}
               </div>
-              <div className='mb-1.5 text-[11px] text-fg/60'>自定义</div>
+              <div className='mb-1.5 text-[11px] text-fg/60'>{t('custom')}</div>
               <input
                 type='color'
                 value={bgPickerInputValue}
@@ -814,14 +818,14 @@ function Header() {
         >
           <button
             type='button'
-            aria-label='背景色'
+            aria-label={t('bgColorAria')}
             className={`size-[30px] shrink-0 cursor-pointer rounded-md border shadow-inner border-[color:var(--antd-popup-border)] ${tc ? 'mx-auto' : ''}`}
             style={{ backgroundColor: pageBgColor }}
           />
         </Popover>
       )}
       {wrapBar(
-        '更多设置',
+        t('moreSettings'),
         tc ? secondaryToolbarFields : (
           <Popover
             open={moreConfigOpen}
@@ -850,7 +854,7 @@ function Header() {
         'bare'
       )}
       {wrapBar(
-        '导出',
+        t('exportLabel'),
         <Popover
           open={exportPopOpen}
           onOpenChange={setExportPopOpen}
@@ -878,7 +882,7 @@ function Header() {
                 }}
                 className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
               >
-                导出 PDF
+                {t('exportPdf')}
               </button>
               <button
                 type='button'
@@ -890,7 +894,7 @@ function Header() {
                 }}
                 className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
               >
-                导出 PNG
+                {t('exportPng')}
               </button>
               <button
                 type='button'
@@ -902,7 +906,7 @@ function Header() {
                 }}
                 className='cursor-pointer rounded-lg px-3 py-2 text-left text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/[0.08] disabled:cursor-not-allowed disabled:opacity-50'
               >
-                导出 JSON
+                {t('exportJson')}
               </button>
             </div>
           }
@@ -920,11 +924,11 @@ function Header() {
                   className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-fg/25 border-t-[var(--text-strong)]'
                   aria-hidden
                 />
-                <span>导出中…</span>
+                <span>{t('exporting')}</span>
               </>
             ) : (
               <>
-                <span>导出</span>
+                <span>{t('exportLabel')}</span>
                 <RightOutlined
                   className={`text-[10px] text-fg/70 transition-transform duration-200 ${
                     exportPopOpen ? 'rotate-90' : ''
@@ -946,7 +950,7 @@ function Header() {
           href='/'
           prefetch={false}
           className='flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg outline-none ring-[var(--text-strong)]/35 transition-opacity hover:opacity-90 focus-visible:ring-2'
-          aria-label='返回首页'
+          aria-label={t('backHome')}
         >
           <img
             src={withBasePath('/logo.png')}
@@ -994,7 +998,7 @@ function Header() {
               type='text'
               size='small'
               icon={<EditOutlined />}
-              aria-label='编辑姓名'
+              aria-label={t('editNameAria')}
               className='!text-fg/45 hover:!text-[var(--text-strong)] !p-0 !h-7 !w-7 !min-w-7 inline-flex items-center justify-center shrink-0'
               onClick={startEdit}
             />
@@ -1032,7 +1036,7 @@ function Header() {
             className='flex h-[30px] shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-fg/15 bg-fg/[0.06] px-3 text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/10'
           >
             <MenuOutlined className='text-[14px] text-fg/85' />
-            <span>排版</span>
+            <span>{t('typography')}</span>
             <RightOutlined
               className={`text-[10px] text-fg/70 transition-transform duration-200 ${
                 compactMenuOpen ? 'rotate-90' : ''

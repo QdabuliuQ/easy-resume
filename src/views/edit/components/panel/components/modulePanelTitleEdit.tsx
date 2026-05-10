@@ -2,6 +2,7 @@
 import { Edit } from '@icon-park/react';
 import { Input } from 'antd';
 import { useMemoizedFn } from 'ahooks';
+import { useTranslations } from 'next-intl';
 import { memo, useEffect, useState } from 'react';
 
 export type ModulePanelTitleEditProps = {
@@ -21,6 +22,7 @@ function ModulePanelTitleEdit({
   disabled = false,
   onCommit,
 }: ModulePanelTitleEditProps) {
+  const tm = useTranslations('Edit.modulePanel');
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(title);
   useEffect(() => {
@@ -60,7 +62,7 @@ function ModulePanelTitleEdit({
         !editing && (
           <button
             type='button'
-            aria-label='编辑模块标题'
+            aria-label={tm('editTitleAria')}
             disabled={disabled}
             onClick={() => {
               if (disabled) return;

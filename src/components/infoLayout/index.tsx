@@ -1,4 +1,6 @@
+'use client';
 import { Popover } from 'antd';
+import { useTranslations } from 'next-intl';
 import { observer } from 'mobx-react';
 import { memo, useEffect, useMemo, useState } from 'react';
 import GridLayout from 'react-grid-layout';
@@ -10,6 +12,7 @@ function FieldChip(props: {
   label: string;
   onRemove: () => void;
 }) {
+  const t = useTranslations('Edit.infoLayout');
   return (
     <div className='box-border flex min-h-[26px] max-h-[26px] w-full max-w-full min-w-0 cursor-move items-center gap-1 rounded-md border border-white/15 bg-neutral-700/95 px-1 py-0.5 text-[11px] leading-tight text-white shadow-sm'>
       <span
@@ -21,8 +24,8 @@ function FieldChip(props: {
       <button
         type='button'
         className='inline-flex shrink-0 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0.5 text-white/70 outline-none transition-colors hover:bg-white/10 hover:text-white'
-        aria-label='删除'
-        title='删除'
+        aria-label={t('deleteAria')}
+        title={t('deleteTitle')}
         onMouseDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
         onClick={(e) => {
@@ -39,6 +42,7 @@ function FieldChip(props: {
 
 /** 与 FieldChip 同款容器与排版，右侧为添加按钮 */
 function AddFieldChip(props: { label: string; onAdd: () => void }) {
+  const t = useTranslations('Edit.infoLayout');
   return (
     <div className='box-border flex min-h-[26px] max-h-[26px] w-full max-w-full min-w-0 items-center gap-1 rounded-md border border-white/15 bg-neutral-700/95 px-1 py-0.5 text-[11px] leading-tight text-white shadow-sm'>
       <span
@@ -50,8 +54,8 @@ function AddFieldChip(props: { label: string; onAdd: () => void }) {
       <button
         type='button'
         className='inline-flex shrink-0 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0.5 text-white/70 outline-none transition-colors hover:bg-white/10 hover:text-white'
-        aria-label='添加'
-        title='添加'
+        aria-label={t('addAria')}
+        title={t('addTitle')}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -132,6 +136,7 @@ function InfoLayout(props: {
   layout: Array<Array<string>>;
   onDragStop: (newLayout: Array<any>) => void;
 }) {
+  const ti = useTranslations('Edit.infoLayout');
   const [layout, setLayout] = useState<Array<any>>([]);
 
   useEffect(() => {
@@ -289,7 +294,7 @@ function InfoLayout(props: {
         type='button'
         className='inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-white/20 bg-neutral-700/90 px-3 text-[12px] font-medium text-white outline-none transition-colors hover:border-white/35 hover:bg-neutral-600/90'
       >
-        字段布局
+        {ti('fieldLayout')}
       </button>
     </Popover>
   );

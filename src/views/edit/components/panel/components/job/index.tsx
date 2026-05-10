@@ -1,3 +1,4 @@
+'use client';
 import FormItem from '@/components/formItem';
 import { useModuleHandle } from '@/hooks/module';
 import { polishJobDescriptionWithBigmodel } from '@/api/jobDescriptionPolish';
@@ -43,6 +44,7 @@ import {
   canAddResumeModuleItem,
   resumeModuleItemLimitMessage,
 } from '@/utils/moduleTypeLimits';
+import { useTranslations } from 'next-intl';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
@@ -61,6 +63,7 @@ function intentPostsFromResumeConfig(
 }
 
 function Job({ moduleId }: { moduleId?: string } = {}) {
+  const tj = useTranslations('Edit.job');
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
@@ -226,7 +229,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
           <ModulePanelTitleEdit
             resetKey={moduleActive}
             title={module?.options?.title ?? ''}
-            fallbackTitle='工作经历'
+            fallbackTitle={tj('fallbackTitle')}
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
@@ -244,7 +247,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
           className='panel-module-preview info1-panel-animate text-fg/95'
         >
           {module.options.items.length === 0 ? (
-            <div className='text-[13px] text-fg/75'>暂无工作经历条目</div>
+            <div className='text-[13px] text-fg/75'>{tj('emptyInline')}</div>
           ) : (
             <>
               <div className='flex max-h-[240px] flex-col gap-1.5 overflow-y-auto'>
@@ -261,10 +264,8 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                 ))}
               </div>
               <div className='pt-2 text-[12px] text-fg/58'>
-                共 {module.options.items.length} 条
-                {module.options.items.length > 10
-                  ? '（预览仅显示前 10 条）'
-                  : ''}
+                {tj('itemCount', { n: module.options.items.length })}
+                {module.options.items.length > 10 ? tj('previewCap') : ''}
               </div>
             </>
           )}
@@ -277,7 +278,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
           className='panel-module-edit info1-panel-animate text-fg/95'
         >
           <AddGradientButton onClick={handleAdd} disabled={jobItemsFull}>
-            添加工作经历
+            {tj('add')}
           </AddGradientButton>
           {module.options.items.length > 0 ? (
             module.options.items.map((item: any, index: number) => (
@@ -289,7 +290,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                   <Row gutter={15}>
                     <Col span={12}>
                       <FormItem
-                        label='公司'
+                        label={tj('company')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <BuildingThree
@@ -302,14 +303,14 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.company}
-                          placeholder='请输入公司'
+                          placeholder={tj('companyPh')}
                           onChange={(e) => handleChange(e, index, 'company')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={12}>
                       <FormItem
-                        label='职位'
+                        label={tj('role')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <Briefcase
@@ -322,14 +323,14 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.post}
-                          placeholder='请输入职位'
+                          placeholder={tj('rolePh')}
                           onChange={(e) => handleChange(e, index, 'post')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={12}>
                       <FormItem
-                        label='部门'
+                        label={tj('dept')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <PullDoor
@@ -342,14 +343,14 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.department}
-                          placeholder='请输入部门'
+                          placeholder={tj('deptPh')}
                           onChange={(e) => handleChange(e, index, 'department')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={12}>
                       <FormItem
-                        label='城市'
+                        label={tj('city')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <HomeTwo
@@ -362,14 +363,14 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         <Cascader
                           value={item.city}
                           options={city}
-                          placeholder='请选择城市'
+                          placeholder={tj('cityPh')}
                           onChange={(e) => handleChange(e, index, 'city')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={24}>
                       <FormItem
-                        label='在职时间'
+                        label={tj('period')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <Calendar
@@ -386,7 +387,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                             item.startDate ? dayjs(item.startDate) : undefined,
                             item.endDate ? dayjs(item.endDate) : undefined,
                           ]}
-                          placeholder={['开始时间', '结束时间']}
+                          placeholder={[tj('periodPhStart'), tj('periodPhEnd')]}
                           onChange={(e) => handleChange(e, index, 'date')}
                           format='YYYY-MM'
                         />
@@ -394,7 +395,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                     </Col>
                     <Col span={24}>
                       <FormItem
-                        label='工作内容'
+                        label={tj('content')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <Notes theme='outline' size='15' fill={FORM_ICON_FILL} />
@@ -407,7 +408,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                             onHtmlChange={(next) =>
                               handleDescriptionHtml(index, next)
                             }
-                            placeholder='请输入工作内容…'
+                            placeholder={tj('contentPh')}
                             onAiPolishClick={(richTextHtml, ctx) => {
                               const cityStr = Array.isArray(item.city)
                                 ? item.city.join(' - ')
@@ -452,7 +453,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
               </div>
             ))
           ) : (
-            <Empty description='暂无工作经历' className='mb-5' />
+            <Empty description={tj('empty')} className='mb-5' />
           )}
         </div>
       ) : null}

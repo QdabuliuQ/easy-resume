@@ -1,3 +1,4 @@
+'use client';
 import { polishSkillDescriptionWithBigmodel } from '@/api/skillDescriptionPolish';
 import RichTextEditor, {
   RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH,
@@ -9,6 +10,7 @@ import { SkillProps } from '@/modules/skill';
 import { ThunderboltOutlined } from '@ant-design/icons';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import { observer } from 'mobx-react';
+import { useTranslations } from 'next-intl';
 import { memo, useEffect, useId, useState, type CSSProperties } from 'react';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
@@ -29,6 +31,7 @@ function intentPostsFromResumeConfig(
 }
 
 function Skill({ moduleId }: { moduleId?: string } = {}) {
+  const ts = useTranslations('Edit.skill');
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
@@ -114,7 +117,7 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
           <ModulePanelTitleEdit
             resetKey={moduleActive}
             title={module?.options?.title ?? ''}
-            fallbackTitle='专业技能'
+            fallbackTitle={ts('fallbackTitle')}
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
@@ -132,7 +135,7 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
           className='panel-module-preview info1-panel-animate text-fg/95'
         >
           {!previewText ? (
-            <div className='text-[13px] text-fg/75'>暂无技能描述</div>
+            <div className='text-[13px] text-fg/75'>{ts('emptyInline')}</div>
           ) : (
             <ResumeQuillHtml
               html={rawHtml}
@@ -152,7 +155,7 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
             html={module.options.description ?? ''}
             onHtmlChange={updateDescription}
             maxPlainLength={RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH}
-            placeholder='支持粗体、列表、链接；请输入专业技能…'
+            placeholder={ts('placeholder')}
             onAiPolishClick={(richTextHtml, ctx) =>
               polishSkillDescriptionWithBigmodel(
                 { richTextHtml, intentPosts: intentPostsForPolish },

@@ -1,3 +1,4 @@
+'use client';
 import FormItem from '@/components/formItem';
 import { polishEducationDescriptionWithBigmodel } from '@/api/educationDescriptionPolish';
 import { useModuleHandle } from '@/hooks/module';
@@ -46,6 +47,7 @@ import {
   canAddResumeModuleItem,
   resumeModuleItemLimitMessage,
 } from '@/utils/moduleTypeLimits';
+import { useTranslations } from 'next-intl';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
@@ -64,6 +66,7 @@ function intentPostsFromResumeConfig(
 }
 
 function Education({ moduleId }: { moduleId?: string } = {}) {
+  const te = useTranslations('Edit.education');
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
@@ -226,7 +229,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
           <ModulePanelTitleEdit
             resetKey={moduleActive}
             title={module?.options?.title ?? ''}
-            fallbackTitle='教育经历'
+            fallbackTitle={te('fallbackTitle')}
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
@@ -244,7 +247,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
           className='panel-module-preview info1-panel-animate text-fg/95'
         >
           {module.options.items.length === 0 ? (
-            <div className='text-[13px] text-fg/75'>暂无教育经历条目</div>
+            <div className='text-[13px] text-fg/75'>{te('emptyInline')}</div>
           ) : (
             <>
               <div className='flex max-h-[240px] flex-col gap-1.5 overflow-y-auto'>
@@ -261,10 +264,8 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                 ))}
               </div>
               <div className='pt-2 text-[12px] text-fg/58'>
-                共 {module.options.items.length} 条
-                {module.options.items.length > 10
-                  ? '（预览仅显示前 10 条）'
-                  : ''}
+                {te('itemCount', { n: module.options.items.length })}
+                {module.options.items.length > 10 ? te('previewCap') : ''}
               </div>
             </>
           )}
@@ -277,7 +278,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
           className='panel-module-edit info1-panel-animate text-fg/95'
         >
           <AddGradientButton onClick={handleAdd} disabled={educationItemsFull}>
-            添加教育经历
+            {te('add')}
           </AddGradientButton>
           {module.options.items.length > 0 ? (
             module.options.items.map((item: any, index: number) => (
@@ -289,7 +290,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                   <Row gutter={15}>
                     <Col span={12}>
                       <FormItem
-                        label='学校名称'
+                        label={te('school')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <School
@@ -302,14 +303,14 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.school}
-                          placeholder='请输入学校名称'
+                          placeholder={te('schoolPh')}
                           onChange={(e) => handleChange(e, index, 'school')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={12}>
                       <FormItem
-                        label='学位'
+                        label={te('degree')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <DegreeHat
@@ -323,13 +324,13 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           options={degree}
                           value={item.degree}
                           onChange={(e) => handleChange(e, index, 'degree')}
-                          placeholder='请选择学位'
+                          placeholder={te('degreePh')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={12}>
                       <FormItem
-                        label='专业'
+                        label={te('major')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <Bookmark
@@ -342,14 +343,14 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.major}
-                          placeholder='请输入专业'
+                          placeholder={te('majorPh')}
                           onChange={(e) => handleChange(e, index, 'major')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={12}>
                       <FormItem
-                        label='所在城市'
+                        label={te('city')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <City theme='outline' size='15' fill={FORM_ICON_FILL} />
@@ -359,13 +360,13 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           options={city}
                           value={item.city}
                           onChange={(e) => handleChange(e, index, 'city')}
-                          placeholder='请选择城市'
+                          placeholder={te('cityPh')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={24}>
                       <FormItem
-                        label='学校类型'
+                        label={te('schoolType')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <Notes theme='outline' size='15' fill={FORM_ICON_FILL} />
@@ -375,14 +376,14 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           options={schoolType}
                           value={item.tags}
                           onChange={(e) => handleChange(e, index, 'tags')}
-                          placeholder='请选择学校类型'
+                          placeholder={te('schoolTypePh')}
                           mode='multiple'
                         />
                       </FormItem>
                     </Col>
                     <Col span={24}>
                       <FormItem
-                        label='学院'
+                        label={te('college')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <BuildingFour
@@ -395,14 +396,14 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.academy}
-                          placeholder='请输入学院'
+                          placeholder={te('collegePh')}
                           onChange={(e) => handleChange(e, index, 'academy')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={24}>
                       <FormItem
-                        label='在读时间'
+                        label={te('period')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <Calendar
@@ -420,14 +421,14 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                             item.endDate ? dayjs(item.endDate) : undefined,
                           ]}
                           format='YYYY-MM'
-                          placeholder={['开始时间', '结束时间']}
+                          placeholder={[te('periodPhStart'), te('periodPhEnd')]}
                           onChange={(e) => handleChange(e, index, 'date')}
                         />
                       </FormItem>
                     </Col>
                     <Col span={24}>
                       <FormItem
-                        label='在校经历'
+                        label={te('experience')}
                         labelClassName='text-[13px] text-fg/85'
                         icon={
                           <EditOne
@@ -444,7 +445,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                             onHtmlChange={(next) =>
                               handleDescriptionHtml(index, next)
                             }
-                            placeholder='请输入在校经历…'
+                            placeholder={te('experiencePh')}
                             onAiPolishClick={(richTextHtml, ctx) => {
                               const cityStr = Array.isArray(item.city)
                                 ? item.city.join(' - ')
@@ -491,7 +492,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
               </div>
             ))
           ) : (
-            <Empty description='暂无教育经历' />
+            <Empty description={te('empty')} />
           )}
         </div>
       ) : null}

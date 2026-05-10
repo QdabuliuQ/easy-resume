@@ -1,3 +1,5 @@
+'use client';
+import { useTranslations } from 'next-intl';
 import { memo } from 'react';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import SectionModuleShell from '@/modules/layout/sectionModuleShell';
@@ -13,18 +15,22 @@ export interface CanvasModuleFragmentConfig {
   options: Record<string, any>;
 }
 
-function normalizeSectionListOptions(type: string, raw: unknown): Record<string, any> {
+function normalizeSectionListOptions(
+  type: string,
+  raw: unknown,
+  tf: (key: 'jobFallback' | 'projectFallback' | 'educationFallback' | 'certificateFallback') => string,
+): Record<string, any> {
   const o = raw != null && typeof raw === 'object' ? { ...(raw as Record<string, any>) } : {};
-  const t = typeof o.title === 'string' ? o.title.trim() : '';
+  const titleTrim = typeof o.title === 'string' ? o.title.trim() : '';
   switch (type) {
     case 'job':
-      return { ...o, title: t || '工作经历', items: Array.isArray(o.items) ? o.items : [] };
+      return { ...o, title: titleTrim || tf('jobFallback'), items: Array.isArray(o.items) ? o.items : [] };
     case 'project':
-      return { ...o, title: t || '项目经历', items: Array.isArray(o.items) ? o.items : [] };
+      return { ...o, title: titleTrim || tf('projectFallback'), items: Array.isArray(o.items) ? o.items : [] };
     case 'education':
-      return { ...o, title: t || '教育经历', items: Array.isArray(o.items) ? o.items : [] };
+      return { ...o, title: titleTrim || tf('educationFallback'), items: Array.isArray(o.items) ? o.items : [] };
     case 'certificate':
-      return { ...o, title: t || '证书', items: Array.isArray(o.items) ? o.items : [] };
+      return { ...o, title: titleTrim || tf('certificateFallback'), items: Array.isArray(o.items) ? o.items : [] };
     default:
       return o;
   }
@@ -226,7 +232,8 @@ function CanvasModuleFragment({
   fragment: CanvasModuleFragmentConfig;
   globalStyle: GlobalStyle;
 }) {
-  const opts = normalizeSectionListOptions(fragment.type, fragment.options);
+  const tf = useTranslations('Edit.moduleFragment');
+  const opts = normalizeSectionListOptions(fragment.type, fragment.options, tf);
   const frag = { ...fragment, options: opts };
   return (
     <SectionModuleShell

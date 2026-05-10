@@ -1,3 +1,4 @@
+'use client';
 import {
   memo,
   useEffect,
@@ -18,7 +19,8 @@ import {
   SunOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from '@/i18n/navigation';
+import { NextIntlClientProvider, useLocale, useMessages, useTranslations } from 'next-intl';
 import { Tooltip } from 'antd';
 import { createPortal } from 'react-dom';
 import resume from '@/json/resume.json';
@@ -31,8 +33,8 @@ import {
   subscribeBackupDirectory,
 } from '@/lib/backupDirectoryStore';
 import {
-  getAppTheme,
-  getServerAppTheme,
+  getServerThemeSnapshot,
+  getThemeSnapshot,
   subscribeAppTheme,
   toggleAppTheme,
 } from '@/lib/themeStore';
@@ -151,6 +153,10 @@ function buildModuleElement(
 type CanvasProps = { onOpenGeneralSettings?: () => void };
 
 function Canvas({ onOpenGeneralSettings }: CanvasProps) {
+  const tc = useTranslations('Edit.canvas');
+  const locale = useLocale();
+  const messages = useMessages();
+  const pathname = usePathname();
   const router = useRouter();
   const moduleHeights = useRef<{ [propName: string]: number }>({});
   /** 与 moduleHeights 对应，用于跳过未改动的模块测量 */
@@ -175,7 +181,11 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
           container.style.boxSizing = 'border-box';
           container.style.fontFamily = resumeFontStack(gs.resumeFont);
           const root = createRoot(container);
-          root.render(element);
+          root.render(
+            <NextIntlClientProvider locale={locale} messages={messages}>
+              {element}
+            </NextIntlClientProvider>,
+          );
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               const rootEl = container.firstElementChild as HTMLElement | null;
@@ -478,11 +488,14 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewClosing, setPreviewClosing] = useState(false);
   const previewCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const appTheme = useSyncExternalStore(
+  const themeSnap = useSyncExternalStore(
     subscribeAppTheme,
-    getAppTheme,
-    getServerAppTheme,
+    getThemeSnapshot,
+    getServerThemeSnapshot,
   );
+  const [themePref, appTheme] = themeSnap.split('|') as ['dark' | 'light' | 'system', 'dark' | 'light'];
+  const themeTooltip =
+    themePref === 'dark' ? tc('themeLight') : themePref === 'light' ? tc('themeSystem') : tc('themeDark');
   const backupReady = useSyncExternalStore(
     subscribeBackupDirectory,
     getBackupReady,
@@ -564,12 +577,12 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
             className={`${previewClosing ? 'canvas-preview-overlay-exit-animate' : 'canvas-preview-overlay-animate'} canvas-preview-shell fixed inset-0 z-[1400] flex min-h-0 flex-col backdrop-blur-sm`}
           >
             <div className='canvas-preview-toolbar flex items-center justify-between px-5 py-3.5'>
-              <span className='text-[13px] font-medium'>文本预览</span>
+              <span className='text-[13px] font-medium'>{tc('textPreview')}</span>
               <button
                 type='button'
                 onClick={closePreview}
                 className='canvas-preview-close'
-                aria-label='关闭预览'
+                aria-label={tc('closePreview')}
               >
                 <CloseOutlined className='text-[12px]' />
               </button>
@@ -616,38 +629,55 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
 
       <div className='pointer-events-none fixed right-[20px] bottom-[20px] z-20 flex flex-col items-end gap-2'>
         {backupReady ? (
-          <Tooltip title='已启用本地备份，修改后将写入「简历名称.json」' placement='left'>
+          <Tooltip title={tc('backupOnTooltip')} placement='left'>
             <span className='pointer-events-auto inline-flex'>
               <button
                 type='button'
                 disabled
                 className='inline-flex h-[42px] w-[42px] cursor-default items-center justify-center rounded-full border border-emerald-500/45 bg-emerald-500/20 text-emerald-500 shadow-[0_16px_34px_rgb(0_0_0/0.12)] backdrop-blur-[8px]'
-                aria-label='备份已启用'
+                aria-label={tc('backupOnAria')}
               >
                 <CheckCircleOutlined className='text-[17px]' />
               </button>
             </span>
           </Tooltip>
         ) : (
-          <Tooltip title='无法自动备份，请到通用配置选择备份文件夹' placement='left'>
+          <Tooltip title={tc('backupOffTooltip')} placement='left'>
             <span className='pointer-events-auto inline-flex'>
               <button
                 type='button'
                 onClick={() => onOpenGeneralSettings?.()}
                 className='inline-flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-full border border-red-500/45 bg-red-500/20 text-red-500 shadow-[0_16px_34px_rgb(0_0_0/0.12)] backdrop-blur-[8px]'
-                aria-label='打开通用配置'
+                aria-label={tc('backupOpenSettingsAria')}
               >
                 <WarningOutlined className='text-[17px]' />
               </button>
             </span>
           </Tooltip>
         )}
-        <Tooltip title={appTheme === 'dark' ? '切换为浅色主题' : '切换为深色主题'} placement='left'>
+        <Tooltip
+          title={locale === 'zh' ? tc('langSwitchToEn') : tc('langSwitchToZh')}
+          placement='left'
+        >
+          <button
+            type='button'
+            onClick={() =>
+              router.replace(pathname, { locale: locale === 'zh' ? 'en' : 'zh' })
+            }
+            className='canvas-float-btn font-semibold'
+            aria-label={locale === 'zh' ? tc('langSwitchAriaToEn') : tc('langSwitchAriaToZh')}
+          >
+            <span className='text-[12px] leading-none tracking-tight'>
+              {locale === 'zh' ? tc('langBadgeEn') : tc('langBadgeZh')}
+            </span>
+          </button>
+        </Tooltip>
+        <Tooltip title={themeTooltip} placement='left'>
           <button
             type='button'
             onClick={toggleAppTheme}
             className='canvas-float-btn'
-            aria-label='切换主题'
+            aria-label={tc('toggleThemeAria')}
           >
             {appTheme === 'dark' ? (
               <SunOutlined className='text-[17px]' />
@@ -657,34 +687,34 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
           </button>
         </Tooltip>
 
-        <Tooltip title='首页' placement='left'>
+        <Tooltip title={tc('homeTooltip')} placement='left'>
           <button
             type='button'
             onClick={() => router.push('/')}
             className='canvas-float-btn'
-            aria-label='返回首页'
+            aria-label={tc('backHomeAria')}
           >
             <HomeOutlined className='text-[17px]' />
           </button>
         </Tooltip>
 
-        <Tooltip title='GitHub' placement='left'>
+        <Tooltip title={tc('githubTooltip')} placement='left'>
           <button
             type='button'
             onClick={() => window.open('https://github.com/QdabuliuQ/easy-resume', '_blank', 'noopener,noreferrer')}
             className='canvas-float-btn'
-            aria-label='打开 GitHub'
+            aria-label={tc('githubAria')}
           >
             <GithubOutlined className='text-[17px]' />
           </button>
         </Tooltip>
 
-        <Tooltip title='简历预览' placement='left'>
+        <Tooltip title={tc('previewTooltip')} placement='left'>
           <button
             type='button'
             onClick={openPreview}
             className='canvas-float-btn'
-            aria-label='简历预览'
+            aria-label={tc('previewAria')}
           >
             <EyeOutlined className='text-[17px]' />
           </button>

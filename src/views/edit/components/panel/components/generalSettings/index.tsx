@@ -2,6 +2,7 @@
 import { CheckCircleOutlined, FolderOpenOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { message } from 'antd';
 import { memo, useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { getBackupDirectorySnapshot, setBackupDirectoryState } from '@/lib/backupDirectoryStore';
 import { flushResumeBackupImmediate } from '@/lib/resumeConfigBackup';
 import {
@@ -19,6 +20,7 @@ const rowCls = 'flex flex-col gap-2';
 const labelCls = 'text-[11px] font-medium uppercase tracking-[0.14em] text-fg/52';
 
 function GeneralSettings() {
+  const tg = useTranslations('Edit.generalSettings');
   const [dirHandle, setDirHandle] = useState<FileSystemDirectoryHandle | null>(
     () => getBackupDirectorySnapshot().handle
   );
@@ -30,7 +32,7 @@ function GeneralSettings() {
   }, []);
   const chooseFolder = useCallback(async () => {
     if (!supportsDirectoryPicker()) {
-      message.error('当前浏览器不支持 File System Access API，请使用 Chrome / Edge 最新版');
+      message.error(tg('fsUnsupported'));
       return;
     }
     setBusyKey('pick');
@@ -39,7 +41,7 @@ function GeneralSettings() {
       if (!h) return;
       const ok = await ensureReadWritePermission(h);
       if (!ok) {
-        message.warning('未获得读写权限，无法写入文件');
+        message.warning(tg('permissionDeniedWarn'));
         setDirHandle(h);
         setPermissionOk(false);
         setBackupDirectoryState(h, false);
@@ -49,32 +51,27 @@ function GeneralSettings() {
       setPermissionOk(true);
       setBackupDirectoryState(h, true);
       flushResumeBackupImmediate(configStore.getConfig);
-      message.success(`已连接「${h.name}」`);
+      message.success(tg('connected', { name: h.name }));
     } catch (e) {
-      message.error((e as Error)?.message ?? '选择文件夹失败');
+      message.error((e as Error)?.message ?? tg('pickFolderFail'));
     } finally {
       setBusyKey(null);
     }
-  }, []);
-  const displayLabel = dirHandle?.name ?? '未选择本地文件夹';
+  }, [tg]);
+  const displayLabel = dirHandle?.name ?? tg('noFolder');
   const unsupported = !supportsDirectoryPicker();
-  const hintSecondary = dirHandle
-    ? '点击可更换文件夹'
-    : '点击选择文件夹并授予读写权限；刷新页面后需重新选择';
+  const hintSecondary = dirHandle ? tg('hintHasFolder') : tg('hintPickFolder');
   return (
     <div className={`${panelShellClass} space-y-3`}>
       {unsupported ? (
         <div className='flex items-start gap-2.5 rounded-xl border border-amber-500/28 bg-amber-500/[0.08] px-3 py-2.5 text-[12px] leading-snug text-fg/85'>
           <WarningOutlined className='mt-0.5 shrink-0 text-amber-500/90' />
-          <span>
-            当前环境不支持文件夹选择 API。请使用桌面端{' '}
-            <strong className='text-fg/92'>Chrome / Edge</strong> 最新版本打开本站。
-          </span>
+          <span>{tg('unsupportedBanner')}</span>
         </div>
       ) : null}
       <div className={rowCls}>
         <div className='flex items-center justify-between gap-2'>
-          <span className={labelCls}>本地工作文件夹</span>
+          <span className={labelCls}>{tg('folderLabel')}</span>
           {dirHandle ? (
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
@@ -88,7 +85,7 @@ function GeneralSettings() {
               ) : (
                 <WarningOutlined className='text-[12px]' />
               )}
-              {permissionOk ? '开启自动备份' : '权限不足'}
+              {permissionOk ? tg('autoBackupOn') : tg('permissionInsufficient')}
             </span>
           ) : null}
         </div>
@@ -111,7 +108,7 @@ function GeneralSettings() {
       </div>
       <div className='flex items-start gap-2 rounded-lg border border-fg/[0.06] bg-[rgb(var(--surface-fg-rgb)/0.03)] px-3 py-2 text-[11px] leading-relaxed text-fg/52'>
         <InfoCircleOutlined className='mt-0.5 shrink-0 text-fg/40' />
-        <span>选中的文件夹会同步和备份您的简历JSON文件</span>
+        <span>{tg('footerHint')}</span>
       </div>
     </div>
   );
