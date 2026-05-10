@@ -19,7 +19,7 @@ const nextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   server: {
-    trustProxy: process.env.NODE_ENV === 'production'
+    trustProxy: true
   },
   serverActions: {
     allowedOrigins: [process.env.ALLOWED_ORIGIN || 'localhost:3010']
