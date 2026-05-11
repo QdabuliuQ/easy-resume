@@ -18,7 +18,6 @@ import {
 
 const PAGE_SECTION_SHELL =
   'overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),rgb(var(--panel-surface-rgb)/0.03)] p-4 shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04),var(--panel-shadow-md)]';
-
 const FONT_SIZE_OPTIONS = Array.from({ length: 9 }, (_, i) => {
   const n = 10 + i;
   return { label: `${n}px`, value: n };
