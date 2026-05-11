@@ -104,15 +104,25 @@ function plainTextFromRich(html: string): string {
   return safe.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+function shellSectionOrdinalForPdfMod(
+  ordCtx: { shellOrd: number },
+  mod: { type?: string; continuation?: boolean }
+): number | undefined {
+  if (mod.type === 'info1') return undefined;
+  if (!mod.continuation) ordCtx.shellOrd += 1;
+  return ordCtx.shellOrd;
+}
+
 function wrapSectionModuleMaybe(
   title: string,
   gs: GlobalStyle,
   bodyHtml: string,
   showHeader: boolean = true,
-  moduleType?: string
+  moduleType?: string,
+  sectionOrdinal?: number
 ): string {
   if (showHeader) {
-    return wrapSectionModuleHtml(title, gs, bodyHtml, moduleType);
+    return wrapSectionModuleHtml(title, gs, bodyHtml, moduleType, sectionOrdinal);
   }
   const headerType = Number(gs.headerType);
   if (Number.isFinite(headerType) && Math.floor(headerType) === 7) {
@@ -128,6 +138,11 @@ function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle)
   const avatar = String(opts.avatar ?? '');
   const avatarSrc = avatar.trim();
   const showAvatar = !!avatarSrc && avatarSrc !== 'avatar';
+  const positionRaw = String(opts.position ?? 'right');
+  const position =
+    positionRaw === 'left' || positionRaw === 'center' || positionRaw === 'right'
+      ? positionRaw
+      : 'right';
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
   const rows: string[] = [];
@@ -162,26 +177,50 @@ function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle)
         );
       }
     }
+    const rowFlex =
+      position === 'center'
+        ? 'display:flex;align-items:center;flex-wrap:wrap;justify-content:center;'
+        : position === 'left'
+          ? 'display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;'
+          : 'display:flex;align-items:center;flex-wrap:wrap;';
     rows.push(
-      `<div style="display:flex;align-items:center;flex-wrap:wrap;${i < layout.length - 1 ? 'margin-bottom:5px;' : ''}">${rowParts.join('')}</div>`
+      `<div style="${rowFlex}${i < layout.length - 1 ? 'margin-bottom:5px;' : ''}">${rowParts.join('')}</div>`
     );
   }
-  const leftInner = `<div style="margin-bottom:10px;font-size:24px;font-weight:bold;color:#333;line-height:1;">${escapeHtml(name)}</div>
-<div style="width:100%">${rows.join('')}</div>`;
-  const leftCol = `<div style="${showAvatar ? 'flex:1;min-width:0;' : 'width:100%;'}">${leftInner}</div>`;
+  const textAlign =
+    position === 'center'
+      ? 'text-align:center;'
+      : position === 'left'
+        ? 'text-align:right;'
+        : '';
+  const leftInner = `<div style="margin-bottom:10px;font-size:24px;font-weight:bold;color:#333;line-height:1;${textAlign}">${escapeHtml(name)}</div>
+<div style="width:100%;${textAlign}">${rows.join('')}</div>`;
+  const textColStyle =
+    position === 'center'
+      ? 'width:100%;'
+      : showAvatar
+        ? 'flex:1;min-width:0;'
+        : 'width:100%;';
+  const leftCol = `<div style="${textColStyle}">${leftInner}</div>`;
   if (!showAvatar) {
     return `<div style="width:100%;display:flex;align-items:center;">${leftCol}</div>`;
   }
   const avatarHtml = `<img src="${encodeURI(avatarSrc)}" alt="" width="90" style="width:100%;aspect-ratio:5/7;object-fit:cover;display:block;" />`;
-  return `<div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-${leftCol}
-<div style="width:90px;min-width:90px;max-width:90px;flex-shrink:0;">
-${avatarHtml}
-</div>
-</div>`;
+  const avatarWrap = `<div style="width:90px;min-width:90px;max-width:90px;flex-shrink:0;">${avatarHtml}</div>`;
+  if (position === 'center') {
+    return `<div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:12px;">${avatarWrap}${leftCol}</div>`;
+  }
+  if (position === 'left') {
+    return `<div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;">${avatarWrap}${leftCol}</div>`;
+  }
+  return `<div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;">${leftCol}${avatarWrap}</div>`;
 }
 
-function renderCertificate(mod: { options: { title: string; items: Array<{ name: string; date: string }> }; showHeader?: boolean }, gs: GlobalStyle): string {
+function renderCertificate(
+  mod: { options: { title: string; items: Array<{ name: string; date: string }> }; showHeader?: boolean },
+  gs: GlobalStyle,
+  sectionOrdinal?: number
+): string {
   const opts = mod.options as Record<string, unknown>;
   const title = String(opts.title ?? '证书');
   const items = (opts.items as Array<{ name: string; date: string }>) ?? [];
@@ -195,10 +234,14 @@ function renderCertificate(mod: { options: { title: string; items: Array<{ name:
 </div>`
     )
     .join('');
-  return wrapSectionModuleMaybe(title, gs, rows, mod.showHeader !== false, 'certificate');
+  return wrapSectionModuleMaybe(title, gs, rows, mod.showHeader !== false, 'certificate', sectionOrdinal);
 }
 
-function renderSkill(mod: { options: { title: string; description: string }; showHeader?: boolean }, gs: GlobalStyle): string {
+function renderSkill(
+  mod: { options: { title: string; description: string }; showHeader?: boolean },
+  gs: GlobalStyle,
+  sectionOrdinal?: number
+): string {
   const opts = mod.options as Record<string, unknown>;
   const title = String(opts.title ?? '专业技能');
   const description = String(opts.description ?? '');
@@ -206,10 +249,14 @@ function renderSkill(mod: { options: { title: string; description: string }; sho
     ? wrapQuillRichHtml(description, gs)
     : '';
   // 即使 inner 为空也渲染，wrapSectionModuleMaybe 会保留 header
-  return wrapSectionModuleMaybe(title, gs, inner, mod.showHeader !== false, 'skill');
+  return wrapSectionModuleMaybe(title, gs, inner, mod.showHeader !== false, 'skill', sectionOrdinal);
 }
 
-function renderJob(mod: { options: { title: string; items: Array<Record<string, string>> }; showHeader?: boolean }, gs: GlobalStyle): string {
+function renderJob(
+  mod: { options: { title: string; items: Array<Record<string, string>> }; showHeader?: boolean },
+  gs: GlobalStyle,
+  sectionOrdinal?: number
+): string {
   const opts = mod.options as Record<string, unknown>;
   const title = String(opts.title ?? '工作经历');
   const items = (opts.items as Array<Record<string, string>>) ?? [];
@@ -238,10 +285,14 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false, 'job');
+  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false, 'job', sectionOrdinal);
 }
 
-function renderProject(mod: { options: { title: string; items: Array<Record<string, string>> }; showHeader?: boolean }, gs: GlobalStyle): string {
+function renderProject(
+  mod: { options: { title: string; items: Array<Record<string, string>> }; showHeader?: boolean },
+  gs: GlobalStyle,
+  sectionOrdinal?: number
+): string {
   const opts = mod.options as Record<string, unknown>;
   const title = String(opts.title ?? '项目经历');
   const items = (opts.items as Array<Record<string, string>>) ?? [];
@@ -265,10 +316,14 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false, 'project');
+  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false, 'project', sectionOrdinal);
 }
 
-function renderEducation(mod: { options: { title: string; items: Array<Record<string, unknown>> }; showHeader?: boolean }, gs: GlobalStyle): string {
+function renderEducation(
+  mod: { options: { title: string; items: Array<Record<string, unknown>> }; showHeader?: boolean },
+  gs: GlobalStyle,
+  sectionOrdinal?: number
+): string {
   const opts = mod.options as Record<string, unknown>;
   const title = String(opts.title ?? '教育经历');
   const items = (opts.items as Array<Record<string, unknown>>) ?? [];
@@ -306,33 +361,64 @@ ${descHtml}
 </div>`;
     })
     .join('');
-  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false, 'education');
+  return wrapSectionModuleMaybe(title, gs, blocks, mod.showHeader !== false, 'education', sectionOrdinal);
 }
 
-function renderModule(mod: { type: string; options?: unknown; showHeader?: boolean }, gs: GlobalStyle): string {
-  // options 缺失时补空对象，确保 header 仍能渲染
+function renderModule(
+  mod: { type: string; options?: unknown; showHeader?: boolean; continuation?: boolean },
+  gs: GlobalStyle,
+  sectionOrdinal?: number
+): string {
   const modWithOpts = { ...mod, options: (mod?.options ?? {}) as Record<string, unknown> };
   switch (mod.type) {
     case 'info1':
       return renderInfo1(modWithOpts as unknown as { options: Record<string, unknown> }, gs);
     case 'certificate':
-      return renderCertificate(modWithOpts as unknown as { options: { title: string; items: Array<{ name: string; date: string }> } }, gs);
+      return renderCertificate(
+        modWithOpts as unknown as { options: { title: string; items: Array<{ name: string; date: string }> } },
+        gs,
+        sectionOrdinal
+      );
     case 'skill':
-      return renderSkill(modWithOpts as unknown as { options: { title: string; description: string } }, gs);
+      return renderSkill(
+        modWithOpts as unknown as { options: { title: string; description: string } },
+        gs,
+        sectionOrdinal
+      );
     case 'other':
-      return renderSkill(modWithOpts as unknown as { options: { title: string; description: string } }, gs);
+      return renderSkill(
+        modWithOpts as unknown as { options: { title: string; description: string } },
+        gs,
+        sectionOrdinal
+      );
     case 'job':
-      return renderJob(modWithOpts as unknown as { options: { title: string; items: Array<Record<string, string>> } }, gs);
+      return renderJob(
+        modWithOpts as unknown as { options: { title: string; items: Array<Record<string, string>> } },
+        gs,
+        sectionOrdinal
+      );
     case 'project':
-      return renderProject(modWithOpts as unknown as { options: { title: string; items: Array<Record<string, string>> } }, gs);
+      return renderProject(
+        modWithOpts as unknown as { options: { title: string; items: Array<Record<string, string>> } },
+        gs,
+        sectionOrdinal
+      );
     case 'education':
-      return renderEducation(modWithOpts as unknown as { options: { title: string; items: Array<Record<string, unknown>> } }, gs);
+      return renderEducation(
+        modWithOpts as unknown as { options: { title: string; items: Array<Record<string, unknown>> } },
+        gs,
+        sectionOrdinal
+      );
     default:
       return '';
   }
 }
 
-function renderPage(page: { moduleMargin?: number; modules?: unknown[] }, gs: GlobalStyle): string {
+function renderPage(
+  page: { moduleMargin?: number; modules?: unknown[] },
+  gs: GlobalStyle,
+  ordCtx: { shellOrd: number }
+): string {
   const mm =
     Number(gs.moduleMargin) ||
     Number(page.moduleMargin) ||
@@ -355,7 +441,8 @@ function renderPage(page: { moduleMargin?: number; modules?: unknown[] }, gs: Gl
       parts.push(`<div style="width:100%;height:${mm}px;flex-shrink:0;"></div>`);
     }
 
-    const rendered = renderModule(mod, gs);
+    const sectionOrd = shellSectionOrdinalForPdfMod(ordCtx, mod);
+    const rendered = renderModule(mod, gs, sectionOrd);
     if (!rendered) continue;
 
     const viewHeight = Number(mod.viewHeight);
@@ -401,7 +488,8 @@ ${parts.join('')}
 
 function renderContinuousPage(
   pages: Array<{ moduleMargin?: number; modules?: unknown[] }>,
-  gs: GlobalStyle
+  gs: GlobalStyle,
+  ordCtx: { shellOrd: number }
 ): string {
   const mm = Number(gs.moduleMargin) || 10;
   const parts: string[] = [];
@@ -412,10 +500,12 @@ function renderContinuousPage(
       type: string;
       options?: unknown;
       showHeader?: boolean;
+      continuation?: boolean;
     }>;
 
     for (const module of modules) {
-      const rendered = renderModule(module, gs);
+      const sectionOrd = shellSectionOrdinalForPdfMod(ordCtx, module);
+      const rendered = renderModule(module, gs, sectionOrd);
       if (!rendered) continue;
       if (!firstModule) {
         parts.push(`<div style="width:100%;height:${mm}px;flex-shrink:0;"></div>`);
@@ -487,7 +577,8 @@ export function renderResumeDocumentHtml(resume: {
   const gs = resume.globalStyle;
   const { width: pageW, height: pageH } = globalStylePageDimensions(gs);
   const pages = resume.exportPages ?? resume.pages ?? [];
-  const bodyInner = pages.map((p) => renderPage(p, gs)).join('\n');
+  const ordCtx = { shellOrd: 0 };
+  const bodyInner = pages.map((p) => renderPage(p, gs, ordCtx)).join('\n');
   const docTitle = 'Resume';
   const canvasBg = escapeHtml(gs.backgroundColor ?? '#fff');
   const wCss = escapeHtml(String(pageW));
@@ -551,14 +642,16 @@ ${bodyInner}
 export function renderResumePngHtml(
   resume: {
     pages: Array<{ moduleMargin?: number; modules?: unknown[] }>;
+    exportPages?: Array<{ moduleMargin?: number; modules?: unknown[] }>;
     globalStyle: GlobalStyle;
   },
   opts?: { assetOrigin?: string; basePath?: string }
 ) {
   const gs = resume.globalStyle;
   const { width: pageW } = globalStylePageDimensions(gs);
-  const pages = resume.pages ?? [];
-  const bodyInner = renderContinuousPage(pages, gs);
+  const pages = resume.exportPages ?? resume.pages ?? [];
+  const ordCtx = { shellOrd: 0 };
+  const bodyInner = renderContinuousPage(pages, gs, ordCtx);
   const docTitle = 'Resume';
   const canvasBg = escapeHtml(gs.backgroundColor ?? '#fff');
   const wCss = escapeHtml(String(pageW));

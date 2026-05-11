@@ -1,8 +1,7 @@
-import puppeteer from 'puppeteer';
-import { getPuppeteerLaunchOptions } from '@/lib/puppeteerLaunchOptions';
 import defaultResume from '@/json/resume.json';
 import type { GlobalStyle } from '@/modules/utils/common.type';
-import { loadInlineHtmlForPrint, settleFontsOrTimeout } from './loadInlineHtmlForPrint';
+import { getSharedBrowser } from '@/lib/puppeteerSharedBrowser';
+import { loadInlineHtmlForStaticExport, settleFontsOrTimeout } from './loadInlineHtmlForPrint';
 import { mergeResumeConfig } from './mergeResumeConfig';
 import { renderResumeDocumentHtml } from './renderResumeHtml';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
@@ -22,9 +21,9 @@ async function generatePdfFromPage(
   pageUrl: string | null,
   printMeta?: PrintMeta | null
 ) {
-  const browser = await puppeteer.launch(getPuppeteerLaunchOptions());
+  const browser = await getSharedBrowser();
+  const page = await browser.newPage();
   try {
-    const page = await browser.newPage();
     if (printMeta?.paperWidth && printMeta?.paperHeight) {
       const pageWPx = cssLengthToApproxPx(printMeta.paperWidth);
       const pageHPx = cssLengthToApproxPx(printMeta.paperHeight);
@@ -40,8 +39,9 @@ async function generatePdfFromPage(
       });
     }
     if (pageHtml) {
-      await loadInlineHtmlForPrint(page, pageHtml);
+      await loadInlineHtmlForStaticExport(page, pageHtml);
     } else if (pageUrl) {
+      await page.setJavaScriptEnabled(true);
       await page.goto(pageUrl, { waitUntil: 'load', timeout: 120000 });
       await settleFontsOrTimeout(page);
     } else {
@@ -60,7 +60,7 @@ async function generatePdfFromPage(
       scale: 1,
     });
   } finally {
-    await browser.close();
+    await page.close().catch(() => {});
   }
 }
 

@@ -15,15 +15,13 @@ import { configStore, moduleActiveStore } from '@/mobx';
 import CanvasModuleFragment from '@/views/edit/components/canvas/moduleFragment';
 import ResumeFontCdn from '@/views/edit/components/canvas/ResumeFontCdn';
 
-const panelShellClass =
-  'overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),rgb(var(--panel-surface-rgb)/0.03)]';
-
 /** 侧栏模板卡片内仅预览首页，缩放略小于走马灯以便双列容纳 */
 const TEMPLATE_CARD_PREVIEW_SCALE = 0.2;
 
 function renderPageModules(modules: unknown[], gs: GlobalStyle): ReactNode[] {
   const mm = Number(gs.moduleMargin) || 15;
   const out: ReactNode[] = [];
+  let shellOrd = 0;
   modules.forEach((raw, i) => {
     const m = raw as { type?: string; id?: string; options?: Record<string, unknown> };
     if (!m?.type) return;
@@ -32,6 +30,7 @@ function renderPageModules(modules: unknown[], gs: GlobalStyle): ReactNode[] {
       out.push(<Info1 key={String(m.id ?? `info-${i}`)} config={m as never} globalStyle={gs} />);
       return;
     }
+    shellOrd += 1;
     out.push(
       <CanvasModuleFragment
         key={String(m.id ?? `${m.type}-${i}`)}
@@ -41,6 +40,7 @@ function renderPageModules(modules: unknown[], gs: GlobalStyle): ReactNode[] {
           domId: String(m.id ?? i),
           showHeader: true,
           options: (m.options ?? {}) as Record<string, unknown>,
+          sectionOrdinal: shellOrd,
         }}
         globalStyle={gs}
       />
@@ -170,41 +170,6 @@ function ResumeTemplate() {
     <>
       {contextHolder}
       <div className='relative flex h-full min-h-0 flex-col gap-3 overflow-auto px-0.5 pt-0.5 text-left'>
-        <div className={`${panelShellClass} shrink-0 px-4 py-3`}>
-          <div className='flex flex-wrap items-center justify-between gap-2'>
-            <div className='flex min-w-0 flex-wrap items-center gap-2'>
-              <span className='inline-flex items-center rounded-full border border-fg/[0.08] bg-surface/[0.045] px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.16em] text-fg/58'>
-                {tr('libraryTitle')}
-              </span>
-              <span className='inline-flex items-center rounded-full border border-[color:color-mix(in_srgb,var(--color-primary)_26%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_12%,transparent)] px-2.5 py-0.5 text-[11px] font-medium text-[color:var(--color-primary)]'>
-                {tr('templateCount', { n: templateCards.length })}
-              </span>
-            </div>
-            <span className='text-[11px] leading-relaxed text-fg/62'>
-              {tr('previewHint')}
-            </span>
-          </div>
-        </div>
-
-        <section className={`${panelShellClass} shrink-0 px-4 py-4`}>
-          <div className='flex items-start justify-between gap-3'>
-            <div className='min-w-0'>
-              <p className='text-[12px] uppercase tracking-[0.16em] text-fg/58'>{tr('usageTitle')}</p>
-              <p className='mt-1 text-[13px] leading-relaxed text-fg/72'>
-                {tr('usageBody')}
-              </p>
-            </div>
-            <span className='shrink-0 rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2.5 py-1 text-[11px] font-medium text-fg/62'>
-              {tr('backupTitle')}
-            </span>
-          </div>
-          <div className='mt-3 rounded-2xl border border-fg/[0.07] bg-[var(--panel-inset-bg)] px-3 py-2.5'>
-            <p className='text-[11px] leading-relaxed text-fg/58'>
-              {tr('backupBody')}
-            </p>
-          </div>
-        </section>
-
         <ul className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
           {templateCards.map((t) => (
             <li key={t.id} className='min-w-0'>

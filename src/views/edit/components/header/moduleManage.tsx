@@ -19,7 +19,14 @@ import { CSS } from '@dnd-kit/utilities';
 import { useMemoizedFn } from 'ahooks';
 import { Modal, Input, Popover, Space, message } from 'antd';
 import { observer } from 'mobx-react';
-import { memo, useMemo, useState, type CSSProperties } from 'react';
+import {
+  memo,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MutableRefObject,
+} from 'react';
 import { configStore } from '@/mobx';
 import { useModuleHandle } from '@/hooks/module';
 import { moduleType } from '@/modules/utils/constant';
@@ -66,11 +73,23 @@ function DragHandle({
 
 function SortableModuleRow({
   mod,
-  onEdit,
+  editingId,
+  editDraft,
+  setEditDraft,
+  onBeginEdit,
+  onCommitEdit,
+  onCancelEdit,
+  ignoreEditBlur,
   onDelete,
 }: {
   mod: ModuleRow;
-  onEdit: (id: string) => void;
+  editingId: string | null;
+  editDraft: string;
+  setEditDraft: (v: string) => void;
+  onBeginEdit: (id: string) => void;
+  onCommitEdit: () => void;
+  onCancelEdit: () => void;
+  ignoreEditBlur: MutableRefObject<boolean>;
   onDelete: (id: string) => void;
 }) {
   const {
@@ -110,7 +129,40 @@ function SortableModuleRow({
         attributes={attributes}
         setActivatorNodeRef={setActivatorNodeRef}
       />
-      <span className='min-w-0 flex-1 truncate'>{displayName(mod)}</span>
+      {editingId === mod.id ? (
+        <Input
+          autoFocus
+          value={editDraft}
+          onChange={(e) => setEditDraft(e.target.value)}
+          onBlur={() => {
+            if (ignoreEditBlur.current) return;
+            onCommitEdit();
+          }}
+          onPressEnter={onCommitEdit}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              onCancelEdit();
+            }
+          }}
+          onFocus={(e) => e.target.select()}
+          maxLength={64}
+          className='min-w-0 flex-1'
+          styles={{
+            input: {
+              backgroundColor: 'var(--antd-input-bg)',
+              color: 'var(--antd-input-fg)',
+              border: '1px solid var(--antd-input-border)',
+              borderRadius: 6,
+              paddingInline: 8,
+              height: 26,
+              fontSize: 13,
+            },
+          }}
+        />
+      ) : (
+        <span className='min-w-0 flex-1 truncate'>{displayName(mod)}</span>
+      )}
       <Space size={4} className='shrink-0'>
         <button
           type='button'
@@ -118,7 +170,7 @@ function SortableModuleRow({
           aria-label='编辑名称'
           onClick={(e) => {
             e.stopPropagation();
-            onEdit(mod.id);
+            onBeginEdit(mod.id);
           }}
         >
           <EditOutlined className='text-[14px]' />
@@ -142,12 +194,24 @@ function SortableModuleRow({
 function SortableModuleList({
   modules,
   onReorder,
-  onEdit,
+  editingId,
+  editDraft,
+  setEditDraft,
+  onBeginEdit,
+  onCommitEdit,
+  onCancelEdit,
+  ignoreEditBlur,
   onDelete,
 }: {
   modules: ModuleRow[];
   onReorder: (next: ModuleRow[]) => void;
-  onEdit: (id: string) => void;
+  editingId: string | null;
+  editDraft: string;
+  setEditDraft: (v: string) => void;
+  onBeginEdit: (id: string) => void;
+  onCommitEdit: () => void;
+  onCancelEdit: () => void;
+  ignoreEditBlur: MutableRefObject<boolean>;
   onDelete: (id: string) => void;
 }) {
   const sensors = useSensors(
@@ -182,7 +246,13 @@ function SortableModuleList({
             <SortableModuleRow
               key={mod.id}
               mod={mod}
-              onEdit={onEdit}
+              editingId={editingId}
+              editDraft={editDraft}
+              setEditDraft={setEditDraft}
+              onBeginEdit={onBeginEdit}
+              onCommitEdit={onCommitEdit}
+              onCancelEdit={onCancelEdit}
+              ignoreEditBlur={ignoreEditBlur}
               onDelete={onDelete}
             />
           ))}
@@ -202,6 +272,7 @@ function ModuleManageInner({
   const [popOpen, setPopOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
+  const ignoreEditBlur = useRef(false);
   const {
     removeModuleFromConfig,
     reorderFlattenedModules,
@@ -218,23 +289,31 @@ function ModuleManageInner({
     reorderFlattenedModules(next);
   });
 
-  const openEdit = useMemoizedFn((id: string) => {
+  const beginInlineEdit = useMemoizedFn((id: string) => {
     const mod = modules.find((m) => m.id === id);
+    ignoreEditBlur.current = true;
     setEditDraft(mod ? displayName(mod) : '');
-    setPopOpen(false);
     setEditId(id);
+    queueMicrotask(() => {
+      ignoreEditBlur.current = false;
+    });
   });
 
-  const confirmEdit = useMemoizedFn(() => {
+  const commitEdit = useMemoizedFn(() => {
     if (!editId) return;
     const t = editDraft.trim();
     if (!t) {
       message.warning('请输入模块名称');
+      setEditId(null);
       return;
     }
     updateModuleTitleInConfig(editId, t);
     setEditId(null);
     message.success('已更新');
+  });
+
+  const cancelEdit = useMemoizedFn(() => {
+    setEditId(null);
   });
 
   const confirmDelete = useMemoizedFn((id: string) => {
@@ -274,7 +353,13 @@ function ModuleManageInner({
         <SortableModuleList
           modules={modules}
           onReorder={reorder}
-          onEdit={openEdit}
+          editingId={editId}
+          editDraft={editDraft}
+          setEditDraft={setEditDraft}
+          onBeginEdit={beginInlineEdit}
+          onCommitEdit={commitEdit}
+          onCancelEdit={cancelEdit}
+          ignoreEditBlur={ignoreEditBlur}
           onDelete={confirmDelete}
         />
       )}
@@ -316,25 +401,6 @@ function ModuleManageInner({
         </Popover>
       )}
 
-      <Modal
-        title='编辑模块名称'
-        open={Boolean(editId)}
-        okText='确定'
-        cancelText='取消'
-        destroyOnHidden
-        onCancel={() => setEditId(null)}
-        onOk={confirmEdit}
-        centered
-        zIndex={1100}
-      >
-        <Input
-          placeholder='请输入模块名称'
-          value={editDraft}
-          onChange={(e) => setEditDraft(e.target.value)}
-          maxLength={64}
-          onPressEnter={confirmEdit}
-        />
-      </Modal>
     </>
   );
 }

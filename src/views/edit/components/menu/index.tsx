@@ -3,6 +3,7 @@ import {
   AppstoreOutlined,
   ProfileOutlined,
   SettingOutlined,
+  SlidersOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
 import { message, Modal } from 'antd';
@@ -18,18 +19,19 @@ import {
 const GRADIENT_ID = 'resume-menu-item-grad';
 function MenuItemIcon({ menuKey, selected }: { menuKey: string; selected: boolean }) {
   const antIconCls = selected
-    ? 'relative z-[1] text-[28px] transition-[fill] duration-200 [&_svg]:!fill-[url(#resume-menu-item-grad)]'
-    : 'relative z-[1] text-[28px] transition-[fill] duration-200 [&_svg]:!fill-[var(--menu-icon-muted)]';
+    ? 'relative z-[1] text-[20px] mb-[3px] transition-[fill] duration-200 [&_svg]:!fill-[url(#resume-menu-item-grad)]'
+    : 'relative z-[1] text-[20px] mb-[3px] transition-[fill] duration-200 [&_svg]:!fill-[var(--menu-icon-muted)]';
   if (menuKey === 'import-template') return <UploadOutlined className={antIconCls} />;
   if (menuKey === 'resume') return <ProfileOutlined className={antIconCls} />;
   if (menuKey === 'resume-template') return <AppstoreOutlined className={antIconCls} />;
   if (menuKey === 'general-settings') return <SettingOutlined className={antIconCls} />;
+  if (menuKey === 'page-settings') return <SlidersOutlined className={antIconCls} />;
   return (
     <Magic
       theme='outline'
-      size='28'
+      size='20'
       fill={selected ? `url(#${GRADIENT_ID})` : 'var(--menu-icon-muted)'}
-      className='relative z-[1] transition-[fill] duration-200'
+      className='relative z-[1] transition-[fill] duration-200 mb-[3px]'
     />
   );
 }
@@ -45,6 +47,7 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
       [
         { label: t('resumeTemplate'), key: 'resume-template' as const },
         { label: t('resume'), key: 'resume' as const },
+        { label: t('pageSettings'), key: 'page-settings' as const },
         { label: t('aiScore'), key: 'ai-score' as const },
         { label: t('generalSettings'), key: 'general-settings' as const },
       ] as const,
@@ -91,10 +94,33 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
     const isImport = item.key === 'import-template';
     const accent = selected || isImport;
     const tileCls = isImport
-      ? 'scale-[1.03] border-transparent bg-[var(--color-primary)]/12 shadow-[0_10px_26px_color-mix(in_srgb,var(--color-primary)_22%,transparent)] hover:bg-[var(--color-primary)]/18 hover:shadow-[0_14px_34px_color-mix(in_srgb,var(--color-primary)_28%,transparent)]'
+      ? [
+          'scale-[1.03]',
+          '[background:color-mix(in_srgb,var(--color-primary)_12%,var(--editor-shell-panel-strong))]',
+          'border border-[color-mix(in_srgb,var(--color-primary)_38%,transparent)]',
+          'shadow-[0_4px_18px_color-mix(in_srgb,var(--color-primary)_22%,transparent),inset_0_1px_0_color-mix(in_srgb,var(--color-primary)_28%,transparent)]',
+          'hover:scale-[1.07]',
+          'hover:[background:color-mix(in_srgb,var(--color-primary)_16%,var(--editor-shell-panel-strong))]',
+          'hover:shadow-[0_8px_26px_color-mix(in_srgb,var(--color-primary)_28%,transparent)]',
+          'active:scale-[1.01]',
+        ].join(' ')
       : selected
-        ? 'z-[1] scale-110 border-transparent bg-fg/[0.08] shadow-[0_12px_30px_rgba(0,0,0,0.24)]'
-        : 'border border-fg/[0.08] bg-[var(--panel-inset-bg)] shadow-[inset_0_1px_0_rgb(var(--surface-fg-rgb)/0.07)] hover:border-fg/[0.12] hover:bg-[var(--panel-inset-bg-strong)]';
+        ? [
+            'z-[1] scale-[1.07]',
+            '[background:color-mix(in_srgb,var(--color-primary)_9%,var(--editor-shell-panel-strong))]',
+            'border border-transparent',
+            'shadow-[0_6px_22px_color-mix(in_srgb,var(--color-primary)_24%,transparent),0_0_0_1.5px_color-mix(in_srgb,var(--color-primary)_32%,transparent),inset_0_1px_0_rgb(var(--surface-fg-rgb)/0.14)]',
+          ].join(' ')
+        : [
+            '[background:linear-gradient(180deg,rgb(var(--surface-fg-rgb)/0.08)_0%,rgb(var(--surface-fg-rgb)/0.04)_100%)]',
+            'border border-[rgb(var(--surface-fg-rgb)/0.1)]',
+            'shadow-[0_2px_8px_rgb(var(--surface-bg-rgb)/0.14),inset_0_1px_0_rgb(var(--surface-fg-rgb)/0.1)]',
+            'hover:scale-[1.04]',
+            'hover:[background:linear-gradient(180deg,rgb(var(--surface-fg-rgb)/0.12)_0%,rgb(var(--surface-fg-rgb)/0.07)_100%)]',
+            'hover:border-[rgb(var(--surface-fg-rgb)/0.16)]',
+            'hover:shadow-[0_4px_16px_rgb(var(--surface-bg-rgb)/0.22),inset_0_1px_0_rgb(var(--surface-fg-rgb)/0.14)]',
+            'active:scale-[0.98]',
+          ].join(' ');
     return (
       <div
         key={item.key}
@@ -107,28 +133,28 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
             isImport ? confirmThenPickImport() : onActiveKeyChange(item.key);
           }
         }}
-        className={`editor-shell-inset relative flex w-full cursor-pointer select-none flex-col items-center justify-center gap-1 overflow-hidden rounded-[18px] py-3 text-[13px] transition-all duration-200 ${tileCls}`}
+        className={`aspect-square relative flex w-full cursor-pointer select-none flex-col items-center justify-center gap-0.5 overflow-hidden rounded-[18px] py-2.5 text-[11px] transition-all duration-200 ease-out ${tileCls}`}
       >
         {accent ? (
           <span
             aria-hidden
             className='pointer-events-none absolute inset-0 rounded-[18px] bg-gradient-primary p-px'
           >
-            <span className='block h-full w-full rounded-[17px] bg-[var(--menu-selected-inner)]' />
+            <span className='block h-full w-full rounded-[17px] bg-[color-mix(in_srgb,var(--color-primary)_10%,var(--editor-shell-panel-strong))]' />
           </span>
         ) : null}
         {accent ? (
           <span
             aria-hidden
-            className='bg-gradient-primary absolute inset-x-2 top-0 z-[2] h-px opacity-90'
+            className='bg-gradient-primary absolute inset-x-1 top-0 z-[2] h-[2px] rounded-full opacity-70 blur-[2px]'
           />
         ) : null}
         <MenuItemIcon menuKey={item.key} selected={accent} />
         <span
           className={
             accent
-              ? 'bg-gradient-primary relative z-[1] bg-clip-text text-[12px] font-medium text-transparent transition-colors duration-200'
-              : 'relative z-[1] text-[12px] text-[var(--menu-icon-muted)] transition-colors duration-200'
+              ? 'bg-gradient-primary relative z-[1] bg-clip-text text-[10px] font-medium text-transparent transition-colors duration-200'
+              : 'relative z-[1] text-[10px] text-[var(--menu-icon-muted)] transition-colors duration-200'
           }
         >
           {item.label}
@@ -139,7 +165,7 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
   return (
     <>
       {contextHolder}
-      <div className='relative flex h-full min-h-0 w-[108px] shrink-0 flex-col justify-between bg-transparent px-[10px] py-[10px]'>
+      <div className='relative flex h-full min-h-0 w-[108px] shrink-0 flex-col items-stretch justify-between bg-transparent p-[20px]'>
       <input
         ref={fileRef}
         type='file'
@@ -156,8 +182,10 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
           </linearGradient>
         </defs>
       </svg>
-      <div className='flex min-h-0 flex-col gap-[10px]'>{panelMenuItems.map((item) => renderMenuItem(item))}</div>
-      <div className='flex shrink-0 flex-col gap-[10px]'>{renderMenuItem(importMenu)}</div>
+      <div className='flex w-full min-w-0 min-h-0 flex-col gap-[13px]'>
+        {panelMenuItems.map((item) => renderMenuItem(item))}
+      </div>
+      <div className='flex w-full min-w-0 shrink-0 flex-col gap-[10px]'>{renderMenuItem(importMenu)}</div>
     </div>
     </>
   );

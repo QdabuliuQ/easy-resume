@@ -35,6 +35,8 @@ function Global() {
       { value: 6, label: tg('style6') },
       { value: 7, label: tg('style7') },
       { value: 8, label: tg('style8') },
+      { value: 9, label: tg('style9') },
+      { value: 10, label: tg('style10') },
     ],
     [tg],
   );

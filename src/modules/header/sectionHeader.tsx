@@ -11,7 +11,12 @@ import { More } from '@icon-park/react';
 import { GlobalStyle } from '@/modules/utils/common.type';
 import { memo, type CSSProperties } from 'react';
 
-export type SectionHeaderConfig = { title: string; moduleType?: string };
+export type SectionHeaderConfig = {
+  title: string;
+  moduleType?: string;
+  /** 样式 10：NN/ 前缀序号（不含 info1 的模块序，画布/PDF 传入） */
+  sectionOrdinal?: number;
+};
 
 function HeaderTypeIcon({ moduleType, color }: { moduleType?: string; color: string }) {
   if (moduleType === 'education') {
@@ -38,7 +43,7 @@ function HeaderTypeIcon({ moduleType, color }: { moduleType?: string; color: str
 export function normHeaderType(gs: GlobalStyle): number {
   const n = Number(gs.headerType);
   if (!Number.isFinite(n) || n < 1) return 1;
-  return Math.min(8, Math.floor(n));
+  return Math.min(10, Math.floor(n));
 }
 
 function SectionHeader({
@@ -48,7 +53,7 @@ function SectionHeader({
   config: SectionHeaderConfig;
   globalStyle: GlobalStyle;
 }) {
-  const { title, moduleType } = config;
+  const { title, moduleType, sectionOrdinal } = config;
   const { color, fontSize } = globalStyle;
   const fsRaw = Number(fontSize);
   const fsNum = Number.isFinite(fsRaw) && fsRaw > 0 ? fsRaw : 13;
@@ -165,6 +170,42 @@ function SectionHeader({
           {title}
         </span>
         <div className='min-h-px min-w-0 flex-1' style={{ backgroundColor: color }} />
+      </div>
+    );
+  }
+  if (t === 10) {
+    const ord =
+      sectionOrdinal != null && Number.isFinite(sectionOrdinal) && sectionOrdinal > 0
+        ? `${String(Math.floor(sectionOrdinal)).padStart(2, '0')}/`
+        : null;
+    const prefixFs = `${Math.max(12, Math.round(fsNum * 0.88))}px`;
+    return (
+      <div className='w-full py-1 flex items-end'>
+        <div className='flex flex-wrap items-baseline gap-x-3 gap-y-0.5'>
+          {ord ? (
+            <span
+              className='shrink-0 font-medium tabular-nums leading-none tracking-tight'
+              style={{ color, fontSize: prefixFs, opacity: 0.72 }}
+            >
+              {ord}
+            </span>
+          ) : null}
+          <span className='min-w-0 flex-1 font-bold leading-none' style={{ color, fontSize: fs }}>
+            {title}
+          </span>
+        </div>
+        <div className='flex-1 ml-3 h-px w-full shrink-0' style={{ backgroundColor: color }} />
+      </div>
+    );
+  }
+  if (t === 9) {
+    return (
+      <div className='flex w-full items-center gap-3 py-1'>
+        <div className='h-px min-w-0 flex-1 shrink-0' style={{ backgroundColor: color }} />
+        <span className='shrink-0 whitespace-nowrap font-bold leading-none' style={{ color, fontSize: fs }}>
+          {title}
+        </span>
+        <div className='h-px min-w-0 flex-1 shrink-0' style={{ backgroundColor: color }} />
       </div>
     );
   }

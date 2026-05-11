@@ -7,7 +7,7 @@ export default {
   navStart: 'Get started',
   heroBadge: 'Smart resume editing',
   heroSub:
-    'Modular editing with AI suggestions; export PDF, PNG, and JSON. Built for tight application deadlines—less layout wrestling, more focus on content and strategy.',
+    'Modular editing with AI suggestions; export PDF, JPEG image, and JSON. Built for tight application deadlines—less layout wrestling, more focus on content and strategy.',
   ctaStart: 'Get started',
   ctaFeatures: 'Explore features',
   featuresTitle: 'Why EasyResume',
@@ -33,7 +33,7 @@ export default {
     },
     {
       title: 'Local-first, you own the data',
-      desc: 'Edit and preview locally; export PDF, PNG, and JSON for backup and portability.',
+      desc: 'Edit and preview locally; export PDF, JPEG image, and JSON for backup and portability.',
       bullets: ['No signup required', 'Multi-format export for applications'],
     },
   ],
@@ -48,7 +48,7 @@ export default {
     },
     {
       q: 'Which export formats are supported?',
-      a: 'PDF, PNG, and JSON—for applications, previews, and version control.',
+      a: 'PDF, JPEG image, and JSON—for applications, previews, and version control.',
     },
     {
       q: 'How do I sync across devices?',

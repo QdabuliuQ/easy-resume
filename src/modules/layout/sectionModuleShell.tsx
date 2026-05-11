@@ -14,6 +14,7 @@ function SectionModuleShell({
   moduleType,
   globalStyle,
   showHeader = true,
+  sectionOrdinal,
   children,
 }: {
   moduleId: string;
@@ -22,6 +23,7 @@ function SectionModuleShell({
   moduleType?: string;
   globalStyle: GlobalStyle;
   showHeader?: boolean;
+  sectionOrdinal?: number;
   children: ReactNode;
 }) {
   const t = normHeaderType(globalStyle);
@@ -67,7 +69,14 @@ function SectionModuleShell({
             aria-hidden
           />
           <div className='relative z-[1] min-h-0 pr-2'>
-            <SectionHeader config={{ ...headerConfig, moduleType }} globalStyle={globalStyle} />
+            <SectionHeader
+              config={{
+                ...headerConfig,
+                moduleType,
+                ...(sectionOrdinal != null && sectionOrdinal > 0 ? { sectionOrdinal } : {}),
+              }}
+              globalStyle={globalStyle}
+            />
           </div>
         </div>
         <div className='min-h-0 min-w-0 overflow-hidden rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'>
@@ -83,7 +92,14 @@ function SectionModuleShell({
       className='w-full cursor-pointer'
     >
       <div className='mb-[5px] w-full'>
-        <SectionHeader config={{ ...headerConfig, moduleType }} globalStyle={globalStyle} />
+        <SectionHeader
+          config={{
+            ...headerConfig,
+            moduleType,
+            ...(sectionOrdinal != null && sectionOrdinal > 0 ? { sectionOrdinal } : {}),
+          }}
+          globalStyle={globalStyle}
+        />
       </div>
       {children}
     </div>

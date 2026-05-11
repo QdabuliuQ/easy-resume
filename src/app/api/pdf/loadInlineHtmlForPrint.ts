@@ -2,11 +2,7 @@ import type { Page } from 'puppeteer';
 
 const FONT_READY_MS = 12_000;
 
-export async function loadInlineHtmlForPrint(page: Page, html: string) {
-  await page.setContent(html, {
-    waitUntil: 'load',
-    timeout: 120_000,
-  });
+async function waitFontsReady(page: Page) {
   await page.evaluate(
     (ms) =>
       Promise.race([
@@ -17,7 +13,28 @@ export async function loadInlineHtmlForPrint(page: Page, html: string) {
   );
 }
 
+/** 先关 JS 注入静态 HTML，再开 JS 等 Web 字体（与 PDF/图片导出一致） */
+export async function loadInlineHtmlForStaticExport(page: Page, html: string) {
+  await page.setJavaScriptEnabled(false);
+  await page.setContent(html, {
+    waitUntil: 'load',
+    timeout: 120_000,
+  });
+  await page.setJavaScriptEnabled(true);
+  await waitFontsReady(page);
+}
+
+export async function loadInlineHtmlForPrint(page: Page, html: string) {
+  await page.setJavaScriptEnabled(true);
+  await page.setContent(html, {
+    waitUntil: 'load',
+    timeout: 120_000,
+  });
+  await waitFontsReady(page);
+}
+
 export async function settleFontsOrTimeout(page: Page) {
+  await page.setJavaScriptEnabled(true);
   await page.evaluate(
     (ms) =>
       Promise.race([

@@ -7,7 +7,7 @@ export default {
   navStart: '立即开始',
   heroBadge: '智能简历编辑',
   heroSub:
-    '模块化编辑与 AI 建议协同，导出 PDF、PNG、JSON。为投递前的紧凑排期而设计：少折腾格式，多把时间花在内容与策略上。',
+    '模块化编辑与 AI 建议协同，导出 PDF、图片(JPEG)、JSON。为投递前的紧凑排期而设计：少折腾格式，多把时间花在内容与策略上。',
   ctaStart: '立即开始',
   ctaFeatures: '了解功能',
   featuresTitle: '为什么选择 EasyResume',
@@ -31,7 +31,7 @@ export default {
     },
     {
       title: '本地优先，数据自控',
-      desc: '内容编辑与预览在本地完成，导出 PDF、PNG 与 JSON，备份与迁移更可控。',
+      desc: '内容编辑与预览在本地完成，导出 PDF、图片(JPEG) 与 JSON，备份与迁移更可控。',
       bullets: ['无需注册即可上手', '多格式导出便于投递'],
     },
   ],
@@ -46,7 +46,7 @@ export default {
     },
     {
       q: '支持哪些导出格式？',
-      a: '支持导出 PDF、PNG 与 JSON，便于投递、预览与版本管理。',
+      a: '支持导出 PDF、图片(JPEG) 与 JSON，便于投递、预览与版本管理。',
     },
     {
       q: '多设备如何同步？',

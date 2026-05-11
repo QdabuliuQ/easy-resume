@@ -12,11 +12,7 @@ export const metadata: Metadata = {
   applicationName: SITE_NAME,
   description: SITE_DESCRIPTION_DEFAULT,
   referrer: 'origin-when-cross-origin',
-  icons: {
-    icon: '/easy-resume/logo.png',
-    shortcut: '/easy-resume/logo.png',
-    apple: '/easy-resume/logo.png',
-  },
+  icons: { icon: '/easy-resume/logo.png', apple: '/easy-resume/logo.png' },
 };
 
 export default function RootLayout({
@@ -28,7 +24,10 @@ export default function RootLayout({
   return (
     <html lang='zh-CN' suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
+        <script
+          key='theme-bootstrap'
+          dangerouslySetInnerHTML={{ __html: themeBootstrap }}
+        />
       </head>
       <body className='min-h-screen bg-background antialiased'>
         <AntdProvider>{children}</AntdProvider>

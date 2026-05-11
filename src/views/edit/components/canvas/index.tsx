@@ -133,7 +133,8 @@ function buildModuleElement(
   gs: any,
   sourceId: string,
   showHeader: boolean,
-  fragmentIndex: number
+  fragmentIndex: number,
+  sectionOrdinal?: number
 ): ReactElement | null {
   if (module.type === 'info1' && showHeader && fragmentIndex === 0) {
     return <Info1 key={sourceId} config={module} globalStyle={gs} />;
@@ -144,7 +145,14 @@ function buildModuleElement(
   return (
     <CanvasModuleFragment
       key={`${sourceId}-${fragmentIndex}-${showHeader ? 'h' : 'c'}`}
-      fragment={{ type: module.type, sourceId, domId: sourceId, showHeader, options: module.options ?? {} }}
+      fragment={{
+        type: module.type,
+        sourceId,
+        domId: sourceId,
+        showHeader,
+        options: module.options ?? {},
+        ...(sectionOrdinal != null && sectionOrdinal > 0 ? { sectionOrdinal } : {}),
+      }}
       globalStyle={gs}
     />
   );
@@ -208,6 +216,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
     const myGen = ++renderGenerationRef.current;
     const gs = mergeGlobalStyle(cfg);
     const ordered = flattenModules(cfg);
+    let shellSectionOrdinal = 0;
 
     // 清理已移除模块的缓存
     const seen = new Set(ordered.map((m: any) => m.id));
@@ -252,7 +261,12 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
       if (!module) continue;
       if (myGen !== renderGenerationRef.current) return;
 
-      const node = buildModuleElement(module, gs, module.id, true, 0);
+      let sectionOrd: number | undefined;
+      if (module.type !== 'info1') {
+        shellSectionOrdinal += 1;
+        sectionOrd = shellSectionOrdinal;
+      }
+      const node = buildModuleElement(module, gs, module.id, true, 0, sectionOrd);
       if (!node) continue;
 
       /**

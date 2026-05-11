@@ -13,6 +13,7 @@ export interface CanvasModuleFragmentConfig {
   domId: string;
   showHeader: boolean;
   options: Record<string, any>;
+  sectionOrdinal?: number;
 }
 
 function normalizeSectionListOptions(
@@ -243,6 +244,7 @@ function CanvasModuleFragment({
       moduleType={frag.type}
       globalStyle={globalStyle}
       showHeader={frag.showHeader}
+      sectionOrdinal={frag.sectionOrdinal}
     >
       {renderFragmentBody(frag, globalStyle)}
     </SectionModuleShell>

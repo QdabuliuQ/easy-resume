@@ -15,6 +15,7 @@ import {
 import AiScore from '../../panel/components/aiScore';
 import GeneralSettings from '../../panel/components/generalSettings';
 import ModuleEdit from '../../panel/components/moduleEdit';
+import PageSettings from '../../panel/components/pageSettings';
 import ResumeTemplate from '../../panel/components/resumeTemplate';
 type ResumeProps = { menuActiveKey: string };
 const GRADIENT_CTA_CLASS =
@@ -45,6 +46,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const isAiScore = menuActiveKey === 'ai-score';
   const isResumeTemplate = menuActiveKey === 'resume-template';
   const isGeneralSettings = menuActiveKey === 'general-settings';
+  const isPageSettings = menuActiveKey === 'page-settings';
   const isResumeEdit = menuActiveKey === 'resume';
   const onStartAnalyze = useCallback(() => {
     if (analyzeLoading) return;
@@ -99,7 +101,9 @@ function Resume({ menuActiveKey }: ResumeProps) {
                       ? 'TEMPLATES'
                       : isGeneralSettings
                         ? 'GLOBAL'
-                        : 'CONFIG'}
+                        : isPageSettings
+                          ? 'PAGE'
+                          : 'CONFIG'}
                 </p>
                 <h2 className='mt-1 text-[17px] font-semibold text-fg/95'>
                   {isAiScore
@@ -108,7 +112,9 @@ function Resume({ menuActiveKey }: ResumeProps) {
                       ? tr('panelTitleTemplate')
                       : isGeneralSettings
                         ? tr('panelTitleGeneral')
-                        : tr('panelTitleDefault')}
+                        : isPageSettings
+                          ? tr('panelTitlePageSettings')
+                          : tr('panelTitleDefault')}
                 </h2>
                 <p className='mt-1 text-[12px] leading-relaxed text-fg/62'>
                   {isAiScore
@@ -117,11 +123,21 @@ function Resume({ menuActiveKey }: ResumeProps) {
                       ? tr('panelDescTemplate')
                       : isGeneralSettings
                         ? tr('panelDescGeneral')
-                        : tr('panelDescDefault')}
+                        : isPageSettings
+                          ? tr('panelDescPageSettings')
+                          : tr('panelDescDefault')}
                 </p>
               </div>
               <div className='shrink-0 rounded-full border border-fg/[0.14] bg-surface/[0.08] px-3 py-1 text-[11px] font-semibold text-fg/68'>
-                {isAiScore ? tr('chipAi') : isResumeTemplate ? tr('chipTemplate') : isGeneralSettings ? tr('chipGeneral') : tr('chipEdit')}
+                {isAiScore
+                  ? tr('chipAi')
+                  : isResumeTemplate
+                    ? tr('chipTemplate')
+                    : isGeneralSettings
+                      ? tr('chipGeneral')
+                      : isPageSettings
+                        ? tr('chipPageSettings')
+                        : tr('chipEdit')}
               </div>
             </div>
           </div>
@@ -135,6 +151,8 @@ function Resume({ menuActiveKey }: ResumeProps) {
             <ResumeTemplate />
           ) : isGeneralSettings ? (
             <GeneralSettings />
+          ) : isPageSettings ? (
+            <PageSettings />
           ) : (
             <ModuleEdit />
           )}

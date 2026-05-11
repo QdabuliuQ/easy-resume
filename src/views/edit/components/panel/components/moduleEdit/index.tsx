@@ -1,5 +1,13 @@
 'use client';
-import { memo, useLayoutEffect, useMemo, useRef, type ComponentType } from 'react';
+import {
+  memo,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+} from 'react';
 import { useTranslations } from 'next-intl';
 import { observer } from 'mobx-react';
 import { configStore, moduleActiveStore } from '@/mobx';
@@ -41,12 +49,24 @@ const panelHasOwnTitle = new Set([
  * 这里需要覆盖 sticky 模块导航本身的高度，否则跳转后模块顶部会被挡住。
  */
 const SCROLL_INTO_VIEW_MARGIN_TOP = 170;
-
+function scrollParentEl(el: HTMLElement | null): Element | null {
+  let p: Element | null = el?.parentElement ?? null;
+  while (p && p !== document.body) {
+    const { overflowY, overflowX } = getComputedStyle(p);
+    if (/(auto|scroll|overlay)/.test(overflowY) || /(auto|scroll|overlay)/.test(overflowX)) {
+      return p;
+    }
+    p = p.parentElement;
+  }
+  return null;
+}
 function ModuleEdit() {
   const tm = useTranslations('Edit.moduleEditPanel');
   const config = configStore.getConfig;
   const activeId = moduleActiveStore.getModuleActive;
   const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const navStickyRef = useRef<HTMLElement | null>(null);
+  const [navStuck, setNavStuck] = useState(false);
 
   const modulesFlat = useMemo(
     () =>
@@ -76,24 +96,44 @@ function ModuleEdit() {
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [activeId]);
 
+  useEffect(() => {
+    const sec = navStickyRef.current;
+    if (!sec) return;
+    const root = scrollParentEl(sec);
+    const tick = () => {
+      const sr = sec.getBoundingClientRect();
+      if (root) {
+        const rr = root.getBoundingClientRect();
+        setNavStuck(sr.top <= rr.top + 0.5);
+      } else {
+        setNavStuck(sr.top <= 0.5);
+      }
+    };
+    const target: Element | Window = root ?? window;
+    target.addEventListener('scroll', tick, { passive: true });
+    tick();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(tick) : null;
+    ro?.observe(sec);
+    if (root) ro?.observe(root);
+    return () => {
+      target.removeEventListener('scroll', tick);
+      ro?.disconnect();
+    };
+  }, [config?.pages?.length, moduleEntries.length]);
+
   if (!config?.pages?.length) {
     return <Global />;
   }
 
   return (
     <div className='flex flex-col gap-5'>
-      <section className='sticky top-0 z-[1] rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.11),rgb(var(--panel-surface-rgb)/0.05))] px-4 py-3 shadow-[var(--panel-shadow-lg)] backdrop-blur-md'>
-        <div className='flex items-start justify-between gap-3'>
-          <div className='min-w-0'>
-            <p className='text-[11px] font-medium tracking-[0.18em] text-fg/62'>{tm('kicker')}</p>
-            <h2 className='mt-1 text-[17px] font-semibold text-fg/95'>{tm('title')}</h2>
-            <p className='mt-1 text-[12px] leading-relaxed text-fg/62'>{tm('subtitle')}</p>
-          </div>
-          <div className='shrink-0 rounded-full border border-fg/[0.14] bg-surface/[0.08] px-3 py-1 text-[11px] font-semibold text-fg/68'>
-            {tm('moduleCount', { n: moduleEntries.length })}
-          </div>
-        </div>
-        <div className='mt-3 flex gap-2 overflow-x-auto pb-1'>
+      <section
+        ref={navStickyRef}
+        className={`sticky top-0 z-[1] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.11),rgb(var(--panel-surface-rgb)/0.05))] px-4 pt-3 shadow-[var(--panel-shadow-lg)] backdrop-blur-md transition-[border-radius] duration-150 ${
+          navStuck ? 'rounded-b-[20px] rounded-t-none' : 'rounded-[20px]'
+        }`}
+      >
+        <div className='flex gap-2 overflow-x-auto pb-3.5'>
           {moduleEntries.map((mod) => {
             const selected = activeId === mod.id;
             return (

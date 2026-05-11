@@ -1,7 +1,7 @@
 export const SITE_NAME = 'EasyResume';
 
 export const SITE_DESCRIPTION_DEFAULT =
-  'AI 辅助的在线简历编辑器：模块化编排、富文本、画布预览，导出 PDF / PNG / JSON，数据可本地备份。';
+  'AI 辅助的在线简历编辑器：模块化编排、富文本、画布预览，导出 PDF / 图片(JPEG) / JSON，数据可本地备份。';
 
 /** 须含部署子路径，如 https://example.com/easy-resume；缺省为本地带 basePath */
 export function getSiteUrl(): URL {

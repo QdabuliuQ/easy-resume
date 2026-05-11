@@ -27,6 +27,7 @@ import { createPortal } from 'react-dom';
 function renderPageModules(modules: unknown[], gs: GlobalStyle): ReactNode[] {
   const mm = Number(gs.moduleMargin) || 15;
   const out: ReactNode[] = [];
+  let shellOrd = 0;
   modules.forEach((raw, i) => {
     const m = raw as { type?: string; id?: string; options?: Record<string, unknown> };
     if (!m?.type) return;
@@ -35,6 +36,7 @@ function renderPageModules(modules: unknown[], gs: GlobalStyle): ReactNode[] {
       out.push(<Info1 key={String(m.id ?? `info-${i}`)} config={m as never} globalStyle={gs} />);
       return;
     }
+    shellOrd += 1;
     out.push(
       <CanvasModuleFragment
         key={String(m.id ?? `${m.type}-${i}`)}
@@ -44,6 +46,7 @@ function renderPageModules(modules: unknown[], gs: GlobalStyle): ReactNode[] {
           domId: String(m.id ?? i),
           showHeader: true,
           options: (m.options ?? {}) as Record<string, unknown>,
+          sectionOrdinal: shellOrd,
         }}
         globalStyle={gs}
       />

@@ -31,6 +31,7 @@ export interface InfoProps {
     avatar: string; // 头像
     expectedSalary: Array<string>; // 期望薪资
     layout: Array<Array<string>>; // 布局
+    position?: 'left' | 'right' | 'center';
   };
 }
 
@@ -44,7 +45,8 @@ function Info1(props: Props) {
     return null;
   }
   const { id } = props.config;
-  const { name, layout, avatar } = props.config.options;
+  const { name, layout, avatar, position: positionOpt } = props.config.options;
+  const position = positionOpt ?? 'right';
   const { fontSize, lineHeight } = props.globalStyle;
   const avatarSrc = typeof avatar === 'string' ? avatar.trim() : '';
   const showAvatar = !!avatarSrc && avatarSrc !== 'avatar';
@@ -62,21 +64,16 @@ function Info1(props: Props) {
           continue;
         }
         if (key === 'expectedSalary') {
+          const sal = props.config.options.expectedSalary;
+          const a = sal?.[0] ?? '';
+          const b = sal?.[1] ?? '';
           rowElements.push(
             <span
-              key={
-                ((props.config.options[
-                  key as keyof InfoProps['options']
-                ][0] as string) +
-                  props.config.options[
-                    key as keyof InfoProps['options']
-                  ][1]) as string
-              }
+              key={`${String(a)}-${String(b)}`}
               className='text-[#333]'
               style={{ fontSize, lineHeight }}
             >
-              {props.config.options[key as keyof InfoProps['options']][0]} -{' '}
-              {props.config.options[key as keyof InfoProps['options']][1]}
+              {a} - {b}
             </span>
           );
         } else if (props.config.options[key as keyof InfoProps['options']]) {
@@ -109,35 +106,69 @@ function Info1(props: Props) {
           );
         }
       }
+      const rowCls =
+        position === 'center'
+          ? 'flex items-center flex-wrap justify-center not-last:mb-[5px]'
+          : position === 'left'
+            ? 'flex items-center flex-wrap justify-end not-last:mb-[5px]'
+            : 'flex items-center flex-wrap not-last:mb-[5px]';
       elements.push(
-        <div key={i} className='flex items-center flex-wrap not-last:mb-[5px]'>
+        <div key={i} className={rowCls}>
           {rowElements}
         </div>
       );
     }
     setItemLayout(elements);
-  }, [layout, props]);
+  }, [layout, position, props]);
 
-  return (
+  const avatarBlock = showAvatar ? (
+    <div className='w-[90px] min-w-[90px] max-w-[90px] shrink-0'>
+      <img className='aspect-5/7 w-full object-cover' src={avatarSrc} alt='avatar' />
+    </div>
+  ) : null;
+  const textBlock = (
     <div
-      id={id}
-      {...{ [RESUME_MODULE_ID_ATTR]: id }}
-      className={`flex w-full cursor-pointer items-center ${showAvatar ? 'justify-between gap-3' : ''}`}
+      className={
+        position === 'center'
+          ? 'w-full text-center'
+          : position === 'left'
+            ? `${showAvatar ? 'min-w-0 flex-1' : 'w-full'} text-right`
+            : showAvatar
+              ? 'min-w-0 flex-1'
+              : 'w-full'
+      }
     >
-      <div className={showAvatar ? 'min-w-0 flex-1' : 'w-full'}>
-        <div
-          className='mb-[10px] font-bold text-[#333] leading-none'
-          style={{ fontSize: fontSize * 1.7 }}
-        >
-          {name}
-        </div>
-        <div className='w-full'>{itemLayout}</div>
+      <div
+        className={`mb-[10px] font-bold text-[#333] leading-none ${position === 'center' ? 'text-center' : ''} ${position === 'left' ? 'text-right' : ''}`}
+        style={{ fontSize: fontSize * 1.7 }}
+      >
+        {name}
       </div>
-      {showAvatar ? (
-        <div className='w-[90px] min-w-[90px] max-w-[90px] shrink-0'>
-          <img className='aspect-5/7 w-full object-cover' src={avatarSrc} alt='avatar' />
-        </div>
-      ) : null}
+      <div className='w-full'>{itemLayout}</div>
+    </div>
+  );
+  const rootCls =
+    position === 'center' && showAvatar
+      ? 'flex w-full cursor-pointer flex-col items-center gap-3'
+      : `flex w-full cursor-pointer items-center ${showAvatar ? 'gap-3' : ''} ${showAvatar && (position === 'right' || position === 'left') ? 'justify-between' : ''}`;
+  return (
+    <div id={id} {...{ [RESUME_MODULE_ID_ATTR]: id }} className={rootCls}>
+      {position === 'center' && showAvatar ? (
+        <>
+          {avatarBlock}
+          {textBlock}
+        </>
+      ) : position === 'left' && showAvatar ? (
+        <>
+          {avatarBlock}
+          {textBlock}
+        </>
+      ) : (
+        <>
+          {textBlock}
+          {showAvatar ? avatarBlock : null}
+        </>
+      )}
     </div>
   );
 }

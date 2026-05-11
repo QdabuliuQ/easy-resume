@@ -9,6 +9,7 @@ const PANEL_MENU_KEYS = [
   RESUME_MENU_KEY,
   AI_SCORE_MENU_KEY,
   RESUME_TEMPLATE_MENU_KEY,
+  'page-settings',
   GENERAL_SETTINGS_MENU_KEY,
 ] as const;
 

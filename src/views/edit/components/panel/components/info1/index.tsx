@@ -33,6 +33,7 @@ import InfoLayout from '@/components/infoLayout';
 import PanelToolbar from '../panelToolbar';
 import { useTranslations } from 'next-intl';
 import {
+  AlignLeft,
   AutoHeightOne,
   Avatar,
   BirthdayCake,
@@ -57,6 +58,11 @@ import {
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
 const SKIP_LAYOUT_KEYS = new Set(['avatar', 'name', 'layout']);
+const POSITION_OPTS = [
+  { value: 'left', labelKey: 'positionLeft' as const },
+  { value: 'right', labelKey: 'positionRight' as const },
+  { value: 'center', labelKey: 'positionCenter' as const },
+];
 
 function formatPreviewValue(key: string, opt: Record<string, unknown>): string {
   const v = opt[key];
@@ -432,6 +438,34 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
             ：{ti('hintBody')}
           </p>
           <Form form={form} variant='filled' layout='vertical'>
+            <Row gutter={15} className='mb-1'>
+              <Col span={24}>
+                <Form.Item
+                  label={
+                    <div className='flex items-center text-fg/85 text-[12px]'>
+                      <span className='inline-block mr-[7px]'>
+                        <AlignLeft theme='outline' size='15' fill={FORM_ICON_FILL} />
+                      </span>
+                      {ti('positionLabel')}
+                    </div>
+                  }
+                >
+                  <Select
+                    value={(option.position as string) ?? 'right'}
+                    options={POSITION_OPTS.map((o) => ({
+                      value: o.value,
+                      label: ti(o.labelKey),
+                    }))}
+                    onChange={(value) =>
+                      configStore.setConfigOption(mid, {
+                        ...configStore.getConfigOption(mid),
+                        position: value,
+                      })
+                    }
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
             <Row gutter={15}>
               {formLayout.map((item) => (
                 <Col key={item.key} span={item.span}>

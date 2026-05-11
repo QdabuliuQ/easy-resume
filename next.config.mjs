@@ -13,7 +13,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   experimental: {
-    serverComponentsExternalPackages: ["puppeteer"],
+    serverComponentsExternalPackages: ['puppeteer'],
   },
   images: {
     formats: ["image/avif", "image/webp"],
