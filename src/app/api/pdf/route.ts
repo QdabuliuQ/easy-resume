@@ -1,6 +1,6 @@
 import defaultResume from '@/json/resume.json';
 import type { GlobalStyle } from '@/modules/utils/common.type';
-import { getSharedBrowser } from '@/lib/puppeteerSharedBrowser';
+import { getSharedBrowser, withPuppeteerSession } from '@/lib/puppeteerSharedBrowser';
 import { loadInlineHtmlForStaticExport, settleFontsOrTimeout } from './loadInlineHtmlForPrint';
 import { mergeResumeConfig } from './mergeResumeConfig';
 import { renderResumeDocumentHtml } from './renderResumeHtml';
@@ -21,47 +21,49 @@ async function generatePdfFromPage(
   pageUrl: string | null,
   printMeta?: PrintMeta | null
 ) {
-  const browser = await getSharedBrowser();
-  const page = await browser.newPage();
-  try {
-    if (printMeta?.paperWidth && printMeta?.paperHeight) {
-      const pageWPx = cssLengthToApproxPx(printMeta.paperWidth);
-      const pageHPx = cssLengthToApproxPx(printMeta.paperHeight);
-      const vw = Math.min(2400, Math.ceil(pageWPx));
-      const vh = Math.min(
-        16384,
-        Math.ceil(printMeta.pageCount * pageHPx)
-      );
-      await page.setViewport({
-        width: vw,
-        height: Math.max(vh, Math.ceil(pageHPx)),
-        deviceScaleFactor: 1,
+  return withPuppeteerSession(async () => {
+    const browser = await getSharedBrowser();
+    const page = await browser.newPage();
+    try {
+      if (printMeta?.paperWidth && printMeta?.paperHeight) {
+        const pageWPx = cssLengthToApproxPx(printMeta.paperWidth);
+        const pageHPx = cssLengthToApproxPx(printMeta.paperHeight);
+        const vw = Math.min(2400, Math.ceil(pageWPx));
+        const vh = Math.min(
+          16384,
+          Math.ceil(printMeta.pageCount * pageHPx)
+        );
+        await page.setViewport({
+          width: vw,
+          height: Math.max(vh, Math.ceil(pageHPx)),
+          deviceScaleFactor: 1,
+        });
+      }
+      if (pageHtml) {
+        await loadInlineHtmlForStaticExport(page, pageHtml);
+      } else if (pageUrl) {
+        await page.setJavaScriptEnabled(true);
+        await page.goto(pageUrl, { waitUntil: 'load', timeout: 120000 });
+        await settleFontsOrTimeout(page);
+      } else {
+        throw new Error('缺少 html 或 url');
+      }
+      const defDim = globalStylePageDimensions(defaultResume.globalStyle);
+      const paperW = printMeta?.paperWidth || defDim.width;
+      const paperH = printMeta?.paperHeight || defDim.height;
+      return await page.pdf({
+        printBackground: true,
+        margin: { top: '0', right: '0', bottom: '0', left: '0' },
+        width: paperW,
+        height: paperH,
+        preferCSSPageSize: false,
+        displayHeaderFooter: false,
+        scale: 1,
       });
+    } finally {
+      await page.close().catch(() => {});
     }
-    if (pageHtml) {
-      await loadInlineHtmlForStaticExport(page, pageHtml);
-    } else if (pageUrl) {
-      await page.setJavaScriptEnabled(true);
-      await page.goto(pageUrl, { waitUntil: 'load', timeout: 120000 });
-      await settleFontsOrTimeout(page);
-    } else {
-      throw new Error('缺少 html 或 url');
-    }
-    const defDim = globalStylePageDimensions(defaultResume.globalStyle);
-    const paperW = printMeta?.paperWidth || defDim.width;
-    const paperH = printMeta?.paperHeight || defDim.height;
-    return await page.pdf({
-      printBackground: true,
-      margin: { top: '0', right: '0', bottom: '0', left: '0' },
-      width: paperW,
-      height: paperH,
-      preferCSSPageSize: false,
-      displayHeaderFooter: false,
-      scale: 1,
-    });
-  } finally {
-    await page.close().catch(() => {});
-  }
+  });
 }
 
 function safeFilename(name: string) {

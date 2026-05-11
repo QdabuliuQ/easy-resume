@@ -1,6 +1,6 @@
 import defaultResume from '@/json/resume.json';
 import type { GlobalStyle } from '@/modules/utils/common.type';
-import { getSharedBrowser } from '@/lib/puppeteerSharedBrowser';
+import { getSharedBrowser, withPuppeteerSession } from '@/lib/puppeteerSharedBrowser';
 import {
   loadInlineHtmlForStaticExport,
   settleFontsOrTimeout,
@@ -24,40 +24,42 @@ async function generateJpegFromPage(
   pageUrl: string | null,
   printMeta?: PrintMeta | null
 ) {
-  const browser = await getSharedBrowser();
-  const page = await browser.newPage();
-  try {
-    const pageWPx = printMeta?.paperWidth
-      ? cssLengthToApproxPx(printMeta.paperWidth)
-      : cssLengthToApproxPx(globalStylePageDimensions(defaultResume.globalStyle).width);
-    const vw = Math.min(2400, Math.ceil(pageWPx));
-    await page.setViewport({
-      width: vw,
-      height: 1200,
-      deviceScaleFactor: 2,
-    });
-    if (pageHtml) {
-      await loadInlineHtmlForStaticExport(page, pageHtml);
-    } else if (pageUrl) {
-      await page.setJavaScriptEnabled(true);
-      await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
-      await settleFontsOrTimeout(page);
-    } else {
-      throw new Error('缺少 html 或 url');
+  return withPuppeteerSession(async () => {
+    const browser = await getSharedBrowser();
+    const page = await browser.newPage();
+    try {
+      const pageWPx = printMeta?.paperWidth
+        ? cssLengthToApproxPx(printMeta.paperWidth)
+        : cssLengthToApproxPx(globalStylePageDimensions(defaultResume.globalStyle).width);
+      const vw = Math.min(2400, Math.ceil(pageWPx));
+      await page.setViewport({
+        width: vw,
+        height: 1200,
+        deviceScaleFactor: 2,
+      });
+      if (pageHtml) {
+        await loadInlineHtmlForStaticExport(page, pageHtml);
+      } else if (pageUrl) {
+        await page.setJavaScriptEnabled(true);
+        await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
+        await settleFontsOrTimeout(page);
+      } else {
+        throw new Error('缺少 html 或 url');
+      }
+      const shotOpts = {
+        type: 'jpeg' as const,
+        quality: JPEG_QUALITY,
+        omitBackground: false,
+      };
+      const root = await page.$('.png-page');
+      const buf = root
+        ? await root.screenshot(shotOpts)
+        : await page.screenshot({ ...shotOpts, fullPage: true });
+      return Buffer.isBuffer(buf) ? buf : Buffer.from(buf as Uint8Array);
+    } finally {
+      await page.close().catch(() => {});
     }
-    const shotOpts = {
-      type: 'jpeg' as const,
-      quality: JPEG_QUALITY,
-      omitBackground: false,
-    };
-    const root = await page.$('.png-page');
-    const buf = root
-      ? await root.screenshot(shotOpts)
-      : await page.screenshot({ ...shotOpts, fullPage: true });
-    return Buffer.isBuffer(buf) ? buf : Buffer.from(buf as Uint8Array);
-  } finally {
-    await page.close().catch(() => {});
-  }
+  });
 }
 
 function safeFilename(name: string) {

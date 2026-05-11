@@ -11,8 +11,6 @@ export function getPuppeteerLaunchOptions(): LaunchOptions {
       '--disable-dev-shm-usage',
       '--disable-gpu',
       '--no-first-run',
-      '--no-zygote',
-      '--single-process',
     ],
   };
   if (process.env.NODE_ENV === 'production') {
