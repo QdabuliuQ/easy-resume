@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "right",
               "name": "林婷",
               "phone": "13545678901",
               "email": "linting_hr@163.com",
@@ -70,8 +71,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "right"
+              ]
             }
           },
           {

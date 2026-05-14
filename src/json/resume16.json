@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "left",
               "name": "张伟",
               "phone": "13844556677",
               "email": "zhangwei_purchase@163.com",
@@ -70,8 +71,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "left"
+              ]
             }
           },
           {

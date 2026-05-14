@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "right",
               "name": "周雨",
               "phone": "13678901234",
               "email": "zhouyu_ui@163.com",
@@ -71,8 +72,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "right"
+              ]
             }
           },
           {

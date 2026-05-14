@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "center",
               "name": "陈峰",
               "phone": "13512345678",
               "email": "chenfeng@163.com",
@@ -58,8 +59,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "center"
+              ]
             }
           },
           {

@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "right",
               "name": "陈浩",
               "phone": "13765432109",
               "email": "chenhao_teacher@163.com",
@@ -70,8 +71,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "right"
+              ]
             }
           },
           {

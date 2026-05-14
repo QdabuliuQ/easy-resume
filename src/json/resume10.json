@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "left",
               "name": "王俊",
               "phone": "13912345678",
               "email": "wangjun_sale@163.com",
@@ -70,8 +71,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "left"
+              ]
             }
           },
           {

@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "right",
               "name": "赵凯",
               "phone": "13788669922",
               "email": "zhaokai_test@163.com",
@@ -71,8 +72,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "right"
+              ]
             }
           },
           {

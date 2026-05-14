@@ -18,6 +18,7 @@
           "type": "info1",
           "id": "1",
           "options": {
+            "position": "left",
             "name": "王浩",
             "phone": "13511223344",
             "email": "wanghao_dev@163.com",
@@ -60,8 +61,7 @@
                 "intentPosts",
                 "expectedSalary"
               ]
-            ],
-            "position": "left"
+            ]
           }
         },
         {

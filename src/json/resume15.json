@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "center",
               "name": "何琳",
               "phone": "13699887766",
               "email": "helin_design@163.com",
@@ -71,8 +72,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "center"
+              ]
             }
           },
           {

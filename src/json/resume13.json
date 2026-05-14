@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "right",
               "name": "林强",
               "phone": "13566778899",
               "email": "linqiang_ops@163.com",
@@ -71,8 +72,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "right"
+              ]
             }
           },
           {

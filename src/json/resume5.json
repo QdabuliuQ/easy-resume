@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "center",
               "name": "黄丽",
               "phone": "13644556677",
               "email": "huangli@163.com",
@@ -57,8 +58,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "center"
+              ]
             }
           },
           {

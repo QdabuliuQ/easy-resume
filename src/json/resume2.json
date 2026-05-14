@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "center",
               "name": "刘健",
               "phone": "13812349876",
               "email": "liujian@163.com",
@@ -58,8 +59,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "center"
+              ]
             }
           },
           {

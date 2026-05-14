@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "left",
               "name": "苏子轩",
               "phone": "13652897410",
               "email": "suzixuan_pm@163.com",
@@ -71,8 +72,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "left"
+              ]
             }
           },
           {

@@ -20,6 +20,7 @@
             "type": "info1",
             "id": "1",
             "options": {
+              "position": "left",
               "name": "吴佳",
               "phone": "13898765432",
               "email": "wujia_nurse@163.com",
@@ -70,8 +71,7 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ],
-              "position": "left"
+              ]
             }
           },
           {
