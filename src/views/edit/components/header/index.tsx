@@ -7,7 +7,7 @@ import { Button, Input, message } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
 import { FilePdf, DownPicture, FileCode } from '@icon-park/react';
 import { configStore } from '@/mobx';
-import defaultResume from '@/json/resume.json';
+import defaultResume from '@/json/resume.defaults';
 import { withBasePath } from '@/lib/withBasePath';
 function Header() {
   const t = useTranslations('Edit.header');

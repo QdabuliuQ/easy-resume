@@ -1,4 +1,5 @@
-import defaultResume from '@/json/resume.json';
+import defaultResume from '@/json/resume.defaults';
+import { resolveResumeAvatarRefsDeep } from '@/lib/resumeAvatarRef';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { normResumeFont } from '@/lib/resumeFont';
 import type { GlobalStyle } from '@/modules/utils/common.type';
@@ -32,5 +33,5 @@ export function mergeResumeConfig(user: unknown) {
       u.exportPages
     );
   }
-  return base;
+  return resolveResumeAvatarRefsDeep(base);
 }

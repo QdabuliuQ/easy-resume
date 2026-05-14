@@ -1,5 +1,6 @@
 import { makeAutoObservable } from 'mobx';
-import defaultResume from '@/json/resume.json';
+import defaultResume from '@/json/resume.defaults';
+import { resolveResumeAvatarRefsDeep } from '@/lib/resumeAvatarRef';
 import { scheduleResumeConfigBackup } from '@/lib/resumeConfigBackup';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import type { GlobalStyle } from '@/modules/utils/common.type';
@@ -32,7 +33,7 @@ export default class ConfigStore {
         v.globalStyle
       );
     }
-    this.config = v;
+    this.config = resolveResumeAvatarRefsDeep(v);
     if (typeof window !== 'undefined') scheduleResumeConfigBackup(v);
   }
 

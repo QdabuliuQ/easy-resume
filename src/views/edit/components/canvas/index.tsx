@@ -23,7 +23,7 @@ import { usePathname, useRouter } from '@/i18n/navigation';
 import { NextIntlClientProvider, useLocale, useMessages, useTranslations } from 'next-intl';
 import { Tooltip } from 'antd';
 import { createPortal } from 'react-dom';
-import resume from '@/json/resume.json';
+import resume from '@/json/resume.defaults';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';

@@ -1,6 +1,6 @@
 'use client';
 
-import defaultResume from '@/json/resume.json';
+import defaultResume from '@/json/resume.defaults';
 import { resumeTemplates, type ResumeTemplateItem } from '@/json/resumeTemplates';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';

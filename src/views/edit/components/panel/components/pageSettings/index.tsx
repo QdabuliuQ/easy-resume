@@ -5,7 +5,7 @@ import { memo, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { Form, Popover, Select } from 'antd';
 import { configStore } from '@/mobx';
-import defaultResume from '@/json/resume.json';
+import defaultResume from '@/json/resume.defaults';
 import SectionHeader from '@/modules/header/sectionHeader';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import ModuleManage from '@/views/edit/components/header/moduleManage';

@@ -4,7 +4,7 @@ import { Modal, message } from 'antd';
 import { useMemoizedFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
 import { memo, useMemo, type ReactNode } from 'react';
-import defaultResume from '@/json/resume.json';
+import defaultResume from '@/json/resume.defaults';
 import { resumeTemplates, type ResumeTemplateItem } from '@/json/resumeTemplates';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';

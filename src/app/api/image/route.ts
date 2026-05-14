@@ -1,4 +1,4 @@
-import defaultResume from '@/json/resume.json';
+import defaultResume from '@/json/resume.defaults';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { getSharedBrowser, withPuppeteerSession } from '@/lib/puppeteerSharedBrowser';
 import {
