@@ -571,7 +571,7 @@ export default function Home() {
                         router.replace(pathname, { locale: 'zh' });
                         setLangOpen(false);
                       }}
-                      className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${locale === 'zh'
+                      className={`cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition-colors ${locale === 'zh'
                         ? 'bg-fg/10 font-medium text-fg/90'
                         : 'text-fg/65 hover:bg-fg/[0.06]'
                         }`}
@@ -584,7 +584,7 @@ export default function Home() {
                         router.replace(pathname, { locale: 'en' });
                         setLangOpen(false);
                       }}
-                      className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${locale === 'en'
+                      className={`cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition-colors ${locale === 'en'
                         ? 'bg-fg/10 font-medium text-fg/90'
                         : 'text-fg/65 hover:bg-fg/[0.06]'
                         }`}

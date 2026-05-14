@@ -700,7 +700,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
                   setAppTheme('light');
                   setThemePopoverOpen(false);
                 }}
-                className={`w-full rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
+                className={`w-full cursor-pointer rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
                   themePref === 'light' ? 'bg-fg/12 text-fg' : 'text-fg/85 hover:bg-fg/[0.08]'
                 }`}
               >
@@ -712,7 +712,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
                   setAppTheme('dark');
                   setThemePopoverOpen(false);
                 }}
-                className={`w-full rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
+                className={`w-full cursor-pointer rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
                   themePref === 'dark' ? 'bg-fg/12 text-fg' : 'text-fg/85 hover:bg-fg/[0.08]'
                 }`}
               >
@@ -724,7 +724,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
                   setAppTheme('system');
                   setThemePopoverOpen(false);
                 }}
-                className={`w-full rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
+                className={`w-full cursor-pointer rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
                   themePref === 'system' ? 'bg-fg/12 text-fg' : 'text-fg/85 hover:bg-fg/[0.08]'
                 }`}
               >

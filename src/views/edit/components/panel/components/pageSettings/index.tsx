@@ -279,7 +279,7 @@ function PageSettings() {
           title={t('moduleTitlePreview')}
           globalStyle={headerPreviewGlobal(n, mergedGs)}
         >
-          <div className='min-h-6 rounded-sm border border-zinc-200' />
+          <div className='min-h-6' />
         </SectionHeaderType11TimelineLayout>
       ) : (
         <SectionHeader
@@ -410,7 +410,7 @@ function PageSettings() {
                           setPickerDraft(c);
                           setGlobalThemeColor(c);
                         }}
-                        className={`size-7 shrink-0 rounded-md border-2 transition-transform hover:scale-110 ${
+                        className={`size-7 shrink-0 cursor-pointer rounded-md border-2 transition-transform hover:scale-110 ${
                           normHex(c) === normHex(themeColor)
                             ? 'border-fg ring-2 ring-fg/35'
                             : 'border-fg/25'
@@ -484,7 +484,7 @@ function PageSettings() {
                           setBgPickerDraft(c);
                           setGlobalBackgroundColor(c);
                         }}
-                        className={`size-7 shrink-0 rounded-md border-2 transition-transform hover:scale-110 ${
+                        className={`size-7 shrink-0 cursor-pointer rounded-md border-2 transition-transform hover:scale-110 ${
                           normHex(c) === normHex(pageBgColor)
                             ? 'border-fg ring-2 ring-fg/35'
                             : 'border-fg/25'
