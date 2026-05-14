@@ -15,10 +15,10 @@ const flushWrapClass =
 const flushClusterClass = 'flex items-center gap-2';
 
 const flushBtnClass =
-  'inline-flex h-9 min-w-9 shrink-0 cursor-pointer items-center justify-center rounded-[12px] border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06),rgb(var(--panel-surface-rgb)/0.025))] px-2 text-fg/78 outline-none shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04)] transition-[transform,border-color,background-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:color-mix(in_srgb,var(--color-primary)_36%,rgb(var(--panel-surface-rgb)/0.12))] hover:bg-[color:color-mix(in_srgb,var(--color-primary)_14%,rgb(var(--panel-surface-rgb)/0.03))] hover:text-fg hover:shadow-[var(--panel-shadow-hover-btn)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-45 [&_svg]:block';
+  'inline-flex h-9 min-w-9 shrink-0 cursor-pointer items-center justify-center rounded-[12px] border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06),rgb(var(--panel-surface-rgb)/0.025))] px-2 text-fg/78 outline-none shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04)] transition-[transform,border-color,background-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:color-mix(in_srgb,var(--color-primary)_36%,rgb(var(--panel-surface-rgb)/0.12))] hover:bg-[color:color-mix(in_srgb,var(--color-primary)_14%,rgb(var(--panel-surface-rgb)/0.03))] hover:text-[var(--color-primary)] hover:shadow-[var(--panel-shadow-hover-btn)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-45 [&_svg]:block';
 
 const flushDeleteBtnClass =
-  'inline-flex h-9 min-w-9 shrink-0 cursor-pointer items-center justify-center rounded-[12px] border border-[color:color-mix(in_srgb,var(--color-primary)_20%,transparent)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-primary)_12%,transparent),color-mix(in_srgb,var(--color-primary)_6%,transparent))] px-2 text-[color:color-mix(in_srgb,var(--color-primary)_30%,white)] outline-none shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04)] transition-[transform,border-color,background-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:color-mix(in_srgb,var(--color-primary)_40%,transparent)] hover:bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-primary)_18%,transparent),color-mix(in_srgb,var(--color-primary)_10%,transparent))] hover:text-fg hover:shadow-[var(--panel-shadow-primary-glow)] active:translate-y-0 [&_svg]:block';
+  'inline-flex h-9 min-w-9 shrink-0 cursor-pointer items-center justify-center rounded-[12px] border border-[color:color-mix(in_srgb,var(--color-primary)_20%,transparent)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-primary)_12%,transparent),color-mix(in_srgb,var(--color-primary)_6%,transparent))] px-2 text-[color:color-mix(in_srgb,var(--color-primary)_30%,white)] outline-none shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04)] transition-[transform,border-color,background-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:color-mix(in_srgb,var(--color-primary)_40%,transparent)] hover:bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-primary)_18%,transparent),color-mix(in_srgb,var(--color-primary)_10%,transparent))] hover:text-[#f87171] hover:shadow-[var(--panel-shadow-primary-glow)] active:translate-y-0 [&_svg]:block';
 
 function ButtonGroup(props: {
   showUp: boolean;
@@ -105,14 +105,14 @@ function ButtonGroup(props: {
           <Tooltip placement='top' title={tb('moveUp')}>
             <button
               type='button'
-              className={circleGradient}
+              className={`${circleGradient} text-[var(--panel-icon-on-accent)] hover:text-[var(--color-primary)]`}
               onClick={props.handleUp}
               aria-label={tb('moveUp')}
             >
               <ArrowCircleUp
                 theme='outline'
                 size='15'
-                fill='var(--panel-icon-on-accent)'
+                fill='currentColor'
               />
             </button>
           </Tooltip>
@@ -121,14 +121,14 @@ function ButtonGroup(props: {
           <Tooltip placement='top' title={tb('moveDown')}>
             <button
               type='button'
-              className={circleGradient}
+              className={`${circleGradient} text-[var(--panel-icon-on-accent)] hover:text-[var(--color-primary)]`}
               onClick={props.handleDown}
               aria-label={tb('moveDown')}
             >
               <ArrowCircleDown
                 theme='outline'
                 size='15'
-                fill='var(--panel-icon-on-accent)'
+                fill='currentColor'
               />
             </button>
           </Tooltip>
@@ -142,15 +142,14 @@ function ButtonGroup(props: {
           <button
             type='button'
             disabled={props.copyDisabled}
-            className={`${circleBtn} bg-[var(--panel-btn-success-bg)] text-[var(--panel-icon-on-accent)] disabled:cursor-not-allowed disabled:opacity-45`}
+            className={`${circleBtn} bg-[var(--panel-btn-success-bg)] text-[var(--panel-icon-on-accent)] hover:text-[var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-45`}
             onClick={props.handleCopy}
             aria-label={tb('copy')}
           >
             <Copy
               theme='outline'
               size='15'
-              fill='var(--panel-icon-on-accent)'
-              
+              fill='currentColor'
             />
           </button>
         </Tooltip>
@@ -158,7 +157,7 @@ function ButtonGroup(props: {
       <Tooltip placement='top' title={tb('delete')}>
         <button
           type='button'
-          className={`${circleBtn} bg-[var(--panel-btn-danger-bg)] text-[var(--panel-icon-on-accent)]`}
+          className={`${circleBtn} bg-[var(--panel-btn-danger-bg)] text-[var(--panel-icon-on-accent)] hover:text-[#f87171]`}
           aria-label={tb('delete')}
           onClick={() => {
             Modal.confirm({
@@ -175,8 +174,7 @@ function ButtonGroup(props: {
           <Delete
             theme='outline'
             size='15'
-            fill='var(--panel-icon-on-accent)'
-            
+            fill='currentColor'
           />
         </button>
       </Tooltip>

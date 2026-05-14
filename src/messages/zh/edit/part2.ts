@@ -19,6 +19,7 @@ export default {
     style8: '样式8 · 图标 + 文本标题',
     style9: '样式9 · 双横线夹标题',
     style10: '样式10 · 序号/ + 标题 + 底部长线',
+    style11: '样式11 · 圆点 + 标题 + 左侧时间线',
     moduleArrange: '模块排列',
     tipTitle: '提示',
     tipDeleteContent: '确定要删除吗？',
@@ -174,6 +175,7 @@ export default {
     positionLeft: '左对齐',
     positionRight: '右对齐',
     positionCenter: '居中',
+    showTitleLabel: '行内显示字段标题',
     fields: {
       name: '姓名',
       phone: '手机号',

@@ -1,10 +1,11 @@
 import type { GlobalStyle } from '@/modules/utils/common.type';
+import { header11DotPx, header11TitleRowMinHeightPx } from './header11Layout';
 
 /** 与 {@link normHeaderType}（sectionHeader.tsx）一致，供 PDF/PNG 服务端渲染 */
 export function normHeaderTypeHtml(gs: GlobalStyle): number {
   const n = Number(gs.headerType);
   if (!Number.isFinite(n) || n < 1) return 1;
-  return Math.min(10, Math.floor(n));
+  return Math.min(11, Math.floor(n));
 }
 
 function moduleIconSvg(moduleType?: string): string {
@@ -126,6 +127,9 @@ ${prefixHtml}
 <div style="flex:1;min-width:0;height:1px;background:${c};"></div>
 </div>`;
   }
+  if (t === 11) {
+    return `<span style="display:block;font-weight:bold;font-size:${fs}px;color:${c};line-height:1;word-wrap:break-word;overflow-wrap:break-word;">${escT}</span>`;
+  }
   if (t === 8) {
     return `<div style="width:100%;display:flex;align-items:center;gap:8px;padding:4px 0;">
 <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;border-radius:999px;background:${c};color:#fff;line-height:1;">${moduleIconSvg(moduleType)}</span>
@@ -151,6 +155,26 @@ export function wrapSectionModuleHtml(
   if (t === 7) {
     const head = sectionHeaderHtml(title, gs, moduleType, sectionOrdinal);
     return `<div style="width:100%;display:grid;grid-template-columns:5rem minmax(0,1fr);align-items:stretch;column-gap:10px;">${head}<div style="min-width:0;overflow:hidden;box-sizing:border-box;border:1px solid #e4e4e7;background:#fafafa;border-radius:2px;padding:8px 12px;">${bodyHtml}</div></div>`;
+  }
+  if (t === 11) {
+    const c = escapeHtml(gs.color);
+    const fsRaw = Number(gs.fontSize);
+    const fsPx = Number.isFinite(fsRaw) && fsRaw > 0 ? fsRaw : 13;
+    const dot = header11DotPx(fsPx);
+    const titleRowMin = header11TitleRowMinHeightPx(fsPx);
+    const head = sectionHeaderHtml(title, gs, moduleType, sectionOrdinal);
+    return `<div style="width:100%;min-width:0;display:flex;gap:12px;align-items:stretch;box-sizing:border-box;">
+<div style="width:18px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;">
+<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:${titleRowMin}px;width:100%;box-sizing:border-box;">
+<span aria-hidden="true" style="display:block;width:${dot}px;height:${dot}px;border-radius:9999px;background:${c};flex-shrink:0;"></span>
+</div>
+<div style="width:1px;flex:1;min-height:8px;background:${c};box-sizing:border-box;"></div>
+</div>
+<div style="min-width:0;flex:1;display:flex;flex-direction:column;box-sizing:border-box;">
+<div style="flex-shrink:0;margin-bottom:4px;display:flex;align-items:center;min-height:${titleRowMin}px;box-sizing:border-box;">${head}</div>
+<div style="min-width:0;box-sizing:border-box;">${bodyHtml}</div>
+</div>
+</div>`;
   }
   return `<div style="width:100%;">${sectionHeaderHtml(title, gs, moduleType, sectionOrdinal)}<div style="margin-top:5px;">${bodyHtml}</div></div>`;
 }

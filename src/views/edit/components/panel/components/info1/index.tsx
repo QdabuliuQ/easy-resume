@@ -11,6 +11,7 @@ import {
   message,
   Row,
   Select,
+  Switch,
   Upload,
 } from 'antd';
 import {
@@ -349,17 +350,22 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
     if (!option) return null;
     const layout = option.layout as string[][] | undefined;
     if (!layout?.length) return null;
+    const st = option.showTitle === true;
+    const colon = '：';
     const rows: string[] = [];
     for (const rowKeys of layout) {
       const parts = rowKeys
         .filter((k) => !SKIP_LAYOUT_KEYS.has(k))
-        .map((k) => formatPreviewValue(k, option as Record<string, unknown>));
+        .map((k) => {
+          const v = formatPreviewValue(k, option as Record<string, unknown>);
+          return st ? `${ti(`fields.${k}` as never)}${colon}${v}` : v;
+        });
       if (parts.length) {
         rows.push(parts.join(' | '));
       }
     }
     return rows.length ? rows : null;
-  }, [option]);
+  }, [option, ti]);
 
   return (
     <div className='[&_.ant-form-item-label]:!pb-[5px] [&_.ant-form-item-label]:!h-[30px]'>
@@ -409,6 +415,9 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
         >
           {previewByLayout ? (
             <div className='flex flex-col gap-2 break-all text-[13px] text-fg/75'>
+              {option.showTitle === true ? (
+                <div>{`${ti('fields.name')}：${formatPreviewValue('name', option as Record<string, unknown>)}`}</div>
+              ) : null}
               {previewByLayout.map((line, idx) => (
                 <div key={idx}>{line}</div>
               ))}
@@ -460,6 +469,21 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                       configStore.setConfigOption(mid, {
                         ...configStore.getConfigOption(mid),
                         position: value,
+                      })
+                    }
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={15} className='mb-1'>
+              <Col span={24}>
+                <Form.Item label={<span className='text-[12px] text-fg/85'>{ti('showTitleLabel')}</span>}>
+                  <Switch
+                    checked={option.showTitle === true}
+                    onChange={(checked) =>
+                      configStore.setConfigOption(mid, {
+                        ...configStore.getConfigOption(mid),
+                        showTitle: checked,
                       })
                     }
                   />

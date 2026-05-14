@@ -512,7 +512,7 @@
       rgb(var(--panel-surface-rgb) / 0.15) 0%,
       rgb(var(--panel-surface-rgb) / 0.08) 100%
     ),
-    rgb(var(--panel-surface-rgb) / 0.1);
+    rgb(var(--panel-surface-rgb) / 0.6);
 }
 
 .panel-item-shell {

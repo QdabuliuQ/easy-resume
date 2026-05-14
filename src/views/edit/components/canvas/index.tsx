@@ -21,7 +21,7 @@ import {
 } from '@ant-design/icons';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { NextIntlClientProvider, useLocale, useMessages, useTranslations } from 'next-intl';
-import { Tooltip } from 'antd';
+import { Popover, Tooltip } from 'antd';
 import { createPortal } from 'react-dom';
 import resume from '@/json/resume.defaults';
 import type { GlobalStyle } from '@/modules/utils/common.type';
@@ -35,8 +35,8 @@ import {
 import {
   getServerThemeSnapshot,
   getThemeSnapshot,
+  setAppTheme,
   subscribeAppTheme,
-  toggleAppTheme,
 } from '@/lib/themeStore';
 
 import { observer } from 'mobx-react';
@@ -508,8 +508,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
     getServerThemeSnapshot,
   );
   const [themePref, appTheme] = themeSnap.split('|') as ['dark' | 'light' | 'system', 'dark' | 'light'];
-  const themeTooltip =
-    themePref === 'dark' ? tc('themeLight') : themePref === 'light' ? tc('themeSystem') : tc('themeDark');
+  const [themePopoverOpen, setThemePopoverOpen] = useState(false);
   const backupReady = useSyncExternalStore(
     subscribeBackupDirectory,
     getBackupReady,
@@ -686,12 +685,59 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
             </span>
           </button>
         </Tooltip>
-        <Tooltip title={themeTooltip} placement='left'>
+        <Popover
+          placement='left'
+          trigger='hover'
+          mouseEnterDelay={0.12}
+          open={themePopoverOpen}
+          onOpenChange={setThemePopoverOpen}
+          styles={{ body: { padding: 6 } }}
+          content={
+            <div className='flex min-w-[116px] flex-col gap-0.5'>
+              <button
+                type='button'
+                onClick={() => {
+                  setAppTheme('light');
+                  setThemePopoverOpen(false);
+                }}
+                className={`w-full rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
+                  themePref === 'light' ? 'bg-fg/12 text-fg' : 'text-fg/85 hover:bg-fg/[0.08]'
+                }`}
+              >
+                {tc('themeMenuLight')}
+              </button>
+              <button
+                type='button'
+                onClick={() => {
+                  setAppTheme('dark');
+                  setThemePopoverOpen(false);
+                }}
+                className={`w-full rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
+                  themePref === 'dark' ? 'bg-fg/12 text-fg' : 'text-fg/85 hover:bg-fg/[0.08]'
+                }`}
+              >
+                {tc('themeMenuDark')}
+              </button>
+              <button
+                type='button'
+                onClick={() => {
+                  setAppTheme('system');
+                  setThemePopoverOpen(false);
+                }}
+                className={`w-full rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
+                  themePref === 'system' ? 'bg-fg/12 text-fg' : 'text-fg/85 hover:bg-fg/[0.08]'
+                }`}
+              >
+                {tc('themeMenuSystem')}
+              </button>
+            </div>
+          }
+        >
           <button
             type='button'
-            onClick={toggleAppTheme}
             className='canvas-float-btn'
             aria-label={tc('toggleThemeAria')}
+            aria-haspopup='menu'
           >
             {appTheme === 'dark' ? (
               <SunOutlined className='text-[17px]' />
@@ -699,7 +745,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
               <MoonOutlined className='text-[17px]' />
             )}
           </button>
-        </Tooltip>
+        </Popover>
 
         <Tooltip title={tc('homeTooltip')} placement='left'>
           <button

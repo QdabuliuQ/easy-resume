@@ -6,7 +6,9 @@ import { observer } from 'mobx-react';
 import { Form, Popover, Select } from 'antd';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
-import SectionHeader from '@/modules/header/sectionHeader';
+import SectionHeader, {
+  SectionHeaderType11TimelineLayout,
+} from '@/modules/header/sectionHeader';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import ModuleManage from '@/views/edit/components/header/moduleManage';
 import { normResumeFont, type ResumeFontId } from '@/lib/resumeFont';
@@ -34,11 +36,11 @@ const MODULE_MARGIN_OPTIONS = [10, 15, 20, 25, 30, 35, 40].map((n) => ({
   label: `${n}px`,
   value: n,
 }));
-const HEADER_TYPE_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
+const HEADER_TYPE_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
 function headerTypeNorm(v: unknown): number {
   const n = Number(v);
   if (!Number.isFinite(n) || n < 1) return 1;
-  return Math.min(10, Math.floor(n));
+  return Math.min(11, Math.floor(n));
 }
 function headerPreviewGlobal(t: number, base: GlobalStyle): GlobalStyle {
   return { ...base, headerType: t };
@@ -272,6 +274,13 @@ function PageSettings() {
           </div>
           <div className='min-h-[36px] min-w-0 rounded-sm border border-zinc-200 bg-zinc-50' />
         </>
+      ) : n === 11 ? (
+        <SectionHeaderType11TimelineLayout
+          title={t('moduleTitlePreview')}
+          globalStyle={headerPreviewGlobal(n, mergedGs)}
+        >
+          <div className='min-h-6 rounded-sm border border-zinc-200' />
+        </SectionHeaderType11TimelineLayout>
       ) : (
         <SectionHeader
           config={{

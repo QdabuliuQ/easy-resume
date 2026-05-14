@@ -19,6 +19,7 @@ export default {
     style8: 'Style 8 · Icon + text title',
     style9: 'Style 9 · Title between rules',
     style10: 'Style 10 · NN/ + title + bottom rule',
+    style11: 'Style 11 · dot + title + left timeline',
     moduleArrange: 'Module order',
     tipTitle: 'Notice',
     tipDeleteContent: 'Delete this item?',
@@ -174,6 +175,7 @@ export default {
     positionLeft: 'Left',
     positionRight: 'Right',
     positionCenter: 'Center',
+    showTitleLabel: 'Show field labels in line',
     fields: {
       name: 'Name',
       phone: 'Phone',

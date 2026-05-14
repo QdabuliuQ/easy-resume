@@ -1,4 +1,6 @@
+'use client';
 import { memo, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   formatIntentCityDisplay,
   normalizeResumeCityDisplay,
@@ -32,6 +34,7 @@ export interface InfoProps {
     expectedSalary: Array<string>; // 期望薪资
     layout: Array<Array<string>>; // 布局
     position?: 'left' | 'right' | 'center';
+    showTitle?: boolean;
   };
 }
 
@@ -44,8 +47,10 @@ function Info1(props: Props) {
   if (!props.config) {
     return null;
   }
+  const tField = useTranslations('Edit.info1.fields');
   const { id } = props.config;
-  const { name, layout, avatar, position: positionOpt } = props.config.options;
+  const { name, layout, avatar, position: positionOpt, showTitle } = props.config.options;
+  const showTitleOn = showTitle === true;
   const position = positionOpt ?? 'right';
   const { fontSize, lineHeight } = props.globalStyle;
   const avatarSrc = typeof avatar === 'string' ? avatar.trim() : '';
@@ -54,6 +59,8 @@ function Info1(props: Props) {
   const [itemLayout, setItemLayout] = useState<Array<React.ReactNode>>([]);
 
   useEffect(() => {
+    const colon = '：';
+    const lbl = (k: string) => (showTitleOn ? `${tField(k as never)}${colon}` : '');
     const elements: React.ReactNode[] = [];
     for (let i = 0; i < layout.length; i++) {
       const row = layout[i];
@@ -73,6 +80,7 @@ function Info1(props: Props) {
               className='text-[#333]'
               style={{ fontSize, lineHeight }}
             >
+              {lbl('expectedSalary')}
               {a} - {b}
             </span>
           );
@@ -90,6 +98,7 @@ function Info1(props: Props) {
               className='text-[#333]'
               style={{ fontSize, lineHeight }}
             >
+              {lbl(String(key))}
               {display}
             </span>
           );
@@ -119,7 +128,7 @@ function Info1(props: Props) {
       );
     }
     setItemLayout(elements);
-  }, [layout, position, props]);
+  }, [layout, position, showTitleOn, props, tField]);
 
   const avatarBlock = showAvatar ? (
     <div className='w-[90px] min-w-[90px] max-w-[90px] shrink-0'>
@@ -142,7 +151,15 @@ function Info1(props: Props) {
         className={`mb-[10px] font-bold text-[#333] leading-none ${position === 'center' ? 'text-center' : ''} ${position === 'left' ? 'text-right' : ''}`}
         style={{ fontSize: fontSize * 1.7 }}
       >
-        {name}
+        {showTitleOn ? (
+          <>
+            {tField('name')}
+            {'：'}
+            {name}
+          </>
+        ) : (
+          name
+        )}
       </div>
       <div className='w-full'>{itemLayout}</div>
     </div>

@@ -129,7 +129,7 @@ function ModuleEdit() {
     <div className='flex flex-col gap-5'>
       <section
         ref={navStickyRef}
-        className={`sticky top-0 z-[1] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.11),rgb(var(--panel-surface-rgb)/0.05))] px-4 pt-3 shadow-[var(--panel-shadow-lg)] backdrop-blur-md transition-[border-radius] duration-150 ${
+        className={`sticky top-[-1px] z-[1] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.11),rgb(var(--panel-surface-rgb)/0.05))] px-4 pt-3 shadow-[var(--panel-shadow-lg)] backdrop-blur-md transition-[border-radius] duration-150 ${
           navStuck ? 'rounded-b-[20px] rounded-t-none' : 'rounded-[20px]'
         }`}
       >

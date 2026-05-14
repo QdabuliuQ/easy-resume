@@ -2,6 +2,7 @@
 import { RESUME_MODULE_ID_ATTR } from '@/components/moduleOperation/constants';
 import SectionHeader, {
   normHeaderType,
+  SectionHeaderType11TimelineLayout,
   type SectionHeaderConfig,
 } from '@/modules/header/sectionHeader';
 import { GlobalStyle } from '@/modules/utils/common.type';
@@ -82,6 +83,19 @@ function SectionModuleShell({
         <div className='min-h-0 min-w-0 overflow-hidden rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'>
           {children}
         </div>
+      </div>
+    );
+  }
+  if (t === 11) {
+    return (
+      <div
+        id={moduleId}
+        {...{ [RESUME_MODULE_ID_ATTR]: interactiveModuleId }}
+        className='w-full cursor-pointer'
+      >
+        <SectionHeaderType11TimelineLayout title={headerConfig.title} globalStyle={globalStyle}>
+          {children}
+        </SectionHeaderType11TimelineLayout>
       </div>
     );
   }

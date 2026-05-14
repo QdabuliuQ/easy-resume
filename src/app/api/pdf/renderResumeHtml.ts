@@ -1,3 +1,4 @@
+import { getInfo1FieldLabel, type Info1PdfLocale } from '@/lib/info1FieldLabels';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { inlineQuillHtml } from '@/lib/inlineQuillHtml';
 import { readQuillSnowCss } from '@/lib/quillSnowCss';
@@ -125,13 +126,25 @@ function wrapSectionModuleMaybe(
     return wrapSectionModuleHtml(title, gs, bodyHtml, moduleType, sectionOrdinal);
   }
   const headerType = Number(gs.headerType);
-  if (Number.isFinite(headerType) && Math.floor(headerType) === 7) {
+  if (
+    Number.isFinite(headerType) &&
+    (Math.floor(headerType) === 7 || Math.floor(headerType) === 11)
+  ) {
     return `<div style="width:100%;"><div style="min-width:0;border:1px solid #e4e4e7;background:#fafafa;border-radius:2px;padding:8px 12px;">${bodyHtml}</div></div>`;
   }
   return `<div style="width:100%;">${bodyHtml}</div>`;
 }
 
-function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle): string {
+function info1LabelPrefix(key: string, show: boolean, loc: Info1PdfLocale): string {
+  if (!show) return '';
+  return `${escapeHtml(getInfo1FieldLabel(key, loc))}：`;
+}
+
+function renderInfo1(
+  mod: { options: Record<string, unknown> },
+  gs: GlobalStyle,
+  locale: Info1PdfLocale
+): string {
   const opts = mod.options;
   const name = String(opts.name ?? '');
   const layout = (opts.layout as string[][]) ?? [];
@@ -143,6 +156,7 @@ function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle)
     positionRaw === 'left' || positionRaw === 'center' || positionRaw === 'right'
       ? positionRaw
       : 'right';
+  const showTitle = Boolean(opts.showTitle);
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
   const rows: string[] = [];
@@ -157,7 +171,7 @@ function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle)
       if (key === 'expectedSalary') {
         const arr = opts.expectedSalary as [unknown, unknown] | undefined;
         rowParts.push(
-          `<span style="font-size:${fs}px;line-height:${lh};color:#333">${escapeHtml(arr?.[0])} - ${escapeHtml(arr?.[1])}</span>`
+          `<span style="font-size:${fs}px;line-height:${lh};color:#333">${info1LabelPrefix('expectedSalary', showTitle, locale)}${escapeHtml(arr?.[0])} - ${escapeHtml(arr?.[1])}</span>`
         );
       } else if (opts[key as keyof typeof opts]) {
         const val = opts[key as keyof typeof opts];
@@ -168,7 +182,7 @@ function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle)
               ? formatIntentCityDisplay(val as unknown)
               : String(val);
         rowParts.push(
-          `<span style="font-size:${fs}px;line-height:${lh};color:#333">${escapeHtml(out)}</span>`
+          `<span style="font-size:${fs}px;line-height:${lh};color:#333">${info1LabelPrefix(key, showTitle, locale)}${escapeHtml(out)}</span>`
         );
       }
       if (j !== row.length - 1) {
@@ -193,7 +207,10 @@ function renderInfo1(mod: { options: Record<string, unknown> }, gs: GlobalStyle)
       : position === 'left'
         ? 'text-align:right;'
         : '';
-  const leftInner = `<div style="margin-bottom:10px;font-size:24px;font-weight:bold;color:#333;line-height:1;${textAlign}">${escapeHtml(name)}</div>
+  const nameHtml = showTitle
+    ? `${info1LabelPrefix('name', true, locale)}${escapeHtml(name)}`
+    : escapeHtml(name);
+  const leftInner = `<div style="margin-bottom:10px;font-size:24px;font-weight:bold;color:#333;line-height:1;${textAlign}">${nameHtml}</div>
 <div style="width:100%;${textAlign}">${rows.join('')}</div>`;
   const textColStyle =
     position === 'center'
@@ -367,12 +384,13 @@ ${descHtml}
 function renderModule(
   mod: { type: string; options?: unknown; showHeader?: boolean; continuation?: boolean },
   gs: GlobalStyle,
-  sectionOrdinal?: number
+  sectionOrdinal: number | undefined,
+  locale: Info1PdfLocale
 ): string {
   const modWithOpts = { ...mod, options: (mod?.options ?? {}) as Record<string, unknown> };
   switch (mod.type) {
     case 'info1':
-      return renderInfo1(modWithOpts as unknown as { options: Record<string, unknown> }, gs);
+      return renderInfo1(modWithOpts as unknown as { options: Record<string, unknown> }, gs, locale);
     case 'certificate':
       return renderCertificate(
         modWithOpts as unknown as { options: { title: string; items: Array<{ name: string; date: string }> } },
@@ -414,25 +432,56 @@ function renderModule(
   }
 }
 
+type ExportLayoutModuleSlot = {
+  type: string;
+  options?: unknown;
+  showHeader?: boolean;
+  viewHeight?: number;
+  offsetY?: number;
+  continuation?: boolean;
+  fullModuleHeight?: number;
+  measuredModuleHeight?: number;
+};
+
+/** 与画布分页一致：裁剪高度 + translateY 续接（PDF 单页与 PNG 长图共用） */
+function wrapExportModuleHtml(mod: ExportLayoutModuleSlot, rendered: string): string {
+  const viewHeight = Number(mod.viewHeight);
+  const offsetY = Number(mod.offsetY);
+  const msMH = Number(mod.measuredModuleHeight);
+  const fullMH = Number(mod.fullModuleHeight);
+  const hasViewHeight = Number.isFinite(viewHeight) && viewHeight > 0;
+  const hasOffset = Number.isFinite(offsetY) && offsetY > 0;
+  const mh = Number.isFinite(msMH) ? msMH : Number.isFinite(fullMH) ? fullMH : NaN;
+
+  if (hasViewHeight || hasOffset) {
+    const clip = hasViewHeight ? viewHeight : 0;
+    const clips =
+      Number.isFinite(mh) && clip > 0 && mh > clip && !hasOffset;
+    const shell: string[] = [
+      'width:100%',
+      clips ? 'overflow:hidden' : 'overflow:visible',
+      'flex-shrink:0',
+    ];
+    if (clip > 0) shell.push(`height:${clip}px`);
+    const inner = hasOffset
+      ? `<div style="transform:translateY(-${offsetY}px);">${rendered}</div>`
+      : rendered;
+    return `<div style="${shell.join(';')}">${inner}</div>`;
+  }
+  return rendered;
+}
+
 function renderPage(
   page: { moduleMargin?: number; modules?: unknown[] },
   gs: GlobalStyle,
-  ordCtx: { shellOrd: number }
+  ordCtx: { shellOrd: number },
+  locale: Info1PdfLocale
 ): string {
   const mm =
     Number(gs.moduleMargin) ||
     Number(page.moduleMargin) ||
     10;
-  const modules = (page.modules ?? []) as Array<{
-    type: string;
-    options?: unknown;
-    showHeader?: boolean;
-    viewHeight?: number;
-    offsetY?: number;
-    continuation?: boolean;
-    fullModuleHeight?: number;
-    measuredModuleHeight?: number;
-  }>;
+  const modules = (page.modules ?? []) as ExportLayoutModuleSlot[];
   const parts: string[] = [];
   let hasPlacedAnyModule = false;
   for (let i = 0; i < modules.length; i++) {
@@ -442,34 +491,10 @@ function renderPage(
     }
 
     const sectionOrd = shellSectionOrdinalForPdfMod(ordCtx, mod);
-    const rendered = renderModule(mod, gs, sectionOrd);
+    const rendered = renderModule(mod, gs, sectionOrd, locale);
     if (!rendered) continue;
 
-    const viewHeight = Number(mod.viewHeight);
-    const offsetY = Number(mod.offsetY);
-    const msMH = Number(mod.measuredModuleHeight);
-    const fullMH = Number(mod.fullModuleHeight);
-    const hasViewHeight = Number.isFinite(viewHeight) && viewHeight > 0;
-    const hasOffset = Number.isFinite(offsetY) && offsetY > 0;
-    const mh = Number.isFinite(msMH) ? msMH : Number.isFinite(fullMH) ? fullMH : NaN;
-
-    if (hasViewHeight || hasOffset) {
-      const clip = hasViewHeight ? viewHeight : 0;
-      const clips =
-        Number.isFinite(mh) && clip > 0 && mh > clip && !hasOffset;
-      const shell: string[] = [
-        'width:100%',
-        clips ? 'overflow:hidden' : 'overflow:visible',
-        'flex-shrink:0',
-      ];
-      if (clip > 0) shell.push(`height:${clip}px`);
-      const inner = hasOffset
-        ? `<div style="transform:translateY(-${offsetY}px);">${rendered}</div>`
-        : rendered;
-      parts.push(`<div style="${shell.join(';')}">${inner}</div>`);
-    } else {
-      parts.push(rendered);
-    }
+    parts.push(wrapExportModuleHtml(mod, rendered));
     hasPlacedAnyModule = true;
   }
   const { width: pw, height: ph } = globalStylePageDimensions(gs);
@@ -489,29 +514,30 @@ ${parts.join('')}
 function renderContinuousPage(
   pages: Array<{ moduleMargin?: number; modules?: unknown[] }>,
   gs: GlobalStyle,
-  ordCtx: { shellOrd: number }
+  ordCtx: { shellOrd: number },
+  locale: Info1PdfLocale
 ): string {
-  const mm = Number(gs.moduleMargin) || 10;
   const parts: string[] = [];
-  let firstModule = true;
+  let hasPlacedAnyModule = false;
 
   for (const page of pages) {
-    const modules = (page.modules ?? []) as Array<{
-      type: string;
-      options?: unknown;
-      showHeader?: boolean;
-      continuation?: boolean;
-    }>;
+    const mm =
+      Number(gs.moduleMargin) ||
+      Number(page.moduleMargin) ||
+      10;
+    const modules = (page.modules ?? []) as ExportLayoutModuleSlot[];
 
     for (const module of modules) {
-      const sectionOrd = shellSectionOrdinalForPdfMod(ordCtx, module);
-      const rendered = renderModule(module, gs, sectionOrd);
-      if (!rendered) continue;
-      if (!firstModule) {
+      if (hasPlacedAnyModule && !module.continuation) {
         parts.push(`<div style="width:100%;height:${mm}px;flex-shrink:0;"></div>`);
       }
-      parts.push(rendered);
-      firstModule = false;
+
+      const sectionOrd = shellSectionOrdinalForPdfMod(ordCtx, module);
+      const rendered = renderModule(module, gs, sectionOrd, locale);
+      if (!rendered) continue;
+
+      parts.push(wrapExportModuleHtml(module, rendered));
+      hasPlacedAnyModule = true;
     }
   }
 
@@ -573,12 +599,13 @@ export function renderResumeDocumentHtml(resume: {
   pages: Array<{ moduleMargin?: number; modules?: unknown[] }>;
   exportPages?: Array<{ moduleMargin?: number; modules?: unknown[] }>;
   globalStyle: GlobalStyle;
-}, opts?: { assetOrigin?: string; basePath?: string }) {
+}, opts?: { assetOrigin?: string; basePath?: string; locale?: Info1PdfLocale }) {
   const gs = resume.globalStyle;
   const { width: pageW, height: pageH } = globalStylePageDimensions(gs);
   const pages = resume.exportPages ?? resume.pages ?? [];
   const ordCtx = { shellOrd: 0 };
-  const bodyInner = pages.map((p) => renderPage(p, gs, ordCtx)).join('\n');
+  const pdfLocale: Info1PdfLocale = opts?.locale === 'en' ? 'en' : 'zh';
+  const bodyInner = pages.map((p) => renderPage(p, gs, ordCtx, pdfLocale)).join('\n');
   const docTitle = 'Resume';
   const canvasBg = escapeHtml(gs.backgroundColor ?? '#fff');
   const wCss = escapeHtml(String(pageW));
@@ -645,13 +672,14 @@ export function renderResumePngHtml(
     exportPages?: Array<{ moduleMargin?: number; modules?: unknown[] }>;
     globalStyle: GlobalStyle;
   },
-  opts?: { assetOrigin?: string; basePath?: string }
+  opts?: { assetOrigin?: string; basePath?: string; locale?: Info1PdfLocale }
 ) {
   const gs = resume.globalStyle;
   const { width: pageW } = globalStylePageDimensions(gs);
   const pages = resume.exportPages ?? resume.pages ?? [];
   const ordCtx = { shellOrd: 0 };
-  const bodyInner = renderContinuousPage(pages, gs, ordCtx);
+  const pdfLocale: Info1PdfLocale = opts?.locale === 'en' ? 'en' : 'zh';
+  const bodyInner = renderContinuousPage(pages, gs, ordCtx, pdfLocale);
   const docTitle = 'Resume';
   const canvasBg = escapeHtml(gs.backgroundColor ?? '#fff');
   const wCss = escapeHtml(String(pageW));

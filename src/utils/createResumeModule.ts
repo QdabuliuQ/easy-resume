@@ -37,6 +37,7 @@ const EMPTY_OPTIONS: Record<ResumeModuleType, Record<string, unknown>> = {
     expectedSalary: ['', ''],
     avatar: '',
     position: 'right',
+    showTitle: false,
     layout: [
       ['phone', 'email', 'city'],
       ['wechat', 'site'],

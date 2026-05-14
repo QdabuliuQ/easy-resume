@@ -19,7 +19,7 @@ function clampScore0to100(n: number) {
 function scoreMeta(score: number, ta: (key: string) => string) {
   if (score >= 90) return { label: ta('bandStrong'), tone: 'text-emerald-300', chip: 'bg-emerald-400/14 text-emerald-300 border-emerald-300/20' };
   if (score >= 75) return { label: ta('bandSolid'), tone: 'text-amber-200', chip: 'bg-amber-300/14 text-amber-200 border-amber-200/20' };
-  return { label: ta('bandWeak'), tone: 'text-rose-200', chip: 'bg-rose-300/14 text-rose-200 border-rose-200/20' };
+  return { label: ta('bandWeak'), tone: 'text-rose-400', chip: 'bg-rose-300/14 text-rose-400 border-rose-200/20' };
 }
 
 function GaugeRing({ gradId, score }: { gradId: string; score: number }) {
@@ -409,7 +409,7 @@ function AiScore({
         <div className='mb-3 flex items-center justify-between gap-3'>
           <div>
             <p className='text-[12px] uppercase tracking-[0.16em] text-fg/58'>{ta('scoreCardTitle')}</p>
-            <p className={`mt-1 text-[13px] font-medium ${scoreState.tone}`}>{scoreState.label}</p>
+            <p className={`mt-1 text-[13px] text-primary font-medium ${scoreState.tone}`}>{scoreState.label}</p>
           </div>
           <div className='flex items-center gap-2 text-[11px] text-fg/58'>
             <span className='rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2 py-1'>{ta('chipExcellent', { n: excellentCount })}</span>

@@ -1,6 +1,6 @@
 'use client';
 import { Link } from '@/i18n/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { memo, useId, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { Button, Input, message } from 'antd';
@@ -11,6 +11,7 @@ import defaultResume from '@/json/resume.defaults';
 import { withBasePath } from '@/lib/withBasePath';
 function Header() {
   const t = useTranslations('Edit.header');
+  const locale = useLocale();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -71,6 +72,7 @@ function Header() {
         body: JSON.stringify({
           config: snapshotForExport(),
           filename: `${safe}.pdf`,
+          locale: locale === 'en' ? 'en' : 'zh',
         }),
       });
       if (!res.ok) {
@@ -105,6 +107,7 @@ function Header() {
         body: JSON.stringify({
           config: snapshotForExport(),
           filename: `${safe}.jpg`,
+          locale: locale === 'en' ? 'en' : 'zh',
         }),
       });
       if (!res.ok) {
@@ -230,7 +233,7 @@ function Header() {
                 <FilePdf theme='outline' size={20} fill={`url(#${exportGradId})`} />
               )}
             </span>
-            <span className='bg-gradient-primary bg-clip-text text-center text-[10px] font-semibold leading-snug text-transparent whitespace-nowrap'>
+            <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent whitespace-nowrap'>
               {t('exportPdf')}
             </span>
           </span>
@@ -249,7 +252,7 @@ function Header() {
                 <DownPicture theme='outline' size={20} fill={`url(#${exportGradId})`} />
               )}
             </span>
-            <span className='bg-gradient-primary bg-clip-text text-center text-[10px] font-semibold leading-snug text-transparent'>
+            <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent'>
               {t('exportImage')}
             </span>
           </span>
@@ -264,7 +267,7 @@ function Header() {
             <span className={exportIconSlot} aria-hidden>
               <FileCode theme='outline' size={20} fill={`url(#${exportGradId})`} />
             </span>
-            <span className='bg-gradient-primary bg-clip-text text-center text-[10px] font-semibold leading-snug text-transparent'>
+            <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent'>
               {t('exportJson')}
             </span>
           </span>
