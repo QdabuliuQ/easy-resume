@@ -18,11 +18,5 @@ const nextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
-  server: {
-    trustProxy: true
-  },
-  serverActions: {
-    allowedOrigins: [process.env.ALLOWED_ORIGIN || 'localhost:3010']
-  }
 };
 export default withNextIntl(nextConfig);
