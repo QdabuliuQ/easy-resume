@@ -11,7 +11,7 @@
       "color": "#383838",
       "backgroundColor": "#fff",
       "padding": 20,
-      "headerType": 1
+      "headerType": 10
     },
     "pages": [
       {
@@ -71,7 +71,8 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ]
+              ],
+              "position": "right"
             }
           },
           {
@@ -80,6 +81,26 @@
             "options": {
               "title": "专业技能",
               "description": "熟练 Figma（组件变体、Auto Layout、原型连线）、Photoshop 修图与导出切片、Illustrator 图标与简单插画、Axure 低保真流程；擅长移动端 App、微信小程序与中后台列表表单、筛选器、详情抽屉等高密度界面视觉与交互稿输出；熟悉 8pt 栅格、字体阶梯与无障碍对比度自查；能搭建基础 Design Token（色板、圆角、字号）与组件库文档，标注间距与状态（默认、悬停、禁用、错误），参与开发走查并记录像素级差异闭环。"
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "广州美术学院",
+                  "degree": "本科",
+                  "major": "视觉传达设计",
+                  "startDate": "2015-09-01",
+                  "endDate": "2019-06-01",
+                  "city": "广东 - 广州",
+                  "tags": [],
+                  "academy": "设计学院",
+                  "description": "主修平面设计、UI设计、版式排版、色彩构成、交互设计基础。"
+                }
+              ]
             }
           },
           {
@@ -136,26 +157,6 @@
                   "startDate": "2023-04-01",
                   "endDate": "2023-09-01",
                   "description": "访谈财务与运营梳理高频筛选维度，压缩筛选区纵向占用并规范「重置/查询」行为；为折线柱状混合图统一调色板与图例顺序，避免色盲不友好配色；输出窄屏断点下表格横向滑动与字段折叠方案，附暗黑模式对比度抽检表供前端实现。"
-                }
-              ]
-            }
-          },
-          {
-            "type": "education",
-            "id": "6",
-            "options": {
-              "title": "教育经历",
-              "items": [
-                {
-                  "school": "广州美术学院",
-                  "degree": "本科",
-                  "major": "视觉传达设计",
-                  "startDate": "2015-09-01",
-                  "endDate": "2019-06-01",
-                  "city": "广东 - 广州",
-                  "tags": [],
-                  "academy": "设计学院",
-                  "description": "主修平面设计、UI设计、版式排版、色彩构成、交互设计基础。"
                 }
               ]
             }

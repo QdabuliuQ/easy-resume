@@ -11,7 +11,7 @@
       "color": "#383838",
       "backgroundColor": "#fff",
       "padding": 20,
-      "headerType": 1
+      "headerType": 3
     },
     "pages": [
       {
@@ -71,23 +71,8 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ]
-            }
-          },
-          {
-            "type": "skill",
-            "id": "3",
-            "options": {
-              "title": "专业技能",
-              "description": "熟练等价类、边界值、判定表、场景法及错误猜测组合设计用例；掌握 Postman 集合与 Charles 抓包改写请求做接口异常覆盖，能用 SQL 核对报表聚合口径；熟悉 Web（Chrome/Edge/Safari）、Android/iOS、微信小程序兼容性矩阵与弱网模拟；了解 pytest + requests 接口自动化目录结构与 Jenkins 定时触发；能读懂 JMeter/nGrinder 简单压测报告中的 TPS、P95 与错误率指标。"
-            }
-          },
-          {
-            "type": "other",
-            "id": "other-1",
-            "options": {
-              "title": "个人优势",
-              "description": "约 4 年测试经验，缺陷单坚持截图、日志片段与环境版本三位一体的写法，拒绝一句话糊弄；需求评审时敢于抛出遗漏字段校验与并发场景；与开发讨论归属对事不对人，必要时拉上产品澄清验收口径；发版前主动整理冒烟结论与已知风险清单给项目经理心中有数。"
+              ],
+              "position": "right"
             }
           },
           {
@@ -161,6 +146,14 @@
             }
           },
           {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "熟练等价类、边界值、判定表、场景法及错误猜测组合设计用例；掌握 Postman 集合与 Charles 抓包改写请求做接口异常覆盖，能用 SQL 核对报表聚合口径；熟悉 Web（Chrome/Edge/Safari）、Android/iOS、微信小程序兼容性矩阵与弱网模拟；了解 pytest + requests 接口自动化目录结构与 Jenkins 定时触发；能读懂 JMeter/nGrinder 简单压测报告中的 TPS、P95 与错误率指标。"
+            }
+          },
+          {
             "type": "certificate",
             "id": "21421412",
             "options": {
@@ -175,6 +168,14 @@
                   "date": "2017-12-01"
                 }
               ]
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "约 4 年测试经验，缺陷单坚持截图、日志片段与环境版本三位一体的写法，拒绝一句话糊弄；需求评审时敢于抛出遗漏字段校验与并发场景；与开发讨论归属对事不对人，必要时拉上产品澄清验收口径；发版前主动整理冒烟结论与已知风险清单给项目经理心中有数。"
             }
           }
         ]

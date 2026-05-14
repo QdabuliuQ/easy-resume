@@ -11,7 +11,7 @@
       "color": "#383838",
       "backgroundColor": "#fff",
       "padding": 20,
-      "headerType": 1
+      "headerType": 8
     },
     "pages": [
       {
@@ -71,23 +71,8 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ]
-            }
-          },
-          {
-            "type": "skill",
-            "id": "3",
-            "options": {
-              "title": "专业技能",
-              "description": "熟练 CentOS/Ubuntu 日常运维、账号sudo审计、内核参数与 chrony 时间同步；掌握 Nginx 反向代理、HTTPS 证书续期、动静分离与限连接；MySQL 主从复制与备份脚本、mysqldump + binlog 恢复演练；Redis 持久化策略与内存告警；熟悉 Docker 镜像分层与 Compose 编排、Harbor 私服拉取策略；GitLab CI/Jenkins 流水线发布与回滚；Prometheus + Grafana 或云监控搭建指标大盘；具备防火墙策略、fail2ban、漏洞补丁窗口与故障复盘文档编写习惯。"
-            }
-          },
-          {
-            "type": "other",
-            "id": "other-1",
-            "options": {
-              "title": "个人优势",
-              "description": "约 5 年运维实战经验，7×24 值班手机不离身，重大变更坚持双人复核与维护窗口公告；熟悉从 CDN—LB—应用—数据库全链路排障思路，善用链路追踪与日志聚合缩短 MTTR；做事强迫症级别备份校验，宁可多做演练也不赌运气；文档愿意写给半年后的自己看。"
+              ],
+              "position": "right"
             }
           },
           {
@@ -132,23 +117,11 @@
             }
           },
           {
-            "type": "education",
-            "id": "6",
+            "type": "skill",
+            "id": "3",
             "options": {
-              "title": "教育经历",
-              "items": [
-                {
-                  "school": "岭南职业技术学院",
-                  "degree": "专科",
-                  "major": "计算机网络技术",
-                  "startDate": "2015-09-01",
-                  "endDate": "2018-06-01",
-                  "city": "广东 - 广州",
-                  "tags": [],
-                  "academy": "信息技术学院",
-                  "description": "主修计算机网络、Linux系统、服务器配置、数据库原理、网络安全基础。"
-                }
-              ]
+              "title": "专业技能",
+              "description": "熟练 CentOS/Ubuntu 日常运维、账号sudo审计、内核参数与 chrony 时间同步；掌握 Nginx 反向代理、HTTPS 证书续期、动静分离与限连接；MySQL 主从复制与备份脚本、mysqldump + binlog 恢复演练；Redis 持久化策略与内存告警；熟悉 Docker 镜像分层与 Compose 编排、Harbor 私服拉取策略；GitLab CI/Jenkins 流水线发布与回滚；Prometheus + Grafana 或云监控搭建指标大盘；具备防火墙策略、fail2ban、漏洞补丁窗口与故障复盘文档编写习惯。"
             }
           },
           {
@@ -164,6 +137,34 @@
                 {
                   "name": "大学英语四级考试合格证书",
                   "date": "2018-06-01"
+                }
+              ]
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "约 5 年运维实战经验，7×24 值班手机不离身，重大变更坚持双人复核与维护窗口公告；熟悉从 CDN—LB—应用—数据库全链路排障思路，善用链路追踪与日志聚合缩短 MTTR；做事强迫症级别备份校验，宁可多做演练也不赌运气；文档愿意写给半年后的自己看。"
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "岭南职业技术学院",
+                  "degree": "专科",
+                  "major": "计算机网络技术",
+                  "startDate": "2015-09-01",
+                  "endDate": "2018-06-01",
+                  "city": "广东 - 广州",
+                  "tags": [],
+                  "academy": "信息技术学院",
+                  "description": "主修计算机网络、Linux系统、服务器配置、数据库原理、网络安全基础。"
                 }
               ]
             }

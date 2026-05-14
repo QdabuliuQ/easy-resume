@@ -11,7 +11,7 @@
       "color": "#383838",
       "backgroundColor": "#fff",
       "padding": 20,
-      "headerType": 1
+      "headerType": 9
     },
     "pages": [
       {
@@ -58,15 +58,8 @@
                   "intentPosts",
                   "expectedSalary"
                 ]
-              ]
-            }
-          },
-          {
-            "type": "skill",
-            "id": "3",
-            "options": {
-              "title": "专业技能",
-              "description": "精通 HTML/CSS/JavaScript（ES6+），熟悉语义化标签、Flex/Grid 布局与移动端适配方案；熟练 Vue3（Composition API、Pinia）、React（Hooks）与 Next.js App Router，能结合 TypeScript 约束组件 props 与接口类型；掌握 Vite、Webpack 分包与 Monorepo（pnpm workspace）协作流程；擅长低代码画布、物料注册、属性面板联动及数据可视化（ECharts）与中后台表格表单场景；熟悉 REST 联调、鉴权与文件上传下载、前端性能（路由懒加载、虚拟列表、缓存策略）、Chrome DevTools 与 Lighthouse 排障，Git 分支管理与 Code Review 习惯良好。"
+              ],
+              "position": "center"
             }
           },
           {
@@ -75,6 +68,29 @@
             "options": {
               "title": "个人优势",
               "description": "约 5 年前端经验，能从需求评审阶段介入，评估工期与交互可行性并给出折中方案；熟悉敏捷迭代、任务拆分与 Code Review，注重可读性与可维护性；善于把重复页面抽象为可配置组件或 JSON Schema 驱动渲染，减少复制粘贴；线上问题能结合监控与埋点快速定位，沟通风格务实，能在产品视觉还原与后端接口约束之间推动各方达成共识。"
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "企业低代码开发平台",
+                  "role": "前端核心开发",
+                  "startDate": "2022-05-01",
+                  "endDate": "2024-11-01",
+                  "description": "负责画布区拖拽排序、对齐辅助线与撤销重做交互；建设组件物料注册表（版本号、默认属性、预览缩略图），串联属性面板与表单渲染引擎，支持校验规则与联动显隐；封装表格增强、步骤条、富文本等 30+ 业务组件并维护 Storybook/文档站；与后端对接预览域名、发布草稿与回滚策略，缩短运营活动页与内部审批类页面交付周期，收集业务反馈持续迭代物料规范。"
+                },
+                {
+                  "name": "数据可视化运营看板",
+                  "role": "前端开发",
+                  "startDate": "2023-02-01",
+                  "endDate": "2024-08-01",
+                  "description": "基于 ECharts 搭建区域销售、转化漏斗等多图表联动与钻取路径；区分实时接口与 T+1 离线任务数据口径，统一 loading、空态与错误提示；实现大屏多分辨率自适应与暗色主题变量；针对点位过密场景做采样与 dataZoom，合理设置定时刷新与页面可见性暂停，降低浏览器长时间驻留时的卡顿与内存占用。"
+                }
+              ]
             }
           },
           {
@@ -105,24 +121,18 @@
             }
           },
           {
-            "type": "project",
-            "id": "5",
+            "type": "certificate",
+            "id": "21421412",
             "options": {
-              "title": "项目经历",
+              "title": "证书",
               "items": [
                 {
-                  "name": "企业低代码开发平台",
-                  "role": "前端核心开发",
-                  "startDate": "2022-05-01",
-                  "endDate": "2024-11-01",
-                  "description": "负责画布区拖拽排序、对齐辅助线与撤销重做交互；建设组件物料注册表（版本号、默认属性、预览缩略图），串联属性面板与表单渲染引擎，支持校验规则与联动显隐；封装表格增强、步骤条、富文本等 30+ 业务组件并维护 Storybook/文档站；与后端对接预览域名、发布草稿与回滚策略，缩短运营活动页与内部审批类页面交付周期，收集业务反馈持续迭代物料规范。"
+                  "name": "全国计算机等级考试二级合格证书",
+                  "date": "2017-06-01"
                 },
                 {
-                  "name": "数据可视化运营看板",
-                  "role": "前端开发",
-                  "startDate": "2023-02-01",
-                  "endDate": "2024-08-01",
-                  "description": "基于 ECharts 搭建区域销售、转化漏斗等多图表联动与钻取路径；区分实时接口与 T+1 离线任务数据口径，统一 loading、空态与错误提示；实现大屏多分辨率自适应与暗色主题变量；针对点位过密场景做采样与 dataZoom，合理设置定时刷新与页面可见性暂停，降低浏览器长时间驻留时的卡顿与内存占用。"
+                  "name": "大学英语四级考试合格证书",
+                  "date": "2016-12-01"
                 }
               ]
             }
@@ -148,20 +158,11 @@
             }
           },
           {
-            "type": "certificate",
-            "id": "21421412",
+            "type": "skill",
+            "id": "3",
             "options": {
-              "title": "证书",
-              "items": [
-                {
-                  "name": "全国计算机等级考试二级合格证书",
-                  "date": "2017-06-01"
-                },
-                {
-                  "name": "大学英语四级考试合格证书",
-                  "date": "2016-12-01"
-                }
-              ]
+              "title": "专业技能",
+              "description": "精通 HTML/CSS/JavaScript（ES6+），熟悉语义化标签、Flex/Grid 布局与移动端适配方案；熟练 Vue3（Composition API、Pinia）、React（Hooks）与 Next.js App Router，能结合 TypeScript 约束组件 props 与接口类型；掌握 Vite、Webpack 分包与 Monorepo（pnpm workspace）协作流程；擅长低代码画布、物料注册、属性面板联动及数据可视化（ECharts）与中后台表格表单场景；熟悉 REST 联调、鉴权与文件上传下载、前端性能（路由懒加载、虚拟列表、缓存策略）、Chrome DevTools 与 Lighthouse 排障，Git 分支管理与 Code Review 习惯良好。"
             }
           }
         ]
