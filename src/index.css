@@ -141,7 +141,7 @@
   --shell-bg-overlay:
     linear-gradient(135deg, rgb(255 255 255 / 0.04) 0%, transparent 32%),
     radial-gradient(circle at center, rgb(255 255 255 / 0.03) 0%, transparent 60%);
-  --shell-grid-line: rgb(var(--surface-fg-rgb) / 0.032);
+  --shell-grid-line: rgb(var(--surface-fg-rgb) / 0.018);
   --shell-grid-mask: linear-gradient(180deg, rgb(0 0 0 / 0.7), transparent 82%);
 
   /* —— 文本 —— */
@@ -279,7 +279,7 @@
   --shell-bg-overlay:
     linear-gradient(135deg, rgb(255 255 255 / 0.5) 0%, transparent 32%),
     radial-gradient(circle at center, rgb(255 255 255 / 0.3) 0%, transparent 60%);
-  --shell-grid-line: rgb(var(--surface-fg-rgb) / 0.05);
+  --shell-grid-line: rgb(var(--surface-fg-rgb) / 0.028);
   --shell-grid-mask: linear-gradient(180deg, rgb(0 0 0 / 0.5), transparent 82%);
 
   --text-strong: rgb(var(--surface-fg-rgb) / 0.92);
