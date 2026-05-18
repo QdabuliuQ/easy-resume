@@ -1,7 +1,3 @@
-export const rowMargin = 8;
-export const columnMargin = 8;
-export const moduleMargin = 10;
-
 export const moduleType = {
   info1: {
     name: '基础信息',

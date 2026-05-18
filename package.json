@@ -48,7 +48,6 @@
     "eslint-plugin-react": "^7.37.4",
     "globals": "^15.15.0",
     "husky": "^8.0.3",
-    "next-sitemap": "^4.2.3",
     "postcss": "^8.5.3",
     "prettier": "^3.5.2",
     "tailwindcss": "^4.0.9",
