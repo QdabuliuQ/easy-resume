@@ -6,6 +6,10 @@ export const SOGOU_SITE_VERIFICATION = 'HfHGIFRatG';
 export const BYTEDANCE_SITE_VERIFICATION = 'mZD9AKpG/j1o8DDIeXbp';
 export const GOOGLE_SITE_VERIFICATION = 'Ey63mYPPiHyXAF3c_L9RW2oBN8LAkYy2hHaBgqAnNtA';
 
+/** 头条/字节 push.js：用户浏览时自动提交链接给蜘蛛 */
+export const BYTEGOOFY_PUSH_SCRIPT_SRC =
+  'https://lf1-cdn-tos.bytegoofy.com/goofy/ttzz/push.js?a2e238a07fe015bff49e92c93f7ab1ec6f705268b424ef6d30f3a9e42be80c46b3e414cba65c376eba389ba56d9ee0846cad2206506a6529fe6ee21a7373effb434c445cf6444b10ea9756ea44e128a6';
+
 export const SITE_DESCRIPTION_DEFAULT =
   'AI 辅助的在线简历编辑器：模块化编排、富文本、画布预览，导出 PDF / 图片(JPEG) / JSON，数据可本地备份。';
 

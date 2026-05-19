@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import '../index.css';
 import { AntdProvider } from './providers';
 import {
+  BYTEGOOFY_PUSH_SCRIPT_SRC,
   SITE_DESCRIPTION_DEFAULT,
   SITE_NAME,
   getSiteUrl,
@@ -36,6 +38,7 @@ export default function RootLayout({
             __html: JSON.stringify(siteSoftwareApplicationJsonLd()),
           }}
         />
+        <Script id='ttzz' src={BYTEGOOFY_PUSH_SCRIPT_SRC} strategy='beforeInteractive' />
       </head>
       <body className='min-h-screen overflow-x-clip bg-background antialiased'>
         <AntdProvider>{children}</AntdProvider>
