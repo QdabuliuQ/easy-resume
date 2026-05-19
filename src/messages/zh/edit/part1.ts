@@ -32,6 +32,8 @@ export default {
     themeColorAria: '主题色',
     bgColorAria: '背景色',
     backHome: '返回首页',
+    logoAlt: 'EasyResume 标志',
+    avatarAlt: '{name} 头像',
     editNameAria: '编辑姓名',
   },
   menu: {

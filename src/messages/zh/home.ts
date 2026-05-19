@@ -21,6 +21,9 @@ export default {
   closingTitle: '准备好升级你的简历了吗',
   closingDesc: '直接进入编辑器，从模块化结构开始，把内容打磨到可投递状态。',
   closingCta: '免费开始使用',
+  logoAlt: 'EasyResume 标志',
+  previewLightAlt: '浅色主题简历编辑器界面预览',
+  previewDarkAlt: '深色主题简历编辑器界面预览',
   compareFigure: '深浅主题预览对比，拖拽中线切换',
   compareSlider: '对比拖拽位置',
   highlights: [

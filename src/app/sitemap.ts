@@ -1,15 +1,17 @@
 import type { MetadataRoute } from 'next';
-import { getCanonicalSiteBase } from '@/lib/canonicalSiteBase';
+import { SEO_SITEMAP_ENTRIES } from '@/lib/seoRoutes';
+import { getSiteUrl } from '@/lib/siteMeta';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = await getCanonicalSiteBase();
-  const now = new Date();
-  return ['zh', 'en'].map((locale) => ({
-    url: `${base}/${locale}`,
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
+const LASTMOD = '2026-05-19';
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const base = getSiteUrl().href.replace(/\/$/, '');
+  return SEO_SITEMAP_ENTRIES.map(({ locale, path, changeFrequency, priority }) => ({
+    url: `${base}/${locale}${path}`,
+    lastModified: LASTMOD,
+    changeFrequency,
+    priority,
   }));
 }

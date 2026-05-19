@@ -4,7 +4,7 @@ function trimSlash(s: string) {
   return s.replace(/\/+$/, '');
 }
 
-/** 运行时解析站点根；优先 SITE_URL，其次 NEXT_PUBLIC_SITE_URL，再用请求头（反代需传 X-Forwarded-*） */
+/** 运行时解析站点根；优先 SITE_URL，其次 NEXT_PUBLIC_SITE_URL，再用请求头 */
 export async function getCanonicalSiteBase(): Promise<string> {
   const env =
     process.env.SITE_URL?.trim() ||

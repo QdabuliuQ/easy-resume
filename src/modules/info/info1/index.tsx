@@ -48,6 +48,7 @@ function Info1(props: Props) {
     return null;
   }
   const tField = useTranslations('Edit.info1.fields');
+  const tHeader = useTranslations('Edit.header');
   const { id } = props.config;
   const { name, layout, avatar, position: positionOpt, showTitle } = props.config.options;
   const showTitleOn = showTitle === true;
@@ -132,7 +133,11 @@ function Info1(props: Props) {
 
   const avatarBlock = showAvatar ? (
     <div className='w-[90px] min-w-[90px] max-w-[90px] shrink-0'>
-      <img className='aspect-5/7 w-full object-cover' src={avatarSrc} alt='avatar' />
+      <img
+        className='aspect-5/7 w-full object-cover'
+        src={avatarSrc}
+        alt={name?.trim() ? tHeader('avatarAlt', { name: name.trim() }) : tField('avatar')}
+      />
     </div>
   ) : null;
   const textBlock = (

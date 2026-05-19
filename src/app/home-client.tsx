@@ -101,11 +101,15 @@ function HeroPreviewCompare({
   onDragStateChange,
   compareFigure,
   compareSlider,
+  previewLightAlt,
+  previewDarkAlt,
 }: {
   reduceMotion: boolean;
   onDragStateChange?: (dragging: boolean) => void;
   compareFigure: string;
   compareSlider: string;
+  previewLightAlt: string;
+  previewDarkAlt: string;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
@@ -274,7 +278,7 @@ function HeroPreviewCompare({
       >
         <Image
           src='/preview_light.png'
-          alt=''
+          alt={previewLightAlt}
           width={1920}
           height={999}
           sizes='(max-width:1024px) 80vw, 900px'
@@ -300,7 +304,7 @@ function HeroPreviewCompare({
             >
               <Image
                 src='/preview.png'
-                alt=''
+                alt={previewDarkAlt}
                 fill
                 sizes='(max-width:1024px) 80vw, 900px'
                 className='pointer-events-none select-none object-cover object-left-top'
@@ -504,7 +508,7 @@ export default function Home() {
     });
 
   return (
-    <main className='relative min-h-screen overflow-x-hidden bg-[var(--editor-shell-bg)] text-[var(--text-strong)]'>
+    <main className='relative min-h-screen bg-[var(--editor-shell-bg)] text-[var(--text-strong)]'>
       <div className='pointer-events-none absolute inset-0 z-0'>
         <div
           ref={glowRef}
@@ -550,7 +554,7 @@ export default function Home() {
               className={`flex min-w-0 max-w-[65%] cursor-pointer items-center gap-2 rounded-lg sm:max-w-none ${focusRing}`}
             >
               <span className='relative inline-flex h-8 w-8 shrink-0'>
-                <Image src='/logo.png' alt='' fill sizes='32px' className='object-contain p-0.5' />
+                <Image src='/logo.png' alt={t('logoAlt')} fill sizes='32px' className='object-contain p-0.5' />
               </span>
               <span className='truncate text-sm font-semibold tracking-[0.12em] text-fg/90'>EASYRESUME</span>
             </span>
@@ -698,6 +702,8 @@ export default function Home() {
             onDragStateChange={setIsComparing}
             compareFigure={t('compareFigure')}
             compareSlider={t('compareSlider')}
+            previewLightAlt={t('previewLightAlt')}
+            previewDarkAlt={t('previewDarkAlt')}
           />
 
         </section>

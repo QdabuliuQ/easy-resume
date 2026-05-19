@@ -222,7 +222,9 @@ function renderInfo1(
   if (!showAvatar) {
     return `<div style="width:100%;display:flex;align-items:center;">${leftCol}</div>`;
   }
-  const avatarHtml = `<img src="${encodeURI(avatarSrc)}" alt="" width="90" style="width:100%;aspect-ratio:5/7;object-fit:cover;display:block;" />`;
+  const avatarLabel = getInfo1FieldLabel('avatar', locale);
+  const avatarAlt = escapeHtml(name.trim() ? `${name.trim()} ${avatarLabel}` : avatarLabel);
+  const avatarHtml = `<img src="${encodeURI(avatarSrc)}" alt="${avatarAlt}" width="90" style="width:100%;aspect-ratio:5/7;object-fit:cover;display:block;" />`;
   const avatarWrap = `<div style="width:90px;min-width:90px;max-width:90px;flex-shrink:0;">${avatarHtml}</div>`;
   if (position === 'center') {
     return `<div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:12px;">${avatarWrap}${leftCol}</div>`;

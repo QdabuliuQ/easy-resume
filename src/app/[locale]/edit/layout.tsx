@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
-import { SITE_NAME, getSiteUrl } from '@/lib/siteMeta';
+import { buildEditMetadata } from '@/lib/pageMetadata';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+
+export const dynamic = 'force-static';
 
 export async function generateMetadata({
   params,
@@ -9,29 +11,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = params;
   const t = await getTranslations({ locale, namespace: 'Site' });
-  const title = t('editTitle');
-  const description = t('editDescription');
-  const originBase = getSiteUrl().href.replace(/\/$/, '');
-  const canonicalEdit = `${originBase}/${locale}/edit`;
-  return {
-    title,
-    description,
-    robots: { index: false, follow: true },
-    alternates: { canonical: canonicalEdit },
-    openGraph: {
-      title: `${title} | ${SITE_NAME}`,
-      description,
-      type: 'website',
-      locale: locale === 'en' ? 'en_US' : 'zh_CN',
-      siteName: SITE_NAME,
-      url: canonicalEdit,
-    },
-    twitter: {
-      card: 'summary',
-      title: `${title} | ${SITE_NAME}`,
-      description,
-    },
-  };
+  return buildEditMetadata(locale, t);
 }
 
 export default async function EditLayout({
@@ -41,6 +21,13 @@ export default async function EditLayout({
   children: React.ReactNode;
   params: { locale: string };
 }) {
-  setRequestLocale(params.locale);
-  return children;
+  const { locale } = params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: 'Site' });
+  return (
+    <>
+      <h1 className='sr-only'>{t('editTitle')}</h1>
+      {children}
+    </>
+  );
 }

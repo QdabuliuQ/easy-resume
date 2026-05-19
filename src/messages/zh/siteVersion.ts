@@ -6,6 +6,7 @@ export default {
     keywords:
       '简历,简历编辑器,在线简历,PDF 简历,求职,EasyResume,AI 简历',
     ogImageAlt: '{siteName} 界面预览',
+    logoAlt: '{siteName} 标志',
     editTitle: '简历编辑器',
     editDescription:
       '在画布中编辑简历模块、全局样式与排版，支持导出 PDF、图片(JPEG)、JSON 及本地文件夹备份。',

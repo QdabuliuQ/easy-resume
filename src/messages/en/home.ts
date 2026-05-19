@@ -23,6 +23,9 @@ export default {
   closingDesc:
     'Jump into the editor, start from modular structure, and polish until it is submission-ready.',
   closingCta: 'Start free',
+  logoAlt: 'EasyResume logo',
+  previewLightAlt: 'Light theme resume editor preview',
+  previewDarkAlt: 'Dark theme resume editor preview',
   compareFigure: 'Light and dark preview—drag the handle to compare',
   compareSlider: 'Comparison position',
   highlights: [

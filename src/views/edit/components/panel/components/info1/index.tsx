@@ -88,6 +88,7 @@ function formatPreviewValue(key: string, opt: Record<string, unknown>): string {
 
 function Info1({ moduleId }: { moduleId?: string } = {}) {
   const ti = useTranslations('Edit.info1');
+  const th = useTranslations('Edit.header');
   const [form] = Form.useForm();
   const cropperRef = useRef<any>(null);
   const mid = moduleId ?? moduleActiveStore.getModuleActive;
@@ -582,7 +583,13 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                           <div className='overflow-hidden rounded-lg border border-fg/10 bg-[var(--panel-inset-bg)]'>
                             <img
                               src={avatarValue}
-                              alt='avatar'
+                              alt={
+                                (configStore.getConfig?.name ?? '').trim()
+                                  ? th('avatarAlt', {
+                                      name: (configStore.getConfig?.name ?? '').trim(),
+                                    })
+                                  : ti('fields.avatar')
+                              }
                               style={{
                                 width: '100%',
                                 height: 112,

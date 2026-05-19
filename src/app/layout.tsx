@@ -5,6 +5,7 @@ import {
   SITE_DESCRIPTION_DEFAULT,
   SITE_NAME,
   getSiteUrl,
+  siteSoftwareApplicationJsonLd,
 } from '@/lib/siteMeta';
 
 export const metadata: Metadata = {
@@ -28,8 +29,15 @@ export default function RootLayout({
           key='theme-bootstrap'
           dangerouslySetInnerHTML={{ __html: themeBootstrap }}
         />
+        <script
+          key='json-ld-software'
+          type='application/ld+json'
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(siteSoftwareApplicationJsonLd()),
+          }}
+        />
       </head>
-      <body className='min-h-screen bg-background antialiased'>
+      <body className='min-h-screen overflow-x-clip bg-background antialiased'>
         <AntdProvider>{children}</AntdProvider>
       </body>
     </html>

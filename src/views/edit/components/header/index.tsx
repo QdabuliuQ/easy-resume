@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { memo, useId, useRef, useState } from 'react';
@@ -156,13 +157,14 @@ function Header() {
           className='flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg outline-none ring-[var(--text-strong)]/35 transition-opacity hover:opacity-90 focus-visible:ring-2'
           aria-label={t('backHome')}
         >
-          <img
+          <Image
             src='/logo.png'
-            alt=''
+            alt={t('logoAlt')}
             width={34}
             height={34}
             className='h-[32px] w-[32px] object-contain'
             draggable={false}
+            priority
           />
         </Link>
         <div className='bg-gradient-primary-br h-[30px] w-[4px] shrink-0 rounded-full opacity-90' />

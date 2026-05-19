@@ -32,6 +32,8 @@ export default {
     themeColorAria: 'Accent color',
     bgColorAria: 'Background color',
     backHome: 'Back to home',
+    logoAlt: 'EasyResume logo',
+    avatarAlt: '{name} photo',
     editNameAria: 'Edit name',
   },
   menu: {

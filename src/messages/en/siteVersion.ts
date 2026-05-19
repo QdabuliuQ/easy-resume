@@ -6,6 +6,7 @@ export default {
     keywords:
       'resume,resume builder,online resume,PDF resume,job search,EasyResume,AI resume',
     ogImageAlt: '{siteName} preview',
+    logoAlt: '{siteName} logo',
     editTitle: 'Resume editor',
     editDescription:
       'Edit resume modules, global layout, and typography on the canvas; export PDF, JPEG image, JSON, and optional local folder backup.',

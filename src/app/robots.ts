@@ -1,12 +1,16 @@
 import type { MetadataRoute } from 'next';
-import { getCanonicalSiteBase } from '@/lib/canonicalSiteBase';
+import { getSiteUrl } from '@/lib/siteMeta';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
 
-export default async function robots(): Promise<MetadataRoute.Robots> {
-  const base = await getCanonicalSiteBase();
+export default function robots(): MetadataRoute.Robots {
+  const base = getSiteUrl().href.replace(/\/$/, '');
   return {
-    rules: [{ userAgent: '*', allow: '/' }],
+    rules: {
+      userAgent: '*',
+      allow: '/',
+      disallow: ['/admin/', '/test/', '/draft/', '/*?*'],
+    },
     sitemap: `${base}/sitemap.xml`,
     host: base,
   };
