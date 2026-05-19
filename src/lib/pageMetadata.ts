@@ -1,5 +1,10 @@
 import type { Metadata } from 'next';
-import { BAIDU_SITE_VERIFICATION, SITE_NAME, getSiteUrl } from '@/lib/siteMeta';
+import {
+  BAIDU_SITE_VERIFICATION,
+  BING_SITE_VERIFICATION,
+  SITE_NAME,
+  getSiteUrl,
+} from '@/lib/siteMeta';
 
 type SiteT = (key: string, values?: Record<string, string>) => string;
 
@@ -33,7 +38,10 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
       ],
     },
     twitter: { card: 'summary_large_image', title, description },
-    other: { 'baidu-site-verification': BAIDU_SITE_VERIFICATION },
+    other: {
+      'baidu-site-verification': BAIDU_SITE_VERIFICATION,
+      'msvalidate.01': BING_SITE_VERIFICATION,
+    },
   };
 }
 
