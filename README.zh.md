@@ -16,7 +16,6 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
-  <img src="https://img.shields.io/github/v/release/QdabuliuQ/easy-resume" alt="Release">
   <img src="https://img.shields.io/badge/Maintenance-Active-green" alt="Maintenance">
   <br>
   <img src="https://img.shields.io/badge/Next.js-14-black" alt="Next.js">
