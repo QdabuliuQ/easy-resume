@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import {
   BAIDU_SITE_VERIFICATION,
   BING_SITE_VERIFICATION,
+  SOGOU_SITE_VERIFICATION,
   SITE_NAME,
   getSiteUrl,
 } from '@/lib/siteMeta';
@@ -41,6 +42,7 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
     other: {
       'baidu-site-verification': BAIDU_SITE_VERIFICATION,
       'msvalidate.01': BING_SITE_VERIFICATION,
+      'sogou_site_verification': SOGOU_SITE_VERIFICATION,
     },
   };
 }
