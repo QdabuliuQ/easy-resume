@@ -3,17 +3,13 @@ import { normResumeFont } from '@/lib/resumeFont';
 /** 仅服务端导出：使用 Chromium 打印 PDF 兼容更好的在线 WOFF2 字体 */
 export function resumePdfFontLinkTags(
   font: unknown,
-  opts?: { assetOrigin?: string; basePath?: string }
+  opts?: { assetOrigin?: string }
 ): string {
   const id = normResumeFont(font);
   const embedId = id === 'system' ? 'noto-sans-sc' : id;
 
   const origin = (opts?.assetOrigin ?? '').replace(/\/$/, '');
-  const basePath = opts?.basePath ?? process.env.NEXT_PUBLIC_BASE_PATH ?? '';
-  const normalizedBasePath = basePath
-    ? `/${String(basePath).replace(/^\/+|\/+$/g, '')}`
-    : '';
-  const localBase = origin ? `${origin}${normalizedBasePath}` : normalizedBasePath;
+  const localBase = origin;
 
   const localFaceCss =
     embedId === 'noto-sans-sc'

@@ -30,19 +30,15 @@ export function resumeFontStack(id: unknown): string {
 }
 
 /** 本地 @font-face；system 不注入；字体在 public/fonts/ */
-export function resumeLocalFontFacesCss(
-  basePath = '',
-  font: ResumeFontId = 'noto-sans-sc'
-): string {
+export function resumeLocalFontFacesCss(font: ResumeFontId = 'noto-sans-sc'): string {
   if (font === 'system') return '';
-  const b = basePath;
   const sans = [
-    `@font-face{font-family:'Noto Sans SC';font-style:normal;font-weight:400;font-display:swap;src:url('${b}/fonts/NotoSansSC-Regular.ttf') format('truetype');}`,
-    `@font-face{font-family:'Noto Sans SC';font-style:normal;font-weight:700;font-display:swap;src:url('${b}/fonts/NotoSansSC-Bold.ttf') format('truetype');}`,
+    `@font-face{font-family:'Noto Sans SC';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/NotoSansSC-Regular.ttf') format('truetype');}`,
+    `@font-face{font-family:'Noto Sans SC';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/NotoSansSC-Bold.ttf') format('truetype');}`,
   ];
   const serif = [
-    `@font-face{font-family:'Noto Serif SC';font-style:normal;font-weight:400;font-display:swap;src:url('${b}/fonts/NotoSerifSC-Regular.ttf') format('truetype');}`,
-    `@font-face{font-family:'Noto Serif SC';font-style:normal;font-weight:700;font-display:swap;src:url('${b}/fonts/NotoSerifSC-Bold.ttf') format('truetype');}`,
+    `@font-face{font-family:'Noto Serif SC';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/NotoSerifSC-Regular.ttf') format('truetype');}`,
+    `@font-face{font-family:'Noto Serif SC';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/NotoSerifSC-Bold.ttf') format('truetype');}`,
   ];
   return font === 'noto-sans-sc' ? sans.join('\n') : serif.join('\n');
 }

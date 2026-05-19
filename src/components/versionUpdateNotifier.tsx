@@ -3,7 +3,6 @@
 import { App, Button, Space } from 'antd';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
-import { withBasePath } from '@/lib/withBasePath';
 
 const POLL_MS = 60_000;
 const NOTIFY_KEY = 'easy-resume-version-update';
@@ -24,7 +23,7 @@ export function VersionUpdateNotifier() {
       dismissedRef.current = null;
     }
 
-    const url = withBasePath('/api/version');
+    const url = '/api/version';
 
     const fetchBuildId = async (): Promise<string | null> => {
       try {

@@ -1,6 +1,5 @@
-import { withBasePath } from '@/lib/withBasePath';
-const BIGMODEL_CHAT_COMPLETIONS_URL = withBasePath('/api/bigmodel/v4/chat/completions');
-const CHATANYWHERE_CHAT_COMPLETIONS_URL = withBasePath('/api/chatanywhere/v1/chat/completions');
+const BIGMODEL_CHAT_COMPLETIONS_URL = '/api/bigmodel/v4/chat/completions';
+const CHATANYWHERE_CHAT_COMPLETIONS_URL = '/api/chatanywhere/v1/chat/completions';
 function formatNestedError(err: unknown): string {
   if (typeof err === 'string') return err;
   if (err && typeof err === 'object') {

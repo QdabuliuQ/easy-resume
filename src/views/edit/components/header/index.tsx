@@ -8,7 +8,6 @@ import { EditOutlined } from '@ant-design/icons';
 import { FilePdf, DownPicture, FileCode } from '@icon-park/react';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
-import { withBasePath } from '@/lib/withBasePath';
 function Header() {
   const t = useTranslations('Edit.header');
   const locale = useLocale();
@@ -66,7 +65,7 @@ function Header() {
     try {
       const base = (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
       const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
-      const res = await fetch(withBasePath('/api/pdf'), {
+      const res = await fetch('/api/pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -101,7 +100,7 @@ function Header() {
     try {
       const base = (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
       const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
-      const res = await fetch(withBasePath('/api/image'), {
+      const res = await fetch('/api/image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -158,7 +157,7 @@ function Header() {
           aria-label={t('backHome')}
         >
           <img
-            src={withBasePath('/logo.png')}
+            src='/logo.png'
             alt=''
             width={34}
             height={34}

@@ -62,7 +62,7 @@ npm install
 npm run dev
 ```
 
-开发服务器默认由 Next 分配端口；应用配置了 **`basePath: /easy-resume`**，本地访问路径形如：`http://localhost:3000/easy-resume/edit`（端口以终端输出为准）。
+开发服务器默认由 Next 分配端口；本地访问路径形如：`http://localhost:3000/zh/edit`（端口以终端输出为准）。
 
 生产构建与启动：
 
@@ -91,7 +91,6 @@ npm run start
 
 | 变量 | 说明 |
 |------|------|
-| `NEXT_PUBLIC_BASE_PATH` | 一般由 `next.config.mjs` 注入为 `/easy-resume`，与部署子路径一致 |
 | `NEXT_PUBLIC_SITE_URL` | 站点根 URL；PDF 内相对链接补全时的备选基准 |
 
 ## 📂 目录结构（摘要）
@@ -116,4 +115,4 @@ middleware.ts    # Next.js 中间件
 docker-compose up -d
 ```
 
-访问：`http://localhost:3010/easy-resume`
+访问：`http://localhost:3010/zh`

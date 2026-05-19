@@ -61,7 +61,7 @@ npm install
 npm run dev
 ```
 
-The dev server port is assigned by Next.js. This app uses **`basePath: /easy-resume`**, so local URLs look like `http://localhost:3000/easy-resume/edit` (use the port printed in the terminal).
+The dev server port is assigned by Next.js. Local URLs look like `http://localhost:3000/zh/edit` (use the port printed in the terminal).
 
 Production build and run:
 
@@ -90,7 +90,6 @@ Create `.env.local` as needed (do not commit secrets).
 
 | Variable | Description |
 |----------|-------------|
-| `NEXT_PUBLIC_BASE_PATH` | Usually `/easy-resume` from `next.config.mjs`, aligned with deploy subpath |
 | `NEXT_PUBLIC_SITE_URL` | Site root URL; fallback base for resolving relative links in PDF |
 
 ## 📂 Project layout (summary)
@@ -115,4 +114,4 @@ middleware.ts    # Next.js middleware
 docker-compose up -d
 ```
 
-Open: `http://localhost:3010/easy-resume`
+Open: `http://localhost:3010/zh`

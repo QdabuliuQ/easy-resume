@@ -8,7 +8,11 @@ const intlMiddleware = createMiddleware(routing);
 export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (pathname === '/easy-resume' || pathname === '/easy-resume/') {
-    return NextResponse.redirect(new URL('/easy-resume/zh', request.url));
+    return NextResponse.redirect(new URL('/zh', request.url));
+  }
+  if (pathname.startsWith('/easy-resume/')) {
+    const rest = pathname.slice('/easy-resume'.length) || '/';
+    return NextResponse.redirect(new URL(rest, request.url));
   }
   return intlMiddleware(request);
 }

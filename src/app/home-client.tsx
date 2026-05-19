@@ -30,7 +30,6 @@ import {
   subscribeAppTheme,
   toggleAppTheme,
 } from '@/lib/themeStore';
-import { withBasePath } from '@/lib/withBasePath';
 import Typed from 'typed.js';
 
 const HomeResumeTemplateMarquee = dynamic(
@@ -274,7 +273,7 @@ function HeroPreviewCompare({
         }}
       >
         <Image
-          src={withBasePath('/preview_light.png')}
+          src='/preview_light.png'
           alt=''
           width={1920}
           height={999}
@@ -300,7 +299,7 @@ function HeroPreviewCompare({
               }}
             >
               <Image
-                src={withBasePath('/preview.png')}
+                src='/preview.png'
                 alt=''
                 fill
                 sizes='(max-width:1024px) 80vw, 900px'
@@ -551,7 +550,7 @@ export default function Home() {
               className={`flex min-w-0 max-w-[65%] cursor-pointer items-center gap-2 rounded-lg sm:max-w-none ${focusRing}`}
             >
               <span className='relative inline-flex h-8 w-8 shrink-0'>
-                <Image src={withBasePath('/logo.png')} alt='' fill sizes='32px' className='object-contain p-0.5' />
+                <Image src='/logo.png' alt='' fill sizes='32px' className='object-contain p-0.5' />
               </span>
               <span className='truncate text-sm font-semibold tracking-[0.12em] text-fg/90'>EASYRESUME</span>
             </span>

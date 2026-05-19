@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   applicationName: SITE_NAME,
   description: SITE_DESCRIPTION_DEFAULT,
   referrer: 'origin-when-cross-origin',
-  icons: { icon: '/easy-resume/logo.png', apple: '/easy-resume/logo.png' },
+  icons: { icon: '/logo.png', apple: '/logo.png' },
 };
 
 export default function RootLayout({

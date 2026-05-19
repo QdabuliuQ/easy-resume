@@ -599,7 +599,7 @@ export function renderResumeDocumentHtml(resume: {
   pages: Array<{ moduleMargin?: number; modules?: unknown[] }>;
   exportPages?: Array<{ moduleMargin?: number; modules?: unknown[] }>;
   globalStyle: GlobalStyle;
-}, opts?: { assetOrigin?: string; basePath?: string; locale?: Info1PdfLocale }) {
+}, opts?: { assetOrigin?: string; locale?: Info1PdfLocale }) {
   const gs = resume.globalStyle;
   const { width: pageW, height: pageH } = globalStylePageDimensions(gs);
   const pages = resume.exportPages ?? resume.pages ?? [];
@@ -624,7 +624,6 @@ export function renderResumeDocumentHtml(resume: {
   const quillSnow = readQuillSnowCss();
   const fontLinks = resumePdfFontLinkTags(gs.resumeFont, {
     assetOrigin: opts?.assetOrigin,
-    basePath: opts?.basePath,
   });
 
   return `<!DOCTYPE html>
@@ -672,7 +671,7 @@ export function renderResumePngHtml(
     exportPages?: Array<{ moduleMargin?: number; modules?: unknown[] }>;
     globalStyle: GlobalStyle;
   },
-  opts?: { assetOrigin?: string; basePath?: string; locale?: Info1PdfLocale }
+  opts?: { assetOrigin?: string; locale?: Info1PdfLocale }
 ) {
   const gs = resume.globalStyle;
   const { width: pageW } = globalStylePageDimensions(gs);
@@ -691,7 +690,6 @@ export function renderResumePngHtml(
   const quillSnow = readQuillSnowCss();
   const fontLinks = resumePdfFontLinkTags(gs.resumeFont, {
     assetOrigin: opts?.assetOrigin,
-    basePath: opts?.basePath,
   });
 
   return `<!DOCTYPE html>

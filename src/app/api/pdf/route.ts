@@ -83,7 +83,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
     const requestOrigin = new URL(req.url).origin;
-    const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
     const { url, html, filename, config, locale } = body as {
       url?: string;
       html?: string;
@@ -105,7 +104,6 @@ export async function POST(req: Request) {
         },
         {
           assetOrigin: requestOrigin,
-          basePath,
           locale: locale === 'en' ? 'en' : 'zh',
         }
       );
