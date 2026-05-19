@@ -6,13 +6,21 @@ export const BING_SITE_VERIFICATION = 'A57DE6B0DEE3B356C208709D84FE45B5';
 export const SITE_DESCRIPTION_DEFAULT =
   'AI 辅助的在线简历编辑器：模块化编排、富文本、画布预览，导出 PDF / 图片(JPEG) / JSON，数据可本地备份。';
 
-/** 站点根 URL；缺省为本地开发地址 */
+function resolveSiteUrlRaw(): string | undefined {
+  const explicit =
+    process.env.SITE_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (explicit) return explicit;
+  const vercel = process.env.VERCEL_URL?.trim();
+  if (vercel) return `https://${vercel.replace(/^https?:\/\//, '')}`;
+  return undefined;
+}
+
+/** 站点根 URL；缺省为本地开发地址（构建期用 env / VERCEL_URL） */
 export function getSiteUrl(): URL {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const raw = resolveSiteUrlRaw();
   if (raw) {
     try {
-      const u = new URL(raw);
-      return u;
+      return new URL(raw);
     } catch {
       /* fallthrough */
     }

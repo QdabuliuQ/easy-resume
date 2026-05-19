@@ -1,10 +1,10 @@
 import type { MetadataRoute } from 'next';
-import { getSiteUrl } from '@/lib/siteMeta';
+import { getCanonicalSiteBase } from '@/lib/canonicalSiteBase';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
-export default function robots(): MetadataRoute.Robots {
-  const base = getSiteUrl().href.replace(/\/$/, '');
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const base = await getCanonicalSiteBase();
   return {
     rules: {
       userAgent: '*',
