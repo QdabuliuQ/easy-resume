@@ -3,6 +3,8 @@ export const SITE_NAME = 'EasyResume';
 export const BAIDU_SITE_VERIFICATION = 'codeva-1cW7ZWxH7V';
 export const BING_SITE_VERIFICATION = 'A57DE6B0DEE3B356C208709D84FE45B5';
 export const SOGOU_SITE_VERIFICATION = 'HfHGIFRatG';
+export const BYTEDANCE_SITE_VERIFICATION = 'mZD9AKpG/j1o8DDIeXbp';
+export const GOOGLE_SITE_VERIFICATION = 'Ey63mYPPiHyXAF3c_L9RW2oBN8LAkYy2hHaBgqAnNtA';
 
 export const SITE_DESCRIPTION_DEFAULT =
   'AI 辅助的在线简历编辑器：模块化编排、富文本、画布预览，导出 PDF / 图片(JPEG) / JSON，数据可本地备份。';

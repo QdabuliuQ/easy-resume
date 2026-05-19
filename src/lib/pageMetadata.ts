@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import {
   BAIDU_SITE_VERIFICATION,
   BING_SITE_VERIFICATION,
+  BYTEDANCE_SITE_VERIFICATION,
+  GOOGLE_SITE_VERIFICATION,
   SOGOU_SITE_VERIFICATION,
   SITE_NAME,
   getSiteUrl,
@@ -39,10 +41,12 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
       ],
     },
     twitter: { card: 'summary_large_image', title, description },
+    verification: { google: GOOGLE_SITE_VERIFICATION },
     other: {
       'baidu-site-verification': BAIDU_SITE_VERIFICATION,
       'msvalidate.01': BING_SITE_VERIFICATION,
       'sogou_site_verification': SOGOU_SITE_VERIFICATION,
+      'bytedance-verification-code': BYTEDANCE_SITE_VERIFICATION,
     },
   };
 }
