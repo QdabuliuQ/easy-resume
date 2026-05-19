@@ -825,7 +825,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className='mx-auto max-w-6xl px-5 pb-24 pt-6 md:pb-28'>
+        <section className='mx-auto max-w-6xl px-5 pb-14 pt-6 md:pb-16'>
           <div
             data-reveal='closing-cta'
             className={`overflow-hidden rounded-3xl px-6 py-12 text-center md:px-12 md:py-14 ${transitionReveal} ${revealClass('closing-cta')}`}
@@ -846,6 +846,31 @@ export default function Home() {
             </span>
           </div>
         </section>
+
+        <footer
+          data-reveal='site-footer'
+          aria-label='Site footer'
+          className={`mx-auto max-w-6xl px-5 pb-10 md:pb-12 ${transitionReveal} ${revealClass('site-footer')}`}
+        >
+          <div className='relative flex flex-col items-center pt-8'>
+            <div
+              aria-hidden
+              className='pointer-events-none absolute inset-x-8 top-0 h-px bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--color-primary)_32%,var(--editor-shell-border)),transparent)] md:inset-x-16'
+            />
+            <a
+              href='https://beian.miit.gov.cn/'
+              target='_blank'
+              rel='noopener noreferrer'
+              className={`group inline-flex items-center gap-2.5 rounded-full border border-[color-mix(in_srgb,var(--color-primary)_18%,var(--editor-shell-border))] bg-[var(--editor-shell-panel-soft)] px-4 py-2.5 text-[13px] tracking-wide text-[var(--color-primary)] shadow-[inset_0_1px_0_rgb(var(--surface-fg-rgb)/0.04)] backdrop-blur-sm transition-[color,border-color,background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:border-[color-mix(in_srgb,var(--color-primary)_32%,var(--editor-shell-border))] hover:bg-[color-mix(in_srgb,var(--color-primary)_8%,var(--editor-shell-panel))] hover:text-[color-mix(in_srgb,var(--color-primary)_92%,white)] hover:shadow-[0_10px_28px_color-mix(in_srgb,var(--color-primary)_12%,transparent)] motion-reduce:hover:translate-y-0 ${focusRing}`}
+            >
+              <span
+                aria-hidden
+                className='h-1.5 w-1.5 shrink-0 rounded-full bg-[color-mix(in_srgb,var(--color-primary)_58%,transparent)] shadow-[0_0_10px_color-mix(in_srgb,var(--color-primary)_40%,transparent)]'
+              />
+              <span className='text-[var(--color-primary)]'>粤ICP备2026060117号</span>
+            </a>
+          </div>
+        </footer>
       </div>
     </main>
   );
