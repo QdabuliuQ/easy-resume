@@ -6,7 +6,7 @@ import {
   SlidersOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
-import { message } from 'antd';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { Magic } from '@icon-park/react';
 import { useTranslations } from 'next-intl';
@@ -41,6 +41,7 @@ type MenuProps = {
   onActiveKeyChange: (key: string) => void;
 };
 export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
+  const message = useAppMessage();
   const t = useTranslations('Edit.menu');
   const importMenu = useMemo(() => ({ label: t('importTemplate'), key: 'import-template' as const }), [t]);
   const panelMenuItems = useMemo(

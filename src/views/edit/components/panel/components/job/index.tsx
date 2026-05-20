@@ -20,8 +20,8 @@ import {
   Form,
   Cascader,
   Empty,
-  message,
 } from 'antd';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { observer } from 'mobx-react';
 import {
   memo,
@@ -63,6 +63,7 @@ function intentPostsFromResumeConfig(
 }
 
 function Job({ moduleId }: { moduleId?: string } = {}) {
+  const message = useAppMessage();
   const tj = useTranslations('Edit.job');
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;

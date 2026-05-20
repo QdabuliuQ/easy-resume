@@ -2,7 +2,8 @@
 import FormItem from '@/components/formItem';
 import { FileDoneOutlined } from '@ant-design/icons';
 import { configStore, moduleActiveStore } from '@/mobx';
-import { Col, Empty, Form, Input, Row, message } from 'antd';
+import { Col, Empty, Form, Input, Row } from 'antd';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { ResponsiveDatePicker } from '@/components/responsiveDatePicker';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -25,6 +26,7 @@ import { useTranslations } from 'next-intl';
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
 function Certificate({ moduleId }: { moduleId?: string } = {}) {
+  const message = useAppMessage();
   const tc = useTranslations('Edit.certificate');
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;

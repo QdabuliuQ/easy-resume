@@ -4,12 +4,14 @@ import { Link } from '@/i18n/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { memo, useId, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
-import { Button, Input, message } from 'antd';
+import { Button, Input } from 'antd';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { EditOutlined } from '@ant-design/icons';
 import { FilePdf, DownPicture, FileCode } from '@icon-park/react';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 function Header() {
+  const message = useAppMessage();
   const t = useTranslations('Edit.header');
   const locale = useLocale();
   const [editing, setEditing] = useState(false);

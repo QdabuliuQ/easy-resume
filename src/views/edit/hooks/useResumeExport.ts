@@ -2,11 +2,12 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { message } from 'antd';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 
 export function useResumeExport() {
+  const message = useAppMessage();
   const t = useTranslations('Edit.header');
   const locale = useLocale();
   const [pdfLoading, setPdfLoading] = useState(false);

@@ -1,7 +1,7 @@
 'use client';
 
 import { CloseOutlined } from '@ant-design/icons';
-import { message } from 'antd';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useTranslations } from 'next-intl';
 import { memo, useEffect, useMemo } from 'react';
@@ -13,6 +13,7 @@ import {
 } from '../components/panel/components/resumeTemplate';
 
 function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
+  const message = useAppMessage();
   const { confirm } = useResponsiveConfirm();
   const tm = useTranslations('Edit.mobile');
   const tr = useTranslations('Edit.resumeTemplate');

@@ -7,7 +7,8 @@ import { ProjectProps } from '@/modules/project';
 import { Book, Avatar, Calendar, EditOne } from '@icon-park/react';
 import { ProjectOutlined } from '@ant-design/icons';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
-import { Col, Empty, Form, Input, Row, message } from 'antd';
+import { Col, Empty, Form, Input, Row } from 'antd';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { ResponsiveRangeDatePicker } from '@/components/responsiveDatePicker';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -57,6 +58,7 @@ function intentPostsFromResumeConfig(
 }
 
 function Project({ moduleId }: { moduleId?: string } = {}) {
+  const message = useAppMessage();
   const tp = useTranslations('Edit.project');
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;

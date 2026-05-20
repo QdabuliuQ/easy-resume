@@ -1,6 +1,6 @@
 'use client';
-import { message } from 'antd';
 import { useTranslations } from 'next-intl';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { useMemoizedFn } from 'ahooks';
 import {
@@ -13,6 +13,7 @@ import {
 } from '@/utils/moduleTypeLimits';
 
 export function useModuleHandle() {
+  const message = useAppMessage();
   const th = useTranslations('Edit.hooks');
   const tr = useTranslations('Edit.resumeContainer');
   const typeLabel = useMemoizedFn((type: ResumeModuleType) => {

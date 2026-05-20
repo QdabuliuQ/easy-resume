@@ -19,7 +19,8 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { useMemoizedFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
-import { Input, Popover, Space, message } from 'antd';
+import { Input, Popover, Space } from 'antd';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { responsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useMobileEdit } from '@/views/edit/mobile/context';
 import { observer } from 'mobx-react';
@@ -288,6 +289,7 @@ function ModuleManageInner({
   inline?: boolean;
   className?: string;
 }) {
+  const message = useAppMessage();
   const t = useTranslations('Edit.moduleManage');
   const th = useTranslations('Edit.header');
   const mobile = useMobileEdit();

@@ -1,5 +1,5 @@
 'use client';
-import { message } from 'antd';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { useMemoizedFn } from 'ahooks';
 import { useLocale, useTranslations } from 'next-intl';
 import Quill from 'quill';
@@ -89,6 +89,7 @@ function RichTextEditor({
   onAiPolishClick?: (richTextHtml: string, ctx?: AiPolishStreamContext) => Promise<string>;
   maxPlainLength?: number;
 }) {
+  const message = useAppMessage();
   const tr = useTranslations('Edit.richText');
   const locale = useLocale();
   const hostRef = useRef<HTMLDivElement>(null);

@@ -1,7 +1,7 @@
 'use client';
 import { CheckCircleOutlined, FolderOpenOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
-import { message } from 'antd';
 import { memo, useCallback, useEffect, useState } from 'react';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { useTranslations } from 'next-intl';
 import { getBackupDirectorySnapshot, setBackupDirectoryState } from '@/lib/backupDirectoryStore';
 import { flushResumeBackupImmediate } from '@/lib/resumeConfigBackup';
@@ -20,6 +20,7 @@ const rowCls = 'flex flex-col gap-2';
 const labelCls = 'text-[11px] font-medium uppercase tracking-[0.14em] text-fg/52';
 
 function GeneralSettings() {
+  const message = useAppMessage();
   const tg = useTranslations('Edit.generalSettings');
   const [dirHandle, setDirHandle] = useState<FileSystemDirectoryHandle | null>(
     () => getBackupDirectorySnapshot().handle
@@ -57,7 +58,7 @@ function GeneralSettings() {
     } finally {
       setBusyKey(null);
     }
-  }, [tg]);
+  }, [message, tg]);
   const displayLabel = dirHandle?.name ?? tg('noFolder');
   const unsupported = !supportsDirectoryPicker();
   const hintSecondary = dirHandle ? tg('hintHasFolder') : tg('hintPickFolder');

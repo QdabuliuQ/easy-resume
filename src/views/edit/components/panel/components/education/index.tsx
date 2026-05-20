@@ -24,8 +24,8 @@ import {
   Form,
   Input,
   Row,
-  message,
 } from 'antd';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import {
@@ -66,6 +66,7 @@ function intentPostsFromResumeConfig(
 }
 
 function Education({ moduleId }: { moduleId?: string } = {}) {
+  const message = useAppMessage();
   const te = useTranslations('Edit.education');
   const { getModule, getModuleIndex } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;

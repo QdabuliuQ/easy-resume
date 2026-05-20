@@ -1,6 +1,6 @@
 'use client';
 import { AppstoreOutlined } from '@ant-design/icons';
-import { message } from 'antd';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useMemoizedFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
@@ -87,6 +87,7 @@ export const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
 });
 
 function ResumeTemplate() {
+  const message = useAppMessage();
   const tr = useTranslations('Edit.resumeTemplate');
   const { confirm, modal, mobile, contextHolder } = useResponsiveConfirm();
   const templateCards = useMemo(

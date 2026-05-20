@@ -1,5 +1,6 @@
 'use client';
-import { message, Popover, Tooltip } from 'antd';
+import { Popover, Tooltip } from 'antd';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { observer } from 'mobx-react';
 import { useTranslations } from 'next-intl';
 import { memo, useCallback, useMemo, useState } from 'react';
@@ -23,6 +24,7 @@ const GRADIENT_CTA_CLASS =
 const PANEL_HERO_CLASS =
   'mb-4 rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.11),rgb(var(--panel-surface-rgb)/0.05))] px-4 py-3 text-fg shadow-[0_18px_42px_rgba(0,0,0,0.14)]';
 function Resume({ menuActiveKey }: ResumeProps) {
+  const message = useAppMessage();
   const tr = useTranslations('Edit.resumeContainer');
   const addModuleList = useMemo(
     () =>

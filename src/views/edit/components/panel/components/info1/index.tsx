@@ -25,6 +25,7 @@ import {
 import { useMemoizedFn } from 'ahooks';
 import CropperImage from '@/components/cropperImage';
 import ResponsiveSelect from '@/components/responsiveSelect';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { ResponsiveDatePicker } from '@/components/responsiveDatePicker';
 import { fileToBase64 } from '@/utils';
 import { info1ShowsInlineFieldLabel } from '@/lib/info1FieldLabels';
@@ -88,6 +89,7 @@ function formatPreviewValue(key: string, opt: Record<string, unknown>): string {
 }
 
 function Info1({ moduleId }: { moduleId?: string } = {}) {
+  const message = useAppMessage();
   const ti = useTranslations('Edit.info1');
   const th = useTranslations('Edit.header');
   const [form] = Form.useForm();
