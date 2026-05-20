@@ -7,7 +7,7 @@ export default {
       'resume,resume builder,online resume,PDF resume,job search,EasyResume,AI resume',
     ogImageAlt: '{siteName} preview',
     logoAlt: '{siteName} logo',
-    editTitle: 'Resume editor',
+    editTitle: 'Resume editor · live canvas preview · PDF, JPEG & JSON export',
     editDescription:
       'Edit resume modules, global layout, and typography on the canvas; export PDF, JPEG image, JSON, and optional local folder backup.',
     jsonLdBrowserNeedsJs: 'JavaScript is required',
