@@ -129,6 +129,106 @@ const LOOP = [...resumeTemplates, ...resumeTemplates];
 /** 走马灯缩略图缩放（略大于原 0.2，便于扫读） */
 const STRIP_SCALE = 0.28;
 const SWATCH_ROTATE_MS = 2600;
+const PREVIEW_SCALE_MAX = 0.72;
+const PREVIEW_VIEWPORT_PAD_X = 32;
+const PREVIEW_VIEWPORT_PAD_Y = 56;
+const PREVIEW_VIEWPORT_PAD_Y_MOBILE = 128;
+const PREVIEW_SCALE_MIN = 0.18;
+const MOBILE_MQ = '(max-width: 767px)';
+
+function useMobileViewport() {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MQ);
+    const sync = () => setMobile(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+  return mobile;
+}
+
+function useFitPageScale(
+  pageW: number,
+  pageH: number,
+  opts?: { max?: number; padX?: number; padY?: number; min?: number }
+) {
+  const max = opts?.max ?? PREVIEW_SCALE_MAX;
+  const padX = opts?.padX ?? PREVIEW_VIEWPORT_PAD_X;
+  const padY = opts?.padY ?? PREVIEW_VIEWPORT_PAD_Y;
+  const min = opts?.min ?? PREVIEW_SCALE_MIN;
+  const calc = () => {
+    if (typeof window === 'undefined' || pageW <= 0 || pageH <= 0) return max;
+    const vw = window.visualViewport?.width ?? window.innerWidth;
+    const vh = window.visualViewport?.height ?? window.innerHeight;
+    const s = Math.min((vw - padX) / pageW, (vh - padY) / pageH, max);
+    return Math.max(min, s);
+  };
+  const [scale, setScale] = useState(calc);
+  useEffect(() => {
+    const onResize = () => setScale(calc());
+    onResize();
+    window.addEventListener('resize', onResize);
+    window.visualViewport?.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.visualViewport?.removeEventListener('resize', onResize);
+    };
+  }, [pageW, pageH, max, padX, padY, min]);
+  return scale;
+}
+
+const MaskPreviewScaled = memo(function MaskPreviewScaled({
+  template,
+  templateIndex1Based,
+  resumeTextColor,
+  useTemplateLabel,
+}: {
+  template: ResumeTemplateItem;
+  templateIndex1Based?: number;
+  resumeTextColor: string;
+  useTemplateLabel: string;
+}) {
+  const gs = useMemo(() => {
+    const merged = mergeGlobalStylePaper(
+      defaultResume.globalStyle as GlobalStyle,
+      template.config.globalStyle
+    );
+    return { ...merged, color: resumeTextColor };
+  }, [template, resumeTextColor]);
+  const { width: pwStr, height: phStr } = globalStylePageDimensions(gs);
+  const pw = cssLengthToApproxPx(pwStr);
+  const ph = cssLengthToApproxPx(phStr);
+  const isMobile = useMobileViewport();
+  const scale = useFitPageScale(pw, ph, {
+    padY: isMobile ? PREVIEW_VIEWPORT_PAD_Y_MOBILE : PREVIEW_VIEWPORT_PAD_Y,
+  });
+  const showUse =
+    templateIndex1Based != null &&
+    templateIndex1Based >= 1 &&
+    templateIndex1Based <= resumeTemplates.length;
+  const editHref = showUse ? `/edit?template=${templateIndex1Based}` : '';
+  return (
+    <div className='flex w-full max-w-[100vw] flex-col items-center gap-4'>
+      <TemplatePageScaled
+        template={template}
+        scale={scale}
+        templateIndex1Based={templateIndex1Based}
+        resumeTextColor={resumeTextColor}
+        useTemplateLabel={useTemplateLabel}
+      />
+      {showUse ? (
+        <Link
+          href={editHref}
+          className='md:hidden inline-flex min-h-11 w-full max-w-[min(100%,320px)] items-center justify-center rounded-full bg-gradient-to-r from-[var(--color-primary-gradient-start)] to-[var(--color-primary)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgb(0_0_0/0.35)]'
+          onClick={(e) => e.stopPropagation()}
+        >
+          {useTemplateLabel}
+        </Link>
+      ) : null}
+    </div>
+  );
+});
 
 function MarqueeTemplateThumb({
   template,
@@ -386,9 +486,8 @@ export default function HomeResumeTemplateMarquee({ reduceMotion }: { reduceMoti
         }}
       >
         {preview ? (
-          <TemplatePageScaled
+          <MaskPreviewScaled
             template={preview}
-            scale={0.72}
             templateIndex1Based={previewIndex1Based ?? undefined}
             resumeTextColor={resumeTextColor}
             useTemplateLabel={tm('useTemplate')}
