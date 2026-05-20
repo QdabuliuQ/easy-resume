@@ -17,7 +17,11 @@ import PanelToolbar from '../panelToolbar';
 import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 
 function intentPostsFromResumeConfig(
-  config: { pages?: { modules?: { type?: string; options?: { intentPosts?: string } }[] }[] } | null
+  config: {
+    pages?: {
+      modules?: { type?: string; options?: { intentPosts?: string } }[];
+    }[];
+  } | null
 ): string {
   if (!config?.pages) return '';
   for (const page of config.pages) {
@@ -78,7 +82,9 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
 
   const rawHtml = module?.options.description ?? '';
   const previewText = plainTextFromRichHtml(rawHtml);
-  const intentPostsForPolish = intentPostsFromResumeConfig(configStore.getConfig);
+  const intentPostsForPolish = intentPostsFromResumeConfig(
+    configStore.getConfig
+  );
 
   return (
     <div className='[&_.ant-form-item]:!mb-2.5'>

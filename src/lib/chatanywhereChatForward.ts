@@ -6,12 +6,9 @@ function coerceUpstreamStream(v: unknown): boolean {
   return true;
 }
 export async function forwardChatanywhereChatCompletions(body: unknown): Promise<Response> {
-  const key = process.env.CHATANYWHERE_API_KEY ?? process.env.BASE_API_KEY;
+  const key = process.env.CHATANYWHERE_API_KEY;
   if (!key) {
-    return Response.json(
-      { error: '缺少 CHATANYWHERE_API_KEY 或 BASE_API_KEY' },
-      { status: 500 }
-    );
+    return Response.json({ error: '缺少 CHATANYWHERE_API_KEY' }, { status: 500 });
   }
   if (!body || typeof body !== 'object') {
     return Response.json({ error: '无效 JSON' }, { status: 400 });

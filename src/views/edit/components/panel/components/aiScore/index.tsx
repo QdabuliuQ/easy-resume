@@ -3,7 +3,12 @@ import { Book, Briefcase, Notes, Right, Setting, Up } from '@icon-park/react';
 import { App, Collapse, Spin } from 'antd';
 import { useTranslations } from 'next-intl';
 import { memo, useCallback, useId, useMemo, type ComponentType } from 'react';
-import type { ResumeAiAnalyzeResult, ResumeAiFieldOptimize } from '@/api/resumeAiScoreAnalyze';
+import {
+  RESUME_AI_ITEMIZED_MODULE_TYPES,
+  type ResumeAiAnalyzeResult,
+  type ResumeAiFieldOptimize,
+} from '@/api/resumeAiScoreAnalyze';
+import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { moduleType as moduleTypeMeta } from '@/modules/utils/constant';
 
@@ -121,17 +126,45 @@ function moduleTypeLabel(mt: string): string {
 type ResumeDraft = NonNullable<ReturnType<typeof configStore.getConfig>>;
 type MessageApi = ReturnType<typeof App.useApp>['message'];
 
+function isItemizedModuleType(mt: string): boolean {
+  return (RESUME_AI_ITEMIZED_MODULE_TYPES as readonly string[]).includes(mt);
+}
+
+function resolveModuleOnPage(draft: ResumeDraft, item: ResumeAiFieldOptimize) {
+  const page = draft.pages[item.pageIndex];
+  if (!page?.modules?.length) return null;
+  const hit = page.modules.find((m: { id: string; type: string }) => m.id === item.moduleId && m.type === item.moduleType);
+  if (hit) return hit;
+  const sameType = page.modules.filter((m: { type: string }) => m.type === item.moduleType);
+  if (sameType.length === 1) return sameType[0];
+  return null;
+}
+
+/** item 类模块写入 options.items[i].fieldKey；无 moduleItemIndex 且仅一条 item 时用 [0] */
+function optionsFieldPathForApply(item: ResumeAiFieldOptimize, opts: Record<string, unknown>): string | null {
+  if (!isItemizedModuleType(item.moduleType)) return item.fieldKey;
+  const items = opts.items;
+  const arrLen = Array.isArray(items) ? items.length : 0;
+  const idx = item.moduleItemIndex;
+  if (typeof idx === 'number' && Number.isInteger(idx) && idx >= 0) {
+    if (idx >= arrLen) return null;
+    return `items[${idx}].${item.fieldKey}`;
+  }
+  if (arrLen === 1) return `items[0].${item.fieldKey}`;
+  return null;
+}
+
 function applyOneToDraft(draft: ResumeDraft, item: ResumeAiFieldOptimize): boolean {
   if (!draft.pages[item.pageIndex]) return false;
-  const mod = draft.pages[item.pageIndex].modules?.find(
-    (m: { id: string; type: string }) => m.id === item.moduleId && m.type === item.moduleType
-  );
+  const mod = resolveModuleOnPage(draft, item);
   if (!mod) return false;
   const opts =
     mod.options && typeof mod.options === 'object'
       ? (mod.options as Record<string, unknown>)
       : {};
-  setOptionsByFieldKey(opts, item.fieldKey, item.optimizeValue);
+  const path = optionsFieldPathForApply(item, opts);
+  if (path === null) return false;
+  setOptionsByFieldKey(opts, path, item.optimizeValue);
   mod.options = opts;
   return true;
 }
@@ -209,7 +242,6 @@ function AiScore({
   analysis = null,
 }: {
   score?: number;
-  hasAnalysis?: boolean;
   loading?: boolean;
   analysis?: ResumeAiAnalyzeResult | null;
 }) {
@@ -333,11 +365,11 @@ function AiScore({
                   </button>
                 </div>
               <ul className='flex flex-col gap-2 pt-2'>
-                {fieldList.map((f) => {
+                {fieldList.map((f, fi) => {
                   const hasVal = typeof f.optimizeValue === 'string' && f.optimizeValue.trim().length > 0;
                   return (
                     <li
-                      key={`${f.pageIndex}-${f.moduleId}-${f.fieldKey}`}
+                      key={`${fi}-${f.pageIndex}-${f.moduleId}-${f.moduleItemIndex ?? 'x'}-${f.fieldKey}-${f.optimizeReason.slice(0, 24)}`}
                       className='rounded-2xl border border-fg/[0.07] bg-[var(--panel-inset-bg)] px-3 py-3 text-[12px] leading-snug text-fg/55 transition-[transform,border-color,background-color] duration-200 hover:-translate-y-0.5 hover:border-fg/[0.12] hover:bg-surface/[0.045]'
                       onMouseEnter={() => moduleActiveStore.setModuleActive(f.moduleId)}
                       onMouseLeave={() => {
@@ -359,17 +391,19 @@ function AiScore({
                             </span>
                           ) : null}
                         </div>
-                        <p className='mt-1.5 text-[12px] leading-relaxed text-fg/70'>
-                          {f.optimizeReason}
-                        </p>
+                        <ResumeQuillHtml
+                          html={f.optimizeReason}
+                          className='mt-1.5 text-[12px] leading-relaxed text-fg/70'
+                        />
                         {hasVal ? (
                           <div className='mt-2 rounded-xl border border-fg/[0.06] bg-surface/[0.03] px-3 py-2'>
                             <span className='block text-[11px] uppercase tracking-[0.18em] text-fg/58'>
                               {ta('badgeSuggest')}
                             </span>
-                            <span className='mt-1 block text-[12px] leading-relaxed text-fg/60'>
-                              {f.optimizeValue}
-                            </span>
+                            <ResumeQuillHtml
+                              html={f.optimizeValue}
+                              className='mt-1 text-[12px] leading-relaxed text-fg/60'
+                            />
                             <button
                               type='button'
                               onClick={() => onApply(f)}

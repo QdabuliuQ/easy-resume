@@ -89,11 +89,39 @@ The `start` script listens on **3010**.
 
 ## 🔐 Environment variables
 
-Create `.env.local` as needed (do not commit secrets).
+Create `.env.local` at the project root (do not commit secrets). See `.env.local.example` for reference.
+
+### Local development
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `BIGMODEL_API_KEY` | Yes | API key from [Zhipu AI Open Platform](https://open.bigmodel.cn/) for AI polish, resume scoring, etc. (default model: GLM-4.7-Flash) |
+| `CHATANYWHERE_API_KEY` | Yes | Key from [ChatAnywhere free API](https://github.com/chatanywhere/GPT_API_free); used as fallback when Zhipu requests fail (default model: deepseek-v4-flash) |
+| `PUPPETEER_EXECUTABLE_PATH` | No | Browser executable for PDF/PNG export via Puppeteer. In dev, Puppeteer’s bundled Chromium is used if unset; in production on Linux the default is `/usr/bin/chromium-browser` |
+
+`PUPPETEER_EXECUTABLE_PATH` examples:
+
+| OS | Example path |
+|----|--------------|
+| macOS (Google Chrome) | `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` |
+| Windows (Google Chrome) | `C:\Program Files\Google\Chrome\Application\chrome.exe` |
+| Linux (Chromium) | `/usr/bin/chromium-browser` or `/usr/bin/chromium` |
+
+### Deployment only
+
+Configure these on the server:
 
 | Variable | Description |
 |----------|-------------|
-| `NEXT_PUBLIC_SITE_URL` | Site root URL; fallback base for resolving relative links in PDF |
+| `RESUME_PROJECT_ROOT` | Absolute project path on the server, e.g. `/root/easy-resume` (PM2 / script working directory) |
+| `NEXT_PUBLIC_SITE_URL` | Public site root URL, e.g. `https://resume.example.com`; used for PDF link resolution and site metadata. **Must be set before `npm run build`** or it won’t be embedded in the client bundle |
+
+Optional (for AI score rate limiting and caching; see `.env.local.example`):
+
+| Variable | Description |
+|----------|-------------|
+| `UPSTASH_REDIS_REST_URL` | [Upstash Redis](https://console.upstash.com) REST URL |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST Token |
 
 ## 📂 Project layout (summary)
 
