@@ -90,7 +90,7 @@ const HeroTypingTitle = memo(function HeroTypingTitle({
     };
   }, [reduceMotion, lines]);
   return (
-    <h1 className='min-h-[2.2lh] max-w-none text-4xl font-semibold leading-[1.15] tracking-tight text-fg/96 md:min-h-[1.15lh] md:text-[clamp(2.25rem,4vw+1rem,3.75rem)]'>
+    <h1 className='min-h-[2.2lh] max-w-full px-2 text-center text-[1.625rem] font-semibold leading-[1.2] tracking-tight text-balance text-fg/96 sm:px-0 sm:text-4xl md:min-h-[1.15lh] md:text-[clamp(2.25rem,4vw+1rem,3.75rem)]'>
       <span ref={elRef} className='inline align-top' />
     </h1>
   );
@@ -469,9 +469,9 @@ export default function Home() {
 
   const navClass = useMemo(
     () =>
-      `fixed top-0 left-0 right-0 z-40 transition-[background,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${scrolled
-        ? 'border-b border-fg/10 shadow-[0_12px_36px_rgb(var(--surface-fg-rgb)/0.08)] backdrop-blur-xl'
-        : 'border-b border-transparent bg-transparent'
+      `fixed top-0 left-0 right-0 z-50 isolate w-full bg-[var(--editor-shell-bg)]/80 pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl transition-[background,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${scrolled
+        ? 'border-b border-fg/10 shadow-[0_12px_36px_rgb(var(--surface-fg-rgb)/0.08)]'
+        : 'border-b border-fg/[0.06]'
       }`,
     [scrolled]
   );
@@ -509,7 +509,7 @@ export default function Home() {
 
   return (
     <main className='relative min-h-screen bg-[var(--editor-shell-bg)] text-[var(--text-strong)]'>
-      <div className='pointer-events-none absolute inset-0 z-0'>
+      <div className='pointer-events-none absolute inset-0 z-0 overflow-hidden'>
         <div
           ref={glowRef}
           className='fixed left-0 top-0 h-[480px] w-[480px] rounded-full blur-[90px] transition-opacity duration-500 will-change-transform'
@@ -542,23 +542,22 @@ export default function Home() {
         />
       </div>
 
-      <div className='relative z-[1]'>
-        <header className={navClass} style={navStyle}>
-          <div className='mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-5'>
+      <header className={navClass} style={navStyle}>
+        <div className='mx-auto flex h-14 w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-4 sm:h-16 sm:gap-3 sm:px-5'>
             <span
               role='link'
               tabIndex={0}
               aria-label={t('navHome')}
               onClick={pushPath('/')}
               onKeyDown={navKey(pushPath('/'))}
-              className={`flex min-w-0 max-w-[65%] cursor-pointer items-center gap-2 rounded-lg sm:max-w-none ${focusRing}`}
+              className={`flex min-w-0 flex-1 cursor-pointer items-center gap-2 overflow-hidden rounded-lg ${focusRing}`}
             >
               <span className='relative inline-flex h-8 w-8 shrink-0'>
                 <Image src='/logo.png' alt={t('logoAlt')} fill sizes='32px' className='object-contain p-0.5' />
               </span>
               <span className='truncate text-sm font-semibold tracking-[0.12em] text-fg/90'>EASYRESUME</span>
             </span>
-            <div className='flex shrink-0 items-center gap-2 sm:gap-2.5'>
+            <div className='flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2.5'>
               <Popover
                 arrow={false}
                 trigger='click'
@@ -648,15 +647,16 @@ export default function Home() {
                 tabIndex={0}
                 onClick={pushPath('/edit')}
                 onKeyDown={navKey(pushPath('/edit'))}
-                className={`inline-flex h-9 cursor-pointer items-center justify-center rounded-full border border-fg/14 bg-fg/[0.07] px-4 text-sm font-medium text-fg/58 transition-[transform,background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:bg-fg/11 hover:text-fg/78 motion-reduce:hover:translate-y-0 active:translate-y-0 ${focusRing}`}
+                className={`inline-flex h-9 shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-full border border-fg/14 bg-fg/[0.07] px-3 text-xs font-medium text-fg/58 transition-[transform,background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:bg-fg/11 hover:text-fg/78 motion-reduce:hover:translate-y-0 active:translate-y-0 sm:px-4 sm:text-sm ${focusRing}`}
               >
                 {t('navStart')}
               </span>
             </div>
           </div>
-        </header>
+      </header>
 
-        <section className='relative mx-auto min-h-[88vh] w-full max-w-6xl items-center px-5 pb-10 pt-28 md:min-h-[90vh] md:pb-24 md:pt-32'>
+      <div className='relative z-[1]'>
+        <section className='relative mx-auto min-h-[88vh] w-full max-w-6xl items-center px-5 pb-10 pt-[calc(3.5rem+env(safe-area-inset-top,0px)+1.25rem)] md:min-h-[90vh] md:pb-24 md:pt-32'>
           <div className='w-full flex items-center justify-center mb-[100px]'>
             <div className='flex flex-col items-center justify-center'>
               <p
@@ -708,11 +708,14 @@ export default function Home() {
 
         </section>
 
-        <div className='relative mt-5 ml-[calc(50%-50vw)] w-screen max-w-none md:mt-14'>
+        <div className='relative mt-5 w-full overflow-x-hidden md:mt-14'>
           <HomeResumeTemplateMarquee reduceMotion={reduceMotion} />
         </div>
 
-        <section id='features' className='scroll-mt-[72px] border-t border-fg/[0.07]'>
+        <section
+          id='features'
+          className='scroll-mt-[calc(3.5rem+env(safe-area-inset-top,0px))] border-t border-fg/[0.07] md:scroll-mt-[72px]'
+        >
           <div className='mx-auto max-w-6xl px-5 py-16 md:py-20'>
             <div
               data-reveal='features-title'

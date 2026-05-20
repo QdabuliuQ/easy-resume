@@ -5,12 +5,10 @@ import { UserOutlined } from '@ant-design/icons';
 import {
   Cascader,
   Col,
-  DatePicker,
   Form,
   Input,
   message,
   Row,
-  Select,
   Switch,
   Upload,
 } from 'antd';
@@ -26,7 +24,10 @@ import {
 } from '@/modules/utils/constant';
 import { useMemoizedFn } from 'ahooks';
 import CropperImage from '@/components/cropperImage';
+import ResponsiveSelect from '@/components/responsiveSelect';
+import { ResponsiveDatePicker } from '@/components/responsiveDatePicker';
 import { fileToBase64 } from '@/utils';
+import { info1ShowsInlineFieldLabel } from '@/lib/info1FieldLabels';
 import { formatIntentCityDisplay, normalizeIntentCityToCascaderValue } from '@/utils/resumeCityDisplay';
 import { configStore, moduleActiveStore } from '@/mobx';
 import dayjs from 'dayjs';
@@ -359,7 +360,9 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
         .filter((k) => !SKIP_LAYOUT_KEYS.has(k))
         .map((k) => {
           const v = formatPreviewValue(k, option as Record<string, unknown>);
-          return st ? `${ti(`fields.${k}` as never)}${colon}${v}` : v;
+          return info1ShowsInlineFieldLabel(k, st)
+            ? `${ti(`fields.${k}` as never)}${colon}${v}`
+            : v;
         });
       if (parts.length) {
         rows.push(parts.join(' | '));
@@ -416,9 +419,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
         >
           {previewByLayout ? (
             <div className='flex flex-col gap-2 break-all text-[13px] text-fg/75'>
-              {option.showTitle === true ? (
-                <div>{`${ti('fields.name')}：${formatPreviewValue('name', option as Record<string, unknown>)}`}</div>
-              ) : null}
+              <div>{formatPreviewValue('name', option as Record<string, unknown>)}</div>
               {previewByLayout.map((line, idx) => (
                 <div key={idx}>{line}</div>
               ))}
@@ -460,7 +461,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                     </div>
                   }
                 >
-                  <Select
+                  <ResponsiveSelect
                     value={(option.position as string) ?? 'right'}
                     options={POSITION_OPTS.map((o) => ({
                       value: o.value,
@@ -514,7 +515,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                         onChange={(e) => inputHandler(item.key, e.target.value)}
                       />
                     ) : item.controllerType === 'date-picker' ? (
-                      <DatePicker
+                      <ResponsiveDatePicker
                         defaultValue={option[item.key]}
                         style={{ width: '100%' }}
                         placeholder={`${ti('selectPrefix')}${ti(`fields.${item.key}` as never)}`}
@@ -528,7 +529,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                         }
                       />
                     ) : item.controllerType === 'select' ? (
-                      <Select
+                      <ResponsiveSelect
                         defaultValue={option[item.key]}
                         options={item.options}
                         placeholder={`${ti('selectPrefix')}${ti(`fields.${item.key}` as never)}`}

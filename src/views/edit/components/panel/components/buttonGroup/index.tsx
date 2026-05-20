@@ -1,7 +1,9 @@
 'use client';
 import { ArrowCircleUp, ArrowCircleDown, Delete, Copy } from '@icon-park/react';
-import { Modal, Tooltip } from 'antd';
+import { Tooltip } from 'antd';
 import { useTranslations } from 'next-intl';
+import { responsiveConfirm } from '@/hooks/useResponsiveConfirm';
+import { useMobileEdit } from '@/views/edit/mobile/context';
 import { memo } from 'react';
 
 const circleBtn =
@@ -31,6 +33,16 @@ function ButtonGroup(props: {
   flush?: boolean;
 }) {
   const tb = useTranslations('Edit.buttonGroup');
+  const mobile = useMobileEdit();
+  const askDelete = () =>
+    responsiveConfirm(mobile, {
+      title: tb('confirmDeleteTitle'),
+      content: tb('confirmDeleteContent'),
+      okText: tb('ok'),
+      cancelText: tb('cancel'),
+      danger: true,
+      onOk: props.handleDelete,
+    });
   if (props.flush) {
     return (
       <div className={flushWrapClass}>
@@ -79,17 +91,7 @@ function ButtonGroup(props: {
             type='button'
             className={flushDeleteBtnClass}
             aria-label={tb('delete')}
-            onClick={() => {
-              Modal.confirm({
-                title: tb('confirmDeleteTitle'),
-                content: tb('confirmDeleteContent'),
-                okText: tb('ok'),
-                cancelText: tb('cancel'),
-                okButtonProps: { danger: true },
-                centered: true,
-                onOk: props.handleDelete,
-              });
-            }}
+            onClick={askDelete}
           >
             <Delete theme='outline' size='15' fill='currentColor' />
           </button>
@@ -159,17 +161,7 @@ function ButtonGroup(props: {
           type='button'
           className={`${circleBtn} bg-[var(--panel-btn-danger-bg)] text-[var(--panel-icon-on-accent)] hover:text-[#f87171]`}
           aria-label={tb('delete')}
-          onClick={() => {
-            Modal.confirm({
-              title: tb('confirmDeleteTitle'),
-              content: tb('confirmDeleteContent'),
-              okText: tb('ok'),
-              cancelText: tb('cancel'),
-              okButtonProps: { danger: true },
-              centered: true,
-              onOk: props.handleDelete,
-            });
-          }}
+          onClick={askDelete}
         >
           <Delete
             theme='outline'

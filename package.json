@@ -21,6 +21,7 @@
     "@upstash/redis": "^1.38.0",
     "ahooks": "^3.8.5",
     "antd": "^5.25.4",
+    "antd-mobile": "^5.42.3",
     "cheerio": "^1.1.0",
     "commitlint": "^19.8.1",
     "dayjs": "^1.11.13",

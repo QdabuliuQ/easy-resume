@@ -1,5 +1,6 @@
 'use client';
 import FormItem from '@/components/formItem';
+import { ResponsiveRangeDatePicker } from '@/components/responsiveDatePicker';
 import { useModuleHandle } from '@/hooks/module';
 import { polishJobDescriptionWithBigmodel } from '@/api/jobDescriptionPolish';
 import { configStore, moduleActiveStore } from '@/mobx';
@@ -18,7 +19,6 @@ import {
   Input,
   Form,
   Cascader,
-  DatePicker,
   Empty,
   message,
 } from 'antd';
@@ -380,8 +380,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <DatePicker.RangePicker
-                          picker='month'
+                        <ResponsiveRangeDatePicker
                           style={{ width: '100%' }}
                           value={[
                             item.startDate ? dayjs(item.startDate) : undefined,

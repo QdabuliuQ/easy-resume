@@ -15,15 +15,18 @@ const PANEL_MENU_KEYS = [
 
 type ContainerProps = {
   menuActiveKey: string;
+  fullWidth?: boolean;
 };
 
-export default function Container({ menuActiveKey }: ContainerProps) {
+export default function Container({ menuActiveKey, fullWidth }: ContainerProps) {
   if (!PANEL_MENU_KEYS.includes(menuActiveKey as (typeof PANEL_MENU_KEYS)[number])) {
     return null;
   }
 
   return (
-    <div className='editor-shell-inset flex h-full min-h-0 w-[450px] min-w-[450px] shrink-0 flex-col overflow-hidden rounded-[28px] bg-transparent'>
+    <div
+      className={`editor-shell-inset flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-transparent ${fullWidth ? 'w-full min-w-0 max-w-none rounded-none' : 'w-[450px] min-w-[450px] shrink-0 rounded-[28px]'}`}
+    >
       <div className='flex min-h-0 flex-1 flex-col'>
         <Resume menuActiveKey={menuActiveKey} />
       </div>

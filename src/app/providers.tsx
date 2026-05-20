@@ -1,12 +1,16 @@
 'use client';
 
+import 'antd-mobile/es/global';
 import { App, ConfigProvider, theme } from 'antd';
+import { ConfigProvider as MobileConfigProvider } from 'antd-mobile';
 import { useSyncExternalStore, type ReactNode } from 'react';
 import {
   getAppTheme,
   getServerAppTheme,
   subscribeAppTheme,
 } from '@/lib/themeStore';
+
+const ADM_PRIMARY = '#fa8362';
 
 export function AntdProvider({ children }: { children: ReactNode }) {
   const appTheme = useSyncExternalStore(
@@ -20,14 +24,16 @@ export function AntdProvider({ children }: { children: ReactNode }) {
       theme={{
         algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
-          colorPrimary: '#fa8362',
+          colorPrimary: ADM_PRIMARY,
           colorBgLayout: isDark ? '#141414' : '#f5f5f5',
           colorBgContainer: isDark ? '#1f1f1f' : '#ffffff',
           colorBgElevated: isDark ? '#262626' : '#ffffff',
         },
       }}
     >
-      <App>{children}</App>
+      <App>
+        <MobileConfigProvider>{children}</MobileConfigProvider>
+      </App>
     </ConfigProvider>
   );
 }

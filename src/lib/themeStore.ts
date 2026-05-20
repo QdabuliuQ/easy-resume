@@ -33,7 +33,13 @@ export function getThemePreference(): ThemePreference {
 
 function applyResolved() {
   if (typeof document === 'undefined') return;
-  document.documentElement.dataset.theme = getResolvedTheme();
+  const resolved = getResolvedTheme();
+  document.documentElement.dataset.theme = resolved;
+  if (resolved === 'dark') {
+    document.documentElement.dataset.prefersColorScheme = 'dark';
+  } else {
+    delete document.documentElement.dataset.prefersColorScheme;
+  }
 }
 
 function onMediaChange() {

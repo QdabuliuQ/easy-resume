@@ -3,7 +3,8 @@ import { useDebounceFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
 import { memo, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
-import { Form, Popover, Select } from 'antd';
+import { Form, Popover } from 'antd';
+import ResponsiveSelect from '@/components/responsiveSelect';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 import SectionHeader, {
@@ -320,7 +321,7 @@ function PageSettings() {
           <Form form={form} variant='filled' layout='vertical'>
             <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
               <Form.Item label={fieldLabel(t('paperLabel'))}>
-                <Select
+                <ResponsiveSelect
                   value={pageSizeVal}
                   options={RESUME_PAGE_SIZE_OPTIONS}
                   onChange={(v) => setGlobalPageSize(v)}
@@ -329,7 +330,7 @@ function PageSettings() {
                 />
               </Form.Item>
               <Form.Item label={fieldLabel(t('pagePaddingLabel'))}>
-                <Select
+                <ResponsiveSelect
                   value={pagePadding}
                   options={pagePaddingOptions}
                   onChange={(v) => setGlobalPagePadding(v)}
@@ -337,7 +338,7 @@ function PageSettings() {
                 />
               </Form.Item>
               <Form.Item label={fieldLabel(t('moduleMarginLabel'))}>
-                <Select
+                <ResponsiveSelect
                   value={moduleMarginVal}
                   options={moduleMarginOptions}
                   onChange={(v) => setGlobalModuleMargin(v)}
@@ -345,7 +346,7 @@ function PageSettings() {
                 />
               </Form.Item>
               <Form.Item label={fieldLabel(t('lineHeightLabel'))}>
-                <Select
+                <ResponsiveSelect
                   value={lineHeightNorm}
                   options={lineHeightOptions}
                   onChange={(v) => setGlobalLineHeight(v)}
@@ -353,7 +354,7 @@ function PageSettings() {
                 />
               </Form.Item>
               <Form.Item label={fieldLabel(t('fontSizeLabel'))}>
-                <Select
+                <ResponsiveSelect
                   value={fontSize}
                   options={fontSizeOptions}
                   onChange={(v) => setGlobalFontSize(v)}
@@ -361,7 +362,7 @@ function PageSettings() {
                 />
               </Form.Item>
               <Form.Item label={fieldLabel(t('fontFamilyLabel'))}>
-                <Select
+                <ResponsiveSelect
                   value={resumeFontVal}
                   options={resumeFontOptions}
                   onChange={(v) => setGlobalResumeFont(v)}

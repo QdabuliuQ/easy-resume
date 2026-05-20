@@ -18,12 +18,18 @@ export const metadata: Metadata = {
   icons: { icon: '/logo.png', apple: '/logo.png' },
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const themeBootstrap = `(function(){try{var t=localStorage.getItem('easy-resume-theme');var r;if(t==='light')r='light';else if(t==='dark')r='dark';else if(t==='system')r=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';else r='dark';document.documentElement.dataset.theme=r;}catch(e){document.documentElement.dataset.theme='dark';}})();`;
+  const themeBootstrap = `(function(){try{var t=localStorage.getItem('easy-resume-theme');var r;if(t==='light')r='light';else if(t==='dark')r='dark';else if(t==='system')r=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';else r='dark';var el=document.documentElement;el.dataset.theme=r;if(r==='dark')el.dataset.prefersColorScheme='dark';else delete el.dataset.prefersColorScheme;}catch(e){var el=document.documentElement;el.dataset.theme='dark';el.dataset.prefersColorScheme='dark';}})();`;
   return (
     <html lang='zh-CN' suppressHydrationWarning>
       <head>

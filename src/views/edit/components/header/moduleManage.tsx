@@ -1,3 +1,4 @@
+'use client';
 import { EditOutlined, RightOutlined, DeleteOutlined } from '@ant-design/icons';
 import {
   DndContext,
@@ -17,7 +18,10 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useMemoizedFn } from 'ahooks';
-import { Modal, Input, Popover, Space, message } from 'antd';
+import { useTranslations } from 'next-intl';
+import { Input, Popover, Space, message } from 'antd';
+import { responsiveConfirm } from '@/hooks/useResponsiveConfirm';
+import { useMobileEdit } from '@/views/edit/mobile/context';
 import { observer } from 'mobx-react';
 import {
   memo,
@@ -49,10 +53,12 @@ function DragHandle({
   listeners,
   attributes,
   setActivatorNodeRef,
+  dragSortAria,
 }: {
   listeners: ReturnType<typeof useSortable>['listeners'];
   attributes: ReturnType<typeof useSortable>['attributes'];
   setActivatorNodeRef: ReturnType<typeof useSortable>['setActivatorNodeRef'];
+  dragSortAria: string;
 }) {
   return (
     <button
@@ -61,7 +67,7 @@ function DragHandle({
       {...listeners}
       {...attributes}
       className='flex w-4 shrink-0 cursor-grab flex-col gap-[3px] rounded border-0 bg-transparent p-0 text-fg/45 outline-none hover:text-fg/60 active:cursor-grabbing'
-      aria-label='拖拽排序'
+      aria-label={dragSortAria}
       onClick={(e) => e.stopPropagation()}
     >
       <span className='h-0.5 rounded-sm bg-current' />
@@ -81,6 +87,9 @@ function SortableModuleRow({
   onCancelEdit,
   ignoreEditBlur,
   onDelete,
+  dragSortAria,
+  editNameAria,
+  deleteAria,
 }: {
   mod: ModuleRow;
   editingId: string | null;
@@ -91,6 +100,9 @@ function SortableModuleRow({
   onCancelEdit: () => void;
   ignoreEditBlur: MutableRefObject<boolean>;
   onDelete: (id: string) => void;
+  dragSortAria: string;
+  editNameAria: string;
+  deleteAria: string;
 }) {
   const {
     attributes,
@@ -108,14 +120,11 @@ function SortableModuleRow({
       : undefined,
     transition:
       transition ??
-      'transform 200ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 180ms ease, opacity 160ms ease',
+      'transform 200ms cubic-bezier(0.25, 1, 0.5, 1), opacity 160ms ease',
     touchAction: 'none',
     zIndex: isDragging ? 3 : undefined,
     position: 'relative',
     opacity: isDragging ? 0.96 : undefined,
-    boxShadow: isDragging
-      ? '0 14px 40px rgba(0, 0, 0, 0.42), 0 0 0 1px rgb(var(--surface-fg-rgb)/0.12)'
-      : undefined,
   };
 
   return (
@@ -128,6 +137,7 @@ function SortableModuleRow({
         listeners={listeners}
         attributes={attributes}
         setActivatorNodeRef={setActivatorNodeRef}
+        dragSortAria={dragSortAria}
       />
       {editingId === mod.id ? (
         <Input
@@ -167,7 +177,7 @@ function SortableModuleRow({
         <button
           type='button'
           className='rounded p-1 text-fg/45 transition-colors hover:bg-fg/[0.08] hover:text-fg cursor-pointer'
-          aria-label='编辑名称'
+          aria-label={editNameAria}
           onClick={(e) => {
             e.stopPropagation();
             onBeginEdit(mod.id);
@@ -178,7 +188,7 @@ function SortableModuleRow({
         <button
           type='button'
           className='rounded p-1 text-fg/45 transition-colors hover:bg-fg/[0.08] hover:text-red-400 cursor-pointer'
-          aria-label='删除'
+          aria-label={deleteAria}
           onClick={(e) => {
             e.stopPropagation();
             onDelete(mod.id);
@@ -202,6 +212,9 @@ function SortableModuleList({
   onCancelEdit,
   ignoreEditBlur,
   onDelete,
+  dragSortAria,
+  editNameAria,
+  deleteAria,
 }: {
   modules: ModuleRow[];
   onReorder: (next: ModuleRow[]) => void;
@@ -213,6 +226,9 @@ function SortableModuleList({
   onCancelEdit: () => void;
   ignoreEditBlur: MutableRefObject<boolean>;
   onDelete: (id: string) => void;
+  dragSortAria: string;
+  editNameAria: string;
+  deleteAria: string;
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -254,6 +270,9 @@ function SortableModuleList({
               onCancelEdit={onCancelEdit}
               ignoreEditBlur={ignoreEditBlur}
               onDelete={onDelete}
+              dragSortAria={dragSortAria}
+              editNameAria={editNameAria}
+              deleteAria={deleteAria}
             />
           ))}
         </div>
@@ -269,6 +288,9 @@ function ModuleManageInner({
   inline?: boolean;
   className?: string;
 }) {
+  const t = useTranslations('Edit.moduleManage');
+  const th = useTranslations('Edit.header');
+  const mobile = useMobileEdit();
   const [popOpen, setPopOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
@@ -301,15 +323,15 @@ function ModuleManageInner({
 
   const commitEdit = useMemoizedFn(() => {
     if (!editId) return;
-    const t = editDraft.trim();
-    if (!t) {
-      message.warning('请输入模块名称');
+    const title = editDraft.trim();
+    if (!title) {
+      message.warning(t('enterModuleNameWarn'));
       setEditId(null);
       return;
     }
-    updateModuleTitleInConfig(editId, t);
+    updateModuleTitleInConfig(editId, title);
     setEditId(null);
-    message.success('已更新');
+    message.success(t('updated'));
   });
 
   const cancelEdit = useMemoizedFn(() => {
@@ -325,16 +347,16 @@ function ModuleManageInner({
           options: {},
         } as ModuleRow)
     );
-    Modal.confirm({
-      title: '删除模块',
-      content: `确定删除模块「${name}」吗？此操作不可恢复。`,
-      okText: '删除',
-      okButtonProps: { danger: true },
-      cancelText: '取消',
+    responsiveConfirm(mobile, {
+      title: t('deleteModuleTitle'),
+      content: t('deleteModuleContent', { name }),
+      okText: t('deleteOk'),
+      cancelText: t('cancel'),
+      danger: true,
       zIndex: 1100,
       onOk: () => {
         removeModuleFromConfig(id);
-        message.success('已删除');
+        message.success(t('deleted'));
       },
     });
   });
@@ -347,7 +369,7 @@ function ModuleManageInner({
     >
       {modules.length === 0 ? (
         <div className='px-3 py-6 text-center text-[13px] text-fg/45'>
-          暂无模块
+          {t('empty')}
         </div>
       ) : (
         <SortableModuleList
@@ -361,6 +383,9 @@ function ModuleManageInner({
           onCancelEdit={cancelEdit}
           ignoreEditBlur={ignoreEditBlur}
           onDelete={confirmDelete}
+          dragSortAria={t('dragSortAria')}
+          editNameAria={t('editNameAria')}
+          deleteAria={t('deleteAria')}
         />
       )}
     </div>
@@ -391,7 +416,7 @@ function ModuleManageInner({
             type='button'
             className='flex h-[30px] cursor-pointer items-center gap-1.5 rounded-full border border-fg/15 bg-fg/[0.06] px-3.5 text-[13px] font-medium text-fg/95 transition-colors hover:bg-fg/10'
           >
-            <span>模块管理</span>
+            <span>{th('moduleManage')}</span>
             <RightOutlined
               className={`text-[10px] text-fg/70 transition-transform duration-200 ${
                 popOpen ? 'rotate-90' : ''

@@ -1,6 +1,6 @@
 'use client';
 import { DeleteOutlined, DownOutlined } from '@ant-design/icons';
-import { Modal } from 'antd';
+import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useMemoizedFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
 import { memo, type MouseEvent } from 'react';
@@ -11,7 +11,7 @@ import { moduleActiveStore } from '@/mobx';
 function PanelToolbar({ moduleId }: { moduleId: string }) {
   const tp = useTranslations('Edit.panelToolbar');
   const { removeModuleFromConfig } = useModuleHandle();
-  const [modal, contextHolder] = Modal.useModal();
+  const { confirm, contextHolder } = useResponsiveConfirm();
 
   const editOpen = moduleActiveStore.getModuleActive === moduleId;
 
@@ -25,13 +25,12 @@ function PanelToolbar({ moduleId }: { moduleId: string }) {
 
   const onDelete = useMemoizedFn((e: MouseEvent) => {
     e.stopPropagation();
-    modal.confirm({
+    confirm({
       title: tp('deleteModuleTitle'),
       content: tp('deleteModuleContent'),
       okText: tp('deleteOk'),
       cancelText: tp('cancel'),
-      okButtonProps: { danger: true },
-      centered: true,
+      danger: true,
       onOk: () => removeModuleFromConfig(moduleId),
     });
   });

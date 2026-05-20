@@ -3,7 +3,7 @@ import { buildHomeMetadata } from '@/lib/pageMetadata';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import HomeClient from '../home-client';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({
   params,
@@ -15,7 +15,7 @@ export async function generateMetadata({
   return buildHomeMetadata(locale, t);
 }
 
-export default function Page({ params }: { params: { locale: string } }) {
+export default async function Page({ params }: { params: { locale: string } }) {
   setRequestLocale(params.locale);
   return <HomeClient />;
 }

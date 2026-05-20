@@ -1,6 +1,7 @@
 'use client';
 import { AppstoreOutlined } from '@ant-design/icons';
-import { Modal, message } from 'antd';
+import { message } from 'antd';
+import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useMemoizedFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
 import { memo, useMemo, type ReactNode } from 'react';
@@ -16,7 +17,7 @@ import CanvasModuleFragment from '@/views/edit/components/canvas/moduleFragment'
 import ResumeFontCdn from '@/views/edit/components/canvas/ResumeFontCdn';
 
 /** 侧栏模板卡片内仅预览首页，缩放略小于走马灯以便双列容纳 */
-const TEMPLATE_CARD_PREVIEW_SCALE = 0.2;
+export const TEMPLATE_CARD_PREVIEW_SCALE = 0.2;
 
 function renderPageModules(modules: unknown[], gs: GlobalStyle): ReactNode[] {
   const mm = Number(gs.moduleMargin) || 15;
@@ -49,7 +50,7 @@ function renderPageModules(modules: unknown[], gs: GlobalStyle): ReactNode[] {
   return out;
 }
 
-const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
+export const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
   template,
   scale,
 }: {
@@ -87,7 +88,7 @@ const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
 
 function ResumeTemplate() {
   const tr = useTranslations('Edit.resumeTemplate');
-  const [modal, contextHolder] = Modal.useModal();
+  const { confirm, modal, mobile, contextHolder } = useResponsiveConfirm();
   const templateCards = useMemo(
     () =>
       resumeTemplates.map((template, index) => {
@@ -107,7 +108,32 @@ function ResumeTemplate() {
     [tr]
   );
 
+  const applyTemplate = (tpl: (typeof resumeTemplates)[number]) => {
+    configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
+    moduleActiveStore.setModuleActive('global');
+    message.success(tr('appliedOk'));
+  };
   const onPick = useMemoizedFn((tpl: (typeof resumeTemplates)[number]) => {
+    if (mobile) {
+      confirm({
+        title: tr('replaceTitle'),
+        content: (
+          <div className='space-y-2'>
+            <span className='block text-[13px] leading-relaxed text-fg/70'>
+              {tr('replaceBody')}
+            </span>
+            <span className='inline-flex rounded-full border border-fg/[0.08] bg-surface/[0.05] px-2.5 py-1 text-[11px] font-medium text-fg/58'>
+              {tr('replaceRecommend')}
+            </span>
+          </div>
+        ),
+        okText: tr('okReplace'),
+        cancelText: tr('cancel'),
+        danger: true,
+        onOk: () => applyTemplate(tpl),
+      });
+      return;
+    }
     modal.confirm({
       icon: null,
       title: (
@@ -158,11 +184,7 @@ function ResumeTemplate() {
       classNames: {
         mask: '!bg-[color-mix(in_srgb,var(--overlay-scrim)_65%,transparent)]',
       },
-      onOk: () => {
-        configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
-        moduleActiveStore.setModuleActive('global');
-        message.success(tr('appliedOk'));
-      },
+      onOk: () => applyTemplate(tpl),
     });
   });
 

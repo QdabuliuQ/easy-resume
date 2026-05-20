@@ -14,7 +14,7 @@ function FieldChip(props: {
 }) {
   const t = useTranslations('Edit.infoLayout');
   return (
-    <div className='box-border flex min-h-[26px] max-h-[26px] w-full max-w-full min-w-0 cursor-move items-center gap-1 rounded-md border border-white/15 bg-neutral-700/95 px-1 py-0.5 text-[11px] leading-tight text-white shadow-sm'>
+    <div className='info-layout-chip box-border flex min-h-[26px] max-h-[26px] w-full max-w-full min-w-0 cursor-move items-center gap-1 rounded-md border px-1 py-0.5 text-[11px] leading-tight shadow-sm'>
       <span
         className='min-w-0 flex-1 break-words text-center [word-break:break-word] text-[10px]'
         title={props.label}
@@ -23,7 +23,7 @@ function FieldChip(props: {
       </span>
       <button
         type='button'
-        className='inline-flex shrink-0 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0.5 text-white/70 outline-none transition-colors hover:bg-white/10 hover:text-white'
+        className='info-layout-chip-btn inline-flex shrink-0 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0.5 outline-none transition-colors'
         aria-label={t('deleteAria')}
         title={t('deleteTitle')}
         onMouseDown={(e) => e.stopPropagation()}
@@ -44,7 +44,7 @@ function FieldChip(props: {
 function AddFieldChip(props: { label: string; onAdd: () => void }) {
   const t = useTranslations('Edit.infoLayout');
   return (
-    <div className='box-border flex min-h-[26px] max-h-[26px] w-full max-w-full min-w-0 items-center gap-1 rounded-md border border-white/15 bg-neutral-700/95 px-1 py-0.5 text-[11px] leading-tight text-white shadow-sm'>
+    <div className='info-layout-chip box-border flex min-h-[26px] max-h-[26px] w-full max-w-full min-w-0 items-center gap-1 rounded-md border px-1 py-0.5 text-[11px] leading-tight shadow-sm'>
       <span
         className='min-w-0 flex-1 break-words text-center [word-break:break-word] text-[10px]'
         title={props.label}
@@ -53,7 +53,7 @@ function AddFieldChip(props: { label: string; onAdd: () => void }) {
       </span>
       <button
         type='button'
-        className='inline-flex shrink-0 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0.5 text-white/70 outline-none transition-colors hover:bg-white/10 hover:text-white'
+        className='info-layout-chip-btn inline-flex shrink-0 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0.5 outline-none transition-colors'
         aria-label={t('addAria')}
         title={t('addTitle')}
         onClick={(e) => {
@@ -256,7 +256,7 @@ function InfoLayout(props: {
         </GridLayout>
       </div>
       {addableFieldKeys.length > 0 ? (
-        <div className='flex w-full flex-wrap gap-2 border-t border-white/10 pt-[10px] px-[6px]'>
+        <div className='info-layout-chip-divider flex w-full flex-wrap gap-2 border-t pt-[10px] px-[6px]'>
           {addableFieldKeys.map((key) => (
             <div
               key={key}
@@ -280,19 +280,22 @@ function InfoLayout(props: {
       mouseLeaveDelay={0.35}
       placement='bottomLeft'
       overlayInnerStyle={{
-        padding: 14,
+        paddingLeft: 10,
+        paddingRight: 10,
+        paddingBottom: 15,
+        paddingTop: 5,
         width: WIDTH + 28,
         maxWidth: 'min(calc(100vw - 24px), 528px)',
-        backgroundColor: '#262626',
+        backgroundColor: 'var(--info-layout-popover-bg)',
         borderRadius: 10,
-        boxShadow: '0 8px 28px rgba(0,0,0,0.45)',
+        boxShadow: 'var(--info-layout-popover-shadow)',
       }}
       zIndex={1100}
       content={layoutPopoverContent}
     >
       <button
         type='button'
-        className='inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-white/20 bg-neutral-700/90 px-3 text-[12px] font-medium text-white outline-none transition-colors hover:border-white/35 hover:bg-neutral-600/90'
+        className='info-layout-trigger inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border px-3 text-[12px] font-medium outline-none transition-[background-color,border-color,color]'
       >
         {ti('fieldLayout')}
       </button>

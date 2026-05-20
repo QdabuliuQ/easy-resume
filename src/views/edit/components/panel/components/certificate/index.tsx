@@ -2,7 +2,8 @@
 import FormItem from '@/components/formItem';
 import { FileDoneOutlined } from '@ant-design/icons';
 import { configStore, moduleActiveStore } from '@/mobx';
-import { Col, DatePicker, Empty, Form, Input, Row, message } from 'antd';
+import { Col, Empty, Form, Input, Row, message } from 'antd';
+import { ResponsiveDatePicker } from '@/components/responsiveDatePicker';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { memo, useEffect, useId, useState, type CSSProperties } from 'react';
@@ -255,7 +256,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                             />
                           }
                         >
-                          <DatePicker
+                          <ResponsiveDatePicker
                             style={{ width: '100%' }}
                             value={dayjs(item.date)}
                             placeholder={tc('datePh')}

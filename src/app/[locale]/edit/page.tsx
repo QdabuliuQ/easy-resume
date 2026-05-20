@@ -1,20 +1,9 @@
-'use client';
+import { setRequestLocale } from 'next-intl/server';
+import EditDeviceRouter from './edit-device-router';
 
-import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
-import Loading from '@/components/loading';
+export const dynamic = 'force-dynamic';
 
-const Edit = dynamic(() => import('@/views/edit'), {
-  ssr: false,
-  loading: () => <Loading />,
-});
-
-export default function EditPage() {
-  return (
-    <div className='min-h-full w-full'>
-      <Suspense fallback={<Loading />}>
-        <Edit />
-      </Suspense>
-    </div>
-  );
+export default async function EditPage({ params }: { params: { locale: string } }) {
+  setRequestLocale(params.locale);
+  return <EditDeviceRouter />;
 }

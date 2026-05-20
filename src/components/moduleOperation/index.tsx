@@ -3,7 +3,7 @@ import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'rea
 
 import { ArrowCircleUp, DeleteOne } from '@icon-park/react';
 import { useMemoizedFn } from 'ahooks';
-import { Modal } from 'antd';
+import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useTranslations } from 'next-intl';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { observer } from 'mobx-react';
@@ -58,7 +58,7 @@ const toolbarDeleteButtonClass =
 
 function ModuleOperation(props: { children: React.ReactNode }) {
   const tm = useTranslations('Edit.moduleOperation');
-  const [modal, contextHolder] = Modal.useModal();
+  const { confirm, contextHolder } = useResponsiveConfirm();
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasScale = useCanvasScale();
   const activeId = moduleActiveStore.getModuleActive;
@@ -401,13 +401,12 @@ function ModuleOperation(props: { children: React.ReactNode }) {
                   type='button'
                   onClick={(e) => {
                     e.stopPropagation();
-                    modal.confirm({
+                    confirm({
                       title: tm('deleteModuleTitle'),
                       content: tm('deleteModuleContent'),
                       okText: tm('deleteOk'),
                       cancelText: tm('cancel'),
-                      okButtonProps: { danger: true },
-                      centered: true,
+                      danger: true,
                       onOk: () => deleteHandle(),
                     });
                   }}

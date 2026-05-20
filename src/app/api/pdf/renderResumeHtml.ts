@@ -1,4 +1,8 @@
-import { getInfo1FieldLabel, type Info1PdfLocale } from '@/lib/info1FieldLabels';
+import {
+  getInfo1FieldLabel,
+  info1ShowsInlineFieldLabel,
+  type Info1PdfLocale,
+} from '@/lib/info1FieldLabels';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { inlineQuillHtml } from '@/lib/inlineQuillHtml';
 import { readQuillSnowCss } from '@/lib/quillSnowCss';
@@ -136,7 +140,7 @@ function wrapSectionModuleMaybe(
 }
 
 function info1LabelPrefix(key: string, show: boolean, loc: Info1PdfLocale): string {
-  if (!show) return '';
+  if (!info1ShowsInlineFieldLabel(key, show)) return '';
   return `${escapeHtml(getInfo1FieldLabel(key, loc))}：`;
 }
 
@@ -207,9 +211,7 @@ function renderInfo1(
       : position === 'left'
         ? 'text-align:right;'
         : '';
-  const nameHtml = showTitle
-    ? `${info1LabelPrefix('name', true, locale)}${escapeHtml(name)}`
-    : escapeHtml(name);
+  const nameHtml = escapeHtml(name);
   const leftInner = `<div style="margin-bottom:10px;font-size:24px;font-weight:bold;color:#333;line-height:1;${textAlign}">${nameHtml}</div>
 <div style="width:100%;${textAlign}">${rows.join('')}</div>`;
   const textColStyle =

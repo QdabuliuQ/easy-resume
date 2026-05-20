@@ -6,7 +6,8 @@ import {
   SlidersOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
-import { message, Modal } from 'antd';
+import { message } from 'antd';
+import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { Magic } from '@icon-park/react';
 import { useTranslations } from 'next-intl';
 import { useMemo, useRef } from 'react';
@@ -53,16 +54,15 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
       ] as const,
     [t],
   );
-  const [modal, contextHolder] = Modal.useModal();
+  const { confirm, contextHolder } = useResponsiveConfirm();
   const fileRef = useRef<HTMLInputElement>(null);
   const pickImportFile = () => fileRef.current?.click();
   const confirmThenPickImport = () => {
-    modal.confirm({
+    confirm({
       title: t('confirmImportTitle'),
       content: t('confirmImportContent'),
       okText: t('okContinue'),
       cancelText: t('cancel'),
-      centered: true,
       onOk: () => {
         pickImportFile();
       },

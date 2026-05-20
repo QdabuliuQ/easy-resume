@@ -4,7 +4,10 @@ import { useTranslations } from 'next-intl';
 
 import { configStore, moduleActiveStore } from '@/mobx';
 import { observer } from 'mobx-react';
-import { Col, ColorPicker, Form, InputNumber, Modal, Row, Select } from 'antd';
+import { Col, ColorPicker, Form, InputNumber, Row } from 'antd';
+import { responsiveConfirm } from '@/hooks/useResponsiveConfirm';
+import { useMobileEdit } from '@/views/edit/mobile/context';
+import ResponsiveSelect from '@/components/responsiveSelect';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import Title from '@/components/title';
 import FormItem from '@/components/formItem';
@@ -23,6 +26,7 @@ import { RESUME_PAGE_SIZE_OPTIONS } from '@/lib/resumePageSize';
 
 function Global() {
   const tg = useTranslations('Edit.globalPanel');
+  const mobile = useMobileEdit();
   const global = configStore.getConfig?.globalStyle;
   const [form] = Form.useForm();
   const headerStyleOptions = useMemo(
@@ -197,7 +201,7 @@ function Global() {
             </Col>
             <Col span={24}>
               <FormItem label={tg('paperSize')} icon={<Notes theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}>
-                <Select
+                <ResponsiveSelect
                   value={global.pageSize ?? 'A4'}
                   style={{ width: '100%' }}
                   options={RESUME_PAGE_SIZE_OPTIONS}
@@ -216,7 +220,7 @@ function Global() {
                 label={tg('moduleHeaderStyle')}
                 icon={<Edit theme='outline' size='15' fill='var(--panel-form-icon-strong)' />}
               >
-                <Select
+                <ResponsiveSelect
                   value={global.headerType ?? 1}
                   style={{ width: '100%' }}
                   options={headerStyleOptions}
@@ -257,13 +261,12 @@ function Global() {
               {moduleLayout
                 ? moduleLayout.map((item: any, index: number) => {
                     const openDeleteConfirm = () => {
-                      Modal.confirm({
+                      responsiveConfirm(mobile, {
                         title: tg('tipTitle'),
                         content: tg('tipDeleteContent'),
                         okText: tg('ok'),
                         cancelText: tg('cancel'),
-                        okButtonProps: { danger: true },
-                        centered: true,
+                        danger: true,
                         onOk: () => confirmDelete(index),
                       });
                     };

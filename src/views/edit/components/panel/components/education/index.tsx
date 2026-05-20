@@ -1,5 +1,7 @@
 'use client';
 import FormItem from '@/components/formItem';
+import ResponsiveSelect from '@/components/responsiveSelect';
+import { ResponsiveRangeDatePicker } from '@/components/responsiveDatePicker';
 import { polishEducationDescriptionWithBigmodel } from '@/api/educationDescriptionPolish';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
@@ -18,12 +20,10 @@ import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import {
   Cascader,
   Col,
-  DatePicker,
   Empty,
   Form,
   Input,
   Row,
-  Select,
   message,
 } from 'antd';
 import dayjs from 'dayjs';
@@ -320,7 +320,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <Select
+                        <ResponsiveSelect
                           options={degree}
                           value={item.degree}
                           onChange={(e) => handleChange(e, index, 'degree')}
@@ -372,7 +372,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           <Notes theme='outline' size='15' fill={FORM_ICON_FILL} />
                         }
                       >
-                        <Select
+                        <ResponsiveSelect
                           options={schoolType}
                           value={item.tags}
                           onChange={(e) => handleChange(e, index, 'tags')}
@@ -413,8 +413,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <DatePicker.RangePicker
-                          picker='month'
+                        <ResponsiveRangeDatePicker
                           style={{ width: '100%' }}
                           value={[
                             item.startDate ? dayjs(item.startDate) : undefined,

@@ -7,7 +7,8 @@ import { ProjectProps } from '@/modules/project';
 import { Book, Avatar, Calendar, EditOne } from '@icon-park/react';
 import { ProjectOutlined } from '@ant-design/icons';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
-import { Col, DatePicker, Empty, Form, Input, Row, message } from 'antd';
+import { Col, Empty, Form, Input, Row, message } from 'antd';
+import { ResponsiveRangeDatePicker } from '@/components/responsiveDatePicker';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import {
@@ -319,8 +320,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <DatePicker.RangePicker
-                          picker='month'
+                        <ResponsiveRangeDatePicker
                           style={{ width: '100%' }}
                           value={[
                             item.startDate ? dayjs(item.startDate) : undefined,

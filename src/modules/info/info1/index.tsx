@@ -7,6 +7,7 @@ import {
 } from '@/utils/resumeCityDisplay';
 import { GlobalStyle } from '@/modules/utils/common.type';
 import { RESUME_MODULE_ID_ATTR } from '@/components/moduleOperation/constants';
+import { info1ShowsInlineFieldLabel } from '@/lib/info1FieldLabels';
 import { observer } from 'mobx-react';
 
 export interface InfoProps {
@@ -61,7 +62,8 @@ function Info1(props: Props) {
 
   useEffect(() => {
     const colon = '：';
-    const lbl = (k: string) => (showTitleOn ? `${tField(k as never)}${colon}` : '');
+    const lbl = (k: string) =>
+      info1ShowsInlineFieldLabel(k, showTitleOn) ? `${tField(k as never)}${colon}` : '';
     const elements: React.ReactNode[] = [];
     for (let i = 0; i < layout.length; i++) {
       const row = layout[i];
@@ -156,15 +158,7 @@ function Info1(props: Props) {
         className={`mb-[10px] font-bold text-[#333] leading-none ${position === 'center' ? 'text-center' : ''} ${position === 'left' ? 'text-right' : ''}`}
         style={{ fontSize: fontSize * 1.7 }}
       >
-        {showTitleOn ? (
-          <>
-            {tField('name')}
-            {'：'}
-            {name}
-          </>
-        ) : (
-          name
-        )}
+        {name}
       </div>
       <div className='w-full'>{itemLayout}</div>
     </div>
