@@ -50,6 +50,7 @@ export default {
     noConfig: '暂无简历配置',
     pageMissing: '页面不存在',
     moduleMissing: '未找到对应模块',
+    itemMissing: '未找到对应条目',
     modifiedOk: '修改完成',
     noSuggestions: '暂无可应用的建议（需含「建议修改」内容）',
     batchApplied: '已批量应用 {ok} 条建议',

@@ -44,6 +44,7 @@ import {
   canAddResumeModuleItem,
   resumeModuleItemLimitMessage,
 } from '@/utils/moduleTypeLimits';
+import { ensureResumeModuleItemsId, makeResumeItemId } from '@/utils/createResumeModule';
 import { useTranslations } from 'next-intl';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
@@ -75,7 +76,9 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
   useEffect(() => {
     const m = getModule(moduleActive);
     if (m) {
-      const cloned = JSON.parse(JSON.stringify(m)) as JobProps;
+      const cloned = ensureResumeModuleItemsId(
+        JSON.parse(JSON.stringify(m)) as JobProps,
+      );
       cloned.options.items = cloned.options.items.map((item: any) => ({
         ...item,
         city:
@@ -141,6 +144,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
       return;
     }
     module.options.items.unshift({
+      id: makeResumeItemId(),
       company: '',
       post: '',
       department: '',
@@ -174,11 +178,9 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
       message.warning(resumeModuleItemLimitMessage('job'));
       return;
     }
-    module.options.items.splice(
-      index,
-      0,
-      JSON.parse(JSON.stringify(module.options.items[index]))
-    );
+    const copy = JSON.parse(JSON.stringify(module.options.items[index]));
+    copy.id = makeResumeItemId();
+    module.options.items.splice(index, 0, copy);
     updateModule(module);
   });
 

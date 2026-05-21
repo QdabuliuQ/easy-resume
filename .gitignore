@@ -34,3 +34,4 @@ ecosystem.config.cjs
 webhook.cjs
 public/fonts/*
 .agents
+.codegraph

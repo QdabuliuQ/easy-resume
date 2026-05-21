@@ -9,6 +9,7 @@ export interface CertificateProps {
   options: {
     title: string;
     items: Array<{
+      id: string;
       name: string;
       date: string;
     }>;

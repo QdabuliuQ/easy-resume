@@ -11,6 +11,7 @@ export interface ProjectProps {
   options: {
     title: string;
     items: Array<{
+      id: string;
       name: string;
       role: string;
       startDate: string;

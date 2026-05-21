@@ -7,12 +7,33 @@ export type ResumeModuleType =
   | 'education'
   | 'other';
 
-function makeId() {
+export function makeResumeItemId() {
   return typeof globalThis !== 'undefined' &&
     globalThis.crypto &&
     typeof globalThis.crypto.randomUUID === 'function'
     ? globalThis.crypto.randomUUID()
     : `m-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+export function ensureResumeModuleItemsId<T extends { options?: { items?: unknown[] } }>(
+  mod: T,
+): T {
+  const items = mod?.options?.items;
+  if (!Array.isArray(items)) return mod;
+  return {
+    ...mod,
+    options: {
+      ...mod.options,
+      items: items.map((item) => {
+        const row = item as Record<string, unknown>;
+        return { ...row, id: typeof row.id === 'string' && row.id ? row.id : makeResumeItemId() };
+      }),
+    },
+  } as T;
+}
+
+function makeId() {
+  return makeResumeItemId();
 }
 
 const EMPTY_OPTIONS: Record<ResumeModuleType, Record<string, unknown>> = {

@@ -22,6 +22,7 @@ import {
   resumeModuleItemLimitMessage,
 } from '@/utils/moduleTypeLimits';
 import { useTranslations } from 'next-intl';
+import { ensureResumeModuleItemsId, makeResumeItemId } from '@/utils/createResumeModule';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
@@ -37,7 +38,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
   useEffect(() => {
     const m = getModule(moduleActive);
     if (m) {
-      setModule(JSON.parse(JSON.stringify(m)));
+      setModule(ensureResumeModuleItemsId(JSON.parse(JSON.stringify(m)) as CertificateProps));
     } else {
       setModule(null);
     }
@@ -71,6 +72,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
       return;
     }
     module.options.items.unshift({
+      id: makeResumeItemId(),
       name: tc('moduleName'),
       date: '2020-01-01',
     });
@@ -117,11 +119,9 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
       message.warning(resumeModuleItemLimitMessage('certificate'));
       return;
     }
-    module.options.items.splice(
-      index,
-      0,
-      JSON.parse(JSON.stringify(module.options.items[index]))
-    );
+    const copy = JSON.parse(JSON.stringify(module.options.items[index]));
+    copy.id = makeResumeItemId();
+    module.options.items.splice(index, 0, copy);
     updateModule(module);
   });
 

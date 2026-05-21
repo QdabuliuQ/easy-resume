@@ -326,9 +326,9 @@
   --antd-input-bg: #ffffff;
   --antd-input-border: rgb(var(--surface-fg-rgb) / 0.18);
   --antd-input-fg: rgb(var(--surface-fg-rgb) / 0.92);
-  --mobile-picker-trigger-bg: #f6e6e2;
+  --mobile-picker-trigger-bg: rgba(0, 0, 0, 0.04);
   --mobile-picker-trigger-fg: rgb(var(--surface-fg-rgb) / 0.9);
-  --mobile-picker-trigger-border: rgb(var(--surface-fg-rgb) / 0.14);
+  --mobile-picker-trigger-border: transparent;
   --mobile-picker-popup-bg: var(--antd-popup-panel);
   --mobile-picker-item-active: color-mix(in srgb, var(--color-primary) 10%, #f6e6e2);
   --info-layout-trigger-bg: #f6e6e2;
@@ -473,7 +473,7 @@ html[data-prefers-color-scheme='dark'] {
 .mobile-picker-trigger {
   background-color: var(--mobile-picker-trigger-bg);
   color: var(--mobile-picker-trigger-fg);
-  border-color: var(--mobile-picker-trigger-border);
+  border: none;
 }
 .mobile-picker-trigger .mobile-picker-placeholder {
   color: var(--text-soft);
@@ -900,4 +900,27 @@ a {
 }
 a:hover {
   color: #535bf2;
+}
+.resume-color-panel-root .ant-color-picker-inner {
+  width: auto !important;
+  max-width: none;
+}
+.resume-color-panel-layout {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch;
+  gap: 12px;
+  width: auto !important;
+  min-width: 17.5rem;
+}
+.resume-color-panel-picker {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.resume-color-panel-presets {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding-inline-start: 12px;
+  border-inline-start: 1px solid rgb(var(--surface-fg-rgb) / 0.1);
 }

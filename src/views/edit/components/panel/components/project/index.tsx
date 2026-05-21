@@ -31,6 +31,7 @@ import {
   resumeModuleItemLimitMessage,
 } from '@/utils/moduleTypeLimits';
 import { useTranslations } from 'next-intl';
+import { ensureResumeModuleItemsId, makeResumeItemId } from '@/utils/createResumeModule';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
@@ -70,7 +71,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
   useEffect(() => {
     const m = getModule(moduleActive);
     if (m) {
-      setModule(JSON.parse(JSON.stringify(m)));
+      setModule(ensureResumeModuleItemsId(JSON.parse(JSON.stringify(m)) as ProjectProps));
     } else {
       setModule(null);
     }
@@ -99,6 +100,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
       return;
     }
     module.options.items.unshift({
+      id: makeResumeItemId(),
       name: '',
       role: '',
       startDate: undefined as any,
@@ -142,11 +144,9 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
       message.warning(resumeModuleItemLimitMessage('project'));
       return;
     }
-    module.options.items.splice(
-      index,
-      0,
-      JSON.parse(JSON.stringify(module.options.items[index]))
-    );
+    const copy = JSON.parse(JSON.stringify(module.options.items[index]));
+    copy.id = makeResumeItemId();
+    module.options.items.splice(index, 0, copy);
     updateModule(module);
   });
 

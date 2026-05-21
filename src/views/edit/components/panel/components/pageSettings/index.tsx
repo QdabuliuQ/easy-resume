@@ -1,10 +1,11 @@
 'use client';
-import { useDebounceFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
-import { memo, useMemo, useRef, useState } from 'react';
+import { memo, useMemo } from 'react';
 import { observer } from 'mobx-react';
-import { Form, Popover } from 'antd';
+import { Form } from 'antd';
+import ResponsiveColorPicker from '@/components/responsiveColorPicker';
 import ResponsiveSelect from '@/components/responsiveSelect';
+import { hexForColorInput } from '@/lib/resumeColorHex';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 import SectionHeader, {
@@ -57,19 +58,14 @@ const THEME_PRESETS = [
   '#722ed1',
 ] as const;
 const BG_PRESETS = ['#ffffff', '#f0fff4', '#f5f5f5', '#fffbe6'] as const;
-function normHex(s: string) {
-  const t = s.trim().toLowerCase();
-  return t.startsWith('#') ? t : `#${t}`;
-}
-function hexForColorInput(s: string, fb: string) {
-  const n = normHex(s);
-  if (/^#[0-9a-f]{6}$/.test(n)) return n;
-  if (/^#[0-9a-f]{3}$/.test(n)) {
-    const x = n.slice(1);
-    return `#${x[0]}${x[0]}${x[1]}${x[1]}${x[2]}${x[2]}`;
-  }
-  return fb;
-}
+const THEME_COLOR_FALLBACK = hexForColorInput(
+  defaultResume.globalStyle.color,
+  '#1890ff',
+);
+const BG_COLOR_FALLBACK = hexForColorInput(
+  defaultResume.globalStyle.backgroundColor,
+  '#ffffff',
+);
 function PageSettings() {
   const t = useTranslations('Edit.header');
   const [form] = Form.useForm();
@@ -82,14 +78,6 @@ function PageSettings() {
       ] satisfies { label: string; value: ResumeFontId }[],
     [t],
   );
-  const [pickerDraft, setPickerDraft] = useState(defaultResume.globalStyle.color);
-  const pickerDraftRef = useRef(pickerDraft);
-  pickerDraftRef.current = pickerDraft;
-  const [bgPickerDraft, setBgPickerDraft] = useState(
-    defaultResume.globalStyle.backgroundColor,
-  );
-  const bgPickerDraftRef = useRef(bgPickerDraft);
-  bgPickerDraftRef.current = bgPickerDraft;
   const rawFs = Number(configStore.mergedGlobalStyle.fontSize);
   const fontSize = Number.isFinite(rawFs)
     ? rawFs
@@ -225,14 +213,10 @@ function PageSettings() {
     base.globalStyle = {
       ...defaultResume.globalStyle,
       ...(base.globalStyle ?? {}),
-      color: normHex(v),
+      color: hexForColorInput(v, THEME_COLOR_FALLBACK),
     };
     configStore.setConfig(base);
   };
-  const debouncedThemeFromPicker = useDebounceFn(
-    (v: string) => setGlobalThemeColor(v),
-    { wait: 280 },
-  );
   const setGlobalBackgroundColor = (v: string) => {
     const base = configStore.getConfig
       ? JSON.parse(JSON.stringify(configStore.getConfig))
@@ -240,14 +224,10 @@ function PageSettings() {
     base.globalStyle = {
       ...defaultResume.globalStyle,
       ...(base.globalStyle ?? {}),
-      backgroundColor: normHex(v),
+      backgroundColor: hexForColorInput(v, BG_COLOR_FALLBACK),
     };
     configStore.setConfig(base);
   };
-  const debouncedBgFromPicker = useDebounceFn(
-    (v: string) => setGlobalBackgroundColor(v),
-    { wait: 280 },
-  );
   const mergedGs = configStore.mergedGlobalStyle as GlobalStyle;
   const headerTypeVal = headerTypeNorm(mergedGs.headerType);
   const headerStylePreview = (n: number) => (
@@ -294,23 +274,14 @@ function PageSettings() {
       )}
     </div>
   );
-  const rawTheme = configStore.mergedGlobalStyle.color;
-  const themeColor =
-    typeof rawTheme === 'string' && rawTheme.trim()
-      ? normHex(rawTheme)
+  const themeColorValue =
+    typeof configStore.mergedGlobalStyle.color === 'string'
+      ? configStore.mergedGlobalStyle.color
       : defaultResume.globalStyle.color;
-  const pickerInputValue = /^#[0-9a-f]{6}$/i.test(pickerDraft)
-    ? pickerDraft
-    : defaultResume.globalStyle.color;
-  const rawBg = configStore.mergedGlobalStyle.backgroundColor;
-  const pageBgColor =
-    typeof rawBg === 'string' && rawBg.trim()
-      ? normHex(rawBg)
+  const bgColorValue =
+    typeof configStore.mergedGlobalStyle.backgroundColor === 'string'
+      ? configStore.mergedGlobalStyle.backgroundColor
       : defaultResume.globalStyle.backgroundColor;
-  const bgPickerInputValue = hexForColorInput(
-    bgPickerDraft,
-    hexForColorInput(pageBgColor, '#ffffff'),
-  );
   const fieldLabel = (text: string) => (
     <div className='flex items-center text-fg/85 text-[12px]'>{text}</div>
   );
@@ -374,147 +345,29 @@ function PageSettings() {
                 label={fieldLabel(t('themeColorLabel'))}
                 className='[&_.ant-form-item-control-input-content]:flex [&_.ant-form-item-control-input-content]:justify-start'
               >
-            <Popover
-              trigger='click'
-              placement='left'
-              onOpenChange={(open) => {
-                if (open) {
-                  const raw = configStore.mergedGlobalStyle.color;
-                  const next =
-                    typeof raw === 'string' && raw.trim()
-                      ? normHex(raw)
-                      : defaultResume.globalStyle.color;
-                  setPickerDraft(next);
-                  pickerDraftRef.current = next;
-                } else {
-                  debouncedThemeFromPicker.cancel();
-                  const next = normHex(pickerDraftRef.current);
-                  const rawCur = configStore.mergedGlobalStyle.color;
-                  const cur =
-                    typeof rawCur === 'string' && rawCur.trim()
-                      ? normHex(rawCur)
-                      : defaultResume.globalStyle.color;
-                  if (next !== cur) setGlobalThemeColor(pickerDraftRef.current);
-                }
-              }}
-              content={
-                <div className='w-[220px]'>
-                  <div className='mb-2 text-[11px] text-fg/60'>{t('preset')}</div>
-                  <div className='mb-3 flex flex-wrap gap-2'>
-                    {THEME_PRESETS.map((c) => (
-                      <button
-                        key={c}
-                        type='button'
-                        aria-label={c}
-                        onClick={() => {
-                          debouncedThemeFromPicker.cancel();
-                          setPickerDraft(c);
-                          setGlobalThemeColor(c);
-                        }}
-                        className={`size-7 shrink-0 cursor-pointer rounded-md border-2 transition-transform hover:scale-110 ${
-                          normHex(c) === normHex(themeColor)
-                            ? 'border-fg ring-2 ring-fg/35'
-                            : 'border-fg/25'
-                        }`}
-                        style={{ backgroundColor: c }}
-                      />
-                    ))}
-                  </div>
-                  <div className='mb-1.5 text-[11px] text-fg/60'>{t('custom')}</div>
-                  <input
-                    type='color'
-                    value={pickerInputValue}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setPickerDraft(v);
-                      debouncedThemeFromPicker.run(v);
-                    }}
-                    className='h-9 w-full cursor-pointer rounded border border-fg/15 bg-transparent p-0'
-                  />
-                </div>
-              }
-            >
-              <button
-                type='button'
-                aria-label={t('themeColorAria')}
-                className='size-[30px] shrink-0 cursor-pointer rounded-md border border-fg/[0.12] shadow-inner'
-                style={{ backgroundColor: themeColor }}
-              />
-            </Popover>
+            <ResponsiveColorPicker
+              value={themeColorValue}
+              onChange={setGlobalThemeColor}
+              presets={THEME_PRESETS}
+              fallback={THEME_COLOR_FALLBACK}
+              ariaLabel={t('themeColorAria')}
+              title={t('themeColorLabel')}
+              presetLabel={t('preset')}
+            />
               </Form.Item>
               <Form.Item
                 label={fieldLabel(t('bgColorLabel'))}
                 className='[&_.ant-form-item-control-input-content]:flex [&_.ant-form-item-control-input-content]:justify-start'
               >
-            <Popover
-              trigger='click'
-              placement='left'
-              onOpenChange={(open) => {
-                if (open) {
-                  const raw = configStore.mergedGlobalStyle.backgroundColor;
-                  const next = hexForColorInput(
-                    typeof raw === 'string' && raw.trim()
-                      ? raw
-                      : defaultResume.globalStyle.backgroundColor,
-                    '#ffffff',
-                  );
-                  setBgPickerDraft(next);
-                  bgPickerDraftRef.current = next;
-                } else {
-                  debouncedBgFromPicker.cancel();
-                  const next = normHex(bgPickerDraftRef.current);
-                  const rawCur = configStore.mergedGlobalStyle.backgroundColor;
-                  const cur =
-                    typeof rawCur === 'string' && rawCur.trim()
-                      ? normHex(rawCur)
-                      : defaultResume.globalStyle.backgroundColor;
-                  if (next !== cur) setGlobalBackgroundColor(bgPickerDraftRef.current);
-                }
-              }}
-              content={
-                <div className='w-[220px]'>
-                  <div className='mb-2 text-[11px] text-fg/60'>{t('preset')}</div>
-                  <div className='mb-3 flex flex-wrap gap-2'>
-                    {BG_PRESETS.map((c) => (
-                      <button
-                        key={c}
-                        type='button'
-                        aria-label={c}
-                        onClick={() => {
-                          debouncedBgFromPicker.cancel();
-                          setBgPickerDraft(c);
-                          setGlobalBackgroundColor(c);
-                        }}
-                        className={`size-7 shrink-0 cursor-pointer rounded-md border-2 transition-transform hover:scale-110 ${
-                          normHex(c) === normHex(pageBgColor)
-                            ? 'border-fg ring-2 ring-fg/35'
-                            : 'border-fg/25'
-                        }`}
-                        style={{ backgroundColor: c }}
-                      />
-                    ))}
-                  </div>
-                  <div className='mb-1.5 text-[11px] text-fg/60'>{t('custom')}</div>
-                  <input
-                    type='color'
-                    value={bgPickerInputValue}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setBgPickerDraft(v);
-                      debouncedBgFromPicker.run(v);
-                    }}
-                    className='h-9 w-full cursor-pointer rounded border border-fg/15 bg-transparent p-0'
-                  />
-                </div>
-              }
-            >
-              <button
-                type='button'
-                aria-label={t('bgColorAria')}
-                className='size-[30px] shrink-0 cursor-pointer rounded-md border border-fg/[0.12] shadow-inner'
-                style={{ backgroundColor: pageBgColor }}
-              />
-            </Popover>
+            <ResponsiveColorPicker
+              value={bgColorValue}
+              onChange={setGlobalBackgroundColor}
+              presets={BG_PRESETS}
+              fallback={BG_COLOR_FALLBACK}
+              ariaLabel={t('bgColorAria')}
+              title={t('bgColorLabel')}
+              presetLabel={t('preset')}
+            />
               </Form.Item>
             </div>
           </Form>

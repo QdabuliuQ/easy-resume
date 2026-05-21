@@ -12,6 +12,7 @@ export interface EducationProps {
   options: {
     title: string;
     items: Array<{
+      id: string;
       school: string;
       degree: string;
       major: string;

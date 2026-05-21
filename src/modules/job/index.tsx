@@ -12,6 +12,7 @@ export interface JobProps {
   options: {
     title: string;
     items: Array<{
+      id: string;
       company: string;
       post: string;
       department: string;

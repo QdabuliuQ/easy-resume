@@ -50,6 +50,7 @@ export default {
     noConfig: 'No resume loaded',
     pageMissing: 'Page missing',
     moduleMissing: 'Module not found',
+    itemMissing: 'Entry not found',
     modifiedOk: 'Updated',
     noSuggestions: 'No actionable suggestions (need “suggested edit” content)',
     batchApplied: 'Applied {ok} suggestions',

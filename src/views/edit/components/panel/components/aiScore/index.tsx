@@ -4,12 +4,18 @@ import { App, Collapse, Spin } from 'antd';
 import { useTranslations } from 'next-intl';
 import { memo, useCallback, useId, useMemo, type ComponentType } from 'react';
 import type { ResumeAiAnalyzeResult, ResumeAiFieldOptimize } from '@/api/resumeAiScoreAnalyze';
+import {
+  applyResumeAiFieldOptimize,
+  fieldOptimizeListKey,
+  findResumeModule,
+  resumeModuleItemLabel,
+} from '@/lib/resumeAiFieldApply';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { moduleType as moduleTypeMeta } from '@/modules/utils/constant';
 
 const PRIMARY_FILL = 'var(--color-primary)';
 const panelShellClass =
-  'overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),rgb(var(--panel-surface-rgb)/0.03)] shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04),var(--panel-shadow-md)]';
+  'overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),rgb(var(--panel-surface-rgb)/0.03)]';
 
 function clampScore0to100(n: number) {
   if (!Number.isFinite(n)) return 0;
@@ -77,42 +83,6 @@ function statusTone(status: string): { dot: string; text: string; fill: string }
   return { dot: 'bg-amber-400', text: 'text-amber-400', fill: 'var(--panel-tone-amber)' };
 }
 
-function tokenizeFieldKey(fieldKey: string): Array<string | number> {
-  const out: Array<string | number> = [];
-  const re = /(\w+)|\[(\d+)\]/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(fieldKey)) !== null) {
-    if (m[1] !== undefined) out.push(m[1]);
-    else out.push(Number(m[2]));
-  }
-  return out;
-}
-
-function setOptionsByFieldKey(options: Record<string, unknown>, fieldKey: string, value: unknown) {
-  const tokens = tokenizeFieldKey(fieldKey);
-  if (tokens.length === 0) {
-    options[fieldKey] = value;
-    return;
-  }
-  let cur: unknown = options;
-  for (let i = 0; i < tokens.length - 1; i++) {
-    const key = tokens[i];
-    const nextTok = tokens[i + 1];
-    let child: unknown = Array.isArray(cur)
-      ? (cur as unknown[])[key as number]
-      : (cur as Record<string, unknown>)[String(key)];
-    if (child == null || typeof child !== 'object') {
-      child = typeof nextTok === 'number' ? [] : {};
-      if (Array.isArray(cur)) (cur as unknown[])[key as number] = child;
-      else (cur as Record<string, unknown>)[String(key)] = child as object;
-    }
-    cur = child;
-  }
-  const last = tokens[tokens.length - 1];
-  if (Array.isArray(cur)) (cur as unknown[])[last as number] = value;
-  else (cur as Record<string, unknown>)[String(last)] = value;
-}
-
 function moduleTypeLabel(mt: string): string {
   const meta = moduleTypeMeta[mt as keyof typeof moduleTypeMeta];
   return meta?.name ?? mt;
@@ -122,18 +92,7 @@ type ResumeDraft = NonNullable<ReturnType<typeof configStore.getConfig>>;
 type MessageApi = ReturnType<typeof App.useApp>['message'];
 
 function applyOneToDraft(draft: ResumeDraft, item: ResumeAiFieldOptimize): boolean {
-  if (!draft.pages[item.pageIndex]) return false;
-  const mod = draft.pages[item.pageIndex].modules?.find(
-    (m: { id: string; type: string }) => m.id === item.moduleId && m.type === item.moduleType
-  );
-  if (!mod) return false;
-  const opts =
-    mod.options && typeof mod.options === 'object'
-      ? (mod.options as Record<string, unknown>)
-      : {};
-  setOptionsByFieldKey(opts, item.fieldKey, item.optimizeValue);
-  mod.options = opts;
-  return true;
+  return applyResumeAiFieldOptimize(draft, item);
 }
 
 function applyFieldOptimize(item: ResumeAiFieldOptimize, messageApi: MessageApi, ta: (key: string) => string) {
@@ -144,7 +103,16 @@ function applyFieldOptimize(item: ResumeAiFieldOptimize, messageApi: MessageApi,
   }
   const next = JSON.parse(JSON.stringify(cfg)) as ResumeDraft;
   if (!applyOneToDraft(next, item)) {
-    messageApi.error(!cfg.pages[item.pageIndex] ? ta('pageMissing') : ta('moduleMissing'));
+    const page = cfg.pages[item.pageIndex];
+    const mod = page ? findResumeModule(cfg, item.pageIndex, item.moduleId) : undefined;
+    const msg = !page
+      ? ta('pageMissing')
+      : !mod
+        ? ta('moduleMissing')
+        : item.moduleItemId?.trim()
+          ? ta('itemMissing')
+          : ta('moduleMissing');
+    messageApi.error(msg);
     return;
   }
   configStore.setConfig(next);
@@ -335,9 +303,13 @@ function AiScore({
               <ul className='flex flex-col gap-2 pt-2'>
                 {fieldList.map((f) => {
                   const hasVal = typeof f.optimizeValue === 'string' && f.optimizeValue.trim().length > 0;
+                  const mod = configStore.getConfig
+                    ? findResumeModule(configStore.getConfig, f.pageIndex, f.moduleId)
+                    : undefined;
+                  const itemLabel = resumeModuleItemLabel(mod, f.moduleItemId);
                   return (
                     <li
-                      key={`${f.pageIndex}-${f.moduleId}-${f.fieldKey}`}
+                      key={fieldOptimizeListKey(f)}
                       className='rounded-2xl border border-fg/[0.07] bg-[var(--panel-inset-bg)] px-3 py-3 text-[12px] leading-snug text-fg/55 transition-[transform,border-color,background-color] duration-200 hover:-translate-y-0.5 hover:border-fg/[0.12] hover:bg-surface/[0.045]'
                       onMouseEnter={() => moduleActiveStore.setModuleActive(f.moduleId)}
                       onMouseLeave={() => {
@@ -351,8 +323,13 @@ function AiScore({
                       <div className='min-w-0 flex-1'>
                         <div className='flex flex-wrap items-center gap-2'>
                           <span className='rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2 py-0.5 text-[11px] font-medium text-fg/70'>
-                            {moduleTypeLabel(f.moduleType)}
+                            {moduleTypeLabel(mod?.type ?? f.moduleType)}
                           </span>
+                          {itemLabel ? (
+                            <span className='max-w-[10rem] truncate rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2 py-0.5 text-[11px] text-fg/62'>
+                              {itemLabel}
+                            </span>
+                          ) : null}
                           {hasVal ? (
                             <span className='rounded-full border border-emerald-300/14 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-300'>
                               {ta('badgeApplicable')}
