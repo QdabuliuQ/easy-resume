@@ -11,7 +11,8 @@
       "color": "#383838",
       "backgroundColor": "#fff",
       "padding": 20,
-      "headerType": 5
+      "headerType": 5,
+      "layout": "leftCol"
     },
     "pages": [
       {
@@ -58,17 +59,27 @@
               "avatar": "resumeAvatar:a0",
               "layout": [
                 [
-                  "phone",
-                  "email",
+                  "phone"
+                ],
+                [
+                  "email"
+                ],
+                [
                   "city"
                 ],
                 [
                   "wechat"
                 ],
                 [
-                  "status",
-                  "intentCity",
-                  "intentPosts",
+                  "status"
+                ],
+                [
+                  "intentCity"
+                ],
+                [
+                  "intentPosts"
+                ],
+                [
                   "expectedSalary"
                 ]
               ]

@@ -11,7 +11,8 @@
       "color": "#383838",
       "backgroundColor": "#fff",
       "padding": 20,
-      "headerType": 8
+      "headerType": 8,
+      "layout": "rounded"
     },
     "pages": [
       {
@@ -20,7 +21,7 @@
             "type": "info1",
             "id": "1",
             "options": {
-              "position": "right",
+              "position": "center",
               "name": "林强",
               "phone": "13566778899",
               "email": "linqiang_ops@163.com",

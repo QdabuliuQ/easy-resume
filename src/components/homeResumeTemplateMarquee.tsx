@@ -5,9 +5,9 @@ import { resumeTemplates, type ResumeTemplateItem } from '@/json/resumeTemplates
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import type { GlobalStyle } from '@/modules/utils/common.type';
-import { Info1, Page } from '@/modules';
+import { Page } from '@/modules';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
-import CanvasModuleFragment from '@/views/edit/components/canvas/moduleFragment';
+import { renderResumePageModules } from '@/views/edit/components/canvas/renderResumePageModules';
 import ResumeFontCdn from '@/views/edit/components/canvas/ResumeFontCdn';
 import { EyeOutlined } from '@ant-design/icons';
 import { Link } from '@/i18n/navigation';
@@ -23,37 +23,6 @@ import {
   type TransitionEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
-
-function renderPageModules(modules: unknown[], gs: GlobalStyle): ReactNode[] {
-  const mm = Number(gs.moduleMargin) || 15;
-  const out: ReactNode[] = [];
-  let shellOrd = 0;
-  modules.forEach((raw, i) => {
-    const m = raw as { type?: string; id?: string; options?: Record<string, unknown> };
-    if (!m?.type) return;
-    if (i > 0) out.push(<div key={`sp-${m.id ?? i}`} style={{ height: mm, flexShrink: 0 }} aria-hidden />);
-    if (m.type === 'info1') {
-      out.push(<Info1 key={String(m.id ?? `info-${i}`)} config={m as never} globalStyle={gs} />);
-      return;
-    }
-    shellOrd += 1;
-    out.push(
-      <CanvasModuleFragment
-        key={String(m.id ?? `${m.type}-${i}`)}
-        fragment={{
-          type: m.type,
-          sourceId: String(m.id ?? i),
-          domId: String(m.id ?? i),
-          showHeader: true,
-          options: (m.options ?? {}) as Record<string, unknown>,
-          sectionOrdinal: shellOrd,
-        }}
-        globalStyle={gs}
-      />
-    );
-  });
-  return out;
-}
 
 const TemplatePageScaled = memo(function TemplatePageScaled({
   template,
@@ -79,7 +48,10 @@ const TemplatePageScaled = memo(function TemplatePageScaled({
   const pw = cssLengthToApproxPx(pwStr);
   const ph = cssLengthToApproxPx(phStr);
   const modules = template.config.pages[0]?.modules ?? [];
-  const nodes = useMemo(() => renderPageModules(modules as unknown[], gs), [modules, gs]);
+  const { main, sideSlot } = useMemo(
+    () => renderResumePageModules(modules as unknown[], gs, { isFirstPage: true }),
+    [modules, gs],
+  );
   const showUse =
     templateIndex1Based != null &&
     templateIndex1Based >= 1 &&
@@ -99,7 +71,9 @@ const TemplatePageScaled = memo(function TemplatePageScaled({
         }}
       >
         <ResumeFontCdn font={gs.resumeFont} />
-        <Page {...gs}>{nodes}</Page>
+        <Page {...gs} firstPage sideSlot={sideSlot ?? undefined}>
+          {main}
+        </Page>
       </div>
       {showUse ? (
         <>

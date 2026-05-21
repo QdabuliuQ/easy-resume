@@ -11,7 +11,8 @@
       "color": "#383838",
       "backgroundColor": "#fff",
       "padding": 20,
-      "headerType": 4
+      "headerType": 4,
+      "layout": "leftCol"
     },
     "pages": [
       {
@@ -20,7 +21,7 @@
             "type": "info1",
             "id": "1",
             "options": {
-              "position": "right",
+              "position": "left",
               "name": "李梅",
               "phone": "13987654321",
               "email": "limei@163.com",
@@ -45,17 +46,27 @@
               "avatar": "resumeAvatar:a2",
               "layout": [
                 [
-                  "phone",
-                  "email",
+                  "phone"
+                ],
+                [
+                  "email"
+                ],
+                [
                   "city"
                 ],
                 [
                   "wechat"
                 ],
                 [
-                  "status",
-                  "intentCity",
-                  "intentPosts",
+                  "status"
+                ],
+                [
+                  "intentCity"
+                ],
+                [
+                  "intentPosts"
+                ],
+                [
                   "expectedSalary"
                 ]
               ]

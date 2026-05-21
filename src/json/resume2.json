@@ -11,7 +11,8 @@
       "color": "#383838",
       "backgroundColor": "#fff",
       "padding": 20,
-      "headerType": 4
+      "headerType": 4,
+      "layout": "default"
     },
     "pages": [
       {

@@ -4,58 +4,35 @@ import defaultResume from '@/json/resume.defaults';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import type { GlobalStyle } from '@/modules/utils/common.type';
-import { Info1, Page } from '@/modules';
+import { Page } from '@/modules';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { configStore } from '@/mobx';
-import CanvasModuleFragment from '@/views/edit/components/canvas/moduleFragment';
+import { renderResumePageModules } from '@/views/edit/components/canvas/renderResumePageModules';
 import ResumeFontCdn from '@/views/edit/components/canvas/ResumeFontCdn';
 import { observer } from 'mobx-react';
-import { memo, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-
-function renderPageModules(modules: unknown[], gs: GlobalStyle): ReactNode[] {
-  const mm = Number(gs.moduleMargin) || 15;
-  const out: ReactNode[] = [];
-  let shellOrd = 0;
-  modules.forEach((raw, i) => {
-    const m = raw as { type?: string; id?: string; options?: Record<string, unknown> };
-    if (!m?.type) return;
-    if (i > 0) out.push(<div key={`sp-${m.id ?? i}`} style={{ height: mm, flexShrink: 0 }} aria-hidden />);
-    if (m.type === 'info1') {
-      out.push(<Info1 key={String(m.id ?? `info-${i}`)} config={m as never} globalStyle={gs} />);
-      return;
-    }
-    shellOrd += 1;
-    out.push(
-      <CanvasModuleFragment
-        key={String(m.id ?? `${m.type}-${i}`)}
-        fragment={{
-          type: m.type,
-          sourceId: String(m.id ?? i),
-          domId: String(m.id ?? i),
-          showHeader: true,
-          options: (m.options ?? {}) as Record<string, unknown>,
-          sectionOrdinal: shellOrd,
-        }}
-        globalStyle={gs}
-      />,
-    );
-  });
-  return out;
-}
+import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 const ResumePageFullBleed = memo(function ResumePageFullBleed({
   modules,
   globalStyle,
+  isFirstPage = true,
 }: {
   modules: unknown[];
   globalStyle: GlobalStyle;
+  isFirstPage?: boolean;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const { width: pwStr, height: phStr } = globalStylePageDimensions(globalStyle);
   const pw = cssLengthToApproxPx(pwStr);
   const ph = cssLengthToApproxPx(phStr);
-  const nodes = useMemo(() => renderPageModules(modules, globalStyle), [modules, globalStyle]);
+  const { main, sideSlot } = useMemo(
+    () =>
+      renderResumePageModules(modules, globalStyle, {
+        isFirstPage,
+      }),
+    [modules, globalStyle, isFirstPage],
+  );
 
   useLayoutEffect(() => {
     const el = wrapRef.current;
@@ -82,8 +59,8 @@ const ResumePageFullBleed = memo(function ResumePageFullBleed({
         }}
       >
         <ResumeFontCdn font={globalStyle.resumeFont} />
-        <Page {...globalStyle}>
-          {nodes}
+        <Page {...globalStyle} firstPage={isFirstPage} sideSlot={sideSlot ?? undefined}>
+          {main}
         </Page>
       </div>
     </div>
@@ -110,6 +87,7 @@ function MobileResumePreview() {
           key={page.id ?? `p-${i}`}
           modules={page.modules as unknown[]}
           globalStyle={gs}
+          isFirstPage={i === 0}
         />
       ))}
     </div>

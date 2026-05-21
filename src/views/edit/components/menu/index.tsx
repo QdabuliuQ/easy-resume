@@ -18,6 +18,11 @@ import {
   normalizeResumeImportPayload,
 } from '@/lib/validateResumeImportJson';
 const GRADIENT_ID = 'resume-menu-item-grad';
+/** 侧栏内容区宽 108 - padding 40 */
+const MENU_TILE_SIZE_PX = 68;
+const MENU_TILE_SHADOW_PAD_PX = 6;
+const MENU_TILE_TOP_LINE_INSET_PX = MENU_TILE_SHADOW_PAD_PX + 4;
+const menuTileClass = `relative flex cursor-pointer select-none flex-col items-center justify-center gap-0.5 overflow-visible rounded-[18px] py-2.5 text-[11px] transition-all duration-200 ease-out`;
 function MenuItemIcon({ menuKey, selected }: { menuKey: string; selected: boolean }) {
   const antIconCls = selected
     ? 'relative z-[1] text-[20px] mb-[3px] transition-[fill] duration-200 [&_svg]:!fill-[url(#resume-menu-item-grad)]'
@@ -125,6 +130,24 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
     return (
       <div
         key={item.key}
+        className='relative flex shrink-0 items-center justify-center overflow-visible'
+        style={{
+          width: MENU_TILE_SIZE_PX + MENU_TILE_SHADOW_PAD_PX * 2,
+          height: MENU_TILE_SIZE_PX + MENU_TILE_SHADOW_PAD_PX * 2,
+        }}
+      >
+        {accent ? (
+          <span
+            aria-hidden
+            className='bg-gradient-primary pointer-events-none absolute z-[3] h-[2px] rounded-full opacity-70 blur-[2px]'
+            style={{
+              top: MENU_TILE_SHADOW_PAD_PX,
+              left: MENU_TILE_TOP_LINE_INSET_PX,
+              right: MENU_TILE_TOP_LINE_INSET_PX,
+            }}
+          />
+        ) : null}
+      <div
         role='button'
         tabIndex={0}
         onClick={() => (isImport ? confirmThenPickImport() : onActiveKeyChange(item.key))}
@@ -134,7 +157,8 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
             isImport ? confirmThenPickImport() : onActiveKeyChange(item.key);
           }
         }}
-        className={`aspect-square relative flex w-full cursor-pointer select-none flex-col items-center justify-center gap-0.5 overflow-hidden rounded-[18px] py-2.5 text-[11px] transition-all duration-200 ease-out ${tileCls}`}
+        className={`${menuTileClass} ${tileCls}`}
+        style={{ width: MENU_TILE_SIZE_PX, height: MENU_TILE_SIZE_PX }}
       >
         {accent ? (
           <span
@@ -143,12 +167,6 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
           >
             <span className='block h-full w-full rounded-[17px] bg-[color-mix(in_srgb,var(--color-primary)_10%,var(--editor-shell-panel-strong))]' />
           </span>
-        ) : null}
-        {accent ? (
-          <span
-            aria-hidden
-            className='bg-gradient-primary absolute inset-x-1 top-0 z-[2] h-[2px] rounded-full opacity-70 blur-[2px]'
-          />
         ) : null}
         <MenuItemIcon menuKey={item.key} selected={accent} />
         <span
@@ -161,12 +179,13 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
           {item.label}
         </span>
       </div>
+      </div>
     );
   };
   return (
     <>
       {contextHolder}
-      <div className='relative flex h-full min-h-0 w-[108px] shrink-0 flex-col items-stretch justify-between bg-transparent p-[20px]'>
+      <div className='relative flex h-full min-h-0 w-[108px] shrink-0 flex-col items-center bg-transparent'>
       <input
         ref={fileRef}
         type='file'
@@ -183,10 +202,16 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
           </linearGradient>
         </defs>
       </svg>
-      <div className='flex w-full min-w-0 min-h-0 flex-col gap-[13px]'>
-        {panelMenuItems.map((item) => renderMenuItem(item))}
+      <div className='flex h-full min-h-0 w-full flex-1 flex-col'>
+        <div className='flex min-h-0 flex-1 flex-col items-center overflow-y-auto overscroll-contain py-3 [scrollbar-width:thin]'>
+          <div className='flex w-full flex-col items-center gap-1.5'>
+            {panelMenuItems.map((item) => renderMenuItem(item))}
+          </div>
+        </div>
+        <div className='flex shrink-0 flex-col items-center gap-1.5 pb-3 pt-2'>
+          {renderMenuItem(importMenu)}
+        </div>
       </div>
-      <div className='flex w-full min-w-0 shrink-0 flex-col gap-[10px]'>{renderMenuItem(importMenu)}</div>
     </div>
     </>
   );

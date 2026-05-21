@@ -1,5 +1,6 @@
 'use client';
 import type { CSSProperties } from 'react';
+import { sectionHeaderRowHeightStyle } from './sectionHeaderLayout';
 
 export function SectionHeaderType3({
   title,
@@ -22,8 +23,8 @@ export function SectionHeaderType3({
     clipPath: trapClip,
   };
   return (
-    <div className='flex w-full items-end gap-0 py-0.5'>
-      <div className='relative inline-flex shrink-0 items-stretch'>
+    <div style={sectionHeaderRowHeightStyle} className='flex w-full gap-0 items-end'>
+      <div className='relative h-full inline-flex shrink-0 items-stretch'>
         <div
           className='pointer-events-none absolute inset-y-0.5 z-0 w-full left-[7px] bottom-0'
           style={{
@@ -32,7 +33,7 @@ export function SectionHeaderType3({
           aria-hidden
         />
         <div
-          className='relative z-[1] flex items-center py-[5px] pl-3 pr-10 font-bold leading-none text-white'
+          className='relative z-[1] flex h-full items-center py-0 pl-3 pr-10 font-bold leading-none text-white'
           style={{ ...trapMain, fontSize: fontSizeCss }}
         >
           {title}

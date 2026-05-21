@@ -1,4 +1,5 @@
 import type { ResumePageSize } from '@/lib/resumePageSize';
+import type { ResumePageLayout } from '@/lib/resumePageLayout';
 
 export interface GlobalStyle {
   /** 纸张规格，宽高由服务端/画布解析为固定 CSS，禁止任意 mm */
@@ -15,4 +16,6 @@ export interface GlobalStyle {
   headerType?: number;
   /** 简历正文字体（预览与 PDF/PNG 一致） */
   resumeFont?: 'system' | 'noto-sans-sc' | 'noto-serif-sc';
+  /** default；line 顶栏；rounded 首页弧带；leftCol 左栏主题色；rightCol 右栏主题色 */
+  layout?: ResumePageLayout;
 }

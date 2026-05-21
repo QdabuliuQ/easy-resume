@@ -26,6 +26,11 @@ import { createPortal } from 'react-dom';
 import resume from '@/json/resume.defaults';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
+import {
+  resumePageContentInnerWidthCss,
+  resumePageInnerHeightDeductionPx,
+} from '@/lib/resumePageLayout';
+import { shouldPlaceInfo1InSideCol } from '@/lib/resumeSideColLayout';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import {
   getBackupReady,
@@ -80,8 +85,7 @@ function moduleGapPx(gs: any, cfg?: any): number {
 /** 与 Page 内层 div 的 width 字符串一致，禁止 mm→px 取整导致测量换行与画布不一致 */
 function contentInnerWidthCss(gs: any): string {
   const { width } = globalStylePageDimensions(gs);
-  const pad = Number(gs?.padding ?? 0);
-  return `calc(${width} - ${pad * 2}px)`;
+  return resumePageContentInnerWidthCss(width, gs?.layout, gs?.padding ?? 0);
 }
 
 /** offsetHeight 常向下取整；用 ceil(bounding height) 补子像素。勿用 scrollHeight（测量容器上易偏大/失真，分页会失效） */
@@ -94,13 +98,13 @@ function readLayoutHeightPx(el: HTMLElement): number {
 }
 
 /** 与 Page 内层 height 解析值一致（避免 mm 取整 px 导致分页槽高度偏小） */
-function probeInnerPageContentHeightPx(gs: any): number {
+function probeInnerPageContentHeightPx(gs: any, pageIndex = 0): number {
   const { height } = globalStylePageDimensions(gs);
-  const pad = Number(gs?.padding ?? 0);
+  const deduct = resumePageInnerHeightDeductionPx(gs, pageIndex);
   const probe = document.createElement('div');
   probe.style.cssText =
     'position:absolute;left:-9999px;top:0;width:1px;margin:0;padding:0;border:none;visibility:hidden;pointer-events:none;box-sizing:border-box';
-  probe.style.height = `calc(${height} - ${pad * 2}px)`;
+  probe.style.height = `calc(${height} - ${deduct}px)`;
   document.body.appendChild(probe);
   const h = readLayoutHeightPx(probe);
   document.body.removeChild(probe);
@@ -115,7 +119,8 @@ function layoutSig(module: any, gs: any): string {
   const ht = gs?.headerType ?? '';
   const rf = gs?.resumeFont ?? '';
   const ps = gs?.pageSize ?? '';
-  return `${JSON.stringify(module)}|ps:${ps}|pad:${pad}|fs:${fs}|lh:${lh}|ht:${ht}|rf:${rf}`;
+  const ly = gs?.layout ?? '';
+  return `${JSON.stringify(module)}|ps:${ps}|pad:${pad}|fs:${fs}|lh:${lh}|ht:${ht}|rf:${rf}|ly:${ly}`;
 }
 
 interface ExportLayoutModule {
@@ -173,9 +178,15 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
   const lastLayoutCommitRef = useRef<string>('');
   /** 异步 render 交错完成时禁止旧任务 setConfig 覆盖侧栏已写入的数据 */
   const renderGenerationRef = useRef(0);
+  const canvasStageRef = useRef<HTMLDivElement>(null);
 
   const measureElementHeight = useMemoizedFn(
-    (element: ReactElement, gs: any, domId: string): Promise<number> => {
+    (
+      element: ReactElement,
+      gs: any,
+      domId: string,
+      widthCss?: string,
+    ): Promise<number> => {
       return new Promise((resolve) => {
         const measureOffScreen = () => {
           const container = document.createElement('div');
@@ -185,7 +196,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
           container.style.height = 'auto';
           container.style.width = 'auto';
           document.body.appendChild(container);
-          container.style.width = contentInnerWidthCss(gs);
+          container.style.width = widthCss ?? contentInnerWidthCss(gs);
           container.style.boxSizing = 'border-box';
           container.style.fontFamily = resumeFontStack(gs.resumeFont);
           const root = createRoot(container);
@@ -216,10 +227,17 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
     const myGen = ++renderGenerationRef.current;
     const gs = mergeGlobalStyle(cfg);
     const ordered = flattenModules(cfg);
+    const sideColLayout = shouldPlaceInfo1InSideCol(gs.layout);
+    const info1Module = sideColLayout
+      ? ordered.find((m: { type?: string }) => m?.type === 'info1')
+      : null;
+    const layoutModules = sideColLayout
+      ? ordered.filter((m: { type?: string }) => m?.type !== 'info1')
+      : ordered;
     let shellSectionOrdinal = 0;
 
     // 清理已移除模块的缓存
-    const seen = new Set(ordered.map((m: any) => m.id));
+    const seen = new Set(layoutModules.map((m: any) => m.id));
     for (const id of Object.keys(moduleHeights.current)) {
       if (!seen.has(id)) {
         delete moduleHeights.current[id];
@@ -229,7 +247,8 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
 
     if (myGen !== renderGenerationRef.current) return;
 
-    const pageHeight = probeInnerPageContentHeightPx(gs);
+    const pageContentHeight = (pageIndex: number) =>
+      probeInnerPageContentHeightPx(gs, pageIndex);
 
     /** 每个分页槽位类型 */
     type ModuleSlot = {
@@ -257,7 +276,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
       usedHeight = 0;
     };
 
-    for (const module of ordered) {
+    for (const module of layoutModules) {
       if (!module) continue;
       if (myGen !== renderGenerationRef.current) return;
 
@@ -301,7 +320,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
         const curIdx = newPages.length - 1;
         // 只有首次放置且当前页已有内容时才加间距
         const gap = isFirstPlacement && newPages[curIdx].length > 0 ? moduleGapPx(gs, cfg) : 0;
-        const spaceAfterGap = pageHeight - usedHeight - gap;
+        const spaceAfterGap = pageContentHeight(curIdx) - usedHeight - gap;
 
         // 当前页没有剩余空间，换新页（不改变 isFirstPlacement，让间距逻辑在新页重算）
         if (spaceAfterGap <= 0) {
@@ -323,15 +342,17 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
             offsetY: shownSoFar,
             measuredModuleHeight: moduleHeight,
           });
-          exportPages[curIdx].modules.push({
-            type: module.type,
-            options: JSON.parse(JSON.stringify(module.options ?? {})),
-            showHeader: true,
-            viewHeight: remaining,
-            offsetY: shownSoFar,
-            continuation: shownSoFar > 0,
-            measuredModuleHeight: moduleHeight,
-          });
+          if (!sideColLayout || module.type !== 'info1') {
+            exportPages[curIdx].modules.push({
+              type: module.type,
+              options: JSON.parse(JSON.stringify(module.options ?? {})),
+              showHeader: true,
+              viewHeight: remaining,
+              offsetY: shownSoFar,
+              continuation: shownSoFar > 0,
+              measuredModuleHeight: moduleHeight,
+            });
+          }
           if (!addedToConfig) {
             pageModuleIds[curIdx].push(module.id);
             addedToConfig = true;
@@ -377,7 +398,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
             newPages[curIdx].push({ kind: 'margin', slotKey: `gap-${module.id}-${slotSeq}`, height: gap });
             usedHeight += gap;
           }
-          const clipH = pageHeight - usedHeight; // 当前页剩余空间
+          const clipH = pageContentHeight(curIdx) - usedHeight;
           newPages[curIdx].push({
             kind: 'module',
             slotKey: `${module.id}-${slotSeq++}`,
@@ -412,6 +433,19 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
     }
 
     if (myGen !== renderGenerationRef.current) return;
+
+    let info1SideNode: ReactElement | null = null;
+    if (sideColLayout && info1Module) {
+      const info1Node = buildModuleElement(
+        info1Module,
+        gs,
+        info1Module.id,
+        true,
+        0,
+        undefined,
+      );
+      if (info1Node) info1SideNode = info1Node;
+    }
 
     // 将槽位数组转换为 React 节点
     const allPages = newPages.map((slots, pageIndex) => {
@@ -450,7 +484,13 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
           key={pageIndex + 1}
           className='overflow-hidden rounded-[2px] border border-[color:var(--editor-shell-border)] shadow-[0_12px_28px_rgba(0,0,0,0.12)]'
         >
-          <Page {...gs}>{children}</Page>
+          <Page
+            {...gs}
+            firstPage={pageIndex === 0}
+            sideSlot={sideColLayout && pageIndex === 0 ? info1SideNode : undefined}
+          >
+            {children}
+          </Page>
         </div>
       );
     });
@@ -476,6 +516,12 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
         seenIds.add(id);
         const m = findModuleById(live, id);
         if (m) modulesOut.push(m);
+      }
+      if (sideColLayout && info1Module && i === 0) {
+        const hasInfo1 = modulesOut.some((m) => m?.type === 'info1');
+        if (!hasInfo1) {
+          modulesOut.unshift(JSON.parse(JSON.stringify(info1Module)));
+        }
       }
       nextConfig.pages.push({ modules: modulesOut });
     }
@@ -633,8 +679,11 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
           }}
         >
           <CanvasScaleContext.Provider value={scale}>
-            <div className='flex w-full flex-col items-center py-[40px]'>
-              <ModuleOperation>{pages}</ModuleOperation>
+            <div
+              ref={canvasStageRef}
+              className='relative flex w-full flex-col items-center py-[40px]'
+            >
+              <ModuleOperation stageRef={canvasStageRef}>{pages}</ModuleOperation>
             </div>
           </CanvasScaleContext.Provider>
         </div>

@@ -8,6 +8,11 @@ import {
 import { GlobalStyle } from '@/modules/utils/common.type';
 import { RESUME_MODULE_ID_ATTR } from '@/components/moduleOperation/constants';
 import { info1ShowsInlineFieldLabel } from '@/lib/info1FieldLabels';
+import {
+  resumeInfo1FieldSeparatorColor,
+  resumeInfo1FieldTextColor,
+  resumePageHasSideCol,
+} from '@/lib/resumePageLayout';
 import { observer } from 'mobx-react';
 
 export interface InfoProps {
@@ -54,6 +59,9 @@ function Info1(props: Props) {
   const { name, layout, avatar, position: positionOpt, showTitle } = props.config.options;
   const showTitleOn = showTitle === true;
   const position = positionOpt ?? 'right';
+  const inSideCol = resumePageHasSideCol(props.globalStyle.layout);
+  const fieldColor = resumeInfo1FieldTextColor(props.globalStyle.layout);
+  const sepColor = resumeInfo1FieldSeparatorColor(props.globalStyle.layout);
   const { fontSize, lineHeight } = props.globalStyle;
   const avatarSrc = typeof avatar === 'string' ? avatar.trim() : '';
   const showAvatar = !!avatarSrc && avatarSrc !== 'avatar';
@@ -80,8 +88,8 @@ function Info1(props: Props) {
           rowElements.push(
             <span
               key={`${String(a)}-${String(b)}`}
-              className='text-[#333]'
-              style={{ fontSize, lineHeight }}
+              className={inSideCol ? undefined : 'text-[#333]'}
+              style={{ fontSize, lineHeight, color: fieldColor }}
             >
               {lbl('expectedSalary')}
               {a} - {b}
@@ -98,8 +106,8 @@ function Info1(props: Props) {
           rowElements.push(
             <span
               key={`${String(key)}-${i}-${j}`}
-              className='text-[#333]'
-              style={{ fontSize, lineHeight }}
+              className={inSideCol ? undefined : 'text-[#333]'}
+              style={{ fontSize, lineHeight, color: fieldColor }}
             >
               {lbl(String(key))}
               {display}
@@ -110,16 +118,21 @@ function Info1(props: Props) {
           rowElements.push(
             <span
               key={j + '|'}
-              className='inline-block mx-[10px] text-[#999]'
-              style={{ fontSize, lineHeight }}
+              className={inSideCol ? 'inline-block mx-[10px]' : 'inline-block mx-[10px] text-[#999]'}
+              style={{ fontSize, lineHeight, color: sepColor }}
             >
               |
             </span>
           );
         }
       }
-      const rowCls =
-        position === 'center'
+      const rowCls = inSideCol
+        ? position === 'center'
+          ? 'flex items-center flex-wrap justify-center not-last:mb-[5px]'
+          : position === 'left'
+            ? 'flex items-center flex-wrap justify-start not-last:mb-[5px]'
+            : 'flex items-center flex-wrap justify-end not-last:mb-[5px]'
+        : position === 'center'
           ? 'flex items-center flex-wrap justify-center not-last:mb-[5px]'
           : position === 'left'
             ? 'flex items-center flex-wrap justify-end not-last:mb-[5px]'
@@ -131,10 +144,12 @@ function Info1(props: Props) {
       );
     }
     setItemLayout(elements);
-  }, [layout, position, showTitleOn, props, tField]);
+  }, [layout, position, showTitleOn, inSideCol, fieldColor, sepColor, props, tField]);
 
   const avatarBlock = showAvatar ? (
-    <div className='w-[90px] min-w-[90px] max-w-[90px] shrink-0'>
+    <div
+      className={`w-[90px] min-w-[90px] max-w-[90px] shrink-0 ${inSideCol && position === 'center' ? 'mx-auto' : ''} ${inSideCol && position === 'right' ? 'ml-auto' : ''}`}
+    >
       <img
         className='aspect-5/7 w-full object-cover'
         src={avatarSrc}
@@ -142,34 +157,44 @@ function Info1(props: Props) {
       />
     </div>
   ) : null;
+  const textAlignSide =
+    position === 'center' ? 'text-center' : position === 'left' ? 'text-left' : 'text-right';
   const textBlock = (
     <div
       className={
-        position === 'center'
-          ? 'w-full text-center'
-          : position === 'left'
-            ? `${showAvatar ? 'min-w-0 flex-1' : 'w-full'} text-right`
-            : showAvatar
-              ? 'min-w-0 flex-1'
-              : 'w-full'
+        inSideCol
+          ? `w-full ${textAlignSide}`
+          : position === 'center'
+            ? 'w-full text-center'
+            : position === 'left'
+              ? `${showAvatar ? 'min-w-0 flex-1' : 'w-full'} text-right`
+              : showAvatar
+                ? 'min-w-0 flex-1'
+                : 'w-full'
       }
     >
       <div
-        className={`mb-[10px] font-bold text-[#333] leading-none ${position === 'center' ? 'text-center' : ''} ${position === 'left' ? 'text-right' : ''}`}
-        style={{ fontSize: fontSize * 1.7 }}
+        className={`mb-[10px] font-bold leading-none ${inSideCol ? textAlignSide : 'text-[#333]'} ${inSideCol ? '' : position === 'center' ? 'text-center' : ''} ${!inSideCol && position === 'left' ? 'text-right' : ''}`}
+        style={{ fontSize: fontSize * 1.7, color: fieldColor }}
       >
         {name}
       </div>
       <div className='w-full'>{itemLayout}</div>
     </div>
   );
-  const rootCls =
-    position === 'center' && showAvatar
+  const rootCls = inSideCol
+    ? `flex w-full cursor-pointer flex-col gap-3 ${position === 'center' ? 'items-center' : position === 'left' ? 'items-start' : 'items-end'}`
+    : position === 'center' && showAvatar
       ? 'flex w-full cursor-pointer flex-col items-center gap-3'
       : `flex w-full cursor-pointer items-center ${showAvatar ? 'gap-3' : ''} ${showAvatar && (position === 'right' || position === 'left') ? 'justify-between' : ''}`;
   return (
     <div id={id} {...{ [RESUME_MODULE_ID_ATTR]: id }} className={rootCls}>
-      {position === 'center' && showAvatar ? (
+      {inSideCol ? (
+        <>
+          {showAvatar ? avatarBlock : null}
+          {textBlock}
+        </>
+      ) : position === 'center' && showAvatar ? (
         <>
           {avatarBlock}
           {textBlock}

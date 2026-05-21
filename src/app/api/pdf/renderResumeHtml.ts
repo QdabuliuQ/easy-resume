@@ -7,6 +7,18 @@ import type { GlobalStyle } from '@/modules/utils/common.type';
 import { inlineQuillHtml } from '@/lib/inlineQuillHtml';
 import { readQuillSnowCss } from '@/lib/quillSnowCss';
 import { resumeFontStack } from '@/lib/resumeFont';
+import {
+  normResumePageLayout,
+  RESUME_PAGE_SIDE_COL_WIDTH_RATIO,
+  resumeInfo1FieldSeparatorColor,
+  resumeInfo1FieldTextColor,
+  resumePageHasSideCol,
+  RESUME_PAGE_ROUNDED_BANNER_HEIGHT_PX,
+  resumePageContentInnerWidthCss,
+  resumePageInnerHeightDeductionPx,
+  resumePageTopLineHeightPx,
+} from '@/lib/resumePageLayout';
+import { findFirstInfo1Module } from '@/lib/resumeSideColLayout';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import { resumePdfFontLinkTags } from '@/lib/resumePdfFontLinkTags';
 import { wrapSectionModuleHtml } from '@/modules/header/sectionHeaderHtml';
@@ -161,6 +173,9 @@ function renderInfo1(
       ? positionRaw
       : 'right';
   const showTitle = Boolean(opts.showTitle);
+  const inSideCol = resumePageHasSideCol(gs.layout);
+  const fieldColor = resumeInfo1FieldTextColor(gs.layout);
+  const sepColor = resumeInfo1FieldSeparatorColor(gs.layout);
   const fs = gs.fontSize;
   const lh = gs.lineHeight;
   const rows: string[] = [];
@@ -175,7 +190,7 @@ function renderInfo1(
       if (key === 'expectedSalary') {
         const arr = opts.expectedSalary as [unknown, unknown] | undefined;
         rowParts.push(
-          `<span style="font-size:${fs}px;line-height:${lh};color:#333">${info1LabelPrefix('expectedSalary', showTitle, locale)}${escapeHtml(arr?.[0])} - ${escapeHtml(arr?.[1])}</span>`
+          `<span style="font-size:${fs}px;line-height:${lh};color:${fieldColor}">${info1LabelPrefix('expectedSalary', showTitle, locale)}${escapeHtml(arr?.[0])} - ${escapeHtml(arr?.[1])}</span>`
         );
       } else if (opts[key as keyof typeof opts]) {
         const val = opts[key as keyof typeof opts];
@@ -186,17 +201,22 @@ function renderInfo1(
               ? formatIntentCityDisplay(val as unknown)
               : String(val);
         rowParts.push(
-          `<span style="font-size:${fs}px;line-height:${lh};color:#333">${info1LabelPrefix(key, showTitle, locale)}${escapeHtml(out)}</span>`
+          `<span style="font-size:${fs}px;line-height:${lh};color:${fieldColor}">${info1LabelPrefix(key, showTitle, locale)}${escapeHtml(out)}</span>`
         );
       }
       if (j !== row.length - 1) {
         rowParts.push(
-          `<span style="display:inline-block;margin:0 10px;color:#999;font-size:${fs}px;line-height:${lh}">|</span>`
+          `<span style="display:inline-block;margin:0 10px;color:${sepColor};font-size:${fs}px;line-height:${lh}">|</span>`
         );
       }
     }
-    const rowFlex =
-      position === 'center'
+    const rowFlex = inSideCol
+      ? position === 'center'
+        ? 'display:flex;align-items:center;flex-wrap:wrap;justify-content:center;'
+        : position === 'left'
+          ? 'display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-start;'
+          : 'display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;'
+      : position === 'center'
         ? 'display:flex;align-items:center;flex-wrap:wrap;justify-content:center;'
         : position === 'left'
           ? 'display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;'
@@ -205,29 +225,56 @@ function renderInfo1(
       `<div style="${rowFlex}${i < layout.length - 1 ? 'margin-bottom:5px;' : ''}">${rowParts.join('')}</div>`
     );
   }
-  const textAlign =
-    position === 'center'
+  const textAlign = inSideCol
+    ? position === 'center'
+      ? 'text-align:center;'
+      : position === 'left'
+        ? 'text-align:left;'
+        : 'text-align:right;'
+    : position === 'center'
       ? 'text-align:center;'
       : position === 'left'
         ? 'text-align:right;'
         : '';
   const nameHtml = escapeHtml(name);
-  const leftInner = `<div style="margin-bottom:10px;font-size:24px;font-weight:bold;color:#333;line-height:1;${textAlign}">${nameHtml}</div>
+  const leftInner = `<div style="margin-bottom:10px;font-size:24px;font-weight:bold;color:${fieldColor};line-height:1;${textAlign}">${nameHtml}</div>
 <div style="width:100%;${textAlign}">${rows.join('')}</div>`;
   const textColStyle =
     position === 'center'
       ? 'width:100%;'
-      : showAvatar
+      : showAvatar && !inSideCol
         ? 'flex:1;min-width:0;'
         : 'width:100%;';
   const leftCol = `<div style="${textColStyle}">${leftInner}</div>`;
   if (!showAvatar) {
-    return `<div style="width:100%;display:flex;align-items:center;">${leftCol}</div>`;
+    const align = inSideCol
+      ? position === 'center'
+        ? 'align-items:center;'
+        : position === 'left'
+          ? 'align-items:flex-start;'
+          : 'align-items:flex-end;'
+      : '';
+    return `<div style="width:100%;display:flex;flex-direction:column;${align}">${leftCol}</div>`;
   }
   const avatarLabel = getInfo1FieldLabel('avatar', locale);
   const avatarAlt = escapeHtml(name.trim() ? `${name.trim()} ${avatarLabel}` : avatarLabel);
   const avatarHtml = `<img src="${encodeURI(avatarSrc)}" alt="${avatarAlt}" width="90" style="width:100%;aspect-ratio:5/7;object-fit:cover;display:block;" />`;
-  const avatarWrap = `<div style="width:90px;min-width:90px;max-width:90px;flex-shrink:0;">${avatarHtml}</div>`;
+  const avatarMargin =
+    inSideCol && position === 'center'
+      ? 'margin-left:auto;margin-right:auto;'
+      : inSideCol && position === 'right'
+        ? 'margin-left:auto;'
+        : '';
+  const avatarWrap = `<div style="width:90px;min-width:90px;max-width:90px;flex-shrink:0;${avatarMargin}">${avatarHtml}</div>`;
+  if (inSideCol) {
+    const alignItems =
+      position === 'center'
+        ? 'center'
+        : position === 'left'
+          ? 'flex-start'
+          : 'flex-end';
+    return `<div style="width:100%;display:flex;flex-direction:column;align-items:${alignItems};gap:12px;">${avatarWrap}${leftCol}</div>`;
+  }
   if (position === 'center') {
     return `<div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:12px;">${avatarWrap}${leftCol}</div>`;
   }
@@ -371,11 +418,11 @@ function renderEducation(
         : '';
       return `<div style="width:100%;color:#333;${index < items.length - 1 ? 'margin-bottom:10px;' : ''}font-size:${fs}px;">
 <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-<div style="flex:0.7;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+<div style="flex:0.5;display:flex;align-items:center;min-width:0;">
 <span style="font-weight:bold;">${escapeHtml(String(item.school ?? ''))}</span>
-<div style="margin-left:10px;display:flex;flex-wrap:wrap;align-items:center;">${tagHtml}</div>
+<div style="margin-left:10px;display:flex;align-items:center;flex-wrap:wrap;">${tagHtml}</div>
 </div>
-<div style="flex:0.3;text-align:right;">${escapeHtml(String(item.startDate ?? ''))} - ${escapeHtml(String(item.endDate ?? ''))}</div>
+<div style="flex:0.5;text-align:right;min-width:0;">${escapeHtml(String(item.startDate ?? ''))} - ${escapeHtml(String(item.endDate ?? ''))}</div>
 </div>
 ${degreeLine}
 ${descHtml}
@@ -475,21 +522,75 @@ function wrapExportModuleHtml(mod: ExportLayoutModuleSlot, rendered: string): st
   return rendered;
 }
 
+function resumePageTopLineHtml(gs: GlobalStyle): string {
+  if (normResumePageLayout(gs.layout) !== 'line') return '';
+  const h = resumePageTopLineHeightPx(gs.layout);
+  const color = escapeHtml(gs.color);
+  return `<div style="position:absolute;top:0;left:0;width:100%;height:${h}px;background:${color};pointer-events:none;z-index:0;"></div>`;
+}
+
+function resumePageRoundedBannerHtml(gs: GlobalStyle, firstPage: boolean): string {
+  if (!firstPage || normResumePageLayout(gs.layout) !== 'rounded') return '';
+  const h = RESUME_PAGE_ROUNDED_BANNER_HEIGHT_PX;
+  const color = escapeHtml(gs.color);
+  const arcR = Math.max(12, Math.round(h * 0.42));
+  return `<div style="position:absolute;top:0;left:0;width:100%;height:${h}px;background:${color};border-bottom-left-radius:50% ${arcR}px;border-bottom-right-radius:50% ${arcR}px;pointer-events:none;z-index:0;"></div>`;
+}
+
+function resumePageSideColPanelHtml(gs: GlobalStyle, innerHtml: string): string {
+  const layout = normResumePageLayout(gs.layout);
+  if (layout !== 'leftCol' && layout !== 'rightCol') return '';
+  const pct = Math.round(RESUME_PAGE_SIDE_COL_WIDTH_RATIO * 100);
+  const color = escapeHtml(gs.color);
+  const padding = Number(gs.padding ?? 0);
+  return `<div style="flex:0 0 ${pct}%;width:${pct}%;min-height:100%;background:${color};padding:${padding}px;box-sizing:border-box;overflow:hidden;align-self:stretch;"><div style="width:100%;overflow:hidden;">${innerHtml}</div></div>`;
+}
+
+function resumePageBodyShellHtml(
+  gs: GlobalStyle,
+  pageWidthCss: string,
+  innerHCss: string | null,
+  modulesHtml: string,
+  sideHtml = '',
+): string {
+  const padding = Number(gs.padding ?? 0);
+  const layout = normResumePageLayout(gs.layout);
+  const sideCol = resumePageHasSideCol(layout);
+  const innerWCss = escapeHtml(
+    sideCol ? '100%' : resumePageContentInnerWidthCss(pageWidthCss, gs.layout, padding),
+  );
+  const heightCss = innerHCss ? `height:${innerHCss};` : '';
+  const modules = `<div style="width:${innerWCss};${heightCss}overflow:hidden;display:flex;flex-direction:column;">${modulesHtml}</div>`;
+  const contentCol = `<div style="flex:1;min-width:0;padding:${padding}px;box-sizing:border-box;overflow:hidden;">${modules}</div>`;
+  const sideBar = resumePageSideColPanelHtml(gs, sideHtml);
+  if (layout === 'leftCol') {
+    return `<div style="position:relative;z-index:1;flex:1;min-height:0;display:flex;flex-direction:row;align-items:stretch;box-sizing:border-box;overflow:hidden;">${sideBar}${contentCol}</div>`;
+  }
+  if (layout === 'rightCol') {
+    return `<div style="position:relative;z-index:1;flex:1;min-height:0;display:flex;flex-direction:row;align-items:stretch;box-sizing:border-box;overflow:hidden;">${contentCol}${sideBar}</div>`;
+  }
+  return `<div style="position:relative;z-index:1;flex:1;min-height:0;padding:${padding}px;box-sizing:border-box;overflow:hidden;">${modules}</div>`;
+}
+
 function renderPage(
   page: { moduleMargin?: number; modules?: unknown[] },
   gs: GlobalStyle,
   ordCtx: { shellOrd: number },
-  locale: Info1PdfLocale
+  locale: Info1PdfLocale,
+  pageIndex: number,
+  info1SideMod: { type: string; options?: unknown } | null,
 ): string {
   const mm =
     Number(gs.moduleMargin) ||
     Number(page.moduleMargin) ||
     10;
   const modules = (page.modules ?? []) as ExportLayoutModuleSlot[];
+  const sideCol = resumePageHasSideCol(gs.layout);
   const parts: string[] = [];
   let hasPlacedAnyModule = false;
   for (let i = 0; i < modules.length; i++) {
     const mod = modules[i];
+    if (sideCol && mod.type === 'info1') continue;
     if (hasPlacedAnyModule && !mod.continuation) {
       parts.push(`<div style="width:100%;height:${mm}px;flex-shrink:0;"></div>`);
     }
@@ -501,28 +602,34 @@ function renderPage(
     parts.push(wrapExportModuleHtml(mod, rendered));
     hasPlacedAnyModule = true;
   }
+  let sideHtml = '';
+  if (sideCol && pageIndex === 0 && info1SideMod) {
+    const sideRendered = renderModule(info1SideMod, gs, undefined, locale);
+    if (sideRendered) sideHtml = sideRendered;
+  }
   const { width: pw, height: ph } = globalStylePageDimensions(gs);
-  const { backgroundColor, padding = 0 } = gs;
+  const { backgroundColor } = gs;
   const bg = escapeHtml(backgroundColor);
   const wCss = escapeHtml(String(pw));
   const hCss = escapeHtml(String(ph));
-  const innerWCss = `calc(${wCss} - ${padding * 2}px)`;
-  const innerHCss = `calc(${hCss} - ${padding * 2}px)`;
-  return `<div class="pdf-page" style="width:${wCss};height:${hCss};padding:${padding}px;background:${bg};margin:0 auto;box-sizing:border-box;overflow:hidden;">
-<div style="width:${innerWCss};height:${innerHCss};overflow:hidden;display:flex;flex-direction:column;">
-${parts.join('')}
-</div>
-</div>`;
+  const innerHCss = `calc(${hCss} - ${resumePageInnerHeightDeductionPx(gs, pageIndex)}px)`;
+  const lineHtml = resumePageTopLineHtml(gs);
+  const roundedHtml = resumePageRoundedBannerHtml(gs, pageIndex === 0);
+  const body = resumePageBodyShellHtml(gs, pw, innerHCss, parts.join(''), sideHtml);
+  return `<div class="pdf-page" style="position:relative;width:${wCss};height:${hCss};background:${bg};margin:0 auto;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column;">
+${roundedHtml}${lineHtml}${body}</div>`;
 }
 
 function renderContinuousPage(
   pages: Array<{ moduleMargin?: number; modules?: unknown[] }>,
   gs: GlobalStyle,
   ordCtx: { shellOrd: number },
-  locale: Info1PdfLocale
+  locale: Info1PdfLocale,
+  info1SideMod: { type: string; options?: unknown } | null,
 ): string {
   const parts: string[] = [];
   let hasPlacedAnyModule = false;
+  const sideCol = resumePageHasSideCol(gs.layout);
 
   for (const page of pages) {
     const mm =
@@ -532,6 +639,7 @@ function renderContinuousPage(
     const modules = (page.modules ?? []) as ExportLayoutModuleSlot[];
 
     for (const module of modules) {
+      if (sideCol && module.type === 'info1') continue;
       if (hasPlacedAnyModule && !module.continuation) {
         parts.push(`<div style="width:100%;height:${mm}px;flex-shrink:0;"></div>`);
       }
@@ -545,18 +653,23 @@ function renderContinuousPage(
     }
   }
 
+  let sideHtml = '';
+  if (sideCol && info1SideMod) {
+    const sideRendered = renderModule(info1SideMod, gs, undefined, locale);
+    if (sideRendered) sideHtml = sideRendered;
+  }
+
   const { width: pw, height: ph } = globalStylePageDimensions(gs);
-  const { backgroundColor, padding = 0 } = gs;
+  const { backgroundColor } = gs;
   const bg = escapeHtml(backgroundColor);
   const wCss = escapeHtml(String(pw));
   const hCss = escapeHtml(String(ph));
-  const innerWCss = `calc(${wCss} - ${padding * 2}px)`;
+  const lineHtml = resumePageTopLineHtml(gs);
+  const roundedHtml = resumePageRoundedBannerHtml(gs, true);
+  const body = resumePageBodyShellHtml(gs, pw, null, parts.join(''), sideHtml);
 
-  return `<div class="png-page" style="width:${wCss};min-height:${hCss};padding:${padding}px;background:${bg};margin:0 auto;box-sizing:border-box;">
-<div style="width:${innerWCss};display:flex;flex-direction:column;">
-${parts.join('')}
-</div>
-</div>`;
+  return `<div class="png-page" style="position:relative;width:${wCss};min-height:${hCss};background:${bg};margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;">
+${roundedHtml}${lineHtml}${body}</div>`;
 }
 
 /** 共用简历样式：quill 重置 + 字体，PDF 和 PNG 保持完全一致 */
@@ -607,9 +720,15 @@ export function renderResumeDocumentHtml(resume: {
   const gs = resume.globalStyle;
   const { width: pageW, height: pageH } = globalStylePageDimensions(gs);
   const pages = resume.exportPages ?? resume.pages ?? [];
+  const info1SideMod = findFirstInfo1Module(resume) as {
+    type: string;
+    options?: unknown;
+  } | null;
   const ordCtx = { shellOrd: 0 };
   const pdfLocale: Info1PdfLocale = opts?.locale === 'en' ? 'en' : 'zh';
-  const bodyInner = pages.map((p) => renderPage(p, gs, ordCtx, pdfLocale)).join('\n');
+  const bodyInner = pages
+    .map((p, i) => renderPage(p, gs, ordCtx, pdfLocale, i, info1SideMod))
+    .join('\n');
   const docTitle = 'Resume';
   const canvasBg = escapeHtml(gs.backgroundColor ?? '#fff');
   const wCss = escapeHtml(String(pageW));
@@ -680,9 +799,13 @@ export function renderResumePngHtml(
   const gs = resume.globalStyle;
   const { width: pageW } = globalStylePageDimensions(gs);
   const pages = resume.exportPages ?? resume.pages ?? [];
+  const info1SideMod = findFirstInfo1Module(resume) as {
+    type: string;
+    options?: unknown;
+  } | null;
   const ordCtx = { shellOrd: 0 };
   const pdfLocale: Info1PdfLocale = opts?.locale === 'en' ? 'en' : 'zh';
-  const bodyInner = renderContinuousPage(pages, gs, ordCtx, pdfLocale);
+  const bodyInner = renderContinuousPage(pages, gs, ordCtx, pdfLocale, info1SideMod);
   const docTitle = 'Resume';
   const canvasBg = escapeHtml(gs.backgroundColor ?? '#fff');
   const wCss = escapeHtml(String(pageW));

@@ -1,4 +1,5 @@
 'use client';
+import { sectionHeaderRowHeightStyle } from './sectionHeaderLayout';
 
 export function SectionHeaderType2({
   title,
@@ -10,11 +11,11 @@ export function SectionHeaderType2({
   fontSizeCss: string;
 }) {
   return (
-    <div className='flex w-full flex-col items-center gap-2 py-1'>
-      <span className='font-bold leading-none' style={{ color, fontSize: fontSizeCss }}>
+    <div style={sectionHeaderRowHeightStyle} className='relative flex w-full flex-col items-center justify-center gap-1'>
+      <span className='font-bold leading-none relative top-[-1px]' style={{ color, fontSize: fontSizeCss }}>
         {title}
       </span>
-      <div className='h-px w-full shrink-0' style={{ backgroundColor: color }} />
+      <div className='h-px w-full shrink-0 absolute bottom-0' style={{ backgroundColor: color }} />
     </div>
   );
 }

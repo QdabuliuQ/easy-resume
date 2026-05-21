@@ -69,6 +69,7 @@ job / project / education / certificate 还必须输出 moduleItemId（对应 op
 skill / other / info1 无 items 数组，不得输出 moduleItemId；
 fieldKey 只写条目内字段名（如 description、post），禁止写 items.0.description 这类路径；
 文案类字段给出优化后标准内容，隐私冗余字段 optimizeValue 为空字符串；
+optimizeValue 必须与简历 JSON 中该字段的原文实质不同：禁止仅改标点、同义词替换、调换语序或复制原文；若原文已足够好、仅需微调，则不要输出该条 fieldOptimizeList；
 4. 不新增、不删除原有JSON字段，只做内容与文案优化；
 5. 识别重复教育模块、模块排布不合理等整体结构问题（写入 dimensionEvaluate 或相关字段 optimizeReason，勿生成无意义的 fieldOptimizeList 占位项）；
 6. 严格按指定JSON结构返回，不能改字段名、不能缺字段、不能加额外解释文字。

@@ -1,6 +1,6 @@
 'use client';
 import { observer } from 'mobx-react';
-import { memo, useMemo, useRef, type CSSProperties } from 'react';
+import { memo, useMemo, useRef, type CSSProperties, type MouseEvent } from 'react';
 import { UserOutlined } from '@ant-design/icons';
 import {
   Cascader,
@@ -39,6 +39,7 @@ import {
   AlignLeft,
   AutoHeightOne,
   Avatar,
+  Delete,
   BirthdayCake,
   BoyTwo,
   Briefcase,
@@ -99,7 +100,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
   const uploadButton = useMemo(
     () => (
       <button
-        className='flex h-[112px] w-full flex-col items-center justify-center rounded-lg border border-dashed border-fg/15 bg-surface/[0.03] p-0 text-fg/55 outline-none transition-colors hover:border-[color:var(--color-primary)] hover:bg-surface/[0.05] hover:text-fg/80'
+        className='flex h-[140px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-fg/15 bg-surface/[0.03] p-0 text-fg/55 outline-none transition-colors hover:border-[color:var(--color-primary)] hover:bg-surface/[0.05] hover:text-fg/80'
         type='button'
       >
         <Avatar theme='outline' size='22' fill='currentColor' />
@@ -272,6 +273,15 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
 
   const filterOption = useMemoizedFn((input: string, option: any) => {
     return option?.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+  });
+
+  const removeAvatar = useMemoizedFn((e: MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    configStore.setConfigOption(mid, {
+      ...configStore.getConfigOption(mid),
+      avatar: '',
+    });
   });
 
   const beforeUpload = useMemoizedFn(async (file: File, key: string) => {
@@ -583,7 +593,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                         className='w-full [&_.ant-upload-wrapper]:w-full [&_.ant-upload-select]:!m-0 [&_.ant-upload-select]:!h-auto [&_.ant-upload-select]:!w-full [&_.ant-upload-select]:!border-0 [&_.ant-upload-select]:!bg-transparent'
                       >
                         {showAvatar ? (
-                          <div className='overflow-hidden rounded-lg border border-fg/10 bg-[var(--panel-inset-bg)]'>
+                          <div className='group relative h-[140px] overflow-hidden rounded-xl border border-fg/10 bg-[var(--panel-inset-bg)]'>
                             <img
                               src={avatarValue}
                               alt={
@@ -593,12 +603,17 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                                     })
                                   : ti('fields.avatar')
                               }
-                              style={{
-                                width: '100%',
-                                height: 112,
-                                objectFit: 'contain',
-                              }}
+                              className='h-full w-full object-contain'
                             />
+                            <button
+                              type='button'
+                              aria-label={ti('deleteAvatar')}
+                              className='absolute right-2 top-2 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--panel-tone-rose)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_14%,var(--float-btn-bg))] text-[color:var(--module-op-delete-icon)] opacity-0 shadow-[var(--panel-shadow-icon-btn)] transition-[opacity,transform,background-color,border-color,color] duration-200 hover:border-[color:color-mix(in_srgb,var(--panel-tone-rose)_38%,transparent)] hover:bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_22%,var(--float-btn-bg-hover))] hover:text-[color:var(--module-op-delete-icon-hover)] group-hover:opacity-100'
+                              onClick={removeAvatar}
+                              onMouseDown={(e) => e.stopPropagation()}
+                            >
+                              <Delete theme='outline' size='16' fill='currentColor' />
+                            </button>
                           </div>
                         ) : (
                           uploadButton

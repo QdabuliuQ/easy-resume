@@ -4,51 +4,20 @@ import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useMemoizedFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
-import { memo, useMemo, type ReactNode } from 'react';
+import { memo, useMemo } from 'react';
 import defaultResume from '@/json/resume.defaults';
 import { resumeTemplates, type ResumeTemplateItem } from '@/json/resumeTemplates';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import type { GlobalStyle } from '@/modules/utils/common.type';
-import { Info1, Page } from '@/modules';
+import { Page } from '@/modules';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { configStore, moduleActiveStore } from '@/mobx';
-import CanvasModuleFragment from '@/views/edit/components/canvas/moduleFragment';
+import { renderResumePageModules } from '@/views/edit/components/canvas/renderResumePageModules';
 import ResumeFontCdn from '@/views/edit/components/canvas/ResumeFontCdn';
 
 /** 侧栏模板卡片内仅预览首页，缩放略小于走马灯以便双列容纳 */
 export const TEMPLATE_CARD_PREVIEW_SCALE = 0.2;
-
-function renderPageModules(modules: unknown[], gs: GlobalStyle): ReactNode[] {
-  const mm = Number(gs.moduleMargin) || 15;
-  const out: ReactNode[] = [];
-  let shellOrd = 0;
-  modules.forEach((raw, i) => {
-    const m = raw as { type?: string; id?: string; options?: Record<string, unknown> };
-    if (!m?.type) return;
-    if (i > 0) out.push(<div key={`sp-${m.id ?? i}`} style={{ height: mm, flexShrink: 0 }} aria-hidden />);
-    if (m.type === 'info1') {
-      out.push(<Info1 key={String(m.id ?? `info-${i}`)} config={m as never} globalStyle={gs} />);
-      return;
-    }
-    shellOrd += 1;
-    out.push(
-      <CanvasModuleFragment
-        key={String(m.id ?? `${m.type}-${i}`)}
-        fragment={{
-          type: m.type,
-          sourceId: String(m.id ?? i),
-          domId: String(m.id ?? i),
-          showHeader: true,
-          options: (m.options ?? {}) as Record<string, unknown>,
-          sectionOrdinal: shellOrd,
-        }}
-        globalStyle={gs}
-      />
-    );
-  });
-  return out;
-}
 
 export const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
   template,
@@ -65,7 +34,10 @@ export const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
   const pw = cssLengthToApproxPx(pwStr);
   const ph = cssLengthToApproxPx(phStr);
   const modules = template.config.pages[0]?.modules ?? [];
-  const nodes = useMemo(() => renderPageModules(modules as unknown[], gs), [modules, gs]);
+  const { main, sideSlot } = useMemo(
+    () => renderResumePageModules(modules as unknown[], gs, { isFirstPage: true }),
+    [modules, gs],
+  );
   return (
     <div
       className='relative isolate shrink-0 overflow-hidden rounded-md bg-white text-left text-[#333] leading-normal font-normal shadow-sm ring-1 ring-black/6'
@@ -80,7 +52,9 @@ export const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
         }}
       >
         <ResumeFontCdn font={gs.resumeFont} />
-        <Page {...gs}>{nodes}</Page>
+        <Page {...gs} firstPage sideSlot={sideSlot ?? undefined}>
+          {main}
+        </Page>
       </div>
     </div>
   );

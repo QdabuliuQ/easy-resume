@@ -2,6 +2,7 @@
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import type { ReactNode } from 'react';
 import { header11TitleRowMinHeightPx } from './header11Layout';
+import { sectionHeaderRowHeightStyle } from './sectionHeaderLayout';
 import { sectionHeaderFontSizeNum } from './sectionHeaderFont';
 
 export { HEADER11_DOT_PX, header11DotPx, header11TitleRowMinHeightPx } from './header11Layout';
@@ -34,7 +35,7 @@ export function SectionHeaderType11TitleRow({
   const fsNum = Number.isFinite(fsRaw) && fsRaw > 0 ? fsRaw : 13;
   const fs = `${fsNum}px`;
   return (
-    <div className='flex w-full min-w-0 items-center gap-2.5 py-1'>
+    <div style={sectionHeaderRowHeightStyle} className='flex w-full min-w-0 items-center gap-2.5'>
       <span
         className='shrink-0 rounded-full w-[9px] h-[9px]'
         style={{ backgroundColor: color }}

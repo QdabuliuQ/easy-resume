@@ -1,5 +1,6 @@
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { header11DotPx, header11TitleRowMinHeightPx } from './header11Layout';
+import { SECTION_HEADER_ROW_HEIGHT_PX, sectionHeaderRowHeightCss } from './sectionHeaderLayout';
 
 /** 与 {@link normHeaderType}（sectionHeader.tsx）一致，供 PDF/PNG 服务端渲染 */
 export function normHeaderTypeHtml(gs: GlobalStyle): number {
@@ -59,52 +60,56 @@ export function sectionHeaderHtml(
   const triScale = fs / 13;
   const triH = Math.max(4, Math.round(6 * triScale));
   const triW = Math.max(6, Math.round(9 * triScale));
+  const rh = sectionHeaderRowHeightCss();
   if (t === 7) {
-    return `<div style="position:relative;flex-shrink:0;width:5rem;align-self:stretch;min-height:0;">
+    return `<div style="position:relative;flex-shrink:0;width:5rem;${rh}display:flex;align-items:center;">
 <div style="position:absolute;top:0;right:0;bottom:0;width:1px;background:${c};z-index:0;"></div>
-<div style="position:relative;z-index:1;padding-right:8px;">
-<span style="display:block;word-wrap:break-word;overflow-wrap:break-word;font-weight:bold;font-size:${fs}px;color:${c};line-height:1.375;">${escT}</span>
+<div style="position:relative;z-index:1;padding-right:8px;min-width:0;">
+<span style="display:block;word-wrap:break-word;overflow-wrap:break-word;font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
 </div>
 </div>`;
   }
   if (t === 2) {
-    return `<div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:8px;padding:4px 0;">
-<span style="font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
-<div style="width:100%;height:1px;background:${c};flex-shrink:0;"></div>
+    return `<div style="width:100%;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;${rh}">
+<span style="font-weight:bold;font-size:${fs}px;color:${c};line-height:1;position:relative;top:-1px;">${escT}</span>
+<div style="position:absolute;left:0;right:0;bottom:0;height:1px;background:${c};"></div>
 </div>`;
   }
   if (t === 3) {
     const slantPx = 15;
     const trapClip = `polygon(0 0,calc(100% - ${slantPx}px) 0,100% 100%,0 100%)`;
-    return `<div style="width:100%;display:flex;align-items:flex-end;gap:0;padding:2px 0;">
-<div style="position:relative;display:inline-flex;align-items:stretch;flex-shrink:0;">
+    return `<div style="width:100%;display:flex;align-items:flex-end;gap:0;${rh}">
+<div style="position:relative;display:inline-flex;height:100%;align-items:stretch;flex-shrink:0;">
 <div aria-hidden="true" style="position:absolute;z-index:0;top:2px;bottom:2px;left:7px;width:100%;background:${c};opacity:0.38;clip-path:${trapClip};"></div>
-<div style="position:relative;z-index:1;display:flex;align-items:center;padding:5px 40px 5px 12px;font-weight:bold;font-size:${fs}px;line-height:1;color:#fff;background:${c};clip-path:${trapClip};">${escT}</div>
+<div style="position:relative;z-index:1;display:flex;height:100%;align-items:center;padding:0 40px 0 12px;font-weight:bold;font-size:${fs}px;line-height:1;color:#fff;background:${c};clip-path:${trapClip};">${escT}</div>
 </div>
 <div style="flex:1;min-height:1px;height:1px;background:${c};opacity:0.4;"></div>
 </div>`;
   }
   if (t === 4) {
-    return `<div style="width:100%;border-bottom:1px solid ${c};padding-bottom:3px;">
+    return `<div style="width:100%;border-bottom:1px solid ${c};display:flex;align-items:center;${rh}">
 <span style="font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
 </div>`;
   }
   if (t === 5) {
     const clip =
       'polygon(0 0,calc(100% - 15px) 0,100% 50%,calc(100% - 15px) 100%,0 100%)';
-    return `<div style="width:100%;position:relative;display:flex;align-items:stretch;">
+    return `<div style="width:100%;position:relative;display:flex;align-items:center;${rh}">
 <div aria-hidden="true" style="position:absolute;left:0;top:0;bottom:0;width:100%;opacity:0.2;background:${c};clip-path:${clip};z-index:0;"></div>
-<div style="position:relative;z-index:1;display:flex;align-items:center;padding:4px 32px 4px 20px;font-weight:bold;font-size:${fs}px;line-height:1;color:#fff;background:${c};clip-path:${clip};">${escT}</div>
+<div style="position:relative;z-index:1;display:flex;height:100%;align-items:center;padding:0 32px 0 20px;font-weight:bold;font-size:${fs}px;line-height:1;color:#fff;background:${c};clip-path:${clip};">${escT}</div>
 </div>`;
   }
   if (t === 6) {
     const tg = Math.max(3, Math.round(5 * triScale));
-    return `<div style="width:100%;display:flex;align-items:center;gap:8px;padding:4px 0;">
-<div style="display:flex;align-items:center;flex-shrink:0;gap:${tg}px;">
-<span style="display:inline-block;width:0;height:0;border-top:${triH}px solid transparent;border-bottom:${triH}px solid transparent;border-left:${triW}px solid ${c};"></span>
-<span style="display:inline-block;width:0;height:0;border-top:${triH}px solid transparent;border-bottom:${triH}px solid transparent;border-left:${triW}px solid ${c};opacity:0.4;"></span>
+    const triBoxH = Math.min(SECTION_HEADER_ROW_HEIGHT_PX - 2, Math.max(12, triH * 2 + 4));
+    const triBoxW = Math.max(20, triW + tg + 4);
+    const triBase = `display:inline-block;width:0;height:0;border-top:${triH}px solid transparent;border-bottom:${triH}px solid transparent;border-left:${triW}px solid ${c};`;
+    return `<div style="width:100%;display:flex;align-items:center;gap:8px;${rh}">
+<div style="position:relative;flex-shrink:0;width:${triBoxW}px;height:${triBoxH}px;">
+<span style="position:absolute;top:50%;left:0;transform:translateY(-50%);${triBase}"></span>
+<span style="position:absolute;top:50%;left:${tg}px;transform:translateY(-50%);opacity:0.4;${triBase}"></span>
 </div>
-<span style="font-weight:bold;font-size:${fs}px;color:${c};flex-shrink:0;line-height:1;">${escT}</span>
+<span style="font-weight:bold;font-size:${fs}px;color:${c};flex-shrink:0;line-height:1;margin-right:10px;">${escT}</span>
 <div style="flex:1;min-height:1px;height:1px;background:${c};"></div>
 </div>`;
   }
@@ -112,7 +117,7 @@ export function sectionHeaderHtml(
     const prefixHtml = ord
       ? `<span style="flex-shrink:0;font-weight:500;font-size:${prefixFs}px;color:${c};line-height:1;opacity:0.72;white-space:nowrap;font-variant-numeric:tabular-nums;">${ord}</span>`
       : '';
-    return `<div style="width:100%;padding:4px 0;display:flex;align-items:flex-end;box-sizing:border-box;">
+    return `<div style="width:100%;display:flex;align-items:center;box-sizing:border-box;${rh}">
 <div style="display:flex;flex-wrap:wrap;align-items:baseline;column-gap:12px;row-gap:2px;min-width:0;flex-shrink:0;">
 ${prefixHtml}
 <span style="min-width:0;flex:1;font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
@@ -121,22 +126,22 @@ ${prefixHtml}
 </div>`;
   }
   if (t === 9) {
-    return `<div style="width:100%;display:flex;align-items:center;gap:12px;padding:4px 0;">
+    return `<div style="width:100%;display:flex;align-items:center;gap:12px;${rh}">
 <div style="flex:1;min-width:0;height:1px;background:${c};"></div>
 <span style="flex-shrink:0;font-weight:bold;font-size:${fs}px;color:${c};line-height:1;white-space:nowrap;">${escT}</span>
 <div style="flex:1;min-width:0;height:1px;background:${c};"></div>
 </div>`;
   }
   if (t === 11) {
-    return `<span style="display:block;font-weight:bold;font-size:${fs}px;color:${c};line-height:1;word-wrap:break-word;overflow-wrap:break-word;">${escT}</span>`;
+    return `<div style="display:flex;align-items:center;width:100%;${rh}"><span style="font-weight:bold;font-size:${fs}px;color:${c};line-height:1;word-wrap:break-word;overflow-wrap:break-word;">${escT}</span></div>`;
   }
   if (t === 8) {
-    return `<div style="width:100%;display:flex;align-items:center;gap:8px;padding:4px 0;">
+    return `<div style="width:100%;display:flex;align-items:center;gap:8px;${rh}">
 <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;border-radius:999px;background:${c};color:#fff;line-height:1;">${moduleIconSvg(moduleType)}</span>
 <span style="font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
 </div>`;
   }
-  return `<div style="position:relative;display:flex;align-items:center;font-weight:bold;padding:7px 0 7px 15px;color:${c};">
+  return `<div style="position:relative;display:flex;align-items:center;font-weight:bold;padding:0 0 0 15px;color:${c};${rh}">
 <span style="line-height:1;font-size:${fs}px;">${escT}</span>
 <span style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${c};"></span>
 <span style="position:absolute;left:0;top:0;bottom:0;width:100%;opacity:0.1;background:${c};"></span>

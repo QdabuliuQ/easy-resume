@@ -27,6 +27,7 @@ export {
   SectionHeaderType11TitleRow,
   SectionHeaderType11TimelineLayout,
 } from './sectionHeaderType11';
+export { SECTION_HEADER_ROW_HEIGHT_PX, sectionHeaderRowHeightStyle } from './sectionHeaderLayout';
 
 function SectionHeader({
   config,

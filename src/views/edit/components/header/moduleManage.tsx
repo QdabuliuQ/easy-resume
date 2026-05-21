@@ -1,5 +1,5 @@
 'use client';
-import { EditOutlined, RightOutlined, DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined, LockOutlined, RightOutlined } from '@ant-design/icons';
 import {
   DndContext,
   type DragEndEvent,
@@ -19,19 +19,12 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { useMemoizedFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
-import { Input, Popover, Space } from 'antd';
+import { Popover, Space } from 'antd';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { responsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useMobileEdit } from '@/views/edit/mobile/context';
 import { observer } from 'mobx-react';
-import {
-  memo,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type MutableRefObject,
-} from 'react';
+import { memo, useMemo, useState, type CSSProperties } from 'react';
 import { configStore } from '@/mobx';
 import { useModuleHandle } from '@/hooks/module';
 import { moduleType } from '@/modules/utils/constant';
@@ -48,6 +41,10 @@ function displayName(mod: ModuleRow) {
   return (
     (moduleType as Record<string, { name: string }>)[mod.type]?.name ?? mod.type
   );
+}
+
+function isInfo1Module(mod: ModuleRow) {
+  return mod.type === 'info1';
 }
 
 function DragHandle({
@@ -67,7 +64,7 @@ function DragHandle({
       ref={setActivatorNodeRef}
       {...listeners}
       {...attributes}
-      className='flex w-4 shrink-0 cursor-grab flex-col gap-[3px] rounded border-0 bg-transparent p-0 text-fg/45 outline-none hover:text-fg/60 active:cursor-grabbing'
+      className='flex w-4 shrink-0 flex-col gap-[3px] rounded border-0 bg-transparent p-0 text-fg/45 outline-none hover:cursor-move hover:text-fg/60 cursor-move'
       aria-label={dragSortAria}
       onClick={(e) => e.stopPropagation()}
     >
@@ -78,31 +75,69 @@ function DragHandle({
   );
 }
 
-function SortableModuleRow({
+function ModuleRowActions({
   mod,
-  editingId,
-  editDraft,
-  setEditDraft,
-  onBeginEdit,
-  onCommitEdit,
-  onCancelEdit,
-  ignoreEditBlur,
   onDelete,
-  dragSortAria,
-  editNameAria,
   deleteAria,
 }: {
   mod: ModuleRow;
-  editingId: string | null;
-  editDraft: string;
-  setEditDraft: (v: string) => void;
-  onBeginEdit: (id: string) => void;
-  onCommitEdit: () => void;
-  onCancelEdit: () => void;
-  ignoreEditBlur: MutableRefObject<boolean>;
+  onDelete: (id: string) => void;
+  deleteAria: string;
+}) {
+  return (
+    <>
+      <span className='min-w-0 flex-1 truncate'>{displayName(mod)}</span>
+      <Space size={4} className='shrink-0'>
+        <button
+          type='button'
+          className='cursor-pointer rounded p-1 text-fg/45 transition-colors hover:bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_18%,transparent)] hover:text-[color:var(--panel-tone-rose)]'
+          aria-label={deleteAria}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(mod.id);
+          }}
+        >
+          <DeleteOutlined className='text-[14px]' />
+        </button>
+      </Space>
+    </>
+  );
+}
+
+function PinnedModuleRow({
+  mod,
+  onDelete,
+  deleteAria,
+  pinnedAria,
+}: {
+  mod: ModuleRow;
+  onDelete: (id: string) => void;
+  deleteAria: string;
+  pinnedAria: string;
+}) {
+  return (
+    <div className='flex items-center gap-2 rounded-lg bg-fg/[0.06] px-[15px] py-[5px] text-[13px] text-fg/90'>
+      <span
+        className='flex w-4 shrink-0 items-center justify-center text-fg/35'
+        title={pinnedAria}
+        aria-label={pinnedAria}
+      >
+        <LockOutlined className='text-[17px]' />
+      </span>
+      <ModuleRowActions mod={mod} onDelete={onDelete} deleteAria={deleteAria} />
+    </div>
+  );
+}
+
+function SortableModuleRow({
+  mod,
+  onDelete,
+  dragSortAria,
+  deleteAria,
+}: {
+  mod: ModuleRow;
   onDelete: (id: string) => void;
   dragSortAria: string;
-  editNameAria: string;
   deleteAria: string;
 }) {
   const {
@@ -140,64 +175,7 @@ function SortableModuleRow({
         setActivatorNodeRef={setActivatorNodeRef}
         dragSortAria={dragSortAria}
       />
-      {editingId === mod.id ? (
-        <Input
-          autoFocus
-          value={editDraft}
-          onChange={(e) => setEditDraft(e.target.value)}
-          onBlur={() => {
-            if (ignoreEditBlur.current) return;
-            onCommitEdit();
-          }}
-          onPressEnter={onCommitEdit}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              e.preventDefault();
-              onCancelEdit();
-            }
-          }}
-          onFocus={(e) => e.target.select()}
-          maxLength={64}
-          className='min-w-0 flex-1'
-          styles={{
-            input: {
-              backgroundColor: 'var(--antd-input-bg)',
-              color: 'var(--antd-input-fg)',
-              border: '1px solid var(--antd-input-border)',
-              borderRadius: 6,
-              paddingInline: 8,
-              height: 26,
-              fontSize: 13,
-            },
-          }}
-        />
-      ) : (
-        <span className='min-w-0 flex-1 truncate'>{displayName(mod)}</span>
-      )}
-      <Space size={4} className='shrink-0'>
-        <button
-          type='button'
-          className='rounded p-1 text-fg/45 transition-colors hover:bg-fg/[0.08] hover:text-fg cursor-pointer'
-          aria-label={editNameAria}
-          onClick={(e) => {
-            e.stopPropagation();
-            onBeginEdit(mod.id);
-          }}
-        >
-          <EditOutlined className='text-[14px]' />
-        </button>
-        <button
-          type='button'
-          className='rounded p-1 text-fg/45 transition-colors hover:bg-fg/[0.08] hover:text-red-400 cursor-pointer'
-          aria-label={deleteAria}
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(mod.id);
-          }}
-        >
-          <DeleteOutlined className='text-[14px]' />
-        </button>
-      </Space>
+      <ModuleRowActions mod={mod} onDelete={onDelete} deleteAria={deleteAria} />
     </div>
   );
 }
@@ -205,50 +183,45 @@ function SortableModuleRow({
 function SortableModuleList({
   modules,
   onReorder,
-  editingId,
-  editDraft,
-  setEditDraft,
-  onBeginEdit,
-  onCommitEdit,
-  onCancelEdit,
-  ignoreEditBlur,
   onDelete,
   dragSortAria,
-  editNameAria,
   deleteAria,
+  pinnedAria,
 }: {
   modules: ModuleRow[];
   onReorder: (next: ModuleRow[]) => void;
-  editingId: string | null;
-  editDraft: string;
-  setEditDraft: (v: string) => void;
-  onBeginEdit: (id: string) => void;
-  onCommitEdit: () => void;
-  onCancelEdit: () => void;
-  ignoreEditBlur: MutableRefObject<boolean>;
   onDelete: (id: string) => void;
   dragSortAria: string;
-  editNameAria: string;
   deleteAria: string;
+  pinnedAria: string;
 }) {
+  const pinned = useMemo(
+    () => modules.filter((m) => isInfo1Module(m)),
+    [modules],
+  );
+  const sortable = useMemo(
+    () => modules.filter((m) => !isInfo1Module(m)),
+    [modules],
+  );
+  const sortableIds = useMemo(() => sortable.map((m) => m.id), [sortable]);
+
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 6 },
-    }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
-
-  const ids = useMemo(() => modules.map((m) => m.id), [modules]);
 
   const onDragEnd = useMemoizedFn((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = ids.indexOf(String(active.id));
-    const newIndex = ids.indexOf(String(over.id));
+    const oldIndex = sortableIds.indexOf(String(active.id));
+    const newIndex = sortableIds.indexOf(String(over.id));
     if (oldIndex === -1 || newIndex === -1) return;
-    onReorder(arrayMove(modules, oldIndex, newIndex));
+    onReorder([
+      ...pinned,
+      ...arrayMove(sortable, oldIndex, newIndex),
+    ]);
   });
 
   return (
@@ -257,27 +230,28 @@ function SortableModuleList({
       collisionDetection={closestCenter}
       onDragEnd={onDragEnd}
     >
-      <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-        <div className='flex flex-col gap-2 py-1'>
-          {modules.map((mod) => (
+      <div className='flex flex-col gap-2 py-1'>
+        {pinned.map((mod) => (
+          <PinnedModuleRow
+            key={mod.id}
+            mod={mod}
+            onDelete={onDelete}
+            deleteAria={deleteAria}
+            pinnedAria={pinnedAria}
+          />
+        ))}
+        <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
+          {sortable.map((mod) => (
             <SortableModuleRow
               key={mod.id}
               mod={mod}
-              editingId={editingId}
-              editDraft={editDraft}
-              setEditDraft={setEditDraft}
-              onBeginEdit={onBeginEdit}
-              onCommitEdit={onCommitEdit}
-              onCancelEdit={onCancelEdit}
-              ignoreEditBlur={ignoreEditBlur}
               onDelete={onDelete}
               dragSortAria={dragSortAria}
-              editNameAria={editNameAria}
               deleteAria={deleteAria}
             />
           ))}
-        </div>
-      </SortableContext>
+        </SortableContext>
+      </div>
     </DndContext>
   );
 }
@@ -294,14 +268,7 @@ function ModuleManageInner({
   const th = useTranslations('Edit.header');
   const mobile = useMobileEdit();
   const [popOpen, setPopOpen] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState('');
-  const ignoreEditBlur = useRef(false);
-  const {
-    removeModuleFromConfig,
-    reorderFlattenedModules,
-    updateModuleTitleInConfig,
-  } = useModuleHandle();
+  const { removeModuleFromConfig, reorderFlattenedModules } = useModuleHandle();
 
   const modules = useMemo((): ModuleRow[] => {
     const cfg = configStore.getConfig;
@@ -313,33 +280,6 @@ function ModuleManageInner({
     reorderFlattenedModules(next);
   });
 
-  const beginInlineEdit = useMemoizedFn((id: string) => {
-    const mod = modules.find((m) => m.id === id);
-    ignoreEditBlur.current = true;
-    setEditDraft(mod ? displayName(mod) : '');
-    setEditId(id);
-    queueMicrotask(() => {
-      ignoreEditBlur.current = false;
-    });
-  });
-
-  const commitEdit = useMemoizedFn(() => {
-    if (!editId) return;
-    const title = editDraft.trim();
-    if (!title) {
-      message.warning(t('enterModuleNameWarn'));
-      setEditId(null);
-      return;
-    }
-    updateModuleTitleInConfig(editId, title);
-    setEditId(null);
-    message.success(t('updated'));
-  });
-
-  const cancelEdit = useMemoizedFn(() => {
-    setEditId(null);
-  });
-
   const confirmDelete = useMemoizedFn((id: string) => {
     setPopOpen(false);
     const name = displayName(
@@ -347,7 +287,7 @@ function ModuleManageInner({
         ({
           type: '',
           options: {},
-        } as ModuleRow)
+        } as ModuleRow),
     );
     responsiveConfirm(mobile, {
       title: t('deleteModuleTitle'),
@@ -377,17 +317,10 @@ function ModuleManageInner({
         <SortableModuleList
           modules={modules}
           onReorder={reorder}
-          editingId={editId}
-          editDraft={editDraft}
-          setEditDraft={setEditDraft}
-          onBeginEdit={beginInlineEdit}
-          onCommitEdit={commitEdit}
-          onCancelEdit={cancelEdit}
-          ignoreEditBlur={ignoreEditBlur}
           onDelete={confirmDelete}
           dragSortAria={t('dragSortAria')}
-          editNameAria={t('editNameAria')}
           deleteAria={t('deleteAria')}
+          pinnedAria={t('pinnedAria')}
         />
       )}
     </div>
@@ -427,7 +360,6 @@ function ModuleManageInner({
           </button>
         </Popover>
       )}
-
     </>
   );
 }

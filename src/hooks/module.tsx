@@ -7,6 +7,7 @@ import {
   createEmptyResumeModule,
   type ResumeModuleType,
 } from '@/utils/createResumeModule';
+import { pinInfo1ModulesFirst } from '@/lib/resumeModuleOrder';
 import {
   countResumeModulesByType,
   RESUME_MODULE_MAX_COUNT,
@@ -88,7 +89,9 @@ export function useModuleHandle() {
   const reorderFlattenedModules = useMemoizedFn((ordered: unknown[]) => {
     const config = configStore.getConfig;
     if (!config?.pages?.length) return;
-    const snapshot = ordered.map((m) => JSON.parse(JSON.stringify(m)));
+    const snapshot = pinInfo1ModulesFirst(
+      ordered.map((m) => JSON.parse(JSON.stringify(m))),
+    );
     const first = { modules: snapshot };
     const rest = config.pages.slice(1).map(() => ({ modules: [] }));
     configStore.setConfig({
@@ -115,7 +118,9 @@ export function useModuleHandle() {
       return;
     }
     const next = JSON.parse(JSON.stringify(config));
-    next.pages[0].modules.push(mod);
+    if (type === 'info1') next.pages[0].modules.unshift(mod);
+    else next.pages[0].modules.push(mod);
+    next.pages[0].modules = pinInfo1ModulesFirst(next.pages[0].modules);
     configStore.setConfig(next);
     moduleActiveStore.setModuleActive(mod.id);
   });

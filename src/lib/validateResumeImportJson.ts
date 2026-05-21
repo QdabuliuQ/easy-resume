@@ -37,6 +37,15 @@ export function getResumeImportValidationError(data: unknown): string | null {
     typeof gs.resumeFont !== 'string'
   )
     return 'globalStyle.resumeFont 无效';
+  if (
+    gs.layout !== undefined &&
+    gs.layout !== 'default' &&
+    gs.layout !== 'line' &&
+    gs.layout !== 'rounded' &&
+    gs.layout !== 'leftCol' &&
+    gs.layout !== 'rightCol'
+  )
+    return 'globalStyle.layout 无效';
   if (!Array.isArray(o.pages) || o.pages.length === 0) return 'pages 须为非空数组';
   for (let pi = 0; pi < o.pages.length; pi++) {
     const p = o.pages[pi];

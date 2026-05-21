@@ -1,4 +1,5 @@
 import type { GlobalStyle } from '@/modules/utils/common.type';
+import { normResumePageLayout } from '@/lib/resumePageLayout';
 import {
   normResumePageSize,
   resumePageSizeFromLegacyDims,
@@ -20,5 +21,6 @@ export function mergeGlobalStylePaper(
       resumePageSizeFromLegacyDims(lw, lh) ??
       base.pageSize
   );
+  merged.layout = normResumePageLayout(merged.layout ?? base.layout);
   return merged;
 }

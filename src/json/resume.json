@@ -9,7 +9,8 @@
     "backgroundColor": "#fff",
     "padding": 20,
     "headerType": 1,
-    "resumeFont": "system"
+    "resumeFont": "system",
+    "layout": "default"
   },
   "pages": [
     {

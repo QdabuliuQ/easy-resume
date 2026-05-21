@@ -165,6 +165,7 @@ export default {
   info1: {
     basicInfoLabel: '基本信息',
     uploadAvatar: '上传头像',
+    deleteAvatar: '删除头像',
     imageFormatError: '请上传 jpeg、jpg、png 格式的图片',
     hintTitle: '提示',
     hintBody:

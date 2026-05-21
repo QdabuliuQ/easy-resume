@@ -1,4 +1,5 @@
 'use client';
+import { sectionHeaderRowHeightStyle } from './sectionHeaderLayout';
 
 export function SectionHeaderType10({
   title,
@@ -19,7 +20,7 @@ export function SectionHeaderType10({
       : null;
   const prefixFs = `${Math.max(12, Math.round(fontSizeNum * 0.88))}px`;
   return (
-    <div className='w-full py-1 flex items-end'>
+    <div style={sectionHeaderRowHeightStyle} className='flex w-full items-center'>
       <div className='flex flex-wrap items-baseline gap-x-3 gap-y-0.5'>
         {ord ? (
           <span

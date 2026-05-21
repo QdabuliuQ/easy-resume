@@ -178,11 +178,11 @@
   --mobile-picker-trigger-border: rgb(var(--surface-fg-rgb) / 0.14);
   --mobile-picker-popup-bg: var(--antd-popup-panel);
   --mobile-picker-item-active: rgb(var(--surface-fg-rgb) / 0.08);
-  --info-layout-trigger-bg: rgb(64 64 70 / 0.9);
-  --info-layout-trigger-fg: rgb(var(--surface-fg-rgb) / 0.92);
-  --info-layout-trigger-border: rgb(var(--surface-fg-rgb) / 0.2);
-  --info-layout-trigger-hover-bg: rgb(82 82 90 / 0.9);
-  --info-layout-trigger-hover-border: rgb(var(--surface-fg-rgb) / 0.35);
+  --info-layout-trigger-bg: color-mix(in srgb, var(--color-primary) 12%, rgb(64 64 70 / 0.9));
+  --info-layout-trigger-fg: var(--color-primary);
+  --info-layout-trigger-border: color-mix(in srgb, var(--color-primary) 55%, transparent);
+  --info-layout-trigger-hover-bg: color-mix(in srgb, var(--color-primary) 20%, rgb(82 82 90 / 0.9));
+  --info-layout-trigger-hover-border: color-mix(in srgb, var(--color-primary) 72%, transparent);
   --info-layout-popover-bg: #262626;
   --info-layout-popover-shadow: 0 8px 28px rgb(0 0 0 / 0.45);
   --info-layout-chip-bg: rgb(64 64 70 / 0.95);
@@ -331,11 +331,11 @@
   --mobile-picker-trigger-border: transparent;
   --mobile-picker-popup-bg: var(--antd-popup-panel);
   --mobile-picker-item-active: color-mix(in srgb, var(--color-primary) 10%, #f6e6e2);
-  --info-layout-trigger-bg: #f6e6e2;
-  --info-layout-trigger-fg: rgb(var(--surface-fg-rgb) / 0.9);
-  --info-layout-trigger-border: rgb(var(--surface-fg-rgb) / 0.14);
-  --info-layout-trigger-hover-bg: color-mix(in srgb, var(--color-primary) 8%, #f6e6e2);
-  --info-layout-trigger-hover-border: rgb(var(--surface-fg-rgb) / 0.22);
+  --info-layout-trigger-bg: color-mix(in srgb, var(--color-primary) 8%, #f6e6e2);
+  --info-layout-trigger-fg: var(--color-primary);
+  --info-layout-trigger-border: color-mix(in srgb, var(--color-primary) 45%, transparent);
+  --info-layout-trigger-hover-bg: color-mix(in srgb, var(--color-primary) 14%, #f6e6e2);
+  --info-layout-trigger-hover-border: color-mix(in srgb, var(--color-primary) 65%, transparent);
   --info-layout-popover-bg: var(--antd-popup-panel);
   --info-layout-popover-shadow: 0 8px 28px rgb(var(--surface-fg-rgb) / 0.12);
   --info-layout-chip-bg: #f3f0f1;
@@ -460,8 +460,24 @@ html[data-prefers-color-scheme='dark'] {
   background-color: var(--info-layout-chip-bg);
   color: var(--info-layout-chip-fg);
 }
+.info-layout-chip-field {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+.info-layout-chip-add {
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--info-layout-chip-border));
+  background-color: color-mix(in srgb, var(--color-primary) 6%, var(--info-layout-chip-bg));
+  color: var(--info-layout-chip-fg);
+}
+.info-layout-chip-add:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 42%, var(--info-layout-chip-border));
+  background-color: color-mix(in srgb, var(--color-primary) 12%, var(--info-layout-chip-bg));
+}
 .info-layout-chip-btn {
   color: var(--info-layout-chip-icon);
+}
+.info-layout-chip-btn-delete:hover {
+  background-color: color-mix(in srgb, var(--panel-tone-rose) 22%, var(--info-layout-chip-icon-hover-bg));
+  color: color-mix(in srgb, var(--panel-tone-rose) 75%, var(--info-layout-chip-fg));
 }
 .info-layout-chip-btn:hover {
   background-color: var(--info-layout-chip-icon-hover-bg);

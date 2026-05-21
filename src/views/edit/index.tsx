@@ -34,7 +34,7 @@ function Edit() {
           </div>
         </div>
         <div className='flex min-h-0 flex-1 gap-3'>
-          <div className='editor-shell-card h-full min-h-0 rounded-[28px] overflow-hidden'>
+          <div className='editor-shell-card h-full min-h-0 overflow-visible rounded-[28px]'>
             <Menu activeKey={menuActiveKey} onActiveKeyChange={setMenuActiveKey} />
           </div>
           <div className='editor-shell-card h-full min-h-0 rounded-[28px] overflow-hidden'>

@@ -15,6 +15,10 @@ import type { GlobalStyle } from '@/modules/utils/common.type';
 import ModuleManage from '@/views/edit/components/header/moduleManage';
 import { normResumeFont, type ResumeFontId } from '@/lib/resumeFont';
 import {
+  normResumePageLayout,
+  type ResumePageLayout,
+} from '@/lib/resumePageLayout';
+import {
   RESUME_PAGE_SIZE_OPTIONS,
   normResumePageSize,
   type ResumePageSize,
@@ -78,6 +82,18 @@ function PageSettings() {
       ] satisfies { label: string; value: ResumeFontId }[],
     [t],
   );
+  const pageLayoutOptions = useMemo(
+    () =>
+      [
+        { value: 'default' as const, label: t('pageLayoutDefault') },
+        { value: 'line' as const, label: t('pageLayoutLine') },
+        { value: 'rounded' as const, label: t('pageLayoutRounded') },
+        { value: 'leftCol' as const, label: t('pageLayoutLeftCol') },
+        { value: 'rightCol' as const, label: t('pageLayoutRightCol') },
+      ] satisfies { label: string; value: ResumePageLayout }[],
+    [t],
+  );
+  const pageLayoutVal = normResumePageLayout(configStore.mergedGlobalStyle.layout);
   const rawFs = Number(configStore.mergedGlobalStyle.fontSize);
   const fontSize = Number.isFinite(rawFs)
     ? rawFs
@@ -195,6 +211,17 @@ function PageSettings() {
     };
     configStore.setConfig(base);
   };
+  const setGlobalPageLayout = (v: ResumePageLayout) => {
+    const base = configStore.getConfig
+      ? JSON.parse(JSON.stringify(configStore.getConfig))
+      : JSON.parse(JSON.stringify(defaultResume));
+    base.globalStyle = {
+      ...defaultResume.globalStyle,
+      ...(base.globalStyle ?? {}),
+      layout: v,
+    };
+    configStore.setConfig(base);
+  };
   const setGlobalHeaderType = (v: number) => {
     const base = configStore.getConfig
       ? JSON.parse(JSON.stringify(configStore.getConfig))
@@ -291,6 +318,18 @@ function PageSettings() {
         <div className='[&_.ant-form-item-label]:!pb-[5px] [&_.ant-form-item-label]:!h-[30px]'>
           <Form form={form} variant='filled' layout='vertical'>
             <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+              <Form.Item
+                label={fieldLabel(t('pageLayoutLabel'))}
+                className='sm:col-span-2'
+              >
+                <ResponsiveSelect
+                  value={pageLayoutVal}
+                  options={pageLayoutOptions}
+                  onChange={(v) => setGlobalPageLayout(v as ResumePageLayout)}
+                  title={t('pageLayoutLabel')}
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
               <Form.Item label={fieldLabel(t('paperLabel'))}>
                 <ResponsiveSelect
                   value={pageSizeVal}

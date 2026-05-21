@@ -1,5 +1,6 @@
 'use client';
 import type { CSSProperties } from 'react';
+import { SECTION_HEADER_ROW_HEIGHT_PX, sectionHeaderRowHeightStyle } from './sectionHeaderLayout';
 
 export function SectionHeaderType6({
   title,
@@ -16,7 +17,7 @@ export function SectionHeaderType6({
   const triH = Math.max(4, Math.round(6 * triScale));
   const triW = Math.max(6, Math.round(9 * triScale));
   const triGap = Math.max(4, Math.round(5 * triScale));
-  const triBoxH = Math.max(16, triH * 2 + 4);
+  const triBoxH = Math.min(SECTION_HEADER_ROW_HEIGHT_PX - 2, Math.max(12, triH * 2 + 4));
   const triBoxW = Math.max(20, triW + triGap + 4);
   const tri: CSSProperties = {
     width: 0,
@@ -26,7 +27,7 @@ export function SectionHeaderType6({
     borderLeft: `${triW}px solid ${color}`,
   };
   return (
-    <div className='flex w-full items-center py-1'>
+    <div style={sectionHeaderRowHeightStyle} className='flex w-full items-center'>
       <div className='relative shrink-0' style={{ width: triBoxW, height: triBoxH }} aria-hidden>
         <span className='absolute top-1/2 left-0 -translate-y-1/2' style={tri} />
         <span

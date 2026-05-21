@@ -38,16 +38,18 @@ function toMobileOptions(options: SelectProps['options']): MobileSelectOption[] 
 export default function ResponsiveSelect(props: SelectProps) {
   const mobile = useMobileEdit();
   if (!mobile) return <Select {...props} />;
+  const { title, ...rest } = props;
   return (
     <MobileCheckListPicker
-      value={props.value as string | number | (string | number)[] | undefined}
-      defaultValue={props.defaultValue as string | number | (string | number)[] | undefined}
-      onChange={props.onChange as (v: string | number | (string | number)[]) => void}
-      options={toMobileOptions(props.options)}
-      placeholder={typeof props.placeholder === 'string' ? props.placeholder : undefined}
-      disabled={props.disabled}
-      multiple={props.mode === 'multiple'}
-      style={props.style}
+      value={rest.value as string | number | (string | number)[] | undefined}
+      defaultValue={rest.defaultValue as string | number | (string | number)[] | undefined}
+      onChange={rest.onChange as (v: string | number | (string | number)[]) => void}
+      options={toMobileOptions(rest.options)}
+      placeholder={typeof rest.placeholder === 'string' ? rest.placeholder : undefined}
+      disabled={rest.disabled}
+      multiple={rest.mode === 'multiple'}
+      style={rest.style}
+      title={typeof title === 'string' ? title : undefined}
     />
   );
 }

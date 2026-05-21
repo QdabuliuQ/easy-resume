@@ -165,6 +165,7 @@ export default {
   info1: {
     basicInfoLabel: 'Profile',
     uploadAvatar: 'Upload photo',
+    deleteAvatar: 'Remove photo',
     imageFormatError: 'Please upload JPEG or PNG',
     hintTitle: 'Tip',
     hintBody:

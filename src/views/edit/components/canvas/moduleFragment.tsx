@@ -162,7 +162,7 @@ function renderEducationBody(options: Record<string, any>, globalStyle: GlobalSt
           className='w-full text-[#333] not-last:mb-[10px]'
         >
           <div className='mb-[5px] flex justify-between'>
-            <div className='flex-7 flex items-center'>
+            <div className='flex-5 flex items-center'>
               <span className='font-bold'>{item.school}</span>
               <div className='ml-[10px] flex items-center'>
                 {(item.tags ?? []).map((tag: string, tagIndex: number) => (
@@ -180,7 +180,7 @@ function renderEducationBody(options: Record<string, any>, globalStyle: GlobalSt
                 ))}
               </div>
             </div>
-            <div className='flex-3 text-right'>
+            <div className='flex-5 text-right'>
               {item.startDate} - {item.endDate}
             </div>
           </div>

@@ -14,16 +14,16 @@ function FieldChip(props: {
 }) {
   const t = useTranslations('Edit.infoLayout');
   return (
-    <div className='info-layout-chip box-border flex min-h-[26px] max-h-[26px] w-full max-w-full min-w-0 cursor-move items-center gap-1 rounded-md border px-1 py-0.5 text-[11px] leading-tight shadow-sm'>
+    <div className='info-layout-chip info-layout-chip-field box-border flex h-6 w-full max-w-full min-w-0 cursor-move items-center gap-0.5 rounded-md border px-1 text-[9px] leading-none'>
       <span
-        className='min-w-0 flex-1 break-words text-center [word-break:break-word] text-[10px]'
+        className='min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-center font-medium'
         title={props.label}
       >
         {props.label}
       </span>
       <button
         type='button'
-        className='info-layout-chip-btn inline-flex shrink-0 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0.5 outline-none transition-colors'
+        className='info-layout-chip-btn info-layout-chip-btn-delete inline-flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 outline-none transition-colors'
         aria-label={t('deleteAria')}
         title={t('deleteTitle')}
         onMouseDown={(e) => e.stopPropagation()}
@@ -34,7 +34,7 @@ function FieldChip(props: {
           props.onRemove();
         }}
       >
-        <Delete theme='outline' size='12' fill='currentColor' />
+        <Delete theme='outline' size='10' fill='currentColor' />
       </button>
     </div>
   );
@@ -44,34 +44,32 @@ function FieldChip(props: {
 function AddFieldChip(props: { label: string; onAdd: () => void }) {
   const t = useTranslations('Edit.infoLayout');
   return (
-    <div className='info-layout-chip box-border flex min-h-[26px] max-h-[26px] w-full max-w-full min-w-0 items-center gap-1 rounded-md border px-1 py-0.5 text-[11px] leading-tight shadow-sm'>
+    <button
+      type='button'
+      className='info-layout-chip info-layout-chip-add box-border flex h-6 w-full max-w-full min-w-0 cursor-pointer items-center gap-0.5 rounded-md border border-dashed px-1 text-[9px] leading-none outline-none transition-colors'
+      title={props.label}
+      aria-label={t('addAria')}
+      onClick={(e) => {
+        e.preventDefault();
+        props.onAdd();
+      }}
+    >
+      <AddOne theme='outline' size='10' fill='currentColor' className='shrink-0' />
       <span
-        className='min-w-0 flex-1 break-words text-center [word-break:break-word] text-[10px]'
+        className='min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left font-medium'
         title={props.label}
       >
         {props.label}
       </span>
-      <button
-        type='button'
-        className='info-layout-chip-btn inline-flex shrink-0 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0.5 outline-none transition-colors'
-        aria-label={t('addAria')}
-        title={t('addTitle')}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          props.onAdd();
-        }}
-      >
-        <AddOne theme='outline' size='12' fill='currentColor' />
-      </button>
-    </div>
+    </button>
   );
 }
 
-/** 12 栅格；每项占 2 列 → 一行最多 6 个 */
+/** 12 栅格；每项占 3 列 → 一行最多 4 个，保证四字标签完整显示 */
 const GRID_COLS = 12;
-const FIELD_W = 2;
-const ROW_H = 26;
+const FIELD_W = 3;
+const ROW_H = 24;
+const ROW_GAP = 6;
 const WIDTH = 500;
 
 function rowsToLayout(rows: Array<Array<string>>) {
@@ -101,35 +99,41 @@ function rowsToLayout(rows: Array<Array<string>>) {
   return next;
 }
 
-function packAfterDrag(groupedRows: Record<number, Array<any>>) {
-  const final: Array<any> = [];
-  let nextY = 0;
-  const rowKeys = Object.keys(groupedRows).sort((a, b) => Number(a) - Number(b));
+type GridItem = { i: string; x: number; y: number; w: number; h: number };
 
-  rowKeys.forEach((rowIdx) => {
-    const items = [...groupedRows[Number(rowIdx)]].sort((a, b) => a.x - b.x);
+/** 保留各行顺序（可拖出独立新行），仅在行内从左_PACK x */
+function normalizeLayoutItems(items: GridItem[]): GridItem[] {
+  if (!items.length) return [];
+  const byY = new Map<number, GridItem[]>();
+  for (const item of items) {
+    const y = Math.max(0, Math.round(item.y));
+    const list = byY.get(y) ?? [];
+    list.push(item);
+    byY.set(y, list);
+  }
+  const sortedYs = Array.from(byY.keys()).sort((a, b) => a - b);
+  const yMap = new Map<number, number>();
+  sortedYs.forEach((oldY, idx) => yMap.set(oldY, idx));
+  const final: GridItem[] = [];
+  for (const oldY of sortedYs) {
+    const row = [...(byY.get(oldY) ?? [])].sort((a, b) => a.x - b.x);
     let x = 0;
-    let y = nextY;
-
-    items.forEach((item) => {
+    let y = yMap.get(oldY)!;
+    for (const item of row) {
       if (x + FIELD_W > GRID_COLS) {
         x = 0;
         y += 1;
       }
-      final.push({
-        ...item,
-        x,
-        y,
-        w: FIELD_W,
-        h: 1,
-      });
+      final.push({ ...item, x, y, w: FIELD_W, h: 1 });
       x += FIELD_W;
-    });
-
-    nextY = y + 1;
-  });
-
+    }
+  }
   return final;
+}
+
+function gridContentHeightPx(itemCount: number, maxY: number): number {
+  if (itemCount === 0) return ROW_H + ROW_GAP;
+  return (maxY + 1) * (ROW_H + ROW_GAP) + ROW_GAP;
 }
 
 function InfoLayout(props: {
@@ -143,39 +147,18 @@ function InfoLayout(props: {
     setLayout(rowsToLayout(props.layout));
   }, [props.layout]);
 
-  const onDragStop = (newLayout: Array<any>) => {
-    let correctedLayout = [...newLayout];
+  const applyLayout = (raw: GridItem[]) => {
+    const packed = normalizeLayoutItems(raw);
+    setLayout(packed);
+    return packed;
+  };
 
-    const usedRows = new Set<number>();
-    correctedLayout.forEach((item) => {
-      usedRows.add(item.y);
-    });
+  const onDrag = (newLayout: GridItem[]) => {
+    setLayout(normalizeLayoutItems(newLayout));
+  };
 
-    const rowMapping: { [key: number]: number } = {};
-    let newRowIndex = 0;
-    const maxRow =
-      usedRows.size > 0 ? Math.max(...Array.from(usedRows)) + 1 : 0;
-    for (let i = 0; i < maxRow; i++) {
-      if (usedRows.has(i)) {
-        rowMapping[i] = newRowIndex++;
-      }
-    }
-
-    const rowItems: Record<number, Array<any>> = {};
-    correctedLayout.forEach((item) => {
-      const mappedY = rowMapping[item.y] ?? item.y;
-      if (!rowItems[mappedY]) {
-        rowItems[mappedY] = [];
-      }
-      rowItems[mappedY].push({
-        ...item,
-        y: mappedY,
-      });
-    });
-
-    const finalLayout = packAfterDrag(rowItems);
-
-    setLayout(finalLayout);
+  const onDragStop = (newLayout: GridItem[]) => {
+    const finalLayout = applyLayout(newLayout);
     props.onDragStop(finalLayout);
   };
 
@@ -221,22 +204,30 @@ function InfoLayout(props: {
   }, [layout]);
 
   /** Popover 内不要用 WidthProvider：会按气泡整宽测量，栅格错位、出现伪「重复」与横向灰条 */
+  const gridMaxY = layout.length ? Math.max(...layout.map((l) => l.y)) : 0;
+  const gridHeightPx = gridContentHeightPx(layout.length, gridMaxY);
+
   const gridChromeClassName =
-    'w-[500px] max-w-[min(500px,calc(100vw-48px))] overflow-x-hidden [&_.react-grid-layout]:!min-h-0 [&_.react-grid-item.react-draggable-dragging]:!z-[100] [&_.react-grid-item.react-draggable-dragging]:!rounded-md [&_.react-grid-item.react-draggable-dragging]:!opacity-95 [&_.react-grid-item.react-draggable-dragging]:!shadow-lg [&_.react-grid-item.react-grid-placeholder]:!z-[99] [&_.react-grid-item.react-grid-placeholder]:!min-h-0 [&_.react-grid-item.react-grid-placeholder]:!rounded-lg [&_.react-grid-item.react-grid-placeholder]:!border-2 [&_.react-grid-item.react-grid-placeholder]:!border-dashed [&_.react-grid-item.react-grid-placeholder]:!border-[color-mix(in_srgb,var(--color-primary)_55%,transparent)] [&_.react-grid-item.react-grid-placeholder]:!bg-transparent [&_.react-grid-item.react-grid-placeholder]:!opacity-100';
+    'w-[500px] max-w-[min(500px,calc(100vw-48px))] overflow-x-hidden [&_.react-grid-layout]:!min-h-0 [&_.react-grid-layout]:!overflow-hidden [&_.react-grid-item.react-draggable-dragging]:!z-[100] [&_.react-grid-item.react-draggable-dragging]:!rounded-lg [&_.react-grid-item.react-draggable-dragging]:!opacity-95 [&_.react-grid-item.react-draggable-dragging]:!shadow-[0_6px_16px_rgb(0_0_0/0.18)] [&_.react-grid-item.react-grid-placeholder]:!z-[99] [&_.react-grid-item.react-grid-placeholder]:!h-[24px] [&_.react-grid-item.react-grid-placeholder]:!min-h-0 [&_.react-grid-item.react-grid-placeholder]:!max-h-[24px] [&_.react-grid-item.react-grid-placeholder]:!rounded-lg [&_.react-grid-item.react-grid-placeholder]:!border-2 [&_.react-grid-item.react-grid-placeholder]:!border-dashed [&_.react-grid-item.react-grid-placeholder]:!border-[color-mix(in_srgb,var(--color-primary)_55%,transparent)] [&_.react-grid-item.react-grid-placeholder]:!bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] [&_.react-grid-item.react-grid-placeholder]:!opacity-100';
 
   const layoutPopoverContent = (
     <div className={gridChromeClassName}>
-      <div className='w-full rounded-lg'>
+      <div
+        className='w-full overflow-hidden rounded-lg'
+        style={{ height: gridHeightPx }}
+      >
         <GridLayout
           className='layout'
           layout={layout}
           cols={GRID_COLS}
           rowHeight={ROW_H}
           width={WIDTH}
-          margin={[6, 10]}
+          margin={[6, ROW_GAP]}
           isResizable={false}
           compactType={null}
+          preventCollision={false}
           useCSSTransforms
+          onDrag={onDrag}
           onDragStop={onDragStop}
         >
           {layout.map((item) => {
@@ -256,11 +247,11 @@ function InfoLayout(props: {
         </GridLayout>
       </div>
       {addableFieldKeys.length > 0 ? (
-        <div className='info-layout-chip-divider flex w-full flex-wrap gap-2 border-t pt-[10px] px-[6px]'>
+        <div className='info-layout-chip-divider mt-2 flex w-full flex-wrap gap-2 border-t pt-2.5 px-1.5'>
           {addableFieldKeys.map((key) => (
             <div
               key={key}
-              className='box-border min-w-0 shrink-0 basis-[calc((100%-2.5rem)/6)]'
+              className='box-border min-w-0 shrink-0 basis-[calc((100%-1.5rem)/4)]'
             >
               <AddFieldChip
                 label={info[key as keyof typeof info]}

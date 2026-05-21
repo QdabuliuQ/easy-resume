@@ -1,5 +1,6 @@
 'use client';
 import { HeaderTypeIcon } from './headerTypeIcon';
+import { sectionHeaderRowHeightStyle } from './sectionHeaderLayout';
 
 export function SectionHeaderType8({
   title,
@@ -13,7 +14,7 @@ export function SectionHeaderType8({
   moduleType?: string;
 }) {
   return (
-    <div className='flex w-full items-center gap-2 py-1'>
+    <div style={sectionHeaderRowHeightStyle} className='flex w-full items-center gap-2'>
       <div
         className='flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[13px]'
         style={{ backgroundColor: color }}
