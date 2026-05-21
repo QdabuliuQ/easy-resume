@@ -90,11 +90,39 @@ npm run start
 
 ## 🔐 环境变量
 
-按需创建 `.env.local`（勿提交密钥到仓库）。
+在项目根目录创建 `.env.local`（勿提交密钥到仓库）。可参考 `.env.local.example`。
+
+### 本地开发
+
+| 变量 | 必填 | 说明 |
+|------|------|------|
+| `BIGMODEL_API_KEY` | 是 | [智谱 AI 开放平台](https://open.bigmodel.cn/) 的 API Key，用于 AI 润色、简历评分等（默认模型 GLM-4.7-Flash） |
+| `CHATANYWHERE_API_KEY` | 是 | [ChatAnywhere 免费 API](https://github.com/chatanywhere/GPT_API_free) 的 Key；智谱请求失败时会自动降级走该中转（默认模型 deepseek-v4-flash） |
+| `PUPPETEER_EXECUTABLE_PATH` | 否 | 导出 PDF/PNG 时 Puppeteer 使用的浏览器可执行文件路径。开发环境未设置时由 Puppeteer 自带 Chromium；生产环境 Linux 默认 `/usr/bin/chromium-browser` |
+
+`PUPPETEER_EXECUTABLE_PATH` 示例：
+
+| 系统 | 示例路径 |
+|------|----------|
+| macOS（Google Chrome） | `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` |
+| Windows（Google Chrome） | `C:\Program Files\Google\Chrome\Application\chrome.exe` |
+| Linux（Chromium） | `/usr/bin/chromium-browser` 或 `/usr/bin/chromium` |
+
+### 部署专用
+
+以下变量仅在服务器部署时需要配置：
 
 | 变量 | 说明 |
 |------|------|
-| `NEXT_PUBLIC_SITE_URL` | 站点根 URL；PDF 内相对链接补全时的备选基准 |
+| `RESUME_PROJECT_ROOT` | 项目在服务器上的绝对路径，例如 `/root/easy-resume`（PM2 / 脚本等工作目录） |
+| `NEXT_PUBLIC_SITE_URL` | 站点对外访问的根 URL，例如 `https://resume.example.com`；用于 PDF 内相对链接补全、站点元信息。**需在 `npm run build` 前配置**，否则客户端 bundle 中不会生效 |
+
+可选（启用 AI 评分限流与缓存时需配置，见 `.env.local.example`）：
+
+| 变量 | 说明 |
+|------|------|
+| `UPSTASH_REDIS_REST_URL` | [Upstash Redis](https://console.upstash.com) REST URL |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST Token |
 
 ## 📂 目录结构（摘要）
 

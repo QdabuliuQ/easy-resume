@@ -12,7 +12,7 @@ import {
 type SiteT = (key: string, values?: Record<string, string>) => string;
 
 export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
-  const title = t('titleDefault');
+  const title = `${SITE_NAME}-${t('titleDefault')}`;
   const description = t('description');
   const originBase = getSiteUrl().href.replace(/\/$/, '');
   const keywords = t('keywords')
@@ -52,8 +52,9 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
 }
 
 export function buildEditMetadata(locale: string, t: SiteT): Metadata {
-  const title = t('editTitle');
+  const suffix = t('editTitle');
   const description = t('editDescription');
+  const title = `${SITE_NAME}-${suffix}`;
   const originBase = getSiteUrl().href.replace(/\/$/, '');
   const canonicalEdit = `${originBase}/${locale}/edit`;
   return {
@@ -62,13 +63,13 @@ export function buildEditMetadata(locale: string, t: SiteT): Metadata {
     robots: { index: false, follow: true },
     alternates: { canonical: canonicalEdit },
     openGraph: {
-      title: `${title} | ${SITE_NAME}`,
+      title,
       description,
       type: 'website',
       locale: locale === 'en' ? 'en_US' : 'zh_CN',
       siteName: SITE_NAME,
       url: canonicalEdit,
     },
-    twitter: { card: 'summary', title: `${title} | ${SITE_NAME}`, description },
+    twitter: { card: 'summary', title, description },
   };
 }

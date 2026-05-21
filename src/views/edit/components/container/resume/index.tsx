@@ -43,7 +43,6 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const { addModuleByType } = useModuleHandle();
   const [addOpen, setAddOpen] = useState(false);
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
-  const [hasAiAnalysis, setHasAiAnalysis] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<ResumeAiAnalyzeResult | null>(null);
   const isAiScore = menuActiveKey === 'ai-score';
   const isResumeTemplate = menuActiveKey === 'resume-template';
@@ -57,6 +56,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
       message.warning(tr('noConfigWarn'));
       return;
     }
+    setAiAnalysis(null);
     setAnalyzeLoading(true);
     void (async () => {
       try {
@@ -81,7 +81,6 @@ function Resume({ menuActiveKey }: ResumeProps) {
         };
         const result = await analyzeResumeWithBigmodel(payload);
         setAiAnalysis(result);
-        setHasAiAnalysis(true);
       } catch (e) {
         message.error(e instanceof Error ? e.message : tr('analyzeFail'));
       } finally {
@@ -144,11 +143,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
             </div>
           </div>
           {isAiScore ? (
-            <AiScore
-              loading={analyzeLoading}
-              hasAnalysis={hasAiAnalysis}
-              analysis={aiAnalysis}
-            />
+            <AiScore loading={analyzeLoading} analysis={aiAnalysis} />
           ) : isResumeTemplate ? (
             <ResumeTemplate />
           ) : isGeneralSettings ? (

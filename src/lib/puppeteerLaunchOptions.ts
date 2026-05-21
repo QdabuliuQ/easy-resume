@@ -13,9 +13,11 @@ export function getPuppeteerLaunchOptions(): LaunchOptions {
       '--no-first-run',
     ],
   };
-  if (process.env.NODE_ENV === 'production') {
-    base.executablePath =
-      process.env.PUPPETEER_EXECUTABLE_PATH?.trim() || PROD_CHROMIUM;
+  const customExecutablePath = process.env.PUPPETEER_EXECUTABLE_PATH?.trim();
+  if (customExecutablePath) {
+    base.executablePath = customExecutablePath;
+  } else if (process.env.NODE_ENV === 'production') {
+    base.executablePath = PROD_CHROMIUM;
   }
   return base;
 }

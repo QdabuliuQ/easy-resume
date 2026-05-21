@@ -6,9 +6,13 @@ export type ResumeAiDimensionEvaluate = {
   remark: string;
 };
 
+/** 多条目存在 options.items[] 的模块；其余模块仅用 moduleId + fieldKey */
+export const RESUME_AI_ITEMIZED_MODULE_TYPES = ['job', 'project', 'education', 'certificate'] as const;
+
 export type ResumeAiFieldOptimize = {
   pageIndex: number;
   moduleType: string;
+  /** 必须与简历 JSON 中 modules[].id 完全一致 */
   moduleId: string;
   /** job/project/education/certificate 的 options.items[].id，单条模块可省略 */
   moduleItemId?: string;
@@ -66,7 +70,7 @@ skill / other / info1 无 items 数组，不得输出 moduleItemId；
 fieldKey 只写条目内字段名（如 description、post），禁止写 items.0.description 这类路径；
 文案类字段给出优化后标准内容，隐私冗余字段 optimizeValue 为空字符串；
 4. 不新增、不删除原有JSON字段，只做内容与文案优化；
-5. 识别重复教育模块、模块排布不合理等整体结构问题；
+5. 识别重复教育模块、模块排布不合理等整体结构问题（写入 dimensionEvaluate 或相关字段 optimizeReason，勿生成无意义的 fieldOptimizeList 占位项）；
 6. 严格按指定JSON结构返回，不能改字段名、不能缺字段、不能加额外解释文字。
 
 ### 四、强制固定返回JSON结构
@@ -116,6 +120,8 @@ fieldKey 只写条目内字段名（如 description、post），禁止写 items.
     }
   ]
 }
+
+说明：fieldOptimizeList 仅包含确有改写必要的字段；每条 optimizeValue 必须与对应原文实质不同；item 类模块必须带正确 moduleItemIndex 与真实 moduleId。若无此类字段则输出空数组 []。
 
 下面是我要你分析的简历 JSON 配置内容：`;
 
@@ -173,7 +179,8 @@ export async function analyzeResumeWithBigmodel(resumeJson: unknown): Promise<Re
     messages: [
       {
         role: 'system',
-        content: '你只输出合法 JSON 对象，禁止 Markdown、禁止代码围栏、禁止任何 JSON 以外的文字。',
+        content:
+          '你只输出合法 JSON 对象，禁止 Markdown、禁止代码围栏、禁止任何 JSON 以外的文字。fieldOptimizeList：job/project/education/certificate 必须含 moduleItemIndex；moduleId 必须与输入 JSON 中模块 id 完全一致；optimizeValue 禁止与原文相同或敷衍复述。',
       },
       {
         role: 'user',
