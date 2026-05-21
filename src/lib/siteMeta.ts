@@ -1,5 +1,10 @@
 export const SITE_NAME = 'EasyResume';
 
+/** 首页 / 分享预览图（OG、thumbnail） */
+export const SITE_OG_PREVIEW_IMAGE = 'https://resume.qdabuliuq.cn/preview.png';
+export const SITE_OG_PREVIEW_WIDTH = 1200;
+export const SITE_OG_PREVIEW_HEIGHT = 630;
+
 export const BAIDU_SITE_VERIFICATION = 'codeva-1cW7ZWxH7V';
 export const BING_SITE_VERIFICATION = 'A57DE6B0DEE3B356C208709D84FE45B5';
 export const SOGOU_SITE_VERIFICATION = 'HfHGIFRatG';

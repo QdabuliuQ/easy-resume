@@ -15,7 +15,11 @@ export const metadata: Metadata = {
   applicationName: SITE_NAME,
   description: SITE_DESCRIPTION_DEFAULT,
   referrer: 'origin-when-cross-origin',
-  icons: { icon: '/logo.png', apple: '/logo.png' },
+  icons: {
+    icon: [{ url: '/favicon.ico', type: 'image/x-icon' }],
+    shortcut: '/favicon.ico',
+    apple: '/logo.png',
+  },
 };
 
 export const viewport = {
@@ -33,6 +37,8 @@ export default function RootLayout({
   return (
     <html lang='zh-CN' suppressHydrationWarning>
       <head>
+        <link rel='icon' type='image/x-icon' href='/favicon.ico' />
+        <link rel='shortcut icon' href='/favicon.ico' />
         <script
           key='theme-bootstrap'
           dangerouslySetInnerHTML={{ __html: themeBootstrap }}

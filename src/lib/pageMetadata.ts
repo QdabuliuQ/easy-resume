@@ -6,6 +6,9 @@ import {
   GOOGLE_SITE_VERIFICATION,
   SOGOU_SITE_VERIFICATION,
   SITE_NAME,
+  SITE_OG_PREVIEW_HEIGHT,
+  SITE_OG_PREVIEW_IMAGE,
+  SITE_OG_PREVIEW_WIDTH,
   getSiteUrl,
 } from '@/lib/siteMeta';
 
@@ -33,16 +36,22 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
       url: `${originBase}/${locale}`,
       images: [
         {
-          url: `${originBase}/preview.png`,
-          width: 1200,
-          height: 630,
+          url: SITE_OG_PREVIEW_IMAGE,
+          width: SITE_OG_PREVIEW_WIDTH,
+          height: SITE_OG_PREVIEW_HEIGHT,
           alt: t('ogImageAlt', { siteName: SITE_NAME }),
         },
       ],
     },
-    twitter: { card: 'summary_large_image', title, description },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [SITE_OG_PREVIEW_IMAGE],
+    },
     verification: { google: GOOGLE_SITE_VERIFICATION },
     other: {
+      thumbnail: SITE_OG_PREVIEW_IMAGE,
       'baidu-site-verification': BAIDU_SITE_VERIFICATION,
       'msvalidate.01': BING_SITE_VERIFICATION,
       'sogou_site_verification': SOGOU_SITE_VERIFICATION,
