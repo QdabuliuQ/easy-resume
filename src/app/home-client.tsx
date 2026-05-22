@@ -555,7 +555,7 @@ export default function Home() {
               <span className='relative inline-flex h-8 w-8 shrink-0'>
                 <Image src='/logo.png' alt={t('logoAlt')} fill sizes='32px' className='object-contain p-0.5' />
               </span>
-              <span className='truncate text-sm font-semibold tracking-[0.12em] text-fg/90'>EASYRESUME</span>
+              <span className='truncate text-sm font-semibold tracking-[0.12em] text-fg/90'>{t('brandName')}</span>
             </span>
             <div className='flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2.5'>
               <Popover

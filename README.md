@@ -1,4 +1,4 @@
-<h1 align="center">Easy Resume</h1>
+<h1 align="center">青松简历</h1>
 
 <p align="center">
   <strong>简体中文</strong>
@@ -28,7 +28,7 @@
 </p>
 
 <p align="center">
-  <img src="./screenshots/preview.png" width="800" alt="Easy Resume 项目预览">
+  <img src="./screenshots/preview.png" width="800" alt="青松简历项目预览">
 </p>
 
 ## ✨ 功能概览

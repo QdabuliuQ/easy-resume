@@ -4,7 +4,7 @@ export default {
     description:
       '模块化编辑工作经历、项目与技能，画布实时预览，一键导出 PDF、图片(JPEG)、JSON，并可用 AI 优化表述。',
     keywords:
-      '简历,简历编辑器,在线简历,PDF 简历,求职,EasyResume,AI 简历',
+      '简历,简历编辑器,在线简历,PDF 简历,求职,青松简历,AI 简历',
     ogImageAlt: '{siteName} 界面预览',
     logoAlt: '{siteName} 标志',
     editTitle: '简历编辑器 · 画布实时预览 · PDF / 图片 / JSON 导出',

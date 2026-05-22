@@ -1,4 +1,11 @@
-export const SITE_NAME = 'EasyResume';
+export const SITE_NAME_EN = 'EasyResume';
+export const SITE_NAME_ZH = '青松简历';
+/** @deprecated 请使用 getSiteName(locale) */
+export const SITE_NAME = SITE_NAME_EN;
+
+export function getSiteName(locale?: string | null): string {
+  return locale === 'en' ? SITE_NAME_EN : SITE_NAME_ZH;
+}
 
 /** 首页 / 分享预览图（OG、thumbnail） */
 export const SITE_OG_PREVIEW_IMAGE = 'https://resume.qdabuliuq.cn/preview.png';
@@ -40,7 +47,7 @@ export function getSiteUrl(): URL {
   return new URL('http://localhost:3010');
 }
 
-export const SITE_JSON_LD_SOFTWARE_NAME = 'EasyResume 简历编辑器';
+export const SITE_JSON_LD_SOFTWARE_NAME = `${SITE_NAME_ZH}（${SITE_NAME_EN}）简历编辑器`;
 
 export const SITE_JSON_LD_SOFTWARE_DESCRIPTION =
   '在线免费简历编辑、PDF导出、模板下载工具';
@@ -71,7 +78,7 @@ export function siteJsonLdGraph(opts?: { locale?: string }): Record<string, unkn
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     '@id': `${base}/#website`,
-    name: SITE_NAME,
+    name: getSiteName(opts?.locale),
     url: base,
     description: SITE_DESCRIPTION_DEFAULT,
     inLanguage,

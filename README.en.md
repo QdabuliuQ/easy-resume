@@ -1,4 +1,4 @@
-<h1 align="center">Easy Resume</h1>
+<h1 align="center">EasyResume</h1>
 
 <p align="center">
   <a href="./README.md">简体中文</a>
@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="./screenshots/preview.png" width="800" alt="Easy Resume preview">
+  <img src="./screenshots/preview.png" width="800" alt="EasyResume preview">
 </p>
 
 ## ✨ Features

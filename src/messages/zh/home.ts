@@ -1,4 +1,5 @@
 export default {
+  brandName: '青松简历',
   navHome: '首页',
   navGh: '在 GitHub 打开源码',
   themeToLight: '切换为浅色',
@@ -10,7 +11,7 @@ export default {
     '模块化编辑与 AI 建议协同，导出 PDF、图片(JPEG)、JSON。为投递前的紧凑排期而设计：少折腾格式，多把时间花在内容与策略上。',
   ctaStart: '立即开始',
   ctaFeatures: '了解功能',
-  featuresTitle: '为什么选择 EasyResume',
+  featuresTitle: '为什么选择青松简历',
   featuresDesc: '面向真实求职流程取舍：编辑节奏清晰，导出稳定，隐私边界清楚。',
   moduleTitle: '模块化编辑',
   moduleDesc:
@@ -21,7 +22,7 @@ export default {
   closingTitle: '准备好升级你的简历了吗',
   closingDesc: '直接进入编辑器，从模块化结构开始，把内容打磨到可投递状态。',
   closingCta: '免费开始使用',
-  logoAlt: 'EasyResume 标志',
+  logoAlt: '青松简历 标志',
   previewLightAlt: '浅色主题简历编辑器界面预览',
   previewDarkAlt: '深色主题简历编辑器界面预览',
   compareFigure: '深浅主题预览对比，拖拽中线切换',
@@ -40,7 +41,7 @@ export default {
   ],
   faq: [
     {
-      q: 'EasyResume 免费吗？',
+      q: '青松简历免费吗？',
       a: '核心编辑与导出能力可直接使用，适合个人求职者快速完成简历版本迭代。',
     },
     {

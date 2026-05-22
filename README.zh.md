@@ -1,4 +1,4 @@
-<h1 align="center">Easy Resume</h1>
+<h1 align="center">青松简历</h1>
 
 <p align="center">
   <a href="./README.md"><strong>简体中文（默认）</strong></a>

@@ -5,14 +5,14 @@ import { AntdProvider } from './providers';
 import {
   BYTEGOOFY_PUSH_SCRIPT_SRC,
   SITE_DESCRIPTION_DEFAULT,
-  SITE_NAME,
+  SITE_NAME_ZH,
   getSiteUrl,
   siteSoftwareApplicationJsonLd,
 } from '@/lib/siteMeta';
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
-  applicationName: SITE_NAME,
+  applicationName: SITE_NAME_ZH,
   description: SITE_DESCRIPTION_DEFAULT,
   referrer: 'origin-when-cross-origin',
   icons: {

@@ -1,4 +1,5 @@
 export default {
+  brandName: 'EasyResume',
   navHome: 'Home',
   navGh: 'Open source on GitHub',
   themeToLight: 'Switch to light mode',

@@ -5,7 +5,7 @@ import {
   BYTEDANCE_SITE_VERIFICATION,
   GOOGLE_SITE_VERIFICATION,
   SOGOU_SITE_VERIFICATION,
-  SITE_NAME,
+  getSiteName,
   SITE_OG_PREVIEW_HEIGHT,
   SITE_OG_PREVIEW_IMAGE,
   SITE_OG_PREVIEW_WIDTH,
@@ -15,7 +15,8 @@ import {
 type SiteT = (key: string, values?: Record<string, string>) => string;
 
 export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
-  const title = `${SITE_NAME}-${t('titleDefault')}`;
+  const siteName = getSiteName(locale);
+  const title = `${siteName}-${t('titleDefault')}`;
   const description = t('description');
   const originBase = getSiteUrl().href.replace(/\/$/, '');
   const keywords = t('keywords')
@@ -23,7 +24,7 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
     .map((s) => s.trim())
     .filter(Boolean);
   return {
-    title: { default: title, template: `%s | ${SITE_NAME}` },
+    title: { default: title, template: `%s | ${siteName}` },
     description,
     keywords,
     alternates: { canonical: `./` },
@@ -32,14 +33,14 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
       description,
       type: 'website',
       locale: locale === 'en' ? 'en_US' : 'zh_CN',
-      siteName: SITE_NAME,
+      siteName,
       url: `${originBase}/${locale}`,
       images: [
         {
           url: SITE_OG_PREVIEW_IMAGE,
           width: SITE_OG_PREVIEW_WIDTH,
           height: SITE_OG_PREVIEW_HEIGHT,
-          alt: t('ogImageAlt', { siteName: SITE_NAME }),
+          alt: t('ogImageAlt', { siteName }),
         },
       ],
     },
@@ -61,9 +62,10 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
 }
 
 export function buildEditMetadata(locale: string, t: SiteT): Metadata {
+  const siteName = getSiteName(locale);
   const suffix = t('editTitle');
   const description = t('editDescription');
-  const title = `${SITE_NAME}-${suffix}`;
+  const title = `${siteName}-${suffix}`;
   const originBase = getSiteUrl().href.replace(/\/$/, '');
   const canonicalEdit = `${originBase}/${locale}/edit`;
   return {
@@ -76,7 +78,7 @@ export function buildEditMetadata(locale: string, t: SiteT): Metadata {
       description,
       type: 'website',
       locale: locale === 'en' ? 'en_US' : 'zh_CN',
-      siteName: SITE_NAME,
+      siteName,
       url: canonicalEdit,
     },
     twitter: { card: 'summary', title, description },
