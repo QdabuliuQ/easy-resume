@@ -52,6 +52,8 @@ function headerPreviewGlobal(t: number, base: GlobalStyle): GlobalStyle {
   return { ...base, headerType: t };
 }
 const THEME_PRESETS = [
+  '#0e9c8d',
+  '#8de3a4',
   '#43a8ff',
   '#1677ff',
   '#1890ff',
@@ -64,7 +66,7 @@ const THEME_PRESETS = [
 const BG_PRESETS = ['#ffffff', '#f0fff4', '#f5f5f5', '#fffbe6'] as const;
 const THEME_COLOR_FALLBACK = hexForColorInput(
   defaultResume.globalStyle.color,
-  '#1890ff',
+  '#0e9c8d',
 );
 const BG_COLOR_FALLBACK = hexForColorInput(
   defaultResume.globalStyle.backgroundColor,

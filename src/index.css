@@ -115,8 +115,8 @@
 
 :root,
 [data-theme='dark'] {
-  --color-primary: #f9724d;
-  --color-primary-gradient-start: #fde76b;
+  --color-primary: #0e9c8d;
+  --color-primary-gradient-start: #8de3a4;
 
   /* —— 主题极性 —— 深色下"白色叠加层"使用 255 255 255；浅色翻转 */
   --surface-fg-rgb: 255 255 255;
@@ -130,12 +130,12 @@
   --editor-shell-panel-soft: rgb(var(--surface-fg-rgb) / 0.05);
   --editor-shell-border: rgb(var(--surface-fg-rgb) / 0.08);
   --editor-shell-shadow: 0 24px 80px rgb(0 0 0 / 0.38);
-  --editor-shell-highlight: rgb(253 231 107 / 0.16);
+  --editor-shell-highlight: rgb(141 227 164 / 0.16);
 
   /* —— 外壳大背景（含装饰径向叠加层） —— */
   --shell-bg-image:
-    radial-gradient(circle at 12% 18%, rgb(249 114 77 / 0.22), transparent 28%),
-    radial-gradient(circle at 82% 16%, rgb(253 231 107 / 0.12), transparent 24%),
+    radial-gradient(circle at 12% 18%, rgb(14 156 141 / 0.22), transparent 28%),
+    radial-gradient(circle at 82% 16%, rgb(141 227 164 / 0.12), transparent 24%),
     radial-gradient(circle at 74% 84%, rgb(96 84 255 / 0.14), transparent 30%),
     linear-gradient(180deg, #18141a 0%, #0f0d11 100%);
   --shell-bg-overlay:
@@ -211,7 +211,7 @@
   --panel-shadow-card-tight: 0 16px 34px rgb(0 0 0 / 0.1);
   --panel-shadow-hover-card: 0 20px 38px rgb(0 0 0 / 0.14);
   --panel-shadow-hover-btn: 0 10px 18px rgb(0 0 0 / 0.14);
-  --panel-shadow-primary-glow: 0 10px 18px rgb(249 114 77 / 0.14);
+  --panel-shadow-primary-glow: 0 10px 18px rgb(14 156 141 / 0.14);
   --panel-scrim: rgb(28 27 31 / 0.58);
   --panel-chart-track: #3f3f46;
   --panel-head-border: rgb(var(--panel-surface-rgb) / 0.14);
@@ -287,11 +287,11 @@
   --editor-shell-panel-soft: rgb(var(--surface-fg-rgb) / 0.04);
   --editor-shell-border: rgb(var(--surface-fg-rgb) / 0.1);
   --editor-shell-shadow: 0 18px 48px rgb(var(--surface-fg-rgb) / 0.1);
-  --editor-shell-highlight: rgb(249 114 77 / 0.14);
+  --editor-shell-highlight: rgb(141 227 164 / 0.14);
 
   --shell-bg-image:
-    radial-gradient(circle at 12% 18%, rgb(249 114 77 / 0.14), transparent 28%),
-    radial-gradient(circle at 82% 16%, rgb(253 231 107 / 0.18), transparent 24%),
+    radial-gradient(circle at 12% 18%, rgb(14 156 141 / 0.14), transparent 28%),
+    radial-gradient(circle at 82% 16%, rgb(141 227 164 / 0.18), transparent 24%),
     radial-gradient(circle at 74% 84%, rgb(96 84 255 / 0.08), transparent 30%),
     linear-gradient(180deg, #faf6f5 0%, #ece6e8 100%);
   --shell-bg-overlay:
@@ -330,11 +330,11 @@
   --mobile-picker-trigger-fg: rgb(var(--surface-fg-rgb) / 0.9);
   --mobile-picker-trigger-border: transparent;
   --mobile-picker-popup-bg: var(--antd-popup-panel);
-  --mobile-picker-item-active: color-mix(in srgb, var(--color-primary) 10%, #f6e6e2);
-  --info-layout-trigger-bg: color-mix(in srgb, var(--color-primary) 8%, #f6e6e2);
+  --mobile-picker-item-active: color-mix(in srgb, var(--color-primary) 10%, #e8f7f0);
+  --info-layout-trigger-bg: color-mix(in srgb, var(--color-primary) 8%, #e8f7f0);
   --info-layout-trigger-fg: var(--color-primary);
   --info-layout-trigger-border: color-mix(in srgb, var(--color-primary) 45%, transparent);
-  --info-layout-trigger-hover-bg: color-mix(in srgb, var(--color-primary) 14%, #f6e6e2);
+  --info-layout-trigger-hover-bg: color-mix(in srgb, var(--color-primary) 14%, #e8f7f0);
   --info-layout-trigger-hover-border: color-mix(in srgb, var(--color-primary) 65%, transparent);
   --info-layout-popover-bg: var(--antd-popup-panel);
   --info-layout-popover-shadow: 0 8px 28px rgb(var(--surface-fg-rgb) / 0.12);
@@ -364,7 +364,7 @@
   --panel-shadow-card-tight: 0 16px 34px rgb(var(--surface-fg-rgb) / 0.07);
   --panel-shadow-hover-card: 0 20px 38px rgb(var(--surface-fg-rgb) / 0.11);
   --panel-shadow-hover-btn: 0 10px 18px rgb(var(--surface-fg-rgb) / 0.09);
-  --panel-shadow-primary-glow: 0 10px 18px rgb(249 114 77 / 0.18);
+  --panel-shadow-primary-glow: 0 10px 18px rgb(14 156 141 / 0.18);
   --panel-scrim: color-mix(in srgb, var(--editor-shell-bg) 62%, rgb(var(--surface-fg-rgb) / 0.22));
   --panel-chart-track: rgb(var(--surface-fg-rgb) / 0.28);
   --panel-head-border: rgb(var(--surface-fg-rgb) / 0.12);
@@ -393,7 +393,7 @@
 
 :root[data-theme='dark'],
 html[data-prefers-color-scheme='dark'] {
-  --adm-color-primary: #fa8362;
+  --adm-color-primary: #0e9c8d;
   --adm-color-success: #34b368;
   --adm-color-warning: #ffa930;
   --adm-color-danger: #ff4a58;
@@ -408,7 +408,7 @@ html[data-prefers-color-scheme='dark'] {
 }
 
 :root[data-theme='light'] {
-  --adm-color-primary: #fa8362;
+  --adm-color-primary: #0e9c8d;
   --adm-color-success: #00b578;
   --adm-color-warning: #ff8f1f;
   --adm-color-danger: #ff3141;

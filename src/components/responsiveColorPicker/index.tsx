@@ -21,7 +21,7 @@ function DesktopColorPicker({
   value,
   onChange,
   presets,
-  fallback = '#1890ff',
+  fallback = '#0e9c8d',
   ariaLabel,
   presetLabel,
   debounceMs = 280,
@@ -76,7 +76,7 @@ function DesktopColorPicker({
 }
 export default function ResponsiveColorPicker(props: ResponsiveColorPickerProps) {
   const mobile = useMobileEdit();
-  const fb = props.fallback ?? '#1890ff';
+  const fb = props.fallback ?? '#0e9c8d';
   if (mobile) {
     return (
       <MobileColorPicker

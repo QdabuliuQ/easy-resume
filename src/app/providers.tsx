@@ -10,7 +10,7 @@ import {
   subscribeAppTheme,
 } from '@/lib/themeStore';
 
-const ADM_PRIMARY = '#fa8362';
+const ADM_PRIMARY = '#0e9c8d';
 
 export function AntdProvider({ children }: { children: ReactNode }) {
   const appTheme = useSyncExternalStore(
