@@ -6,4 +6,8 @@
   <a href="./README.en.md">English</a>
 </p>
 
-<p align="center">与 <a href="./README.md">README.md</a> 内容相同，默认中文文档请直接查看 README.md。</p>
+<p align="center">
+  <img src="./public/preview.png" width="800" alt="青松简历项目预览" />
+</p>
+
+<p align="center">完整说明见 <a href="./README.md">README.md</a>（与本文档内容一致）。</p>

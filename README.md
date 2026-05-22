@@ -28,7 +28,7 @@
 </p>
 
 <p align="center">
-  <img src="./screenshots/preview.png" width="800" alt="青松简历项目预览">
+  <img src="./public/preview.png" width="800" alt="青松简历项目预览">
 </p>
 
 ## ✨ 功能概览

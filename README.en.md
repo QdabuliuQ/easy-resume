@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="./screenshots/preview.png" width="800" alt="EasyResume preview">
+  <img src="./public/preview.png" width="800" alt="EasyResume preview">
 </p>
 
 ## ✨ Features
