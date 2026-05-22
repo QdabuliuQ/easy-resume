@@ -6,11 +6,13 @@ import {
   GOOGLE_SITE_VERIFICATION,
   SOGOU_SITE_VERIFICATION,
   getSiteName,
-  SITE_OG_PREVIEW_HEIGHT,
-  SITE_OG_PREVIEW_IMAGE,
-  SITE_OG_PREVIEW_WIDTH,
   getSiteUrl,
 } from '@/lib/siteMeta';
+import {
+  getSiteOgPreviewImage,
+  SITE_OG_PREVIEW_HEIGHT,
+  SITE_OG_PREVIEW_WIDTH,
+} from '@/lib/brandAssets';
 
 type SiteT = (key: string, values?: Record<string, string>) => string;
 
@@ -19,6 +21,7 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
   const title = `${siteName}-${t('titleDefault')}`;
   const description = t('description');
   const originBase = getSiteUrl().href.replace(/\/$/, '');
+  const ogPreviewImage = getSiteOgPreviewImage();
   const keywords = t('keywords')
     .split(',')
     .map((s) => s.trim())
@@ -37,7 +40,7 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
       url: `${originBase}/${locale}`,
       images: [
         {
-          url: SITE_OG_PREVIEW_IMAGE,
+          url: ogPreviewImage,
           width: SITE_OG_PREVIEW_WIDTH,
           height: SITE_OG_PREVIEW_HEIGHT,
           alt: t('ogImageAlt', { siteName }),
@@ -48,11 +51,11 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
       card: 'summary_large_image',
       title,
       description,
-      images: [SITE_OG_PREVIEW_IMAGE],
+      images: [ogPreviewImage],
     },
     verification: { google: GOOGLE_SITE_VERIFICATION },
     other: {
-      thumbnail: SITE_OG_PREVIEW_IMAGE,
+      thumbnail: ogPreviewImage,
       'baidu-site-verification': BAIDU_SITE_VERIFICATION,
       'msvalidate.01': BING_SITE_VERIFICATION,
       'sogou_site_verification': SOGOU_SITE_VERIFICATION,

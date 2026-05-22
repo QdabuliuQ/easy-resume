@@ -9,6 +9,7 @@ import {
   getSiteUrl,
   siteSoftwareApplicationJsonLd,
 } from '@/lib/siteMeta';
+import { logo } from '@/lib/brandAssets';
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: '/favicon.ico', type: 'image/x-icon' }],
     shortcut: '/favicon.ico',
-    apple: '/logo.png',
+    apple: logo.src,
   },
 };
 

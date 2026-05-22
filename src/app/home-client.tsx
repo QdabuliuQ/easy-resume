@@ -24,6 +24,7 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from 'react';
+import { logo, preview, previewLight } from '@/lib/brandAssets';
 import {
   getServerThemeSnapshot,
   getThemeSnapshot,
@@ -277,7 +278,7 @@ function HeroPreviewCompare({
         }}
       >
         <Image
-          src='/preview_light.png'
+          src={previewLight}
           alt={previewLightAlt}
           width={1920}
           height={999}
@@ -303,7 +304,7 @@ function HeroPreviewCompare({
               }}
             >
               <Image
-                src='/preview.png'
+                src={preview}
                 alt={previewDarkAlt}
                 fill
                 sizes='(max-width:1024px) 80vw, 900px'
@@ -552,7 +553,7 @@ export default function Home() {
               className={`flex min-w-0 flex-1 cursor-pointer items-center gap-2 overflow-hidden rounded-lg ${focusRing}`}
             >
               <span className='relative inline-flex h-10 w-10 shrink-0'>
-                <Image src='/logo.png' alt={t('logoAlt')} fill sizes='40px' className='object-contain p-0.5' />
+                <Image src={logo} alt={t('logoAlt')} fill sizes='40px' className='object-contain p-0.5' />
               </span>
               <span className='min-w-0 truncate leading-tight'>
                 <span className='block truncate text-sm font-semibold tracking-[0.12em] text-fg/90'>

@@ -10,6 +10,7 @@ import { EditOutlined } from '@ant-design/icons';
 import { FilePdf, DownPicture, FileCode } from '@icon-park/react';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
+import { logo } from '@/lib/brandAssets';
 function Header() {
   const message = useAppMessage();
   const t = useTranslations('Edit.header');
@@ -169,7 +170,7 @@ function Header() {
           aria-label={t('backHome')}
         >
           <Image
-            src='/logo.png'
+            src={logo}
             alt={t('logoAlt')}
             width={40}
             height={40}

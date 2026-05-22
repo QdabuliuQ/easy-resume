@@ -10,6 +10,7 @@ import { Button, Input } from 'antd';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 import { localePath } from '@/lib/device';
+import { logo } from '@/lib/brandAssets';
 
 function MobileEditHeader() {
   const t = useTranslations('Edit.header');
@@ -32,7 +33,7 @@ function MobileEditHeader() {
     <header className='shrink-0 border-b border-fg/10 px-4 pb-3 pt-3'>
       <div className='flex items-center gap-3'>
         <Link href={localePath(locale)} className='relative flex h-10 w-10 shrink-0'>
-          <Image src='/logo.png' alt={t('logoAlt')} fill sizes='40px' className='rounded-full object-contain' />
+          <Image src={logo} alt={t('logoAlt')} fill sizes='40px' className='rounded-full object-contain' />
         </Link>
         <div className='min-w-0 flex-1'>
           {editing ? (
