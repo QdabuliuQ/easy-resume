@@ -2,11 +2,31 @@
 export type ThemePreference = 'dark' | 'light' | 'system';
 export type ResolvedTheme = 'dark' | 'light';
 
+type DocumentWithViewTransition = Document & {
+  startViewTransition?: (updateCallback: () => void | Promise<void>) => {
+    ready: Promise<void>;
+    finished: Promise<void>;
+  };
+};
+
 const STORAGE_KEY = 'easy-resume-theme';
+const THEME_TRANSITION_DURATION_MS = 760;
 const listeners = new Set<() => void>();
 
 let preference: ThemePreference = 'dark';
 let mediaMq: MediaQueryList | null = null;
+let themeTransitionInFlight = false;
+let queuedToggleCount = 0;
+let queuedToggleOpts: { x?: number; y?: number } | undefined;
+
+function flushQueuedToggle() {
+  if (queuedToggleCount <= 0) return;
+  const shouldReplay = queuedToggleCount % 2 === 1;
+  const opts = queuedToggleOpts;
+  queuedToggleCount = 0;
+  queuedToggleOpts = undefined;
+  if (shouldReplay) toggleAppTheme(opts);
+}
 
 function readStored(): ThemePreference {
   if (typeof window === 'undefined') return 'dark';
@@ -91,12 +111,74 @@ export function setAppTheme(next: ThemePreference) {
   listeners.forEach((fn) => fn());
 }
 
-/** 深色 → 浅色 → 跟随系统 → 深色 */
-export function toggleAppTheme() {
-  const order: ThemePreference[] = ['dark', 'light', 'system'];
-  const i = order.indexOf(preference);
-  const next = order[(i + 1) % order.length];
-  setAppTheme(next);
+export function setAppThemeWithTransition(next: ThemePreference, opts?: { x?: number; y?: number }) {
+  if (preference === next) return;
+  if (typeof window === 'undefined') {
+    setAppTheme(next);
+    return;
+  }
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const doc = document as DocumentWithViewTransition;
+  if (reducedMotion || typeof doc.startViewTransition !== 'function') {
+    setAppTheme(next);
+    return;
+  }
+
+  const x = Number.isFinite(opts?.x) ? Math.max(0, Math.min(window.innerWidth, opts!.x!)) : window.innerWidth / 2;
+  const y = Number.isFinite(opts?.y) ? Math.max(0, Math.min(window.innerHeight, opts!.y!)) : window.innerHeight / 2;
+
+  try {
+    if (themeTransitionInFlight) {
+      setAppTheme(next);
+      return;
+    }
+
+    themeTransitionInFlight = true;
+    const vt = doc.startViewTransition(() => {
+      setAppTheme(next);
+    });
+
+    void vt.ready.then(() => {
+      const maxX = Math.max(x, window.innerWidth - x);
+      const maxY = Math.max(y, window.innerHeight - y);
+      const radius = Math.hypot(maxX, maxY);
+
+      document.documentElement.animate(
+        {
+          clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`],
+        },
+        {
+          duration: THEME_TRANSITION_DURATION_MS,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          pseudoElement: '::view-transition-new(root)',
+        }
+      );
+    });
+
+    void vt.finished.finally(() => {
+      themeTransitionInFlight = false;
+      flushQueuedToggle();
+    });
+  } catch {
+    themeTransitionInFlight = false;
+    setAppTheme(next);
+  }
+}
+
+/** 快速切换：按当前生效主题在亮/暗之间切换 */
+export function toggleAppTheme(opts?: { x?: number; y?: number }) {
+  if (themeTransitionInFlight) {
+    queuedToggleCount += 1;
+    queuedToggleOpts = opts;
+    return;
+  }
+
+  const next: ThemePreference = getResolvedTheme() === 'dark' ? 'light' : 'dark';
+  setAppThemeWithTransition(next, opts);
+  if (!themeTransitionInFlight) {
+    flushQueuedToggle();
+  }
 }
 
 export function subscribeAppTheme(fn: () => void): () => void {

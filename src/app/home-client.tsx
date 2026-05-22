@@ -370,8 +370,7 @@ export default function Home() {
     getServerThemeSnapshot,
   );
   const [themePref, appTheme] = themeSnap.split('|') as ['dark' | 'light' | 'system', 'dark' | 'light'];
-  const themeNavHint =
-    themePref === 'dark' ? t('themeToLight') : themePref === 'light' ? t('themeToSystem') : t('themeToDark');
+  const themeNavHint = appTheme === 'dark' ? t('themeToLight') : t('themeToDark');
   const reduceMotion = useSyncExternalStore(
     (onStoreChange) => {
       const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -552,10 +551,17 @@ export default function Home() {
               onKeyDown={navKey(pushPath('/'))}
               className={`flex min-w-0 flex-1 cursor-pointer items-center gap-2 overflow-hidden rounded-lg ${focusRing}`}
             >
-              <span className='relative inline-flex h-8 w-8 shrink-0'>
-                <Image src='/logo.png' alt={t('logoAlt')} fill sizes='32px' className='object-contain p-0.5' />
+              <span className='relative inline-flex h-10 w-10 shrink-0'>
+                <Image src='/logo.png' alt={t('logoAlt')} fill sizes='40px' className='object-contain p-0.5' />
               </span>
-              <span className='truncate text-sm font-semibold tracking-[0.12em] text-fg/90'>{t('brandName')}</span>
+              <span className='min-w-0 truncate leading-tight'>
+                <span className='block truncate text-sm font-semibold tracking-[0.12em] text-fg/90'>
+                  {t('brandName')}
+                </span>
+                <span className='block truncate text-[11px] font-medium tracking-[0.08em] text-fg/58'>
+                  {locale === 'zh' ? 'EasyResume' : '青松简历'}
+                </span>
+              </span>
             </span>
             <div className='flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2.5'>
               <Popover
@@ -636,7 +642,7 @@ export default function Home() {
               </span>
               <button
                 type='button'
-                onClick={toggleAppTheme}
+                onClick={(e) => toggleAppTheme({ x: e.clientX, y: e.clientY })}
                 aria-label={themeNavHint}
                 className={`cursor-pointer inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-fg/14 bg-fg/[0.06] text-fg/85 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/10 ${focusRing}`}
               >

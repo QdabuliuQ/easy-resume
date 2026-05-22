@@ -25,10 +25,12 @@ function Header() {
     'group rounded-2xl bg-gradient-primary p-px shadow-[0_2px_12px_rgb(0_0_0/0.18)] transition-[filter] duration-200 hover:brightness-110 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100';
   const exportChipInner =
     'flex min-h-9 items-center justify-center gap-1 rounded-[15px] bg-[var(--float-btn-bg)] px-3 py-2 transition-colors group-hover:bg-[var(--float-btn-bg-hover)]';
-  const exportIconSlot = 'inline-flex size-5 shrink-0 items-center justify-center';
+  const exportIconSlot =
+    'inline-flex size-5 shrink-0 items-center justify-center';
   const commit = () => {
     const trimmed = draft.trim();
-    const base = configStore.getConfig ?? JSON.parse(JSON.stringify(defaultResume));
+    const base =
+      configStore.getConfig ?? JSON.parse(JSON.stringify(defaultResume));
     configStore.setConfig({ ...base, name: trimmed || name });
     ignoreNextBlur.current = true;
     setEditing(false);
@@ -59,14 +61,15 @@ function Header() {
         ...raw,
         globalStyle: configStore.mergedGlobalStyle,
         exportPages: configStore.getExportPages,
-      }),
+      })
     );
   };
   const exportPdf = async () => {
     if (typeof window === 'undefined' || pdfLoading || imageLoading) return;
     setPdfLoading(true);
     try {
-      const base = (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
+      const base =
+        (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
       const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
       const res = await fetch('/api/pdf', {
         method: 'POST',
@@ -80,7 +83,9 @@ function Header() {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(
-          typeof data.error === 'string' ? data.error : t('requestFailed', { status: res.status }),
+          typeof data.error === 'string'
+            ? data.error
+            : t('requestFailed', { status: res.status })
         );
       }
       const blob = await res.blob();
@@ -101,7 +106,8 @@ function Header() {
     if (typeof window === 'undefined' || imageLoading || pdfLoading) return;
     setImageLoading(true);
     try {
-      const base = (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
+      const base =
+        (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
       const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
       const res = await fetch('/api/image', {
         method: 'POST',
@@ -115,7 +121,9 @@ function Header() {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(
-          typeof data.error === 'string' ? data.error : t('requestFailed', { status: res.status }),
+          typeof data.error === 'string'
+            ? data.error
+            : t('requestFailed', { status: res.status })
         );
       }
       const blob = await res.blob();
@@ -135,7 +143,8 @@ function Header() {
   const exportJson = () => {
     try {
       const cfg = snapshotForExport();
-      const base = (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
+      const base =
+        (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
       const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
       const json = JSON.stringify(cfg, null, 2);
       const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
@@ -162,9 +171,9 @@ function Header() {
           <Image
             src='/logo.png'
             alt={t('logoAlt')}
-            width={34}
-            height={34}
-            className='h-[32px] w-[32px] object-contain'
+            width={40}
+            height={40}
+            className='h-[40px] w-[40px] object-contain'
             draggable={false}
             priority
           />
@@ -199,7 +208,10 @@ function Header() {
           />
         ) : (
           <>
-            <span className='truncate text-[15px] font-medium leading-[22px] text-fg/96' title={name}>
+            <span
+              className='truncate text-[15px] font-medium leading-[22px] text-fg/96'
+              title={name}
+            >
               {name}
             </span>
             <Button
@@ -214,10 +226,18 @@ function Header() {
         )}
       </div>
       <div className='flex shrink-0 flex-wrap items-center justify-end gap-2'>
-        <svg width={0} height={0} className='pointer-events-none absolute' aria-hidden>
+        <svg
+          width={0}
+          height={0}
+          className='pointer-events-none absolute'
+          aria-hidden
+        >
           <defs>
             <linearGradient id={exportGradId} x1='0%' y1='0%' x2='100%' y2='0%'>
-              <stop offset='0%' stopColor='var(--color-primary-gradient-start)' />
+              <stop
+                offset='0%'
+                stopColor='var(--color-primary-gradient-start)'
+              />
               <stop offset='100%' stopColor='var(--color-primary)' />
             </linearGradient>
           </defs>
@@ -233,7 +253,11 @@ function Header() {
               {pdfLoading ? (
                 <span className='inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]' />
               ) : (
-                <FilePdf theme='outline' size={20} fill={`url(#${exportGradId})`} />
+                <FilePdf
+                  theme='outline'
+                  size={20}
+                  fill={`url(#${exportGradId})`}
+                />
               )}
             </span>
             <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent whitespace-nowrap'>
@@ -252,7 +276,11 @@ function Header() {
               {imageLoading ? (
                 <span className='inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]' />
               ) : (
-                <DownPicture theme='outline' size={20} fill={`url(#${exportGradId})`} />
+                <DownPicture
+                  theme='outline'
+                  size={20}
+                  fill={`url(#${exportGradId})`}
+                />
               )}
             </span>
             <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent'>
@@ -263,12 +291,16 @@ function Header() {
         <button
           type='button'
           disabled={pdfLoading || imageLoading}
-          onClick={() => exportJson()}
+          onClick={exportJson}
           className={`cursor-pointer ${exportChipOuter}`}
         >
           <span className={exportChipInner}>
             <span className={exportIconSlot} aria-hidden>
-              <FileCode theme='outline' size={20} fill={`url(#${exportGradId})`} />
+              <FileCode
+                theme='outline'
+                size={20}
+                fill={`url(#${exportGradId})`}
+              />
             </span>
             <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent'>
               {t('exportJson')}

@@ -40,7 +40,7 @@ import {
 import {
   getServerThemeSnapshot,
   getThemeSnapshot,
-  setAppTheme,
+  setAppThemeWithTransition,
   subscribeAppTheme,
 } from '@/lib/themeStore';
 
@@ -745,8 +745,8 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
             <div className='flex min-w-[116px] flex-col gap-0.5'>
               <button
                 type='button'
-                onClick={() => {
-                  setAppTheme('light');
+                onClick={(e) => {
+                  setAppThemeWithTransition('light', { x: e.clientX, y: e.clientY });
                   setThemePopoverOpen(false);
                 }}
                 className={`w-full cursor-pointer rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
@@ -757,8 +757,8 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
               </button>
               <button
                 type='button'
-                onClick={() => {
-                  setAppTheme('dark');
+                onClick={(e) => {
+                  setAppThemeWithTransition('dark', { x: e.clientX, y: e.clientY });
                   setThemePopoverOpen(false);
                 }}
                 className={`w-full cursor-pointer rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
@@ -769,8 +769,8 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
               </button>
               <button
                 type='button'
-                onClick={() => {
-                  setAppTheme('system');
+                onClick={(e) => {
+                  setAppThemeWithTransition('system', { x: e.clientX, y: e.clientY });
                   setThemePopoverOpen(false);
                 }}
                 className={`w-full cursor-pointer rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${

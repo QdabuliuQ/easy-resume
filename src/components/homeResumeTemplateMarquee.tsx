@@ -345,7 +345,7 @@ function Mask({
 
 export default function HomeResumeTemplateMarquee({ reduceMotion }: { reduceMotion: boolean }) {
   const tm = useTranslations('Home.marquee');
-  const swatches = tm.raw('swatches') as { label: string; bar: string; color: string }[];
+  const swatches = tm.raw('swatches') as { label: string; color: string }[];
   const [paused, setPaused] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [preview, setPreview] = useState<ResumeTemplateItem | null>(null);
@@ -384,7 +384,7 @@ export default function HomeResumeTemplateMarquee({ reduceMotion }: { reduceMoti
               aria-pressed={on}
               aria-label={s.label}
               onClick={() => setSwatchIdx(i)}
-              style={{ backgroundColor: s.bar }}
+              style={{ backgroundColor: s.color }}
               className={`min-h-0 min-w-0 flex-1 cursor-pointer border-0 p-0 outline-none transition-[height,box-shadow] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-primary)] ${on ? 'h-[38px] shadow-[inset_0_-3px_0_rgb(0_0_0/0.22)]' : 'h-[30px] hover:brightness-[0.97]'}`}
             />
           );
