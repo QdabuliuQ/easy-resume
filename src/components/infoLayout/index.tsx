@@ -270,16 +270,18 @@ function InfoLayout(props: {
       mouseEnterDelay={0.15}
       mouseLeaveDelay={0.35}
       placement='bottomLeft'
-      overlayInnerStyle={{
-        paddingLeft: 10,
-        paddingRight: 10,
-        paddingBottom: 15,
-        paddingTop: 5,
-        width: WIDTH + 28,
-        maxWidth: 'min(calc(100vw - 24px), 528px)',
-        backgroundColor: 'var(--info-layout-popover-bg)',
-        borderRadius: 10,
-        boxShadow: 'var(--info-layout-popover-shadow)',
+      styles={{
+        body: {
+          paddingLeft: 10,
+          paddingRight: 10,
+          paddingBottom: 15,
+          paddingTop: 5,
+          width: WIDTH + 28,
+          maxWidth: 'min(calc(100vw - 24px), 528px)',
+          backgroundColor: 'var(--info-layout-popover-bg)',
+          borderRadius: 10,
+          boxShadow: 'var(--info-layout-popover-shadow)',
+        },
       }}
       zIndex={1100}
       content={layoutPopoverContent}

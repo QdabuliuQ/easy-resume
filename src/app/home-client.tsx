@@ -569,26 +569,30 @@ export default function Home() {
                   <div className='flex min-w-[148px] flex-col gap-0.5'>
                     <button
                       type='button'
+                      disabled={locale === 'zh'}
                       onClick={() => {
+                        if (locale === 'zh') return;
                         router.replace(pathname, { locale: 'zh' });
                         setLangOpen(false);
                       }}
-                      className={`cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition-colors ${locale === 'zh'
-                        ? 'bg-fg/10 font-medium text-fg/90'
-                        : 'text-fg/65 hover:bg-fg/[0.06]'
+                      className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${locale === 'zh'
+                        ? 'cursor-default bg-fg/10 font-medium text-fg/90'
+                        : 'cursor-pointer text-fg/65 hover:bg-fg/[0.06]'
                         }`}
                     >
                       {t('langZh')}
                     </button>
                     <button
                       type='button'
+                      disabled={locale === 'en'}
                       onClick={() => {
+                        if (locale === 'en') return;
                         router.replace(pathname, { locale: 'en' });
                         setLangOpen(false);
                       }}
-                      className={`cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition-colors ${locale === 'en'
-                        ? 'bg-fg/10 font-medium text-fg/90'
-                        : 'text-fg/65 hover:bg-fg/[0.06]'
+                      className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${locale === 'en'
+                        ? 'cursor-default bg-fg/10 font-medium text-fg/90'
+                        : 'cursor-pointer text-fg/65 hover:bg-fg/[0.06]'
                         }`}
                     >
                       {t('langEn')}
