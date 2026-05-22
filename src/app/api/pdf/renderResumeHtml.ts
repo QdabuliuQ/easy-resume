@@ -371,9 +371,9 @@ function renderProject(
       const descHtml = plainTextFromRich(desc)
         ? wrapQuillRichHtml(desc, gs)
         : '';
-      const roleRow = item.role
-        ? `<div style="display:flex;justify-content:space-between;margin-bottom:5px;"><div style="flex:0.6;">${escapeHtml(item.role)}</div></div>`
-        : '';
+        const roleRow = item.role
+          ? `<div style="display:flex;justify-content:space-between;margin-bottom:5px;"><div style="flex:0.6;min-width:0;">${escapeHtml(item.role)}</div></div>`
+          : '';
       return `<div style="width:100%;color:#333;${index < items.length - 1 ? 'margin-bottom:10px;' : ''}font-size:${fs}px;">
 <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
 <div style="flex:0.7;font-weight:bold;">${escapeHtml(item.name ?? '')}</div>
@@ -406,7 +406,7 @@ function renderEducation(
             `<span style="display:inline-block;background:${escapeHtml(color)};color:#fff;font-size:${Math.max(8, fs - 4)}px;padding:2px 5px;border-radius:5px;${ti < tags.length - 1 ? 'margin-right:5px;' : ''}">${escapeHtml(tag)}</span>`
         )
         .join('');
-      const desc = String(item.description ?? '');
+        const desc = String(item.description ?? '') || '';
       const descHtml = plainTextFromRich(desc)
         ? wrapQuillRichHtml(desc, gs)
         : '';

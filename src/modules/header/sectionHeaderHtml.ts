@@ -49,7 +49,7 @@ export function sectionHeaderHtml(
 ): string {
   const c = escapeHtml(gs.color);
   const fsRaw = Number(gs.fontSize);
-  const fs = Number.isFinite(fsRaw) && fsRaw > 0 ? fsRaw : 13;
+        const fs = Number.isFinite(fsRaw) && fsRaw > 0 ? fsRaw : 14;
   const escT = escapeHtml(title);
   const ord =
     sectionOrdinal != null && Number.isFinite(sectionOrdinal) && sectionOrdinal > 0
@@ -62,11 +62,12 @@ export function sectionHeaderHtml(
   const triW = Math.max(6, Math.round(9 * triScale));
   const rh = sectionHeaderRowHeightCss();
   if (t === 7) {
-    return `<div style="position:relative;flex-shrink:0;width:5rem;${rh}display:flex;align-items:center;">
-<div style="position:absolute;top:0;right:0;bottom:0;width:1px;background:${c};z-index:0;"></div>
-<div style="position:relative;z-index:1;padding-right:8px;min-width:0;">
-<span style="display:block;word-wrap:break-word;overflow-wrap:break-word;font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
-</div>
+    // 完全同步前端 SectionHeaderType7：固定高度，flex布局，左文字右竖线
+    return `<div style="display:flex;min-width:0;align-items:center;width:100%;${rh}">
+  <span style="min-width:0;break-word:break-all;font-weight:bold;line-height:1;color:${c};font-size:${fs}px;">${escT}</span>
+  <div style="flex:1 1 0%;height:100%;margin-left:8px;display:flex;align-items:center;">
+    <div style="width:1px;height:60%;background:${c};"></div>
+  </div>
 </div>`;
   }
   if (t === 2) {

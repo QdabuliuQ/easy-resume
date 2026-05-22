@@ -31,7 +31,7 @@ function stripQuillDomNoise(html: string): string {
 /** juice 去类名后，个别环境会把列表排得像一整段；强制块级与宽度，贴近浏览器默认列表布局 */
 function enforceBlockFlow(html: string): string {
   const $ = cheerio.load(`<div id="__flow">${html}</div>`);
-  const bump = (sel: string) => {
+  const bump = (sel: string, extra?: (n: cheerio.Cheerio) => void) => {
     $(sel).each((_, el) => {
       const n = $(el);
       const st = (n.attr('style') ?? '').trim();
@@ -39,12 +39,21 @@ function enforceBlockFlow(html: string): string {
       if (!/\bdisplay\s*:/i.test(st)) add.push('display: block');
       if (!/\bwidth\s*:/i.test(st)) add.push('width: 100%');
       if (!/\bbox-sizing\s*:/i.test(st)) add.push('box-sizing: border-box');
+      if (extra) extra(n);
       if (!add.length) return;
       n.attr('style', [add.join('; '), st].filter(Boolean).join('; '));
     });
   };
-  bump('ol');
-  bump('ul');
+  bump('ol', (n) => {
+    if (!/\blist-style-type\s*:/i.test(n.attr('style') ?? '')) {
+      n.css('list-style-type', 'decimal');
+    }
+  });
+  bump('ul', (n) => {
+    if (!/\blist-style-type\s*:/i.test(n.attr('style') ?? '')) {
+      n.css('list-style-type', 'disc');
+    }
+  });
   bump('li');
   return $('#__flow').html() ?? '';
 }
