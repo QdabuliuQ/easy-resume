@@ -5,7 +5,7 @@ import {
   resumePageContentInnerWidthCss,
   resumePageInnerHeightDeductionPx,
 } from '@/lib/resumePageLayout';
-import { globalStylePageDimensions } from '@/lib/resumePageSize';
+import { cssLengthToPx, globalStylePageDimensions } from '@/lib/resumePageSize';
 import { GlobalStyle } from '../utils/common.type';
 import SideColPanel from './SideColPanel';
 import RoundedTopBanner from './RoundedTopBanner';
@@ -17,6 +17,10 @@ type PageProps = GlobalStyle & {
   sideSlot?: React.ReactNode;
   /** 仅首页展示 rounded 顶栏 */
   firstPage?: boolean;
+  /** 图片导出：单页长图，高度随内容撑开 */
+  continuous?: boolean;
+  /** 浏览器 snapDOM 截图锚点 */
+  snapTarget?: boolean;
 };
 
 export default memo(function Page(props: PageProps) {
@@ -30,23 +34,25 @@ export default memo(function Page(props: PageProps) {
     firstPage = false,
     sideSlot,
     children,
+    continuous = false,
+    snapTarget = false,
   } = props;
+  const snapWidth = snapTarget ? `${Math.round(cssLengthToPx(width))}px` : width;
+  const snapHeight = snapTarget ? `${Math.round(cssLengthToPx(height))}px` : height;
   const layout = normResumePageLayout(layoutRaw);
   const sideCol = layout === 'leftCol' || layout === 'rightCol';
-  const pageIndex = firstPage ? 0 : 1;
   const innerWidth = sideCol
     ? '100%'
-    : resumePageContentInnerWidthCss(width, layout, pagePadding);
-  const innerHeight = `calc(${height} - ${resumePageInnerHeightDeductionPx(
-    { padding: pagePadding, layout },
-    pageIndex,
-  )}px)`;
+    : resumePageContentInnerWidthCss(snapWidth, layout, pagePadding);
+  const innerHeight = `calc(${snapHeight} - ${resumePageInnerHeightDeductionPx({ padding: pagePadding, layout })}px)`;
+  const snapMinH = snapTarget && continuous;
   const contentShell = (
     <div
       style={{
         width: innerWidth,
-        height: innerHeight,
-        overflow: 'hidden',
+        height: continuous ? 'auto' : innerHeight,
+        minHeight: snapMinH ? innerHeight : undefined,
+        overflow: continuous ? 'visible' : 'hidden',
       }}
     >
       {children}
@@ -54,15 +60,21 @@ export default memo(function Page(props: PageProps) {
   );
   return (
     <div
+      data-resume-export-page={snapTarget ? '' : undefined}
+      className={snapTarget ? 'png-page' : undefined}
       style={{
         position: 'relative',
-        width,
-        height,
+        width: snapWidth,
+        height: continuous ? 'auto' : snapHeight,
+        minHeight: snapMinH ? snapHeight : undefined,
         backgroundColor,
+        color,
+        fontSize: `${props.fontSize}px`,
+        lineHeight: props.lineHeight,
         fontFamily: resumeFontStack(resumeFont),
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden',
+        overflow: continuous ? 'visible' : 'hidden',
         boxSizing: 'border-box',
       }}
     >
@@ -72,8 +84,8 @@ export default memo(function Page(props: PageProps) {
         style={{
           position: 'relative',
           zIndex: 1,
-          flex: 1,
-          minHeight: 0,
+          flex: continuous ? 'none' : 1,
+          minHeight: continuous ? undefined : 0,
           display: sideCol ? 'flex' : 'block',
           flexDirection: sideCol ? 'row' : undefined,
           alignItems: sideCol ? 'stretch' : undefined,

@@ -1,8 +1,9 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale, useMessages, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useAppMessage } from '@/hooks/useAppMessage';
+import { downloadResumeJpegViaSnapdom } from '@/lib/clientSnapResumeImage';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 
@@ -10,6 +11,7 @@ export function useResumeExport() {
   const message = useAppMessage();
   const t = useTranslations('Edit.header');
   const locale = useLocale();
+  const messages = useMessages();
   const [pdfLoading, setPdfLoading] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
@@ -71,28 +73,12 @@ export function useResumeExport() {
     const hide = message.loading(t('exportImageLoading'), 0);
     try {
       const safe = safeName();
-      const res = await fetch('/api/image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          config: snapshotForExport(),
-          filename: `${safe}.jpg`,
-          locale: locale === 'en' ? 'en' : 'zh',
-        }),
+      await downloadResumeJpegViaSnapdom({
+        config: snapshotForExport(),
+        filename: `${safe}.jpg`,
+        locale,
+        messages: messages as Record<string, unknown>,
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(
-          typeof data.error === 'string' ? data.error : t('requestFailed', { status: res.status }),
-        );
-      }
-      const blob = await res.blob();
-      const href = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = href;
-      a.download = `${safe}.jpg`;
-      a.click();
-      URL.revokeObjectURL(href);
       hide();
       message.success(t('exportImageOk'));
     } catch (e) {
@@ -119,5 +105,12 @@ export function useResumeExport() {
       message.error(e instanceof Error ? e.message : t('exportFail'));
     }
   };
-  return { exportPdf, exportImage, exportJson, pdfLoading, imageLoading, exporting: pdfLoading || imageLoading };
+  return {
+    exportPdf,
+    exportImage,
+    exportJson,
+    pdfLoading,
+    imageLoading,
+    exporting: pdfLoading || imageLoading,
+  };
 }

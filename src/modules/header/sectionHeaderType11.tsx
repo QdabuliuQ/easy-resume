@@ -3,7 +3,6 @@ import type { GlobalStyle } from '@/modules/utils/common.type';
 import type { ReactNode } from 'react';
 import { header11TitleRowMinHeightPx } from './header11Layout';
 import { sectionHeaderRowHeightStyle } from './sectionHeaderLayout';
-import { sectionHeaderFontSizeNum } from './sectionHeaderFont';
 
 export { HEADER11_DOT_PX, header11DotPx, header11TitleRowMinHeightPx } from './header11Layout';
 
@@ -70,8 +69,7 @@ export function SectionHeaderType11TimelineLayout({
   children: ReactNode;
 }) {
   const color = globalStyle.color ?? '#333';
-  const fsNum = sectionHeaderFontSizeNum(globalStyle);
-  const titleRowMinH = header11TitleRowMinHeightPx(fsNum);
+  const titleRowMinH = header11TitleRowMinHeightPx();
   return (
     <div className='flex w-full min-w-0 gap-3'>
       <div className='flex w-[18px] shrink-0 flex-col items-center'>

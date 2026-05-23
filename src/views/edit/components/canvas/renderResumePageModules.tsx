@@ -25,8 +25,14 @@ export function renderResumePageModules(
     const m = raw as { type?: string; id?: string; options?: Record<string, unknown> };
     if (!m?.type) return;
     if (m.type === 'info1') {
+      const forceSideCol = inSideCol;
       const node = (
-        <Info1 key={String(m.id ?? `info-${i}`)} config={m as never} globalStyle={gs} />
+        <Info1
+          key={String(m.id ?? `info-${i}`)}
+          config={m as never}
+          globalStyle={gs}
+          forceSideCol={forceSideCol}
+        />
       );
       if (inSideCol) sideSlot = node;
       else main.push(node);

@@ -14,6 +14,7 @@ import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import {
   memo,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -47,7 +48,10 @@ const TemplatePageScaled = memo(function TemplatePageScaled({
   const { width: pwStr, height: phStr } = globalStylePageDimensions(gs);
   const pw = cssLengthToApproxPx(pwStr);
   const ph = cssLengthToApproxPx(phStr);
-  const modules = template.config.pages[0]?.modules ?? [];
+  const modules = useMemo(() => {
+    const page = template.config.pages?.[0];
+    return page?.modules ?? [];
+  }, [template]);
   const { main, sideSlot } = useMemo(
     () => renderResumePageModules(modules as unknown[], gs, { isFirstPage: true }),
     [modules, gs],
@@ -131,13 +135,13 @@ function useFitPageScale(
   const padX = opts?.padX ?? PREVIEW_VIEWPORT_PAD_X;
   const padY = opts?.padY ?? PREVIEW_VIEWPORT_PAD_Y;
   const min = opts?.min ?? PREVIEW_SCALE_MIN;
-  const calc = () => {
+  const calc = useCallback(() => {
     if (typeof window === 'undefined' || pageW <= 0 || pageH <= 0) return max;
     const vw = window.visualViewport?.width ?? window.innerWidth;
     const vh = window.visualViewport?.height ?? window.innerHeight;
     const s = Math.min((vw - padX) / pageW, (vh - padY) / pageH, max);
     return Math.max(min, s);
-  };
+  }, [pageW, pageH, max, padX, padY, min]);
   const [scale, setScale] = useState(calc);
   useEffect(() => {
     const onResize = () => setScale(calc());
@@ -148,7 +152,7 @@ function useFitPageScale(
       window.removeEventListener('resize', onResize);
       window.visualViewport?.removeEventListener('resize', onResize);
     };
-  }, [pageW, pageH, max, padX, padY, min]);
+  }, [pageW, pageH, max, padX, padY, min, calc]);
   return scale;
 }
 

@@ -2,8 +2,6 @@ import type { MetadataRoute } from 'next';
 
 export type SeoLocale = 'zh' | 'en';
 
-export const SEO_LOCALES: SeoLocale[] = ['zh', 'en'];
-
 export const SEO_SITEMAP_ENTRIES: {
   locale: SeoLocale;
   path: '' | '/edit';

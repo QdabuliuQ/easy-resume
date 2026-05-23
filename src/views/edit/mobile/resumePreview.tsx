@@ -1,7 +1,6 @@
 'use client';
 
 import defaultResume from '@/json/resume.defaults';
-import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { Page } from '@/modules';

@@ -15,6 +15,7 @@ export default memo(function SideColPanel({
   const pct = `${Math.round(RESUME_PAGE_SIDE_COL_WIDTH_RATIO * 100)}%`;
   return (
     <div
+      data-resume-side-col
       className='flex shrink-0 flex-col self-stretch overflow-hidden'
       style={{
         width: pct,

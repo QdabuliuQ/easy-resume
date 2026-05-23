@@ -6,7 +6,7 @@ type AvatarMap = Record<string, string>;
 
 const map = resumeAvatars as AvatarMap;
 
-export function resolveResumeAvatarString(v: unknown): unknown {
+function resolveResumeAvatarString(v: unknown): unknown {
   if (typeof v !== 'string' || !v.startsWith(PREFIX)) return v;
   const key = v.slice(PREFIX.length);
   const resolved = map[key];

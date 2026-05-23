@@ -32,7 +32,7 @@ function Other(props: Props) {
         <ResumeQuillHtml
           html={options.description}
           style={{ fontSize: `${fontSize}px`, lineHeight }}
-          className='text-[#333]'
+          className='text-black'
         />
       ) : null}
     </SectionModuleShell>

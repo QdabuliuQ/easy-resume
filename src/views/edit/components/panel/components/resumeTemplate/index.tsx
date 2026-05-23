@@ -33,7 +33,10 @@ export const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
   const { width: pwStr, height: phStr } = globalStylePageDimensions(gs);
   const pw = cssLengthToApproxPx(pwStr);
   const ph = cssLengthToApproxPx(phStr);
-  const modules = template.config.pages[0]?.modules ?? [];
+  const modules = useMemo(() => {
+    const page = template.config.pages?.[0];
+    return page?.modules ?? [];
+  }, [template]);
   const { main, sideSlot } = useMemo(
     () => renderResumePageModules(modules as unknown[], gs, { isFirstPage: true }),
     [modules, gs],

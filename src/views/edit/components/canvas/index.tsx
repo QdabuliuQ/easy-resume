@@ -66,7 +66,20 @@ const CANVAS_SIDE_PAD = 70;
 const PREVIEW_EXIT_MS = 200;
 
 /** 合并默认 globalStyle，避免 cfg 里缺 padding/height 时分页可用高度算错 */
-function mergeGlobalStyle(cfg: any): GlobalStyle {
+
+
+interface ResumeModule {
+  type: string;
+  id: string;
+  options?: Record<string, unknown>;
+}
+
+interface ResumeConfig {
+  globalStyle: GlobalStyle;
+  pages: { modules: ResumeModule[]; moduleMargin?: number }[];
+}
+
+function mergeGlobalStyle(cfg: ResumeConfig): GlobalStyle {
   return mergeGlobalStylePaper(
     resume.globalStyle as GlobalStyle,
     cfg?.globalStyle ?? {}
@@ -74,7 +87,7 @@ function mergeGlobalStyle(cfg: any): GlobalStyle {
 }
 
 /** 模块间距 px：优先 globalStyle.moduleMargin，兼容旧数据 pages[].moduleMargin */
-function moduleGapPx(gs: any, cfg?: any): number {
+function moduleGapPx(gs: GlobalStyle, cfg?: ResumeConfig): number {
   const v = Number(gs?.moduleMargin);
   if (Number.isFinite(v) && v >= 0) return v;
   const legacy = Number(cfg?.pages?.[0]?.moduleMargin);
@@ -83,7 +96,7 @@ function moduleGapPx(gs: any, cfg?: any): number {
 }
 
 /** 与 Page 内层 div 的 width 字符串一致，禁止 mm→px 取整导致测量换行与画布不一致 */
-function contentInnerWidthCss(gs: any): string {
+function contentInnerWidthCss(gs: GlobalStyle): string {
   const { width } = globalStylePageDimensions(gs);
   return resumePageContentInnerWidthCss(width, gs?.layout, gs?.padding ?? 0);
 }
@@ -98,9 +111,9 @@ function readLayoutHeightPx(el: HTMLElement): number {
 }
 
 /** 与 Page 内层 height 解析值一致（避免 mm 取整 px 导致分页槽高度偏小） */
-function probeInnerPageContentHeightPx(gs: any, pageIndex = 0): number {
+function probeInnerPageContentHeightPx(gs: GlobalStyle): number {
   const { height } = globalStylePageDimensions(gs);
-  const deduct = resumePageInnerHeightDeductionPx(gs, pageIndex);
+  const deduct = resumePageInnerHeightDeductionPx(gs);
   const probe = document.createElement('div');
   probe.style.cssText =
     'position:absolute;left:-9999px;top:0;width:1px;margin:0;padding:0;border:none;visibility:hidden;pointer-events:none;box-sizing:border-box';
@@ -112,7 +125,7 @@ function probeInnerPageContentHeightPx(gs: any, pageIndex = 0): number {
 }
 
 /** 影响高度的字段变化才应触发重测；附带版心宽高与正文排版（换行、分页） */
-function layoutSig(module: any, gs: any): string {
+function layoutSig(module: ResumeModule, gs: GlobalStyle): string {
   const pad = gs?.padding ?? 0;
   const fs = gs?.fontSize ?? '';
   const lh = gs?.lineHeight ?? '';
@@ -125,7 +138,7 @@ function layoutSig(module: any, gs: any): string {
 
 interface ExportLayoutModule {
   type: string;
-  options: Record<string, any>;
+  options: Record<string, unknown>;
   showHeader?: boolean;
   viewHeight?: number;
   offsetY?: number;
@@ -134,15 +147,26 @@ interface ExportLayoutModule {
 }
 
 function buildModuleElement(
-  module: any,
-  gs: any,
+  module: ResumeModule,
+  gs: GlobalStyle,
   sourceId: string,
   showHeader: boolean,
   fragmentIndex: number,
   sectionOrdinal?: number
 ): ReactElement | null {
   if (module.type === 'info1' && showHeader && fragmentIndex === 0) {
-    return <Info1 key={sourceId} config={module} globalStyle={gs} />;
+    // 仅当类型完全匹配 InfoProps 时才渲染
+    if (
+      typeof module.options === 'object' &&
+      module.options !== null &&
+      'name' in module.options &&
+      'phone' in module.options &&
+      'email' in module.options &&
+      'city' in module.options
+    ) {
+      return <Info1 key={sourceId} config={{ ...(module as any), type: 'info1' }} globalStyle={gs} />;
+    }
+    return null;
   }
   if (module.type === 'info1') {
     return null;
@@ -183,7 +207,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
   const measureElementHeight = useMemoizedFn(
     (
       element: ReactElement,
-      gs: any,
+      gs: GlobalStyle,
       domId: string,
       widthCss?: string,
     ): Promise<number> => {
@@ -209,6 +233,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
             requestAnimationFrame(() => {
               const rootEl = container.firstElementChild as HTMLElement | null;
               const height = rootEl ? readLayoutHeightPx(rootEl) : readLayoutHeightPx(container);
+              console.log(`测量 ${domId} 高度 ${height}px`);
               root.unmount();
               document.body.removeChild(container);
               resolve(height + 3);
@@ -223,7 +248,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
   );
 
   const [pages, setPages] = useState<Array<React.ReactNode>>([]);
-  const render = useMemoizedFn(async (cfg: any, update: boolean = true) => {
+  const render = useMemoizedFn(async (cfg: ResumeConfig, update: boolean = true) => {
     const myGen = ++renderGenerationRef.current;
     const gs = mergeGlobalStyle(cfg);
     const ordered = flattenModules(cfg);
@@ -237,7 +262,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
     let shellSectionOrdinal = 0;
 
     // 清理已移除模块的缓存
-    const seen = new Set(layoutModules.map((m: any) => m.id));
+    const seen = new Set(layoutModules.map((m: ResumeModule) => m.id));
     for (const id of Object.keys(moduleHeights.current)) {
       if (!seen.has(id)) {
         delete moduleHeights.current[id];
@@ -247,8 +272,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
 
     if (myGen !== renderGenerationRef.current) return;
 
-    const pageContentHeight = (pageIndex: number) =>
-      probeInnerPageContentHeightPx(gs, pageIndex);
+    const pageContentHeight = () => probeInnerPageContentHeightPx(gs);
 
     /** 每个分页槽位类型 */
     type ModuleSlot = {
@@ -320,7 +344,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
         const curIdx = newPages.length - 1;
         // 只有首次放置且当前页已有内容时才加间距
         const gap = isFirstPlacement && newPages[curIdx].length > 0 ? moduleGapPx(gs, cfg) : 0;
-        const spaceAfterGap = pageContentHeight(curIdx) - usedHeight - gap;
+        const spaceAfterGap = pageContentHeight() - usedHeight - gap;
 
         // 当前页没有剩余空间，换新页（不改变 isFirstPlacement，让间距逻辑在新页重算）
         if (spaceAfterGap <= 0) {
@@ -398,7 +422,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
             newPages[curIdx].push({ kind: 'margin', slotKey: `gap-${module.id}-${slotSeq}`, height: gap });
             usedHeight += gap;
           }
-          const clipH = pageContentHeight(curIdx) - usedHeight;
+          const clipH = pageContentHeight() - usedHeight;
           newPages[curIdx].push({
             kind: 'module',
             slotKey: `${module.id}-${slotSeq++}`,
@@ -503,13 +527,13 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
     const live = configStore.getConfig ?? cfg;
     if (!live) return;
 
-    const nextConfig: any = {
+    const nextConfig: ResumeConfig = {
       ...live,
       globalStyle: gs,
       pages: [],
     };
     for (let i = 0; i < newPages.length; i++) {
-      const modulesOut: any[] = [];
+      const modulesOut: ResumeModule[] = [];
       const seenIds = new Set<string>();
       for (const id of pageModuleIds[i]) {
         if (!id || seenIds.has(id)) continue;

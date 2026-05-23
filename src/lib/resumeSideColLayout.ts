@@ -16,7 +16,3 @@ export function findFirstInfo1Module(
 export function shouldPlaceInfo1InSideCol(layout: unknown): boolean {
   return resumePageHasSideCol(layout);
 }
-
-export function modulesWithoutInfo1<T extends { type?: string }>(modules: T[]): T[] {
-  return modules.filter((m) => m?.type !== 'info1');
-}

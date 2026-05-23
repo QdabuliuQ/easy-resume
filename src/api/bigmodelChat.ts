@@ -133,6 +133,7 @@ export async function postBigmodelChatCompletionsStream(
   body: Record<string, unknown>,
   onDelta?: (s: string) => void
 ): Promise<string> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { stream: _drop, ...rest } = body;
   const streamBody: Record<string, unknown> = { ...rest, stream: true };
   try {

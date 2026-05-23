@@ -1,4 +1,10 @@
 'use client';
+
+function removeAvatar<T extends Record<string, unknown>>(options: T): Omit<T, 'avatar'> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { avatar, ...rest } = options || {};
+  return rest as Omit<T, 'avatar'>;
+}
 import { Popover, Tooltip } from 'antd';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { observer } from 'mobx-react';
@@ -65,11 +71,9 @@ function Resume({ menuActiveKey }: ResumeProps) {
             ? page.modules.map((module) => {
                 if (String(module?.type ?? '') !== 'info1') return module;
                 const options =
-                  module?.options && typeof module.options === 'object'
-                    ? (({ avatar: _avatar, ...restOptions }) => restOptions)(
-                        module.options as Record<string, unknown>,
-                      )
-                    : module?.options;
+                module?.options && typeof module.options === 'object'
+                  ? removeAvatar(module.options as Record<string, unknown>)
+                  : module?.options;
                 return { ...module, options };
               })
             : page.modules;
@@ -87,7 +91,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
         setAnalyzeLoading(false);
       }
     })();
-  }, [analyzeLoading, tr]);
+  }, [analyzeLoading, message, tr]);
   return (
     <div className='relative flex h-full min-h-0 flex-1 flex-col text-black [transform:translateZ(0)] bg-[var(--resume-panel-bg)]'>
       <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-24'>

@@ -7,9 +7,8 @@
     "lint:pritter": "prettier --write src/",
     "dev": "next dev",
     "build": "next build",
-    "lint": "eslint .",
+    "lint": "eslint src",
     "prepare": "husky install",
-    "commit": "gitmoji -c",
     "start": "next start -p 3010"
   },
   "dependencies": {
@@ -19,14 +18,13 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@icon-park/react": "^1.4.2",
     "@upstash/redis": "^1.38.0",
+    "@zumer/snapdom": "^2.12.0",
     "ahooks": "^3.8.5",
     "antd": "^5.25.4",
     "antd-mobile": "^5.42.3",
     "cheerio": "^1.1.0",
-    "commitlint": "^19.8.1",
     "dayjs": "^1.11.13",
     "dompurify": "^3.4.1",
-    "juice": "^11.1.1",
     "mobx": "^6.13.7",
     "mobx-react": "^9.2.0",
     "next": "^14.0.0",
@@ -47,6 +45,7 @@
     "@types/react-dom": "^19.0.4",
     "eslint": "^9.21.0",
     "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^15.15.0",
     "husky": "^8.0.3",
     "postcss": "^8.5.3",
@@ -59,11 +58,6 @@
     "rules": {
       "react/jsx-uses-react": "off",
       "react/react-in-jsx-scope": "off"
-    }
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-customizable"
     }
   },
   "browserslist": [

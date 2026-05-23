@@ -1,5 +1,4 @@
 'use client';
-// 纸张：GlobalStyle.pageSize；顶栏窄屏 Popover：../../views/edit/components/header；PDF/PNG：./sectionHeaderHtml.ts
 import { GlobalStyle } from '@/modules/utils/common.type';
 import { memo } from 'react';
 import { normHeaderType } from './normHeaderType';

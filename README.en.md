@@ -85,7 +85,6 @@ The `start` script listens on **3010**.
 | `npm run lint` | ESLint |
 | `npm run lint:pritter` | Prettier format `src/` |
 | `npm run prepare` | Husky (runs after `npm install`) |
-| `npm run commit` | Gitmoji interactive commit (install `gitmoji-cli` globally or locally) |
 
 ## 🔐 Environment variables
 

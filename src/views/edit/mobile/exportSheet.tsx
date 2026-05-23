@@ -12,7 +12,6 @@ function MobileExportSheet({
   visible: boolean;
   onClose: () => void;
 }) {
-  const t = useTranslations('Edit.mobile');
   const th = useTranslations('Edit.header');
   const tm = useTranslations('Edit.menu');
   const { exportPdf, exportImage, exportJson } = useResumeExport();

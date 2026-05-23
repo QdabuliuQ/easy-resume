@@ -1,24 +1,28 @@
 'use client';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { memo, useId, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { Button, Input } from 'antd';
-import { useAppMessage } from '@/hooks/useAppMessage';
 import { EditOutlined } from '@ant-design/icons';
 import { FilePdf, DownPicture, FileCode } from '@icon-park/react';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 import { logo } from '@/lib/brandAssets';
+import { useResumeExport } from '@/views/edit/hooks/useResumeExport';
 function Header() {
-  const message = useAppMessage();
   const t = useTranslations('Edit.header');
-  const locale = useLocale();
+  const {
+    exportPdf,
+    exportImage,
+    exportJson,
+    pdfLoading,
+    imageLoading,
+    exporting,
+  } = useResumeExport();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
-  const [pdfLoading, setPdfLoading] = useState(false);
-  const [imageLoading, setImageLoading] = useState(false);
   const ignoreNextBlur = useRef(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
   const exportGradId = `hdr-eg${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
@@ -53,112 +57,6 @@ function Header() {
   const onBlur = () => {
     if (ignoreNextBlur.current) return;
     commit();
-  };
-  const snapshotForExport = () => {
-    const raw = configStore.getConfig;
-    if (!raw) return JSON.parse(JSON.stringify(defaultResume));
-    return JSON.parse(
-      JSON.stringify({
-        ...raw,
-        globalStyle: configStore.mergedGlobalStyle,
-        exportPages: configStore.getExportPages,
-      })
-    );
-  };
-  const exportPdf = async () => {
-    if (typeof window === 'undefined' || pdfLoading || imageLoading) return;
-    setPdfLoading(true);
-    try {
-      const base =
-        (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
-      const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
-      const res = await fetch('/api/pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          config: snapshotForExport(),
-          filename: `${safe}.pdf`,
-          locale: locale === 'en' ? 'en' : 'zh',
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(
-          typeof data.error === 'string'
-            ? data.error
-            : t('requestFailed', { status: res.status })
-        );
-      }
-      const blob = await res.blob();
-      const href = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = href;
-      a.download = `${safe}.pdf`;
-      a.click();
-      URL.revokeObjectURL(href);
-      message.success(t('exportPdfOk'));
-    } catch (e) {
-      message.error(e instanceof Error ? e.message : t('exportFail'));
-    } finally {
-      setPdfLoading(false);
-    }
-  };
-  const exportImage = async () => {
-    if (typeof window === 'undefined' || imageLoading || pdfLoading) return;
-    setImageLoading(true);
-    try {
-      const base =
-        (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
-      const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
-      const res = await fetch('/api/image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          config: snapshotForExport(),
-          filename: `${safe}.jpg`,
-          locale: locale === 'en' ? 'en' : 'zh',
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(
-          typeof data.error === 'string'
-            ? data.error
-            : t('requestFailed', { status: res.status })
-        );
-      }
-      const blob = await res.blob();
-      const href = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = href;
-      a.download = `${safe}.jpg`;
-      a.click();
-      URL.revokeObjectURL(href);
-      message.success(t('exportImageOk'));
-    } catch (e) {
-      message.error(e instanceof Error ? e.message : t('exportFail'));
-    } finally {
-      setImageLoading(false);
-    }
-  };
-  const exportJson = () => {
-    try {
-      const cfg = snapshotForExport();
-      const base =
-        (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
-      const safe = base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
-      const json = JSON.stringify(cfg, null, 2);
-      const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-      const href = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = href;
-      a.download = `${safe}.json`;
-      a.click();
-      URL.revokeObjectURL(href);
-      message.success(t('exportJsonOk'));
-    } catch (e) {
-      message.error(e instanceof Error ? e.message : t('exportFail'));
-    }
   };
   return (
     <div className='flex h-full items-center justify-between gap-4 px-4 md:px-5'>
@@ -245,7 +143,7 @@ function Header() {
         </svg>
         <button
           type='button'
-          disabled={pdfLoading || imageLoading}
+          disabled={exporting}
           onClick={() => void exportPdf()}
           className={`cursor-pointer ${exportChipOuter}`}
         >
@@ -268,7 +166,7 @@ function Header() {
         </button>
         <button
           type='button'
-          disabled={pdfLoading || imageLoading}
+          disabled={exporting}
           onClick={() => void exportImage()}
           className={`cursor-pointer ${exportChipOuter}`}
         >
@@ -291,7 +189,7 @@ function Header() {
         </button>
         <button
           type='button'
-          disabled={pdfLoading || imageLoading}
+          disabled={exporting}
           onClick={exportJson}
           className={`cursor-pointer ${exportChipOuter}`}
         >

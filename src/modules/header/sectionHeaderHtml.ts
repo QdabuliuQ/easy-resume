@@ -164,10 +164,8 @@ export function wrapSectionModuleHtml(
   }
   if (t === 11) {
     const c = escapeHtml(gs.color);
-    const fsRaw = Number(gs.fontSize);
-    const fsPx = Number.isFinite(fsRaw) && fsRaw > 0 ? fsRaw : 13;
-    const dot = header11DotPx(fsPx);
-    const titleRowMin = header11TitleRowMinHeightPx(fsPx);
+    const dot = header11DotPx();
+    const titleRowMin = header11TitleRowMinHeightPx();
     const head = sectionHeaderHtml(title, gs, moduleType, sectionOrdinal);
     return `<div style="width:100%;min-width:0;display:flex;gap:12px;align-items:stretch;box-sizing:border-box;">
 <div style="width:18px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;">

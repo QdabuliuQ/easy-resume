@@ -44,7 +44,7 @@ function Education(props: Props) {
     <SectionModuleShell moduleId={id} headerConfig={options} moduleType={config.type} globalStyle={globalStyle}>
       <div className='min-w-0 w-full' style={{ fontSize: fontSize + 'px' }}>
         {options.items.map((item, index) => (
-          <div key={index} className='min-w-0 w-full text-[#333] not-last:mb-[10px]'>
+          <div key={index} className='min-w-0 w-full text-black not-last:mb-[10px]'>
             <div className='mb-[5px] flex min-w-0 justify-between gap-2'>
               <div className='flex min-w-0 flex-[7] flex-wrap items-center gap-x-[10px] gap-y-1'>
                 <span className='min-w-0 font-bold break-words'>{item.school}</span>
@@ -82,7 +82,7 @@ function Education(props: Props) {
               <ResumeQuillHtml
                 html={item.description}
                 style={{ fontSize: fontSize + 'px', lineHeight }}
-                className='text-[#333]'
+                className='text-black'
               />
             ) : null}
           </div>

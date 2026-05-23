@@ -154,7 +154,11 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            isImport ? confirmThenPickImport() : onActiveKeyChange(item.key);
+            if (isImport) {
+              confirmThenPickImport();
+            } else {
+              onActiveKeyChange(item.key);
+            }
           }
         }}
         className={`${menuTileClass} ${tileCls}`}

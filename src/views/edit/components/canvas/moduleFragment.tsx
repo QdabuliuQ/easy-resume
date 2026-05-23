@@ -1,4 +1,10 @@
 'use client';
+
+interface SectionListOptions {
+  title?: string;
+  items?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
+}
 import { useTranslations } from 'next-intl';
 import { memo } from 'react';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
@@ -20,8 +26,8 @@ function normalizeSectionListOptions(
   type: string,
   raw: unknown,
   tf: (key: 'jobFallback' | 'projectFallback' | 'educationFallback' | 'certificateFallback') => string,
-): Record<string, any> {
-  const o = raw != null && typeof raw === 'object' ? { ...(raw as Record<string, any>) } : {};
+): SectionListOptions {
+  const o: SectionListOptions = raw != null && typeof raw === 'object' ? { ...(raw as SectionListOptions) } : {};
   const titleTrim = typeof o.title === 'string' ? o.title.trim() : '';
   switch (type) {
     case 'job':
@@ -37,172 +43,208 @@ function normalizeSectionListOptions(
   }
 }
 
-function renderCertificateBody(options: Record<string, any>, globalStyle: GlobalStyle) {
+function renderCertificateBody(options: SectionListOptions, globalStyle: GlobalStyle) {
   return (
     <div className='w-full'>
-      {(options.items ?? []).map((item: Record<string, any>, index: number) => (
-        <div
-          key={`${index}-${item.name ?? ''}-${item.date ?? ''}`}
-          className='flex w-full justify-between text-black not-last:mb-[5px]'
-          style={{ fontSize: `${globalStyle.fontSize}px` }}
-        >
-          <div className='flex-6'>{item.name}</div>
-          <div className='flex-4 text-right'>{item.date}</div>
-        </div>
-      ))}
+      {(options.items ?? []).map((item: Record<string, unknown>, index: number) => {
+        const name = typeof item.name === 'string' ? item.name : '';
+        const date = typeof item.date === 'string' ? item.date : '';
+        return (
+          <div
+            key={`${index}-${name}-${date}`}
+            className='flex w-full justify-between text-black not-last:mb-[5px]'
+            style={{ fontSize: `${globalStyle.fontSize}px` }}
+          >
+            <div className='flex-6'>{name}</div>
+            <div className='flex-4 text-right'>{date}</div>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-function renderSkillBody(options: Record<string, any>, globalStyle: GlobalStyle) {
-  return plainTextFromRichHtml(options.description) ? (
+function renderSkillBody(options: { description?: string }, globalStyle: GlobalStyle) {
+  const description = options.description ?? '';
+  return plainTextFromRichHtml(description) ? (
     <ResumeQuillHtml
-      html={options.description}
+      html={description}
       style={{ fontSize: `${globalStyle.fontSize}px`, lineHeight: globalStyle.lineHeight }}
-      className='text-[#333]'
+      className='text-black'
     />
   ) : <div />;
 }
 
-function renderOtherBody(options: Record<string, any>, globalStyle: GlobalStyle) {
-  return plainTextFromRichHtml(options.description) ? (
+function renderOtherBody(options: { description?: string }, globalStyle: GlobalStyle) {
+  const description = options.description ?? '';
+  return plainTextFromRichHtml(description) ? (
     <ResumeQuillHtml
-      html={options.description}
+      html={description}
       style={{ fontSize: `${globalStyle.fontSize}px`, lineHeight: globalStyle.lineHeight }}
-      className='text-[#333]'
+      className='text-black'
     />
   ) : <div />;
 }
 
-function renderJobBody(options: Record<string, any>, globalStyle: GlobalStyle) {
+function renderJobBody(options: SectionListOptions, globalStyle: GlobalStyle) {
   return (
     <div className='w-full'>
-      {(options.items ?? []).map((item: Record<string, any>, index: number) => (
-        <div
-          key={`${index}-${item.company ?? ''}-${item.startDate ?? ''}-${item.endDate ?? ''}`}
-          className='w-full text-[#333] not-last:mb-[10px]'
-          style={{ fontSize: `${globalStyle.fontSize}px` }}
-        >
-          <div className='mb-[5px] flex justify-between'>
-            <div className='flex-5 font-bold'>{item.company}</div>
-            <div className='flex-5 text-right'>
-              {item.startDate} - {item.endDate}
-            </div>
-          </div>
-          {(item.post || item.department || item.city) && (
+      {(options.items ?? []).map((item: Record<string, unknown>, index: number) => {
+        const company = typeof item.company === 'string' ? item.company : '';
+        const startDate = typeof item.startDate === 'string' ? item.startDate : '';
+        const endDate = typeof item.endDate === 'string' ? item.endDate : '';
+        const post = typeof item.post === 'string' ? item.post : '';
+        const department = typeof item.department === 'string' ? item.department : '';
+        const city = typeof item.city === 'string' ? item.city : '';
+        const description = typeof item.description === 'string' ? item.description : '';
+        return (
+          <div
+            key={`${index}-${company}-${startDate}-${endDate}`}
+            className='w-full text-black not-last:mb-[10px]'
+            style={{ fontSize: `${globalStyle.fontSize}px` }}
+          >
             <div className='mb-[5px] flex justify-between'>
-              <div className='flex-6'>
-                {item.post}
-                {item.post ? ' ' : ''}
-                {item.department}
-              </div>
-              <div className='flex-2 text-right'>
-                {normalizeResumeCityDisplay(item.city)}
+              <div className='flex-5 font-bold'>{company}</div>
+              <div className='flex-5 text-right'>
+                {startDate} - {endDate}
               </div>
             </div>
-          )}
-          {plainTextFromRichHtml(item.description) ? (
-            <ResumeQuillHtml
-              html={item.description}
-              style={{
-                fontSize: `${globalStyle.fontSize}px`,
-                lineHeight: globalStyle.lineHeight,
-              }}
-              className='text-[#333]'
-            />
-          ) : null}
-        </div>
-      ))}
+            {(post || department || city) && (
+              <div className='mb-[5px] flex justify-between'>
+                <div className='flex-6'>
+                  {post}
+                  {post ? ' ' : ''}
+                  {department}
+                </div>
+                <div className='flex-2 text-right'>
+                  {normalizeResumeCityDisplay(city)}
+                </div>
+              </div>
+            )}
+            {plainTextFromRichHtml(description) ? (
+              <ResumeQuillHtml
+                html={description}
+                style={{
+                  fontSize: `${globalStyle.fontSize}px`,
+                  lineHeight: globalStyle.lineHeight,
+                }}
+                className='text-black'
+              />
+            ) : null}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-function renderProjectBody(options: Record<string, any>, globalStyle: GlobalStyle) {
+function renderProjectBody(options: SectionListOptions, globalStyle: GlobalStyle) {
   return (
     <div className='w-full'>
-      {(options.items ?? []).map((item: Record<string, any>, index: number) => (
-        <div
-          key={`${index}-${item.name ?? ''}-${item.startDate ?? ''}-${item.endDate ?? ''}`}
-          className='w-full text-[#333] not-last:mb-[10px]'
-          style={{ fontSize: `${globalStyle.fontSize}px` }}
-        >
-          <div className='mb-[5px] flex justify-between'>
-            <div className='flex-5 font-bold'>{item.name}</div>
-            <div className='flex-5 text-right'>
-              {item.startDate} - {item.endDate}
-            </div>
-          </div>
-          {item.role && (
+      {(options.items ?? []).map((item: Record<string, unknown>, index: number) => {
+        const name = typeof item.name === 'string' ? item.name : '';
+        const startDate = typeof item.startDate === 'string' ? item.startDate : '';
+        const endDate = typeof item.endDate === 'string' ? item.endDate : '';
+        const role = typeof item.role === 'string' ? item.role : '';
+        const description = typeof item.description === 'string' ? item.description : '';
+        return (
+          <div
+            key={`${index}-${name}-${startDate}-${endDate}`}
+            className='w-full text-black not-last:mb-[10px]'
+            style={{ fontSize: `${globalStyle.fontSize}px` }}
+          >
             <div className='mb-[5px] flex justify-between'>
-              <div className='flex-6'>{item.role}</div>
+              <div className='flex-5 font-bold'>{name}</div>
+              <div className='flex-5 text-right'>
+                {startDate} - {endDate}
+              </div>
             </div>
-          )}
-          {plainTextFromRichHtml(item.description) ? (
-            <ResumeQuillHtml
-              html={item.description}
-              style={{
-                fontSize: `${globalStyle.fontSize}px`,
-                lineHeight: globalStyle.lineHeight,
-              }}
-              className='text-[#333]'
-            />
-          ) : null}
-        </div>
-      ))}
+            {role && (
+              <div className='mb-[5px] flex justify-between'>
+                <div className='flex-6'>{role}</div>
+              </div>
+            )}
+            {plainTextFromRichHtml(description) ? (
+              <ResumeQuillHtml
+                html={description}
+                style={{
+                  fontSize: `${globalStyle.fontSize}px`,
+                  lineHeight: globalStyle.lineHeight,
+                }}
+                className='text-black'
+              />
+            ) : null}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-function renderEducationBody(options: Record<string, any>, globalStyle: GlobalStyle) {
+function renderEducationBody(options: SectionListOptions, globalStyle: GlobalStyle) {
   return (
     <div className='w-full' style={{ fontSize: `${globalStyle.fontSize}px` }}>
-      {(options.items ?? []).map((item: Record<string, any>, index: number) => (
-        <div
-          key={`${index}-${item.school ?? ''}-${item.startDate ?? ''}-${item.endDate ?? ''}`}
-          className='w-full text-[#333] not-last:mb-[10px]'
-        >
-          <div className='mb-[5px] flex justify-between'>
-            <div className='flex-5 flex items-center'>
-              <span className='font-bold'>{item.school}</span>
-              <div className='ml-[10px] flex items-center'>
-                {(item.tags ?? []).map((tag: string, tagIndex: number) => (
-                  <div
-                    key={`${tagIndex}-${tag}`}
-                    style={{
-                      backgroundColor: globalStyle.color,
-                      color: '#fff',
-                      fontSize: `${globalStyle.fontSize - 4}px`,
-                    }}
-                    className='not-last:mr-[5px] rounded-[5px] px-[5px] py-[2px]'
-                  >
-                    {tag}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className='flex-5 text-right'>
-              {item.startDate} - {item.endDate}
-            </div>
-          </div>
-          {item.degree && (
+      {(options.items ?? []).map((item: Record<string, unknown>, index: number) => {
+        const school = typeof item.school === 'string' ? item.school : '';
+        const startDate = typeof item.startDate === 'string' ? item.startDate : '';
+        const endDate = typeof item.endDate === 'string' ? item.endDate : '';
+        const tags = Array.isArray(item.tags) ? item.tags : [];
+        const degree = typeof item.degree === 'string' ? item.degree : '';
+        const major = typeof item.major === 'string' ? item.major : '';
+        const academy = typeof item.academy === 'string' ? item.academy : '';
+        const city = typeof item.city === 'string' ? item.city : '';
+        const description = typeof item.description === 'string' ? item.description : '';
+        return (
+          <div
+            key={`${index}-${school}-${startDate}-${endDate}`}
+            className='w-full text-black not-last:mb-[10px]'
+          >
             <div className='mb-[5px] flex justify-between'>
-              <div className='flex-7'>
-                {item.major} {item.degree} {item.academy}
+              <div className='flex-5 flex items-center'>
+                <span className='font-bold'>{school}</span>
+                <div className='ml-[10px] flex items-center'>
+                  {tags.map((tag: unknown, tagIndex: number) => {
+                    const tagStr = typeof tag === 'string' ? tag : '';
+                    return (
+                      <div
+                        key={`${tagIndex}-${tagStr}`}
+                        style={{
+                          backgroundColor: globalStyle.color,
+                          color: '#fff',
+                          fontSize: `${globalStyle.fontSize - 4}px`,
+                        }}
+                        className='not-last:mr-[5px] rounded-[5px] px-[5px] py-[2px]'
+                      >
+                        {tagStr}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <div className='flex-3 text-right'>
-                {normalizeResumeCityDisplay(item.city)}
+              <div className='flex-5 text-right'>
+                {startDate} - {endDate}
               </div>
             </div>
-          )}
-          {plainTextFromRichHtml(item.description) ? (
-            <ResumeQuillHtml
-              html={item.description}
-              style={{ fontSize: `${globalStyle.fontSize}px`, lineHeight: globalStyle.lineHeight }}
-              className='text-[#333]'
-            />
-          ) : null}
-        </div>
-      ))}
+            {degree && (
+              <div className='mb-[5px] flex justify-between'>
+                <div className='flex-7'>
+                  {major} {degree} {academy}
+                </div>
+                <div className='flex-3 text-right'>
+                  {normalizeResumeCityDisplay(city)}
+                </div>
+              </div>
+            )}
+            {plainTextFromRichHtml(description) ? (
+              <ResumeQuillHtml
+                html={description}
+                style={{ fontSize: `${globalStyle.fontSize}px`, lineHeight: globalStyle.lineHeight }}
+                className='text-black'
+              />
+            ) : null}
+          </div>
+        );
+      })}
     </div>
   );
 }

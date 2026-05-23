@@ -156,13 +156,17 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
     updateModule(module);
   });
 
-  const handleChange = useMemoizedFn((e: any, index: number, key: string) => {
+  type ChangeEvent = React.ChangeEvent<HTMLInputElement>;
+  type DateValue = [dayjs.Dayjs | undefined, dayjs.Dayjs | undefined];
+  const handleChange = useMemoizedFn((e: ChangeEvent | DateValue | null, index: number, key: string) => {
     if (!module) return;
     if (key === 'name' || key === 'role') {
-      module.options.items[index][key] = e.target.value;
+      const event = e as React.ChangeEvent<HTMLInputElement>;
+      module.options.items[index][key] = event.target.value;
     } else if (key === 'date') {
-      module.options.items[index].startDate = e[0].format('YYYY-MM');
-      module.options.items[index].endDate = e[1].format('YYYY-MM');
+      const dateArr: DateValue = Array.isArray(e) ? e : [undefined, undefined];
+      module.options.items[index].startDate = dateArr[0]?.format('YYYY-MM') ?? '';
+      module.options.items[index].endDate = dateArr[1]?.format('YYYY-MM') ?? '';
     }
     updateModule(module);
   });

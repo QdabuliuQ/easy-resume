@@ -48,3 +48,15 @@ export function globalStylePageDimensions(gs: {
   const id = normResumePageSize(gs.pageSize);
   return RESUME_PAGE_SIZES[id];
 }
+
+/** 将 CSS 长度（mm/in/px）转换为像素，默认按 96 DPI。 */
+export function cssLengthToPx(v: string, dpi = 96): number {
+  const s = String(v ?? '').trim().toLowerCase();
+  if (!s) return 0;
+  const n = Number.parseFloat(s);
+  if (!Number.isFinite(n)) return 0;
+  if (s.endsWith('px')) return n;
+  if (s.endsWith('in')) return (n * dpi);
+  if (s.endsWith('mm')) return (n * dpi) / 25.4;
+  return n;
+}

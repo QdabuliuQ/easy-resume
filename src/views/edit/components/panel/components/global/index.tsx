@@ -86,10 +86,10 @@ function Global() {
     const config = configStore.getConfig;
     if (!config) return;
     let idx = 0;
-    for (const page of config.pages) {
-      for (const _ of page.modules) {
+    for (const page of config.pages as Array<{ modules: Array<any> }>) {
+      for (let mIdx = 0; mIdx < page.modules.length; mIdx++) {
         if (idx === index) {
-          page.modules.splice(idx, 1);
+          page.modules.splice(mIdx, 1);
           configStore.setConfig({
             ...config,
             pages: [...config.pages],

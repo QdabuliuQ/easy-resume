@@ -370,7 +370,7 @@ export default function Home() {
     getThemeSnapshot,
     getServerThemeSnapshot,
   );
-  const [themePref, appTheme] = themeSnap.split('|') as ['dark' | 'light' | 'system', 'dark' | 'light'];
+  const [, appTheme] = themeSnap.split('|') as ['dark' | 'light' | 'system', 'dark' | 'light'];
   const themeNavHint = appTheme === 'dark' ? t('themeToLight') : t('themeToDark');
   const reduceMotion = useSyncExternalStore(
     (onStoreChange) => {

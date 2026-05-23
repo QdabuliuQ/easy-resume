@@ -46,7 +46,7 @@ function Job(props: Props) {
         {options.items.map((item, index) => (
           <div
             key={index}
-            className='min-w-0 w-full text-[#333] not-last:mb-[10px]'
+            className='min-w-0 w-full text-black not-last:mb-[10px]'
             style={{ fontSize: fontSize + 'px' }}
           >
             <div className='mb-[5px] flex min-w-0 justify-between gap-2'>
@@ -71,7 +71,7 @@ function Job(props: Props) {
               <ResumeQuillHtml
                 html={item.description}
                 style={{ fontSize: `${fontSize}px`, lineHeight }}
-                className='text-[#333]'
+                className='text-black'
               />
             ) : null}
           </div>

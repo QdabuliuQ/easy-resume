@@ -7,7 +7,6 @@ import {
   Col,
   Form,
   Input,
-  message,
   Row,
   Switch,
   Upload,
@@ -115,7 +114,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
     for (const page of config.pages) {
       for (const module of page.modules) {
         if (module.id === mid) {
-          let _module = JSON.parse(JSON.stringify(module));
+          const _module = JSON.parse(JSON.stringify(module));
           for (const key in _module.options) {
             if (Object.prototype.hasOwnProperty.call(_module.options, key)) {
               if (key === 'birthday') {

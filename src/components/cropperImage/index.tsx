@@ -10,7 +10,6 @@ const scale = 1;
 
 function CropperImage(props: any, ref: any) {
   const t = useTranslations('Edit.cropper');
-  const cropperRef = useRef<any>(null);
   const [show, setShow] = useState(false);
   const [image, setImage] = useState('');
   const [crop, setCrop] = useState<any>();

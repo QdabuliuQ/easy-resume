@@ -86,7 +86,6 @@ npm run start
 | `npm run lint` | ESLint |
 | `npm run lint:pritter` | Prettier 格式化 `src/` |
 | `npm run prepare` | 安装 Husky（`npm install` 后自动执行） |
-| `npm run commit` | Gitmoji 交互式提交（需全局或本地安装 `gitmoji-cli`） |
 
 ## 🔐 环境变量
 

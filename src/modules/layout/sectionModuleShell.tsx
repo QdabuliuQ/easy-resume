@@ -5,8 +5,17 @@ import SectionHeader, {
   SectionHeaderType11TimelineLayout,
   type SectionHeaderConfig,
 } from '@/modules/header/sectionHeader';
+import { RESUME_MODULE_BODY_TEXT_COLOR } from '@/lib/resumePageLayout';
 import { GlobalStyle } from '@/modules/utils/common.type';
 import { memo, type ReactNode } from 'react';
+
+function ModuleBody({ children }: { children: ReactNode }) {
+  return (
+    <div className='text-black' style={{ color: RESUME_MODULE_BODY_TEXT_COLOR }}>
+      {children}
+    </div>
+  );
+}
 
 function SectionModuleShell({
   moduleId,
@@ -39,7 +48,7 @@ function SectionModuleShell({
           className='w-full cursor-pointer'
         >
           <div className='min-h-0 min-w-0 overflow-hidden rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'>
-            {children}
+            <ModuleBody>{children}</ModuleBody>
           </div>
         </div>
       );
@@ -50,7 +59,7 @@ function SectionModuleShell({
         {...{ [RESUME_MODULE_ID_ATTR]: interactiveModuleId }}
         className='w-full cursor-pointer'
       >
-        {children}
+        <ModuleBody>{children}</ModuleBody>
       </div>
     );
   }
@@ -81,7 +90,7 @@ function SectionModuleShell({
           </div>
         </div>
         <div className='min-h-0 min-w-0 overflow-hidden rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'>
-          {children}
+          <ModuleBody>{children}</ModuleBody>
         </div>
       </div>
     );
@@ -94,7 +103,7 @@ function SectionModuleShell({
         className='w-full cursor-pointer'
       >
         <SectionHeaderType11TimelineLayout title={headerConfig.title} globalStyle={globalStyle}>
-          {children}
+          <ModuleBody>{children}</ModuleBody>
         </SectionHeaderType11TimelineLayout>
       </div>
     );
@@ -105,7 +114,7 @@ function SectionModuleShell({
       {...{ [RESUME_MODULE_ID_ATTR]: interactiveModuleId }}
       className='w-full cursor-pointer'
     >
-      <div className='mb-[5px] w-full'>
+      <div className='mb-[10px] w-full'>
         <SectionHeader
           config={{
             ...headerConfig,
@@ -115,7 +124,7 @@ function SectionModuleShell({
           globalStyle={globalStyle}
         />
       </div>
-      {children}
+      <ModuleBody>{children}</ModuleBody>
     </div>
   );
 }

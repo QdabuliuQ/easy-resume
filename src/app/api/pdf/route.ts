@@ -1,61 +1,34 @@
-import defaultResume from '@/json/resume.defaults';
-import type { GlobalStyle } from '@/modules/utils/common.type';
 import { getSharedBrowser, withPuppeteerSession } from '@/lib/puppeteerSharedBrowser';
-import { loadInlineHtmlForStaticExport, settleFontsOrTimeout } from './loadInlineHtmlForPrint';
-import { mergeResumeConfig } from './mergeResumeConfig';
-import { renderResumeDocumentHtml } from './renderResumeHtml';
-import { globalStylePageDimensions } from '@/lib/resumePageSize';
+import { gotoExportResumeAndWait } from '@/lib/puppeteerWaitExportReady';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
+import { prepareReactExport } from '../export/reactPrintMeta';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-type PrintMeta = {
-  paperWidth: string;
-  paperHeight: string;
-  pageCount: number;
-};
-
-async function generatePdfFromPage(
-  pageHtml: string | null,
-  pageUrl: string | null,
-  printMeta?: PrintMeta | null
+async function generatePdfFromExportUrl(
+  exportUrl: string,
+  meta: { paperWidth: string; paperHeight: string; pageCount: number },
 ) {
   return withPuppeteerSession(async () => {
     const browser = await getSharedBrowser();
     const page = await browser.newPage();
     try {
-      if (printMeta?.paperWidth && printMeta?.paperHeight) {
-        const pageWPx = cssLengthToApproxPx(printMeta.paperWidth);
-        const pageHPx = cssLengthToApproxPx(printMeta.paperHeight);
-        const vw = Math.min(2400, Math.ceil(pageWPx));
-        const vh = Math.min(
-          16384,
-          Math.ceil(printMeta.pageCount * pageHPx)
-        );
-        await page.setViewport({
-          width: vw,
-          height: Math.max(vh, Math.ceil(pageHPx)),
-          deviceScaleFactor: 1,
-        });
-      }
-      if (pageHtml) {
-        await loadInlineHtmlForStaticExport(page, pageHtml);
-      } else if (pageUrl) {
-        await page.setJavaScriptEnabled(true);
-        await page.goto(pageUrl, { waitUntil: 'load', timeout: 120000 });
-        await settleFontsOrTimeout(page);
-      } else {
-        throw new Error('缺少 html 或 url');
-      }
-      const defDim = globalStylePageDimensions(defaultResume.globalStyle);
-      const paperW = printMeta?.paperWidth || defDim.width;
-      const paperH = printMeta?.paperHeight || defDim.height;
+      const pageWPx = cssLengthToApproxPx(meta.paperWidth);
+      const pageHPx = cssLengthToApproxPx(meta.paperHeight);
+      const vw = Math.min(2400, Math.ceil(pageWPx));
+      const vh = Math.min(16384, Math.ceil(meta.pageCount * pageHPx));
+      await page.setViewport({
+        width: vw,
+        height: Math.max(vh, Math.ceil(pageHPx)),
+        deviceScaleFactor: 1,
+      });
+      await gotoExportResumeAndWait(page, exportUrl);
       return await page.pdf({
         printBackground: true,
         margin: { top: '0', right: '0', bottom: '0', left: '0' },
-        width: paperW,
-        height: paperH,
+        width: meta.paperWidth,
+        height: meta.paperHeight,
         preferCSSPageSize: false,
         displayHeaderFooter: false,
         scale: 1,
@@ -78,87 +51,27 @@ function contentDisposition(filename: string) {
   return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(fn)}`;
 }
 
-/** POST JSON: { config?: object, html?: string, url?: string, filename?: string } — 优先 config，其次 html，再次 url */
+/** POST JSON: { config, filename?, locale? } — 画布同源 React 导出页 + Puppeteer */
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
     const requestOrigin = new URL(req.url).origin;
-    const { url, html, filename, config, locale } = body as {
-      url?: string;
-      html?: string;
+    const { filename, config, locale } = body as {
       filename?: string;
       config?: unknown;
       locale?: string;
     };
-
-    let pageHtml: string | null = null;
-    let pageUrl: string | null = null;
-    let printMeta: PrintMeta | null = null;
-
-    if (config != null && typeof config === 'object') {
-      const merged = mergeResumeConfig(config);
-      pageHtml = renderResumeDocumentHtml(
-        merged as {
-          pages: Array<{ moduleMargin?: number; modules?: unknown[] }>;
-          globalStyle: GlobalStyle;
-        },
-        {
-          assetOrigin: requestOrigin,
-          locale: locale === 'en' ? 'en' : 'zh',
-        }
-      );
-      const gs = (merged as { globalStyle?: GlobalStyle }).globalStyle;
-      const exportPages = (merged as { exportPages?: Array<unknown> }).exportPages;
-      const n =
-        Array.isArray(exportPages) && exportPages.length > 0
-          ? exportPages.length
-          : Array.isArray(merged.pages) && merged.pages.length > 0
-            ? merged.pages.length
-          : 1;
-      const dim = globalStylePageDimensions(gs ?? defaultResume.globalStyle);
-      printMeta = {
-        paperWidth: dim.width,
-        paperHeight: dim.height,
-        pageCount: n,
-      };
-    } else if (typeof html === 'string' && html.trim()) {
-      pageHtml = html;
-    } else if (typeof url === 'string' && url.trim()) {
-      pageUrl = url.trim();
-    } else {
-      return Response.json(
-        { error: '需提供 config（推荐）、html 或 url' },
-        { status: 400 }
-      );
+    if (config == null || typeof config !== 'object') {
+      return Response.json({ error: '需提供 config' }, { status: 400 });
     }
-
-    const pdf = await generatePdfFromPage(pageHtml, pageUrl, printMeta);
+    const { meta } = prepareReactExport(config, requestOrigin, locale);
+    const pdf = await generatePdfFromExportUrl(meta.exportUrl, meta);
     return new Response(Buffer.from(pdf), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': contentDisposition(
-          typeof filename === 'string' ? filename : 'export.pdf'
+          typeof filename === 'string' ? filename : 'export.pdf',
         ),
-      },
-    });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return Response.json({ error: msg }, { status: 500 });
-  }
-}
-
-/** GET: ?url=完整地址（兼容旧用法；推荐 POST + config） */
-export async function GET(req: Request) {
-  const url = new URL(req.url).searchParams.get('url');
-  if (!url) {
-    return Response.json({ error: '缺少查询参数 url' }, { status: 400 });
-  }
-  try {
-    const pdf = await generatePdfFromPage(null, url, null);
-    return new Response(Buffer.from(pdf), {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="export.pdf"',
       },
     });
   } catch (e: unknown) {

@@ -76,6 +76,9 @@ const DIM_ICONS: ComponentType<{ theme?: 'outline' | 'filled'; size?: number; fi
   Book,
 ];
 
+const EMPTY_DIMENSION_ROWS: NonNullable<ResumeAiAnalyzeResult['dimensionEvaluate']> = [];
+const EMPTY_FIELD_LIST: NonNullable<ResumeAiAnalyzeResult['fieldOptimizeList']> = [];
+
 function statusTone(status: string): { dot: string; text: string; fill: string } {
   if (status === '优秀')
     return { dot: 'bg-emerald-400', text: 'text-emerald-400', fill: 'var(--panel-tone-emerald)' };
@@ -188,8 +191,8 @@ function AiScore({
     typeof scoreProp === 'number' ? scoreProp : analysis?.totalScore ?? 0
   );
   const scoreState = useMemo(() => scoreMeta(score, ta), [score, ta]);
-  const dimensionRows = analysis?.dimensionEvaluate?.length ? analysis.dimensionEvaluate : [];
-  const fieldList = analysis?.fieldOptimizeList?.length ? analysis.fieldOptimizeList : [];
+  const dimensionRows = analysis?.dimensionEvaluate ?? EMPTY_DIMENSION_ROWS;
+  const fieldList = analysis?.fieldOptimizeList ?? EMPTY_FIELD_LIST;
   const excellentCount = dimensionRows.filter((row) => row.status === '优秀').length;
   const pendingCount = dimensionRows.filter((row) => row.status === '待补充').length;
   const actionableCount = fieldList.filter(
@@ -301,7 +304,7 @@ function AiScore({
                   </button>
                 </div>
               <ul className='flex flex-col gap-2 pt-2'>
-                {fieldList.map((f, fi) => {
+                {fieldList.map((f) => {
                   const hasVal = typeof f.optimizeValue === 'string' && f.optimizeValue.trim().length > 0;
                   const mod = configStore.getConfig
                     ? findResumeModule(configStore.getConfig, f.pageIndex, f.moduleId)

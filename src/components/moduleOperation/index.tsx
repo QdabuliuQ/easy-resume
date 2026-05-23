@@ -236,6 +236,7 @@ function ModuleOperation({
             willChange: toolbarBox.motion === 'smooth' ? 'transform' : 'auto',
           }}
           className='absolute z-10 flex items-start'
+          data-resume-export-ignore
           aria-label={tm('toolbarAria')}
         >
           <div className='flex items-start'>
@@ -317,7 +318,10 @@ function ModuleOperation({
         </div>
       ) : null}
       <div
-        ref={hostRef}
+        ref={(node) => {
+          hostRef.current = node;
+        }}
+        data-resume-canvas-snap
         className='relative flex w-full flex-col'
         style={{ gap: PAGE_STACK_GAP_PX }}
         onClick={hostClick}

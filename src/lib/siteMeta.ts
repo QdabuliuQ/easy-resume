@@ -1,7 +1,5 @@
 export const SITE_NAME_EN = 'EasyResume';
 export const SITE_NAME_ZH = '青松简历';
-/** @deprecated 请使用 getSiteName(locale) */
-export const SITE_NAME = SITE_NAME_EN;
 
 export function getSiteName(locale?: string | null): string {
   return locale === 'en' ? SITE_NAME_EN : SITE_NAME_ZH;

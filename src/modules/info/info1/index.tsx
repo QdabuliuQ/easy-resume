@@ -47,6 +47,7 @@ export interface InfoProps {
 interface Props {
   config: InfoProps;
   globalStyle: GlobalStyle;
+  forceSideCol?: boolean;
 }
 
 function Info1(props: Props) {
@@ -59,7 +60,7 @@ function Info1(props: Props) {
   const { name, layout, avatar, position: positionOpt, showTitle } = props.config.options;
   const showTitleOn = showTitle === true;
   const position = positionOpt ?? 'right';
-  const inSideCol = resumePageHasSideCol(props.globalStyle.layout);
+  const inSideCol = props.forceSideCol ?? resumePageHasSideCol(props.globalStyle.layout);
   const fieldColor = resumeInfo1FieldTextColor(props.globalStyle.layout);
   const sepColor = resumeInfo1FieldSeparatorColor(props.globalStyle.layout);
   const { fontSize, lineHeight } = props.globalStyle;
@@ -88,7 +89,7 @@ function Info1(props: Props) {
           rowElements.push(
             <span
               key={`${String(a)}-${String(b)}`}
-              className={inSideCol ? undefined : 'text-[#333]'}
+              className={inSideCol ? undefined : 'text-black'}
               style={{ fontSize, lineHeight, color: fieldColor }}
             >
               {lbl('expectedSalary')}
@@ -106,7 +107,7 @@ function Info1(props: Props) {
           rowElements.push(
             <span
               key={`${String(key)}-${i}-${j}`}
-              className={inSideCol ? undefined : 'text-[#333]'}
+              className={inSideCol ? undefined : 'text-black'}
               style={{ fontSize, lineHeight, color: fieldColor }}
             >
               {lbl(String(key))}
@@ -144,7 +145,7 @@ function Info1(props: Props) {
       );
     }
     setItemLayout(elements);
-  }, [layout, position, showTitleOn, inSideCol, fieldColor, sepColor, props, tField]);
+  }, [layout, position, showTitleOn, inSideCol, fieldColor, sepColor, props, tField, fontSize, lineHeight]);
 
   const avatarBlock = showAvatar ? (
     <div
@@ -174,8 +175,8 @@ function Info1(props: Props) {
       }
     >
       <div
-        className={`mb-[10px] font-bold leading-none ${inSideCol ? textAlignSide : 'text-[#333]'} ${inSideCol ? '' : position === 'center' ? 'text-center' : ''} ${!inSideCol && position === 'left' ? 'text-right' : ''}`}
-        style={{ fontSize: fontSize * 1.7, color: fieldColor }}
+        className={`mb-[10px] font-bold leading-none ${inSideCol ? textAlignSide : 'text-black'} ${inSideCol ? '' : position === 'center' ? 'text-center' : ''} ${!inSideCol && position === 'left' ? 'text-right' : ''}`}
+        style={{ fontSize: fontSize * 1.7, color: inSideCol ? '#fff' : fieldColor }}
       >
         {name}
       </div>

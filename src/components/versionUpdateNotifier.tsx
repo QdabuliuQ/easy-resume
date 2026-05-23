@@ -95,7 +95,7 @@ export function VersionUpdateNotifier() {
       window.clearInterval(id);
       notification.destroy(NOTIFY_KEY);
     };
-  }, [t]);
+  }, [notification, t]);
 
   return null;
 }

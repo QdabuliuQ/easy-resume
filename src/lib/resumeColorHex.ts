@@ -1,8 +1,8 @@
-export function normHex(s: string) {
+function normHex(s: string) {
   const t = s.trim().toLowerCase();
   return t.startsWith('#') ? t : `#${t}`;
 }
-export function rgbToHex(s: string) {
+function rgbToHex(s: string) {
   const m = s.trim().match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i);
   if (!m) return null;
   const clamp = (n: string) => Math.min(255, Math.max(0, parseInt(n, 10)));

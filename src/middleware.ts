@@ -12,7 +12,7 @@ const intlMiddleware = createMiddleware(routing);
 function stripMobilePrefix(pathname: string): string | null {
   const m = pathname.match(/^\/m\/(zh|en)(\/.*)?$/);
   if (!m) return null;
-  return `/${m[1]}${m[2] ?? ''}` || `/${m[1]}`;
+  return `/${m[1]}${m[2] ?? ''}`;
 }
 
 export default function middleware(request: NextRequest) {
