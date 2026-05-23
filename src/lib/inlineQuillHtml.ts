@@ -1,5 +1,6 @@
 import juice from 'juice';
 import * as cheerio from 'cheerio';
+import type { AnyNode } from 'domhandler';
 import { readQuillSnowCss } from '@/lib/quillSnowCss';
 
 export type InlineQuillHtmlOptions = {
@@ -31,7 +32,7 @@ function stripQuillDomNoise(html: string): string {
 /** juice 去类名后，个别环境会把列表排得像一整段；强制块级与宽度，贴近浏览器默认列表布局 */
 function enforceBlockFlow(html: string): string {
   const $ = cheerio.load(`<div id="__flow">${html}</div>`);
-  const bump = (sel: string, extra?: (n: cheerio.Cheerio) => void) => {
+  const bump = (sel: string, extra?: (n: cheerio.Cheerio<AnyNode>) => void) => {
     $(sel).each((_, el) => {
       const n = $(el);
       const st = (n.attr('style') ?? '').trim();
