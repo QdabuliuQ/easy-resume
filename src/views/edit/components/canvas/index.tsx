@@ -556,15 +556,10 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
     }
   });
 
+  const currentConfig = configStore.getConfig;
   useEffect(() => {
-    render(configStore.getConfig ?? resume);
-  }, [render]);
-
-  useEffect(() => {
-    if (configStore.getConfig) {
-      void render(configStore.getConfig, true);
-    }
-  }, [render]);
+    void render(currentConfig ?? resume, true);
+  }, [render, currentConfig]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
