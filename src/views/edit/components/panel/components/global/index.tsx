@@ -80,7 +80,7 @@ function Global() {
       }
     }
     setModuleLayout(layout);
-  }, [configStore.getConfig]);
+  }, []);
 
   const confirmDelete = (index: number) => {
     const config = configStore.getConfig;

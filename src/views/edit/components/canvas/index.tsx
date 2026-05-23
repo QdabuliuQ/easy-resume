@@ -565,7 +565,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
     if (configStore.getConfig) {
       void render(configStore.getConfig, true);
     }
-  }, [configStore.getConfig]);
+  }, [render]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
