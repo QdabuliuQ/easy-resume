@@ -11,14 +11,17 @@ import {
 } from '@/lib/siteMeta';
 import { logo } from '@/lib/brandAssets';
 
+const FAVICON_VERSION = '20260523';
+const FAVICON_HREF = `/favicon.ico?v=${FAVICON_VERSION}`;
+
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
   applicationName: SITE_NAME_ZH,
   description: SITE_DESCRIPTION_DEFAULT,
   referrer: 'origin-when-cross-origin',
   icons: {
-    icon: [{ url: '/favicon.ico', type: 'image/x-icon' }],
-    shortcut: '/favicon.ico',
+    icon: [{ url: FAVICON_HREF, type: 'image/x-icon' }],
+    shortcut: FAVICON_HREF,
     apple: logo.src,
   },
 };
@@ -38,8 +41,8 @@ export default function RootLayout({
   return (
     <html lang='zh-CN' suppressHydrationWarning>
       <head>
-        <link rel='icon' type='image/x-icon' href='/favicon.ico' />
-        <link rel='shortcut icon' href='/favicon.ico' />
+        <link rel='icon' type='image/x-icon' href={FAVICON_HREF} />
+        <link rel='shortcut icon' href={FAVICON_HREF} />
         <script
           key='theme-bootstrap'
           dangerouslySetInnerHTML={{ __html: themeBootstrap }}

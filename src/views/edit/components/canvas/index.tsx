@@ -233,7 +233,6 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
             requestAnimationFrame(() => {
               const rootEl = container.firstElementChild as HTMLElement | null;
               const height = rootEl ? readLayoutHeightPx(rootEl) : readLayoutHeightPx(container);
-              console.log(`测量 ${domId} 高度 ${height}px`);
               root.unmount();
               document.body.removeChild(container);
               resolve(height + 3);
@@ -559,7 +558,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
 
   useEffect(() => {
     render(configStore.getConfig ?? resume);
-  }, [resume]);
+  }, [render]);
 
   useEffect(() => {
     if (configStore.getConfig) {
