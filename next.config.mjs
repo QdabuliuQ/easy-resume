@@ -8,7 +8,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   experimental: {
-    serverComponentsExternalPackages: ['puppeteer'],
+    serverComponentsExternalPackages: ['puppeteer', '@xenova/transformers', 'onnxruntime-node'],
   },
   images: {
     formats: ['image/avif', 'image/webp'],
