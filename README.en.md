@@ -94,8 +94,7 @@ Create `.env.local` at the project root (do not commit secrets). See `.env.local
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `BIGMODEL_API_KEY` | Yes | API key from [Zhipu AI Open Platform](https://open.bigmodel.cn/) for AI polish, resume scoring, etc. (default model: GLM-4.7-Flash) |
-| `CHATANYWHERE_API_KEY` | Yes | Key from [ChatAnywhere free API](https://github.com/chatanywhere/GPT_API_free); used as fallback when Zhipu requests fail (default model: deepseek-v4-flash) |
+| `CHATANYWHERE_API_KEY` | Yes | Key from [ChatAnywhere free API](https://github.com/chatanywhere/GPT_API_free) for AI polish, resume scoring, etc. (default model: deepseek-v4-flash) |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Browser executable for PDF/PNG export via Puppeteer. In dev, Puppeteer’s bundled Chromium is used if unset; in production on Linux the default is `/usr/bin/chromium-browser` |
 
 `PUPPETEER_EXECUTABLE_PATH` examples:

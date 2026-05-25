@@ -10,7 +10,8 @@ import { useAppMessage } from '@/hooks/useAppMessage';
 import { observer } from 'mobx-react';
 import { useTranslations } from 'next-intl';
 import { memo, useCallback, useMemo, useState } from 'react';
-import { analyzeResumeWithBigmodel, type ResumeAiAnalyzeResult } from '@/api/resumeAiScoreAnalyze';
+import { analyzeResumeWithAi } from '@/api/analyzeResume';
+import type { ResumeAiAnalyzeResult } from '@/lib/ai/score/types';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore } from '@/mobx';
 import type { ResumeModuleType } from '@/utils/createResumeModule';
@@ -79,11 +80,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
             : page.modules;
           return { ...page, modules };
         });
-        const payload = {
-          pages: pagesForAnalyze,
-          globalStyle: cfgInner.globalStyle ?? undefined,
-        };
-        const result = await analyzeResumeWithBigmodel(payload);
+        const result = await analyzeResumeWithAi({ pages: pagesForAnalyze });
         setAiAnalysis(result);
       } catch (e) {
         message.error(e instanceof Error ? e.message : tr('analyzeFail'));

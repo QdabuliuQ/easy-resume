@@ -2,7 +2,8 @@
 import FormItem from '@/components/formItem';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
-import { polishProjectDescriptionWithBigmodel } from '@/api/projectDescriptionPolish';
+import { polishDescription } from '@/api/polishDescription';
+import { intentPostsFromResumeConfig } from '@/utils/intentPosts';
 import { ProjectProps } from '@/modules/project';
 import { Book, Avatar, Calendar, EditOne } from '@icon-park/react';
 import { ProjectOutlined } from '@ant-design/icons';
@@ -21,7 +22,6 @@ import {
 } from 'react';
 import AddGradientButton from '../addGradientButton';
 import ButtonGroup from '../buttonGroup';
-import SplitLine from '../splitLine';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import RichTextEditor from '@/components/richTextEditor';
@@ -43,20 +43,6 @@ function hasRichPreview(html?: string): boolean {
 
 const PREVIEW_HTML_CLASS =
   'max-h-[140px] overflow-y-auto break-words text-[12px] text-fg/60';
-
-function intentPostsFromResumeConfig(
-  config: { pages?: { modules?: { type?: string; options?: { intentPosts?: string } }[] }[] } | null
-): string {
-  if (!config?.pages) return '';
-  for (const page of config.pages) {
-    for (const m of page.modules ?? []) {
-      if (m.type === 'info1' && m.options?.intentPosts != null) {
-        return String(m.options.intentPosts).trim();
-      }
-    }
-  }
-  return '';
-}
 
 function Project({ moduleId }: { moduleId?: string } = {}) {
   const message = useAppMessage();
@@ -359,14 +345,17 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                             }
                             placeholder={tp('descPh')}
                             onAiPolishClick={(richTextHtml, ctx) =>
-                              polishProjectDescriptionWithBigmodel(
+                              polishDescription(
                                 {
+                                  type: 'project',
                                   richTextHtml,
-                                  projectName: String(item.name ?? ''),
-                                  role: String(item.role ?? ''),
                                   intentPosts: intentPostsForPolish,
+                                  context: {
+                                    projectName: String(item.name ?? ''),
+                                    role: String(item.role ?? ''),
+                                  },
                                 },
-                                ctx?.onStreamingHtml
+                                ctx?.onStreamingHtml,
                               )
                             }
                           />
@@ -385,7 +374,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                   copyDisabled={projectItemsFull}
                   flush
                 />
-                {index !== module.options.items.length - 1 && <SplitLine />}
+                {/* 分割线已移除 */}
               </div>
             ))
           ) : (

@@ -27,6 +27,16 @@ export default class ConfigStore {
       return;
     }
     const v = JSON.parse(JSON.stringify(value));
+    const hasValidPages =
+      Array.isArray(v.pages) &&
+      v.pages.some((p: any) => Array.isArray(p?.modules) && p.modules.length > 0);
+    if (!hasValidPages) {
+      // 防御历史异常数据：pages 为空时恢复默认模块，避免编辑面板无可编辑项
+      v.pages = JSON.parse(JSON.stringify(defaultResume.pages ?? []));
+      if (typeof console !== 'undefined') {
+        console.warn('[ConfigStore] invalid empty pages detected, fallback to default pages');
+      }
+    }
     if (v.globalStyle && typeof v.globalStyle === 'object') {
       v.globalStyle = mergeGlobalStylePaper(
         defaultResume.globalStyle as GlobalStyle,

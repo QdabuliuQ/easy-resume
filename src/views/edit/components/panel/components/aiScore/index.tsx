@@ -3,7 +3,7 @@ import { Book, Briefcase, Notes, Right, Setting, Up } from '@icon-park/react';
 import { App, Collapse, Spin } from 'antd';
 import { useTranslations } from 'next-intl';
 import { memo, useCallback, useId, useMemo, type ComponentType } from 'react';
-import type { ResumeAiAnalyzeResult, ResumeAiFieldOptimize } from '@/api/resumeAiScoreAnalyze';
+import type { ResumeAiAnalyzeResult, ResumeAiFieldOptimize } from '@/lib/ai/score/types';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import {
   applyResumeAiFieldOptimize,

@@ -16,7 +16,6 @@ import ButtonGroup from '../buttonGroup';
 import PanelToolbar from '../panelToolbar';
 import { CertificateProps } from '@/modules/certificate';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
-import SplitLine from '../splitLine';
 import {
   canAddResumeModuleItem,
   resumeModuleItemLimitMessage,
@@ -278,7 +277,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                     copyDisabled={certificateItemsFull}
                     flush
                   />
-                  {index !== module.options.items.length - 1 && <SplitLine />}
+                  {/* 分割线已移除 */}
                 </div>
               ))}
             </div>

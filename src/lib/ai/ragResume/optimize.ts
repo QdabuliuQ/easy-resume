@@ -1,0 +1,77 @@
+import { StringOutputParser } from '@langchain/core/output_parsers';
+import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { createChatModel } from '@/lib/ai/chatModel';
+import { buildSceneRetriever } from '@/lib/ai/ragResume/knowledge';
+import type { OptimizeRequest, OptimizeScene } from '@/lib/ai/ragResume/types';
+import { sanitizeRichTextHtml, unwrapFencedHtml } from '@/utils/sanitizeHtml';
+
+function normalizeRawText(text: string): string {
+  return String(text ?? '').trim();
+}
+
+const SCENE_LABEL: Record<OptimizeScene, string> = {
+  skill: '技能描述',
+  work: '工作经历',
+  project: '项目经历',
+};
+
+const SCENE_SYSTEM: Record<OptimizeScene, string> = {
+  skill:
+    '你是资深HR与简历优化专家。请基于输入原文与检索到的技能规则进行润色，保持事实不变，不编造经历。',
+  work:
+    '你是资深HR与简历优化专家。请基于输入原文与检索到的工作经历规则进行润色，保持事实不变，不编造经历。',
+  project:
+    '你是资深HR与简历优化专家。请基于输入原文与检索到的项目经历规则进行润色，保持事实不变，不编造经历。',
+};
+
+const OPTIMIZE_HUMAN = `你将收到：
+1) 用户目标岗位
+2) 用户原始文本
+3) 从本地知识库检索出的规则片段
+
+请严格执行：
+1. 只返回优化后的HTML富文本，不返回解释。
+2. 仅允许标签：<b>、<i>、<u>、<ul>、<li>。
+3. 必须使用<ul><li>结构，禁止<ol>。
+4. 语言简洁、专业，符合ATS筛选。
+5. 保留事实，不新增原文未给出的经历、数据。
+
+【目标岗位】
+{postType}
+
+【内容类型】
+{sceneLabel}
+
+【原始文本】
+{rawText}
+
+【知识库规则片段】
+{knowledgeContext}`;
+
+export async function optimizeByScene(
+  scene: OptimizeScene,
+  req: OptimizeRequest,
+): Promise<string> {
+  const rawText = normalizeRawText(req.rawText);
+  if (!rawText) throw new Error('原始文本不能为空');
+
+  const retriever = await buildSceneRetriever(scene, req.postType);
+  const knowledgeContext = await retriever.retrieve(rawText);
+
+  const prompt = ChatPromptTemplate.fromMessages([
+    ['system', SCENE_SYSTEM[scene]],
+    ['human', OPTIMIZE_HUMAN],
+  ]);
+
+  const chain = prompt
+    .pipe(createChatModel({ temperature: 0.8 }))
+    .pipe(new StringOutputParser());
+
+  const rawHtml = await chain.invoke({
+    postType: req.postType || '未指定岗位',
+    sceneLabel: SCENE_LABEL[scene],
+    rawText,
+    knowledgeContext: knowledgeContext || '未命中岗位规则，仅应用全局规则。',
+  });
+  return sanitizeRichTextHtml(unwrapFencedHtml(rawHtml));
+}

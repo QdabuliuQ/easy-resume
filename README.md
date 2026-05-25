@@ -95,8 +95,7 @@ npm run start
 
 | 变量 | 必填 | 说明 |
 |------|------|------|
-| `BIGMODEL_API_KEY` | 是 | [智谱 AI 开放平台](https://open.bigmodel.cn/) 的 API Key，用于 AI 润色、简历评分等（默认模型 GLM-4.7-Flash） |
-| `CHATANYWHERE_API_KEY` | 是 | [ChatAnywhere 免费 API](https://github.com/chatanywhere/GPT_API_free) 的 Key；智谱请求失败时会自动降级走该中转（默认模型 deepseek-v4-flash） |
+| `CHATANYWHERE_API_KEY` | 是 | [ChatAnywhere 免费 API](https://github.com/chatanywhere/GPT_API_free) 的 Key，用于 AI 润色、简历评分等（默认模型 deepseek-v4-flash） |
 | `PUPPETEER_EXECUTABLE_PATH` | 否 | 导出 PDF/PNG 时 Puppeteer 使用的浏览器可执行文件路径。开发环境未设置时由 Puppeteer 自带 Chromium；生产环境 Linux 默认 `/usr/bin/chromium-browser` |
 
 `PUPPETEER_EXECUTABLE_PATH` 示例：

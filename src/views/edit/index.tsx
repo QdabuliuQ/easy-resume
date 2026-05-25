@@ -2,6 +2,7 @@
 import { memo, useLayoutEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSearchParams } from 'next/navigation';
+import defaultResume from '@/json/resume.defaults';
 import { resumeTemplates } from '@/json/resumeTemplates';
 import { configStore } from '@/mobx';
 import Canvas from './components/canvas';
@@ -16,12 +17,19 @@ function Edit() {
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
   useLayoutEffect(() => {
     const raw = searchParams.get('template');
-    if (raw == null || raw === '') return;
-    const n = Number.parseInt(raw, 10);
-    if (!Number.isFinite(n) || n < 1 || n > resumeTemplates.length) return;
-    const tpl = resumeTemplates[n - 1];
-    if (!tpl?.config) return;
-    configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
+    if (raw != null && raw !== '') {
+      const n = Number.parseInt(raw, 10);
+      if (Number.isFinite(n) && n >= 1 && n <= resumeTemplates.length) {
+        const tpl = resumeTemplates[n - 1];
+        if (tpl?.config) {
+          configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
+          return;
+        }
+      }
+    }
+    if (!configStore.getConfig?.pages?.length) {
+      configStore.setConfig(JSON.parse(JSON.stringify(defaultResume)));
+    }
   }, [searchParams]);
 
   return (

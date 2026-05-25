@@ -2,7 +2,8 @@
 import FormItem from '@/components/formItem';
 import ResponsiveSelect from '@/components/responsiveSelect';
 import { ResponsiveRangeDatePicker } from '@/components/responsiveDatePicker';
-import { polishEducationDescriptionWithBigmodel } from '@/api/educationDescriptionPolish';
+import { polishDescription } from '@/api/polishDescription';
+import { intentPostsFromResumeConfig } from '@/utils/intentPosts';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
 import {
@@ -39,7 +40,6 @@ import AddGradientButton from '../addGradientButton';
 import ButtonGroup from '../buttonGroup';
 import { city, degree, schoolType } from '@/modules/utils/constant';
 import { EducationProps } from '@/modules/education';
-import SplitLine from '../splitLine';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import RichTextEditor from '@/components/richTextEditor';
@@ -51,20 +51,6 @@ import { useTranslations } from 'next-intl';
 import { ensureResumeModuleItemsId, makeResumeItemId } from '@/utils/createResumeModule';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
-
-function intentPostsFromResumeConfig(
-  config: { pages?: { modules?: { type?: string; options?: { intentPosts?: string } }[] }[] } | null
-): string {
-  if (!config?.pages) return '';
-  for (const page of config.pages) {
-    for (const m of page.modules ?? []) {
-      if (m.type === 'info1' && m.options?.intentPosts != null) {
-        return String(m.options.intentPosts).trim();
-      }
-    }
-  }
-  return '';
-}
 
 function Education({ moduleId }: { moduleId?: string } = {}) {
   const message = useAppMessage();
@@ -457,19 +443,22 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                               const schoolTypeTags = Array.isArray(item.tags)
                                 ? item.tags.join('、')
                                 : '';
-                              return polishEducationDescriptionWithBigmodel(
+                              return polishDescription(
                                 {
+                                  type: 'education',
                                   richTextHtml,
-                                  school: String(item.school ?? ''),
-                                  degree: String(item.degree ?? ''),
-                                  major: String(item.major ?? ''),
-                                  city: cityStr,
-                                  schoolTypeTags,
-                                  academy: String(item.academy ?? ''),
-                                  studyTime,
                                   intentPosts: intentPostsForPolish,
+                                  context: {
+                                    school: String(item.school ?? ''),
+                                    degree: String(item.degree ?? ''),
+                                    major: String(item.major ?? ''),
+                                    city: cityStr,
+                                    schoolTypeTags,
+                                    academy: String(item.academy ?? ''),
+                                    studyTime,
+                                  },
                                 },
-                                ctx?.onStreamingHtml
+                                ctx?.onStreamingHtml,
                               );
                             }}
                           />
@@ -488,7 +477,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                   copyDisabled={educationItemsFull}
                   flush
                 />
-                {index !== module.options.items.length - 1 && <SplitLine />}
+                {/* 分割线已移除 */}
               </div>
             ))
           ) : (

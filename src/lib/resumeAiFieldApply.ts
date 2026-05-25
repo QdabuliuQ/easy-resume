@@ -1,4 +1,4 @@
-import type { ResumeAiFieldOptimize } from '@/api/resumeAiScoreAnalyze';
+import type { ResumeAiFieldOptimize } from '@/lib/ai/score/types';
 
 export const RESUME_ITEMS_MODULE_TYPES = ['job', 'project', 'education', 'certificate'] as const;
 

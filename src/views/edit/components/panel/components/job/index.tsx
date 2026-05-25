@@ -2,7 +2,8 @@
 import FormItem from '@/components/formItem';
 import { ResponsiveRangeDatePicker } from '@/components/responsiveDatePicker';
 import { useModuleHandle } from '@/hooks/module';
-import { polishJobDescriptionWithBigmodel } from '@/api/jobDescriptionPolish';
+import { polishDescription } from '@/api/polishDescription';
+import { intentPostsFromResumeConfig } from '@/utils/intentPosts';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { city } from '@/modules/utils/constant';
 import {
@@ -34,7 +35,6 @@ import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import AddGradientButton from '../addGradientButton';
 import ButtonGroup from '../buttonGroup';
 import { JobProps } from '@/modules/job';
-import SplitLine from '../splitLine';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import dayjs from 'dayjs';
@@ -48,20 +48,6 @@ import { ensureResumeModuleItemsId, makeResumeItemId } from '@/utils/createResum
 import { useTranslations } from 'next-intl';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
-
-function intentPostsFromResumeConfig(
-  config: { pages?: { modules?: { type?: string; options?: { intentPosts?: string } }[] }[] } | null
-): string {
-  if (!config?.pages) return '';
-  for (const page of config.pages) {
-    for (const m of page.modules ?? []) {
-      if (m.type === 'info1' && m.options?.intentPosts != null) {
-        return String(m.options.intentPosts).trim();
-      }
-    }
-  }
-  return '';
-}
 
 function Job({ moduleId }: { moduleId?: string } = {}) {
   const message = useAppMessage();
@@ -423,16 +409,19 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                                 .map((s: string) => String(s ?? '').trim())
                                 .filter(Boolean)
                                 .join(' / ');
-                              return polishJobDescriptionWithBigmodel(
+                              return polishDescription(
                                 {
+                                  type: 'job',
                                   richTextHtml,
-                                  company: String(item.company ?? ''),
-                                  time: timeStr,
-                                  postDepartment: postDept,
-                                  city: cityStr,
                                   intentPosts: intentPostsForPolish,
+                                  context: {
+                                    company: String(item.company ?? ''),
+                                    time: timeStr,
+                                    postDepartment: postDept,
+                                    city: cityStr,
+                                  },
                                 },
-                                ctx?.onStreamingHtml
+                                ctx?.onStreamingHtml,
                               );
                             }}
                           />
@@ -451,7 +440,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                   copyDisabled={jobItemsFull}
                   flush
                 />
-                {index !== module.options.items.length - 1 && <SplitLine />}
+                
               </div>
             ))
           ) : (

@@ -10,6 +10,7 @@ import type { GlobalStyle } from '@/modules/utils/common.type';
 import { Info1, Margin, Page } from '@/modules';
 import { flattenModules } from '@/utils/resumePages';
 import { resumeFontForExport } from '@/lib/resumeFont';
+import { resumeModuleSlotStyle } from '@/lib/resumeModuleSlotLayout';
 import CanvasModuleFragment from '@/views/edit/components/canvas/moduleFragment';
 import { renderResumePageModules } from '@/views/edit/components/canvas/renderResumePageModules';
 import ExportPrintFonts from '@/views/export/exportPrintFonts';
@@ -109,20 +110,14 @@ function renderSlotsFromExportPages(
       ) : (
         node
       );
-      const clips =
-        viewH != null &&
-        mh != null &&
-        viewH > 0 &&
-        offsetY === 0 &&
-        mh > viewH;
       children.push(
         <div
           key={slotKey}
-          style={{
-            height: viewH != null && viewH > 0 ? viewH : undefined,
-            overflow: clips ? 'hidden' : 'visible',
-            flexShrink: 0,
-          }}
+          style={resumeModuleSlotStyle({
+            viewHeight: viewH ?? 0,
+            offsetY,
+            measuredModuleHeight: mh,
+          })}
         >
           {inner}
         </div>,

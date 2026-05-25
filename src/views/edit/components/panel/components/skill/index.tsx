@@ -1,5 +1,6 @@
 'use client';
-import { polishSkillDescriptionWithBigmodel } from '@/api/skillDescriptionPolish';
+import { polishDescription } from '@/api/polishDescription';
+import { intentPostsFromResumeConfig } from '@/utils/intentPosts';
 import RichTextEditor, {
   RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH,
 } from '@/components/richTextEditor';
@@ -15,24 +16,6 @@ import { memo, useEffect, useId, useState, type CSSProperties } from 'react';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
-
-function intentPostsFromResumeConfig(
-  config: {
-    pages?: {
-      modules?: { type?: string; options?: { intentPosts?: string } }[];
-    }[];
-  } | null
-): string {
-  if (!config?.pages) return '';
-  for (const page of config.pages) {
-    for (const m of page.modules ?? []) {
-      if (m.type === 'info1' && m.options?.intentPosts != null) {
-        return String(m.options.intentPosts).trim();
-      }
-    }
-  }
-  return '';
-}
 
 function Skill({ moduleId }: { moduleId?: string } = {}) {
   const ts = useTranslations('Edit.skill');
@@ -163,9 +146,13 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
             maxPlainLength={RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH}
             placeholder={ts('placeholder')}
             onAiPolishClick={(richTextHtml, ctx) =>
-              polishSkillDescriptionWithBigmodel(
-                { richTextHtml, intentPosts: intentPostsForPolish },
-                ctx?.onStreamingHtml
+              polishDescription(
+                {
+                  type: 'skill',
+                  richTextHtml,
+                  intentPosts: intentPostsForPolish,
+                },
+                ctx?.onStreamingHtml,
               )
             }
           />
