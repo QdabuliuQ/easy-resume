@@ -300,13 +300,6 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
           offsetY,
           measuredModuleHeight: moduleHeight,
         });
-        if (isLastModule) {
-          console.log('[Canvas pagination] last module overflow px', {
-            moduleId: module.id,
-            moduleType: module.type,
-            overflowHeight: Math.max(0, remaining - visibleHeight),
-          });
-        }
         usedHeight = effectiveHeight;
         const overflowHeight = remaining - visibleHeight;
         offsetY = moduleHeight - overflowHeight;
