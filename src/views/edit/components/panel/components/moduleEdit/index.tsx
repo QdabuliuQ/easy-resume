@@ -143,11 +143,11 @@ function ModuleEdit() {
                 onClick={() => moduleActiveStore.setModuleActive(mod.id)}
                 className={`shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
                   selected
-                    ? 'border-[color:color-mix(in_srgb,var(--color-primary)_72%,rgb(var(--panel-surface-rgb)/0.28))] bg-[color:color-mix(in_srgb,var(--color-primary)_28%,transparent)] text-[color:var(--color-primary)] shadow-[0_6px_18px_rgb(249_114_77_/_0.2)]'
+                    ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)] text-white shadow-[0_8px_18px_color-mix(in_srgb,var(--color-primary)_35%,transparent)]'
                     : 'border-fg/[0.14] bg-surface/[0.07] text-fg/62 hover:bg-surface/[0.12] hover:text-fg/92'
                 }`}
               >
-                <span className={`mr-1.5 ${selected ? 'text-[var(--color-primary)]' : 'text-fg/58'}`}>{String(mod.index + 1).padStart(2, '0')}</span>
+                <span className={`mr-1.5 ${selected ? 'text-white/90' : 'text-fg/58'}`}>{String(mod.index + 1).padStart(2, '0')}</span>
                 <span>{mod.label}</span>
               </button>
             );

@@ -429,7 +429,8 @@ export default function Home() {
     if (!glow) return;
 
     if (!finePointer || isComparing) {
-      glow.style.transform = 'translate3d(calc(50vw - 240px), calc(40vh - 240px), 0)';
+      glow.style.left = 'calc(50vw - 240px)';
+      glow.style.top = 'calc(40vh - 240px)';
       glow.style.opacity = isComparing ? '0.28' : '0.52';
       return;
     }
@@ -438,7 +439,8 @@ export default function Home() {
     const flush = () => {
       rafRef.current = null;
       const { x, y } = mouseTargetRef.current;
-      glow.style.transform = `translate3d(${x - 240}px, ${y - 240}px, 0)`;
+      glow.style.left = `${x - 240}px`;
+      glow.style.top = `${y - 240}px`;
     };
 
     const onMouseMove = (event: MouseEvent) => {
@@ -447,7 +449,8 @@ export default function Home() {
       rafRef.current = window.requestAnimationFrame(flush);
     };
 
-    const onMouseLeave = () => {
+    const onMouseLeave = (event?: MouseEvent) => {
+      if (event && event.relatedTarget) return;
       mouseTargetRef.current = { x: window.innerWidth / 2, y: window.innerHeight * 0.4 };
       if (rafRef.current !== null) return;
       rafRef.current = window.requestAnimationFrame(flush);
@@ -512,9 +515,10 @@ export default function Home() {
       <div className='pointer-events-none absolute inset-0 z-0 overflow-hidden'>
         <div
           ref={glowRef}
-          className='fixed left-0 top-0 h-[480px] w-[480px] rounded-full blur-[90px] transition-opacity duration-500 will-change-transform'
+          className='fixed left-0 top-0 h-[480px] w-[480px] rounded-full blur-[90px] transition-opacity duration-500'
           style={{
             opacity: finePointer ? 0.72 : 0.52,
+            willChange: 'top, left',
             background:
               'radial-gradient(circle, color-mix(in srgb, var(--color-primary) 24%, transparent), color-mix(in srgb, var(--color-primary-gradient-start) 18%, transparent) 44%, transparent 74%)',
           }}
