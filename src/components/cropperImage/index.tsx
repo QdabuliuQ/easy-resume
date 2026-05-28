@@ -5,6 +5,7 @@ import { forwardRef, memo, useImperativeHandle, useRef, useState } from 'react';
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { useMemoizedFn } from 'ahooks';
+import { blobToDataUrl, cropImageBlob } from '@/lib/imageCropWorkerClient';
 
 const scale = 1;
 
@@ -53,9 +54,8 @@ function CropperImage(props: any, ref: any) {
   });
 
   // 完成裁剪
-  const cropImage = () => {
+  const cropImage = async () => {
     if (imgRef.current && crop.width && crop.height) {
-      const canvas = document.createElement('canvas');
       const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
       const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
 
@@ -63,12 +63,28 @@ function CropperImage(props: any, ref: any) {
       const actualCropWidth = crop.width * scaleX * scale;
       const actualCropHeight = crop.height * scaleY * scale;
 
-      canvas.width = actualCropWidth;
-      canvas.height = actualCropHeight;
-
-      const ctx = canvas.getContext('2d');
-
-      if (ctx) {
+      try {
+        const source = await fetch(image).then((res) => res.blob());
+        const blob = await cropImageBlob({
+          source,
+          sx: crop.x * scaleX,
+          sy: crop.y * scaleY,
+          sw: crop.width * scaleX,
+          sh: crop.height * scaleY,
+          dw: actualCropWidth,
+          dh: actualCropHeight,
+          type: 'image/jpeg',
+          quality: 0.92,
+        });
+        const base64Image = await blobToDataUrl(blob);
+        setShow(false);
+        callbackRef.current?.(base64Image);
+      } catch {
+        const canvas = document.createElement('canvas');
+        canvas.width = actualCropWidth;
+        canvas.height = actualCropHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
         ctx.drawImage(
           imgRef.current,
           crop.x * scaleX,
@@ -80,8 +96,11 @@ function CropperImage(props: any, ref: any) {
           actualCropWidth,
           actualCropHeight
         );
-
-        const base64Image = canvas.toDataURL('image/jpeg');
+        const blob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob((result) => resolve(result), 'image/jpeg', 0.92);
+        });
+        if (!blob) return;
+        const base64Image = await blobToDataUrl(blob);
         setShow(false);
         callbackRef.current?.(base64Image);
       }

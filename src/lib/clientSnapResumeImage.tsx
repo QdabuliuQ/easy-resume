@@ -11,6 +11,7 @@ import {
   resumeSnapLocalFonts,
 } from '@/lib/resumeFont';
 import { prepareResumeSnapSubtree } from '@/lib/resumeSnapPrepare';
+import { cropImageBlob } from '@/lib/imageCropWorkerClient';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import ResumeImageExportPage from '@/views/export/resumeImageExportPage';
 
@@ -39,16 +40,18 @@ async function cropJpegBorder(blob: Blob, borderPx = 1): Promise<Blob> {
     const dw = sw - borderPx * 2;
     const dh = sh - borderPx * 2;
     if (dw < 8 || dh < 8) return blob;
-    const canvas = document.createElement('canvas');
-    canvas.width = dw;
-    canvas.height = dh;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return blob;
-    ctx.drawImage(img, borderPx, borderPx, dw, dh, 0, 0, dw, dh);
-    const cropped = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.92);
+    const cropped = await cropImageBlob({
+      source: blob,
+      sx: borderPx,
+      sy: borderPx,
+      sw: dw,
+      sh: dh,
+      dw,
+      dh,
+      type: 'image/jpeg',
+      quality: 0.92,
     });
-    return cropped ?? blob;
+    return cropped;
   } finally {
     URL.revokeObjectURL(url);
   }

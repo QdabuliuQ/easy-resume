@@ -9,13 +9,3 @@ export function flattenModules(resume: any): any[] {
   }
   return list;
 }
-
-export function findModuleById(resume: any, id: string): any | undefined {
-  if (!resume?.pages?.length) return undefined;
-  for (const p of resume.pages) {
-    for (const m of p.modules ?? []) {
-      if (m.id === id) return m;
-    }
-  }
-  return undefined;
-}

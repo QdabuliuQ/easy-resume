@@ -47,10 +47,6 @@ export function getResolvedTheme(): ResolvedTheme {
   return preference;
 }
 
-export function getThemePreference(): ThemePreference {
-  return preference;
-}
-
 function applyResolved() {
   if (typeof document === 'undefined') return;
   const resolved = getResolvedTheme();
