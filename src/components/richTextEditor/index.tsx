@@ -232,6 +232,30 @@ function RichTextEditor({
         <div className={styles.host} style={tipCssVars}>
           <div ref={hostRef} className="min-w-0" />
         </div>
+        {onAiPolishClick ? (
+          <button
+            type="button"
+            aria-busy={polishing}
+            disabled={polishing}
+            onClick={() => {
+              if (!polishing) void runAiPolishFromParent();
+            }}
+            className={
+              'bg-gradient-primary absolute right-2 top-[8px] z-[4] inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-2.5 text-[11px] font-medium text-white shadow-sm ' +
+              'outline-none transition-[filter,opacity] hover:brightness-110 disabled:pointer-events-none disabled:opacity-65'
+            }
+          >
+            {polishing ? (
+              <span
+                className="inline-block size-3.5 shrink-0 animate-spin rounded-full border-2 border-white/35 border-t-white"
+                aria-hidden
+              />
+            ) : (
+              <Magic theme="outline" size="13" fill="#fff" />
+            )}
+            {tr('aiPolish')}
+          </button>
+        ) : null}
         {polishing ? (
           <div
             className="pointer-events-none absolute inset-0 z-[5] flex flex-col items-center justify-center gap-2 rounded-md bg-neutral-900/55 text-[13px] font-medium text-white/95"
@@ -251,41 +275,6 @@ function RichTextEditor({
           {plainCount}/{maxPlainLength}
         </span>
       </div>
-      {onAiPolishClick ? (
-        <div className="mt-2 flex justify-end">
-          <div
-            role="button"
-            tabIndex={polishing ? -1 : 0}
-            aria-busy={polishing}
-            aria-disabled={polishing}
-            onClick={() => {
-              if (!polishing) void runAiPolishFromParent();
-            }}
-            onKeyDown={(e) => {
-              if (polishing) return;
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                void runAiPolishFromParent();
-              }
-            }}
-            className={
-              'bg-gradient-primary inline-flex cursor-pointer select-none items-center gap-1 rounded-md px-3 py-1 text-xs font-medium text-white shadow-md text-[11px]' +
-              'outline-none transition-[filter,opacity] hover:brightness-110 ' +
-              (polishing ? 'pointer-events-none opacity-65' : '')
-            }
-          >
-            {polishing ? (
-              <span
-                className="inline-block size-3.5 shrink-0 animate-spin rounded-full border-2 border-white/35 border-t-white"
-                aria-hidden
-              />
-            ) : (
-              <Magic theme="outline" size="13" fill="#fff"/>
-            )}
-            {tr('aiPolish')}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

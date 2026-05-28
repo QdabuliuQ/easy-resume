@@ -37,7 +37,8 @@
   border-bottom-style: solid;
   border-bottom-color: var(--rte-chrome-line) !important;
   background-color: var(--rte-toolbar-bg);
-  padding: 6px 8px;
+  min-height: 39px;
+  padding: 6px 96px 6px 8px;
 }
 
 .host :global(.ql-toolbar button) {
