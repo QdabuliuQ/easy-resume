@@ -17,18 +17,27 @@ function Edit() {
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
   useLayoutEffect(() => {
     const raw = searchParams.get('template');
+    const color = searchParams.get('color');
     if (raw != null && raw !== '') {
       const n = Number.parseInt(raw, 10);
       if (Number.isFinite(n) && n >= 1 && n <= resumeTemplates.length) {
         const tpl = resumeTemplates[n - 1];
         if (tpl?.config) {
-          configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
+          const config = JSON.parse(JSON.stringify(tpl.config));
+          if (color && typeof config.globalStyle === 'object') {
+            config.globalStyle.color = color;
+          }
+          configStore.setConfig(config);
           return;
         }
       }
     }
     if (!configStore.getConfig?.pages?.length) {
-      configStore.setConfig(JSON.parse(JSON.stringify(defaultResume)));
+      const config = JSON.parse(JSON.stringify(defaultResume));
+      if (color && typeof config.globalStyle === 'object') {
+        config.globalStyle.color = color;
+      }
+      configStore.setConfig(config);
     }
   }, [searchParams]);
 

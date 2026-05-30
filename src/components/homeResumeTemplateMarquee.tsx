@@ -60,7 +60,7 @@ const TemplatePageScaled = memo(function TemplatePageScaled({
     templateIndex1Based != null &&
     templateIndex1Based >= 1 &&
     templateIndex1Based <= resumeTemplates.length;
-  const editHref = showUse ? `/edit?template=${templateIndex1Based}` : '';
+  const editHref = showUse ? `/edit?template=${templateIndex1Based}&color=${encodeURIComponent(resumeTextColor)}` : '';
   return (
     <div
       className={`relative isolate shrink-0 overflow-hidden rounded-md bg-white text-left text-[#333] leading-normal font-normal shadow-sm ring-1 ring-black/6 ${showUse ? 'group' : ''}`}
