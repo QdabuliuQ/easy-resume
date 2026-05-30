@@ -219,8 +219,24 @@ function HeroPreviewCompare({
     applyClientX(e.clientX);
   };
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
-    if (!wrapRef.current?.hasPointerCapture(e.pointerId)) return;
+    if (!wrapRef.current?.hasPointerCapture(e.pointerId) && e.pointerType === 'touch') return;
     scheduleApplyClientX(e.clientX);
+  };
+  const onPointerEnter = (e: PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'touch') return;
+    cancelSnap();
+    cancelDragRaf();
+    onDragStateChange?.(true);
+    refreshWrapGeom();
+    applyClientX(e.clientX);
+  };
+  const onPointerLeave = (e: PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'touch' || wrapRef.current?.hasPointerCapture(e.pointerId)) return;
+    cancelDragRaf();
+    pendingXRef.current = null;
+    onDragStateChange?.(false);
+    setPct(pctRef.current);
+    snapToCenter();
   };
   const onPointerUp = (e: PointerEvent<HTMLDivElement>) => {
     cancelDragRaf();
@@ -265,8 +281,10 @@ function HeroPreviewCompare({
           WebkitBackfaceVisibility: 'hidden',
           willChange: 'transform',
         }}
+        onPointerEnter={onPointerEnter}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
+        onPointerLeave={onPointerLeave}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         onLostPointerCapture={() => {
