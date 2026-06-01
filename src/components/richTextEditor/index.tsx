@@ -195,6 +195,10 @@ function RichTextEditor({
   const runAiPolishFromParent = useMemoizedFn(async () => {
     const q = quillRef.current;
     if (!q || polishing) return;
+    if (!navigator.onLine) {
+      message.warning(tr('offlineNeedNetworkBackupJson'));
+      return;
+    }
     const richTextHtml = sanitizeRichTextHtml(q.root.innerHTML);
     const plain = richTextHtml.replace(/<[^>]*>/g, '').trim();
     if (!plain) {
@@ -241,7 +245,7 @@ function RichTextEditor({
               if (!polishing) void runAiPolishFromParent();
             }}
             className={
-              'bg-gradient-primary absolute right-2 top-[8px] z-[4] inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-2.5 text-[11px] font-medium text-white shadow-sm ' +
+              'bg-gradient-primary absolute right-2 top-[7px] z-[4] inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-2.5 text-[11px] font-medium text-white shadow-sm ' +
               'outline-none transition-[filter,opacity] hover:brightness-110 disabled:pointer-events-none disabled:opacity-65'
             }
           >

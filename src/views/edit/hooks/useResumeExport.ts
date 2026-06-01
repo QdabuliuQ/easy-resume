@@ -32,6 +32,10 @@ export function useResumeExport() {
   };
   const exportPdf = async () => {
     if (typeof window === 'undefined' || pdfLoading || imageLoading) return;
+    if (!navigator.onLine) {
+      message.warning(t('offlineNeedNetworkBackupJson'));
+      return;
+    }
     setPdfLoading(true);
     const hide = message.loading(t('exportPdfLoading'), 0);
     try {
@@ -69,6 +73,10 @@ export function useResumeExport() {
   };
   const exportImage = async () => {
     if (typeof window === 'undefined' || imageLoading || pdfLoading) return;
+    if (!navigator.onLine) {
+      message.warning(t('offlineNeedNetworkBackupJson'));
+      return;
+    }
     setImageLoading(true);
     const hide = message.loading(t('exportImageLoading'), 0);
     try {

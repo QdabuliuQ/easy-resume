@@ -12,6 +12,8 @@ export default {
     exportImageOk: '已导出图片',
     exportImageLoading: '正在导出图片…',
     exportJsonOk: '已导出 JSON',
+    offlineNeedNetworkBackupJson:
+      '当前处于离线状态，AI润色、导出PDF和导出图片需要网络连接。你可以先导出 JSON 配置自行备份。',
     exportFail: '导出失败',
     fontSizeLabel: '字号',
     fontFamilyLabel: '字体',
@@ -208,6 +210,8 @@ export default {
       '完整地址即可跳转任意网站（如 https://github.com/user/repo）',
     needContentWarn: '请先输入内容',
     aiPendingInfo: 'AI 润色接口接入后即可使用',
+    offlineNeedNetworkBackupJson:
+      '当前处于离线状态，AI润色需要网络连接。你可以先导出 JSON 配置自行备份。',
     polishOk: '润色完成',
     polishFail: '润色失败，请稍后重试',
     aiGenerating: 'AI生成中...',

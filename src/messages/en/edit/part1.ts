@@ -12,6 +12,8 @@ export default {
     exportImageOk: 'Image exported',
     exportImageLoading: 'Exporting image…',
     exportJsonOk: 'JSON exported',
+    offlineNeedNetworkBackupJson:
+      'You are offline. AI polish, PDF export, and image export require a network connection. You can export the JSON config first as a backup.',
     exportFail: 'Export failed',
     fontSizeLabel: 'Font size',
     fontFamilyLabel: 'Font',
@@ -208,6 +210,8 @@ export default {
     linkHint: 'Use a full URL (e.g. https://github.com/user/repo)',
     needContentWarn: 'Add some content first',
     aiPendingInfo: 'AI polish will be available once configured',
+    offlineNeedNetworkBackupJson:
+      'You are offline. AI polish requires a network connection. You can export the JSON config first as a backup.',
     polishOk: 'Polish applied',
     polishFail: 'Polish failed—try again later',
     aiGenerating: 'Generating…',

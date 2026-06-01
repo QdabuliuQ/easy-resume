@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>离线状态</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        background: radial-gradient(circle at 10% 10%, #ddf4ff 0%, #f5f7fb 35%, #ffffff 100%);
+        color: #0f172a;
+      }
+
+      main {
+        width: min(560px, calc(100vw - 32px));
+        border-radius: 20px;
+        padding: 28px;
+        background: rgba(255, 255, 255, 0.86);
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.14);
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: 30px;
+      }
+
+      p {
+        margin: 0;
+        color: #334155;
+        line-height: 1.7;
+      }
+
+      button {
+        margin-top: 18px;
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        color: #ffffff;
+        background: #0f766e;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>当前处于离线状态</h1>
+      <p>网络不可用时，可继续访问之前打开过的页面与静态资源。恢复网络后可刷新以获取最新内容。</p>
+      <button type="button" onclick="location.reload()">重试连接</button>
+    </main>
+  </body>
+</html>
