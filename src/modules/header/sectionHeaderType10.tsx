@@ -21,7 +21,7 @@ export function SectionHeaderType10({
   const prefixFs = `${Math.max(12, Math.round(fontSizeNum * 0.88))}px`;
   return (
     <div style={sectionHeaderRowHeightStyle} className='flex w-full items-center'>
-      <div className='flex flex-wrap items-baseline gap-x-3 gap-y-0.5'>
+      <div className='flex flex-wrap gap-x-3 gap-y-0.5'>
         {ord ? (
           <span
             className='shrink-0 font-medium tabular-nums leading-none tracking-tight'

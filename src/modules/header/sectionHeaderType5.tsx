@@ -26,6 +26,7 @@ export function SectionHeaderType5({
           backgroundColor: color,
           clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%)',
           fontSize: fontSizeCss,
+          color: '#fff',
         }}
       >
         {title}

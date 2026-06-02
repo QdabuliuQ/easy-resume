@@ -39,6 +39,8 @@ export function prepareResumeSnapSubtree(root: HTMLElement, gs: GlobalStyle) {
   root.querySelectorAll<HTMLElement>(tags).forEach((el) => {
     if (el.closest('[data-resume-export-ignore]')) return;
     if (el.closest('[data-resume-side-col]')) return;
+    // Respect explicit inline color (e.g. white text on colored header chips).
+    if (el.style.color && el.style.color.trim()) return;
     const tc = getComputedStyle(el).color;
     if (needsForcedInk(tc)) el.style.setProperty('color', color, 'important');
   });

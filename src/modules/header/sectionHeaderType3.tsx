@@ -34,7 +34,7 @@ export function SectionHeaderType3({
         />
         <div
           className='relative z-[1] flex h-full items-center py-0 pl-3 pr-10 font-bold leading-none text-white'
-          style={{ ...trapMain, fontSize: fontSizeCss }}
+          style={{ ...trapMain, fontSize: fontSizeCss, color: '#fff' }}
         >
           {title}
         </div>
