@@ -2,32 +2,46 @@
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { useMemoizedFn } from 'ahooks';
 import { useLocale, useTranslations } from 'next-intl';
-import Quill from 'quill';
 import { memo, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { sanitizeRichTextHtml, unwrapFencedHtml } from '@/utils/sanitizeHtml';
 import 'quill/dist/quill.snow.css';
 import { Magic } from '@icon-park/react';
 import styles from './index.module.css';
 
-const LinkFormat = Quill.import('formats/link') as { PROTOCOL_WHITELIST: string[] };
-for (const p of ['ftp', 'ftps'] as const) {
-  if (!LinkFormat.PROTOCOL_WHITELIST.includes(p)) {
-    LinkFormat.PROTOCOL_WHITELIST.push(p);
+type QuillType = any;
+
+let quillCtorPromise: Promise<QuillType> | null = null;
+
+async function loadQuillCtor(): Promise<QuillType> {
+  if (!quillCtorPromise) {
+    quillCtorPromise = import('quill').then((mod) => {
+      const QuillCtor = mod.default;
+      const LinkFormat = QuillCtor.import('formats/link') as {
+        PROTOCOL_WHITELIST: string[];
+      };
+      for (const p of ['ftp', 'ftps'] as const) {
+        if (!LinkFormat.PROTOCOL_WHITELIST.includes(p)) {
+          LinkFormat.PROTOCOL_WHITELIST.push(p);
+        }
+      }
+      return QuillCtor;
+    });
   }
+  return quillCtorPromise;
 }
 
 export const RICH_TEXT_MAX_PLAIN_LENGTH = 300;
 export const RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH = 2000;
 
-function getQuillPlainCharCount(q: Quill): number {
+function getQuillPlainCharCount(q: QuillType): number {
   const L = q.getLength();
   return L > 0 ? L - 1 : 0;
 }
 
-function clampQuillPlainLength(q: Quill, max: number) {
+function clampQuillPlainLength(q: QuillType, max: number) {
   const n = getQuillPlainCharCount(q);
   if (n <= max) return;
-  q.deleteText(max, n - max, Quill.sources.SILENT);
+  q.deleteText(max, n - max, 'silent');
 }
 
 export type AiPolishStreamContext = {
@@ -93,11 +107,12 @@ function RichTextEditor({
   const tr = useTranslations('Edit.richText');
   const locale = useLocale();
   const hostRef = useRef<HTMLDivElement>(null);
-  const quillRef = useRef<Quill | null>(null);
+  const quillRef = useRef<QuillType | null>(null);
   const onHtmlChangeRef = useRef(onHtmlChange);
   onHtmlChangeRef.current = onHtmlChange;
   const [polishing, setPolishing] = useState(false);
   const [plainCount, setPlainCount] = useState(0);
+  const [loadingEditor, setLoadingEditor] = useState(true);
 
   const tipCssVars = useMemo(() => {
     const q = JSON.stringify;
@@ -115,49 +130,69 @@ function RichTextEditor({
     const el = hostRef.current;
     if (!el) return;
     el.innerHTML = '';
+    setLoadingEditor(true);
+    let disposed = false;
 
-    const q = new Quill(el, {
-      theme: 'snow',
-      placeholder: placeholder ?? tr('placeholderDefault'),
-      modules: {
-        toolbar: {
-          container: [...DEFAULT_QUILL_TOOLBAR_ROWS],
+    void (async () => {
+      const QuillCtor = await loadQuillCtor();
+      if (disposed) return;
+
+      const q = new QuillCtor(el, {
+        theme: 'snow',
+        placeholder: placeholder ?? tr('placeholderDefault'),
+        modules: {
+          toolbar: {
+            container: [...DEFAULT_QUILL_TOOLBAR_ROWS],
+          },
         },
-      },
-    });
-    quillRef.current = q;
-    const tb = el.previousElementSibling;
-    if (tb?.classList.contains('ql-toolbar')) localizeQuillSnowToolbar(tb, tr);
-    const tipInput = el.querySelector('.ql-tooltip input[type="text"]');
-    if (tipInput) tipInput.setAttribute('data-link', tr('linkHint'));
+      });
+      quillRef.current = q;
+      const tb = el.previousElementSibling;
+      if (tb?.classList.contains('ql-toolbar')) localizeQuillSnowToolbar(tb, tr);
+      const tipInput = el.querySelector('.ql-tooltip input[type="text"]');
+      if (tipInput) tipInput.setAttribute('data-link', tr('linkHint'));
 
-    const initial = sanitizeRichTextHtml(html ?? '');
-    if (initial) {
-      try {
-        const delta = q.clipboard.convert({ html: initial });
-        q.setContents(delta, 'silent');
-      } catch {
-        q.root.innerHTML = initial;
+      const initial = sanitizeRichTextHtml(html ?? '');
+      if (initial) {
+        try {
+          const delta = q.clipboard.convert({ html: initial });
+          q.setContents(delta, 'silent');
+        } catch {
+          q.root.innerHTML = initial;
+        }
       }
-    }
-    const beforeClamp = sanitizeRichTextHtml(q.root.innerHTML);
-    clampQuillPlainLength(q, maxPlainLength);
-    const afterClamp = sanitizeRichTextHtml(q.root.innerHTML);
-    setPlainCount(getQuillPlainCharCount(q));
-    if (beforeClamp !== afterClamp) {
-      onHtmlChangeRef.current(afterClamp);
-    }
-
-    const onTextChange = () => {
+      const beforeClamp = sanitizeRichTextHtml(q.root.innerHTML);
       clampQuillPlainLength(q, maxPlainLength);
+      const afterClamp = sanitizeRichTextHtml(q.root.innerHTML);
       setPlainCount(getQuillPlainCharCount(q));
-      onHtmlChangeRef.current(sanitizeRichTextHtml(q.root.innerHTML));
-    };
-    q.on('text-change', onTextChange);
+      if (beforeClamp !== afterClamp) {
+        onHtmlChangeRef.current(afterClamp);
+      }
+
+      const onTextChange = () => {
+        clampQuillPlainLength(q, maxPlainLength);
+        setPlainCount(getQuillPlainCharCount(q));
+        onHtmlChangeRef.current(sanitizeRichTextHtml(q.root.innerHTML));
+      };
+      q.on('text-change', onTextChange);
+      setLoadingEditor(false);
+
+      if (disposed) {
+        q.off('text-change', onTextChange);
+        quillRef.current = null;
+        let prev = el.previousElementSibling;
+        while (prev?.classList.contains('ql-toolbar')) {
+          const toRemove = prev;
+          prev = prev.previousElementSibling;
+          toRemove.remove();
+        }
+        el.innerHTML = '';
+      }
+    })();
 
     return () => {
+      disposed = true;
       quillRef.current = null;
-      q.off('text-change', onTextChange);
       let prev = el.previousElementSibling;
       while (prev?.classList.contains('ql-toolbar')) {
         const toRemove = prev;
@@ -175,7 +210,7 @@ function RichTextEditor({
     q.enable(!polishing);
   }, [polishing]);
 
-  const applyHtmlToQuill = useMemoizedFn((q: Quill, nextHtml: string) => {
+  const applyHtmlToQuill = useMemoizedFn((q: QuillType, nextHtml: string) => {
     const sanitized = sanitizeRichTextHtml(nextHtml);
     if (sanitized) {
       try {
@@ -236,11 +271,16 @@ function RichTextEditor({
         <div className={styles.host} style={tipCssVars}>
           <div ref={hostRef} className="min-w-0" />
         </div>
+        {loadingEditor ? (
+          <div className="pointer-events-none absolute inset-0 z-[3] flex items-center justify-center rounded-md bg-neutral-900/12 text-[12px] text-fg/70">
+            <span className="inline-block size-4 animate-spin rounded-full border-2 border-fg/25 border-t-[color:var(--color-primary)]" />
+          </div>
+        ) : null}
         {onAiPolishClick ? (
           <button
             type="button"
             aria-busy={polishing}
-            disabled={polishing}
+            disabled={polishing || loadingEditor}
             onClick={() => {
               if (!polishing) void runAiPolishFromParent();
             }}

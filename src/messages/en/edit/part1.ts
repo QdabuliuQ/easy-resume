@@ -128,6 +128,7 @@ export default {
     chipGeneral: 'Global',
     chipPageSettings: 'Page',
     chipEdit: 'Edit',
+    loadingPanel: 'Loading panel...',
     maxModulesTooltip: 'Max {max} modules for this type',
     addModule: 'Add module',
     startAnalyze: 'Run analysis',

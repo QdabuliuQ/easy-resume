@@ -127,6 +127,7 @@ export default {
     chipGeneral: '全局',
     chipPageSettings: '页面',
     chipEdit: '编辑',
+    loadingPanel: '面板加载中...',
     maxModulesTooltip: '该模块最多 {max} 个，已达上限',
     addModule: '添加模块',
     startAnalyze: '开始分析',

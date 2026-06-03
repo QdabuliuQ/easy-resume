@@ -3,12 +3,17 @@
 import { useLocale, useMessages, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useAppMessage } from '@/hooks/useAppMessage';
-import {
-  downloadResumeJpegViaSnapdom,
-  warmupResumeImageExportRuntime,
-} from '@/lib/clientSnapResumeImage';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
+
+let snapClientPromise: Promise<typeof import('@/lib/clientSnapResumeImage')> | null = null;
+
+function loadSnapClient() {
+  if (!snapClientPromise) {
+    snapClientPromise = import('@/lib/clientSnapResumeImage');
+  }
+  return snapClientPromise;
+}
 
 export function useResumeExport() {
   const message = useAppMessage();
@@ -26,7 +31,10 @@ export function useResumeExport() {
     const runWarmup = () => {
       if (canceled) return;
       const resumeFont = configStore.mergedGlobalStyle?.resumeFont ?? 'system';
-      warmupResumeImageExportRuntime(resumeFont);
+      void loadSnapClient().then((mod) => {
+        if (canceled) return;
+        mod.warmupResumeImageExportRuntime(resumeFont);
+      });
     };
 
     runWarmup();
@@ -111,8 +119,9 @@ export function useResumeExport() {
     setImageLoading(true);
     const hide = message.loading(t('exportImageLoading'), 0);
     try {
+      const snapClient = await loadSnapClient();
       const safe = safeName();
-      await downloadResumeJpegViaSnapdom({
+      await snapClient.downloadResumeJpegViaSnapdom({
         config: snapshotForExport(),
         filename: `${safe}.jpg`,
         locale,

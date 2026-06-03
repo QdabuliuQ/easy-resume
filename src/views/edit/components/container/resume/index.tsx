@@ -9,7 +9,7 @@ import { Popover, Tooltip } from 'antd';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { observer } from 'mobx-react';
 import { useTranslations } from 'next-intl';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react';
 import { analyzeResumeWithAi } from '@/api/analyzeResume';
 import type { ResumeAiAnalyzeResult } from '@/lib/ai/score/types';
 import { useModuleHandle } from '@/hooks/module';
@@ -20,11 +20,13 @@ import {
   isResumeModuleTypeAtLimit,
   RESUME_MODULE_MAX_COUNT,
 } from '@/utils/moduleTypeLimits';
-import AiScore from '../../panel/components/aiScore';
-import GeneralSettings from '../../panel/components/generalSettings';
-import ModuleEdit from '../../panel/components/moduleEdit';
-import PageSettings from '../../panel/components/pageSettings';
-import ResumeTemplate from '../../panel/components/resumeTemplate';
+
+const AiScore = lazy(() => import('../../panel/components/aiScore'));
+const GeneralSettings = lazy(() => import('../../panel/components/generalSettings'));
+const ModuleEdit = lazy(() => import('../../panel/components/moduleEdit'));
+const PageSettings = lazy(() => import('../../panel/components/pageSettings'));
+const ResumeTemplate = lazy(() => import('../../panel/components/resumeTemplate'));
+
 type ResumeProps = { menuActiveKey: string };
 const GRADIENT_CTA_CLASS =
   'bg-add-module-gradient relative isolate flex h-10 w-[410px] max-w-full cursor-pointer select-none items-center justify-center gap-2 overflow-hidden rounded-md text-[14px] font-bold text-white shadow-lg shadow-black/20 outline-none backdrop-blur-md backdrop-saturate-200 transition-[filter] duration-200 hover:brightness-125 hover:saturate-150 active:brightness-95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100 disabled:hover:saturate-100';
@@ -143,17 +145,31 @@ function Resume({ menuActiveKey }: ResumeProps) {
               </div>
             </div>
           </div>
-          {isAiScore ? (
-            <AiScore loading={analyzeLoading} analysis={aiAnalysis} />
-          ) : isResumeTemplate ? (
-            <ResumeTemplate />
-          ) : isGeneralSettings ? (
-            <GeneralSettings />
-          ) : isPageSettings ? (
-            <PageSettings />
-          ) : (
-            <ModuleEdit />
-          )}
+          <Suspense
+            fallback={
+              <div className='rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.09),rgb(var(--panel-surface-rgb)/0.04))] px-4 py-10'>
+                <div className='flex items-center justify-center gap-2 text-[13px] text-fg/58'>
+                  <span
+                    className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-fg/25 border-t-[color:var(--color-primary)]'
+                    aria-hidden
+                  />
+                  <span>{tr('loadingPanel')}</span>
+                </div>
+              </div>
+            }
+          >
+            {isAiScore ? (
+              <AiScore loading={analyzeLoading} analysis={aiAnalysis} />
+            ) : isResumeTemplate ? (
+              <ResumeTemplate />
+            ) : isGeneralSettings ? (
+              <GeneralSettings />
+            ) : isPageSettings ? (
+              <PageSettings />
+            ) : (
+              <ModuleEdit />
+            )}
+          </Suspense>
         </div>
       </div>
       {isResumeEdit && (

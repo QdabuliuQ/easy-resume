@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { memo, useLayoutEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSearchParams } from 'next/navigation';
@@ -10,10 +11,17 @@ import Container from '../components/container';
 import MobileEditHeader from './header';
 import MobileMainTabs from './mainTabs';
 import MobileBottomNav, { type MobileBottomKey } from './bottomNav';
-import MobilePreviewOverlay from './previewOverlay';
-import MobileExportSheet from './exportSheet';
-import MobileTemplateOverlay from './templateOverlay';
 import { MobileEditProvider } from './context';
+
+const MobilePreviewOverlay = dynamic(() => import('./previewOverlay'), {
+  ssr: false,
+});
+const MobileExportSheet = dynamic(() => import('./exportSheet'), {
+  ssr: false,
+});
+const MobileTemplateOverlay = dynamic(() => import('./templateOverlay'), {
+  ssr: false,
+});
 
 const DEFAULT_MENU_KEY = 'resume';
 function MobileEdit() {
@@ -95,7 +103,9 @@ function MobileEdit() {
           onClose={() => setPreviewOpen(false)}
         />
       ) : null}
-      <MobileExportSheet visible={exportOpen} onClose={() => setExportOpen(false)} />
+      {exportOpen ? (
+        <MobileExportSheet visible={exportOpen} onClose={() => setExportOpen(false)} />
+      ) : null}
       {templateOpen ? (
         <MobileTemplateOverlay onClose={() => setTemplateOpen(false)} />
       ) : null}

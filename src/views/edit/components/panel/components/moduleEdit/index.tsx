@@ -48,7 +48,7 @@ const panelHasOwnTitle = new Set([
  * 滚入视区时与滚动容器顶部的间距。
  * 这里需要覆盖 sticky 模块导航本身的高度，否则跳转后模块顶部会被挡住。
  */
-const SCROLL_INTO_VIEW_MARGIN_TOP = 170;
+const SCROLL_INTO_VIEW_MARGIN_TOP = 77;
 function scrollParentEl(el: HTMLElement | null): Element | null {
   let p: Element | null = el?.parentElement ?? null;
   while (p && p !== document.body) {
