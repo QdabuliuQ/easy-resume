@@ -1,9 +1,12 @@
 'use client';
 
 import { useLocale, useMessages, useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppMessage } from '@/hooks/useAppMessage';
-import { downloadResumeJpegViaSnapdom } from '@/lib/clientSnapResumeImage';
+import {
+  downloadResumeJpegViaSnapdom,
+  warmupResumeImageExportRuntime,
+} from '@/lib/clientSnapResumeImage';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 
@@ -15,6 +18,32 @@ export function useResumeExport() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let canceled = false;
+
+    const runWarmup = () => {
+      if (canceled) return;
+      const resumeFont = configStore.mergedGlobalStyle?.resumeFont ?? 'system';
+      warmupResumeImageExportRuntime(resumeFont);
+    };
+
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(runWarmup, { timeout: 1200 });
+      return () => {
+        canceled = true;
+        window.cancelIdleCallback(id);
+      };
+    }
+
+    const timer = globalThis.setTimeout(runWarmup, 300);
+    return () => {
+      canceled = true;
+      globalThis.clearTimeout(timer);
+    };
+  }, []);
+
   const snapshotForExport = () => {
     const raw = configStore.getConfig;
     if (!raw) return JSON.parse(JSON.stringify(defaultResume));
