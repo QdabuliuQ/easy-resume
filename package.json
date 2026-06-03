@@ -8,6 +8,9 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "eslint src",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "prepare": "husky install",
     "start": "next start -p 3010"
   },
@@ -20,6 +23,7 @@
     "@langchain/core": "^1.1.48",
     "@langchain/openai": "^1.4.7",
     "@upstash/redis": "^1.38.0",
+    "@xenova/transformers": "^2.17.2",
     "@zumer/snapdom": "^2.12.0",
     "ahooks": "^3.8.5",
     "antd": "^5.25.4",
@@ -38,25 +42,33 @@
     "react-grid-layout": "^1.5.1",
     "react-image-crop": "^11.0.10",
     "typed.js": "^3.0.0",
-    "@xenova/transformers": "^2.17.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
     "@tailwindcss/postcss": "^4.0.9",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.13.5",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.21.0",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^15.15.0",
     "husky": "^8.0.3",
+    "jsdom": "^26.1.0",
     "postcss": "^8.5.3",
     "prettier": "^3.5.2",
     "tailwindcss": "^4.0.9",
     "typescript": "~5.7.2",
-    "typescript-eslint": "^8.25.0"
+    "typescript-eslint": "^8.25.0",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   },
   "eslintConfig": {
     "rules": {

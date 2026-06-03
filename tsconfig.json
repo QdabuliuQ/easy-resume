@@ -35,6 +35,9 @@
     "./next-env.d.ts",
     "./src/**/*.ts",
     "./src/**/*.tsx",
+    "./tests/**/*.ts",
+    "./tests/**/*.tsx",
+    "./vitest.config.ts",
     "./types/*.d.ts",
     ".next/types/**/*.ts"
   ],
