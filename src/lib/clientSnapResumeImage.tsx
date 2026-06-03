@@ -24,6 +24,7 @@ type SnapOpts = {
 };
 
 let snapRuntimeWarmed = false;
+let snapRuntimeWarmPromise: Promise<void> | null = null;
 
 const SNAP_HOST_STYLE =
   'position:fixed;inset:0;z-index:2147483647;overflow:auto;background:#fff;opacity:0.01;pointer-events:none;';
@@ -149,27 +150,37 @@ export async function downloadResumeJpegViaSnapdom(opts: SnapOpts): Promise<void
  * browser/runtime paths so the first real export has less startup overhead.
  */
 export function warmupResumeImageExportRuntime(resumeFont: unknown): void {
-  if (snapRuntimeWarmed || typeof window === 'undefined') {
+  if (typeof window === 'undefined' || snapRuntimeWarmed) {
     return;
   }
+  if (snapRuntimeWarmPromise) return;
 
-  // Touch snapdom symbol so bundlers/runtime keep this path hot in memory.
-  void snapdom;
+  snapRuntimeWarmPromise = (async () => {
+    try {
+      // Touch snapdom symbol so bundlers/runtime keep this path hot in memory.
+      void snapdom;
 
-  const fid = resumeFontForExport(resumeFont);
-  const family = resumePrimaryFontFamily(fid);
-  if (typeof document !== 'undefined' && 'fonts' in document) {
-    void document.fonts.check(`400 16px "${family}"`);
-    void document.fonts.check(`700 16px "${family}"`);
-  }
+      const fid = resumeFontForExport(resumeFont);
+      const family = resumePrimaryFontFamily(fid);
+      if (typeof document !== 'undefined' && 'fonts' in document) {
+        void document.fonts.check(`400 16px "${family}"`);
+        void document.fonts.check(`700 16px "${family}"`);
+      }
 
-  // Trigger minimal layout work once during idle time.
-  const probe = document.createElement('div');
-  probe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;';
-  probe.textContent = '.';
-  document.body.appendChild(probe);
-  void probe.getBoundingClientRect();
-  probe.remove();
+      // Trigger minimal layout work once during idle time.
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;';
+      probe.textContent = '.';
+      document.body.appendChild(probe);
+      void probe.getBoundingClientRect();
+      probe.remove();
 
-  snapRuntimeWarmed = true;
+      // Preload export font files ahead of first export, avoiding cold fetch on click.
+      await preloadResumeFontsForSnap(window.location.origin, fid).catch(() => undefined);
+
+      snapRuntimeWarmed = true;
+    } finally {
+      snapRuntimeWarmPromise = null;
+    }
+  })();
 }

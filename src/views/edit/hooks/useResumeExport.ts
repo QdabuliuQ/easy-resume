@@ -29,6 +29,8 @@ export function useResumeExport() {
       warmupResumeImageExportRuntime(resumeFont);
     };
 
+    runWarmup();
+
     if ('requestIdleCallback' in window) {
       const id = window.requestIdleCallback(runWarmup, { timeout: 1200 });
       return () => {
