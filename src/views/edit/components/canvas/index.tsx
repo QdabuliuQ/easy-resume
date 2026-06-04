@@ -53,7 +53,7 @@ import { flattenModules } from '@/utils/resumePages';
 import ModuleOperation from '@/components/moduleOperation';
 import { CanvasScaleContext } from './canvasScaleContext';
 import { PAGE_STACK_GAP_PX } from './pageStackGap';
-import ResumeFontCdn from './resumeFontCdn';
+import ResumeFontCdn from './ResumeFontCdn';
 import CanvasModuleFragment from './moduleFragment';
 
 /** 容器内左右留白，用于判断是否需缩小画布（缩放时两侧至少各 40） */

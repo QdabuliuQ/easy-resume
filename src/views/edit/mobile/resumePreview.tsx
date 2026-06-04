@@ -7,7 +7,7 @@ import { Page } from '@/modules';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { configStore } from '@/mobx';
 import { renderResumePageModules } from '@/views/edit/components/canvas/renderResumePageModules';
-import ResumeFontCdn from '@/views/edit/components/canvas/resumeFontCdn';
+import ResumeFontCdn from '@/views/edit/components/canvas/ResumeFontCdn';
 import { observer } from 'mobx-react';
 import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
