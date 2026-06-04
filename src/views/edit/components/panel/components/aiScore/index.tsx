@@ -13,58 +13,12 @@ import {
 } from '@/lib/resumeAiFieldApply';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { moduleType as moduleTypeMeta } from '@/modules/utils/constant';
+import GaugeRing from './gaugeRing';
+import { clampScore0to100, scoreMeta } from './scoreMeta';
 
 const PRIMARY_FILL = 'var(--color-primary)';
 const panelShellClass =
   'overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),rgb(var(--panel-surface-rgb)/0.03)]';
-
-function clampScore0to100(n: number) {
-  if (!Number.isFinite(n)) return 0;
-  return Math.min(100, Math.max(0, Math.round(n)));
-}
-
-function scoreMeta(score: number, ta: (key: string) => string) {
-  if (score >= 90) return { label: ta('bandStrong'), tone: 'text-emerald-300', chip: 'bg-emerald-400/14 text-emerald-300 border-emerald-300/20' };
-  if (score >= 75) return { label: ta('bandSolid'), tone: 'text-amber-200', chip: 'bg-amber-300/14 text-amber-200 border-amber-200/20' };
-  return { label: ta('bandWeak'), tone: 'text-rose-400', chip: 'bg-rose-300/14 text-rose-400 border-rose-200/20' };
-}
-
-function GaugeRing({ gradId, score }: { gradId: string; score: number }) {
-  const r = 78;
-  const cx = 110;
-  const cy = 100;
-  const d = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
-  const dash = `${score} 100`;
-  return (
-    <svg viewBox='0 0 220 118' className='mx-auto block h-[118px] w-full max-w-[220px]' aria-hidden>
-      <defs>
-        <linearGradient id={gradId} x1='0%' y1='0%' x2='100%' y2='0%'>
-          <stop offset='0%' stopColor='var(--color-primary-gradient-start)' />
-          <stop offset='100%' stopColor='var(--color-primary)' />
-        </linearGradient>
-      </defs>
-      <path
-        d={d}
-        fill='none'
-        stroke='var(--panel-chart-track)'
-        strokeWidth='14'
-        strokeLinecap='round'
-        pathLength={100}
-      />
-      {score > 0 ? (
-        <path
-          d={d}
-          fill='none'
-          stroke={`url(#${gradId})`}
-          strokeWidth='14'
-          strokeLinecap='round'
-          pathLength={100}
-          strokeDasharray={dash}
-        />
-      ) : null}
-    </svg>
-  );
-}
 
 const collapsePanelClass =
   '[&_.ant-collapse]:!border-fg/[0.06] [&_.ant-collapse-item]:!border-fg/[0.06] [&_.ant-collapse-header]:!relative [&_.ant-collapse-header]:!z-[2] [&_.ant-collapse-header]:!shrink-0 [&_.ant-collapse-header]:!items-center [&_.ant-collapse-header]:!border-b [&_.ant-collapse-header]:!border-fg/[0.06] [&_.ant-collapse-header]:!py-2.5 [&_.ant-collapse-header]:!px-3 [&_.ant-collapse-header]:!text-[13px] [&_.ant-collapse-header]:!text-fg/90 [&_.ant-collapse-header]:!rounded-none [&_.ant-collapse-header]:hover:!bg-surface/[0.04] [&_.ant-collapse-content]:!relative [&_.ant-collapse-content]:!z-0 [&_.ant-collapse-content]:!border-fg/[0.06] [&_.ant-collapse-content-box]:!px-3 [&_.ant-collapse-content-box]:!pb-3 [&_.ant-collapse-content-box]:!pt-1 [&_.ant-collapse-content-box]:!isolate';

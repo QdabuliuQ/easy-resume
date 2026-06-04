@@ -28,10 +28,11 @@ const PageSettings = lazy(() => import('../../panel/components/pageSettings'));
 const ResumeTemplate = lazy(() => import('../../panel/components/resumeTemplate'));
 
 type ResumeProps = { menuActiveKey: string };
+import PanelHero from '../../panel/components/panelHero';
+import { resolvePanelHeroContent } from '../../panel/components/panelHero/resolveContent';
+
 const GRADIENT_CTA_CLASS =
   'bg-add-module-gradient relative isolate flex h-10 w-[410px] max-w-full cursor-pointer select-none items-center justify-center gap-2 overflow-hidden rounded-md text-[14px] font-bold text-white shadow-lg shadow-black/20 outline-none backdrop-blur-md backdrop-saturate-200 transition-[filter] duration-200 hover:brightness-125 hover:saturate-150 active:brightness-95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100 disabled:hover:saturate-100';
-const PANEL_HERO_CLASS =
-  'mb-4 rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.11),rgb(var(--panel-surface-rgb)/0.05))] px-4 py-3 text-fg shadow-[0_18px_42px_rgba(0,0,0,0.14)]';
 function Resume({ menuActiveKey }: ResumeProps) {
   const message = useAppMessage();
   const tr = useTranslations('Edit.resumeContainer');
@@ -58,6 +59,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const isGeneralSettings = menuActiveKey === 'general-settings';
   const isPageSettings = menuActiveKey === 'page-settings';
   const isResumeEdit = menuActiveKey === 'resume';
+  const panelHero = resolvePanelHeroContent(menuActiveKey, tr);
   const onStartAnalyze = useCallback(() => {
     if (analyzeLoading) return;
     const cfgInner = configStore.getConfig;
@@ -95,56 +97,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
     <div className='relative flex h-full min-h-0 flex-1 flex-col text-black [transform:translateZ(0)] bg-[var(--resume-panel-bg)]'>
       <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-24'>
         <div className='m-[20px]'>
-          <div className={PANEL_HERO_CLASS}>
-            <div className='flex items-start justify-between gap-3'>
-              <div className='min-w-0'>
-                <p className='text-[11px] font-medium tracking-[0.18em] text-fg/62'>
-                  {isAiScore
-                    ? 'AI SCORE'
-                    : isResumeTemplate
-                      ? 'TEMPLATES'
-                      : isGeneralSettings
-                        ? 'GLOBAL'
-                        : isPageSettings
-                          ? 'PAGE'
-                          : 'CONFIG'}
-                </p>
-                <h2 className='mt-1 text-[17px] font-semibold text-fg/95'>
-                  {isAiScore
-                    ? tr('panelTitleAi')
-                    : isResumeTemplate
-                      ? tr('panelTitleTemplate')
-                      : isGeneralSettings
-                        ? tr('panelTitleGeneral')
-                        : isPageSettings
-                          ? tr('panelTitlePageSettings')
-                          : tr('panelTitleDefault')}
-                </h2>
-                <p className='mt-1 text-[12px] leading-relaxed text-fg/62'>
-                  {isAiScore
-                    ? tr('panelDescAi')
-                    : isResumeTemplate
-                      ? tr('panelDescTemplate')
-                      : isGeneralSettings
-                        ? tr('panelDescGeneral')
-                        : isPageSettings
-                          ? tr('panelDescPageSettings')
-                          : tr('panelDescDefault')}
-                </p>
-              </div>
-              <div className='shrink-0 rounded-full border border-fg/[0.14] bg-surface/[0.08] px-3 py-1 text-[11px] font-semibold text-fg/68'>
-                {isAiScore
-                  ? tr('chipAi')
-                  : isResumeTemplate
-                    ? tr('chipTemplate')
-                    : isGeneralSettings
-                      ? tr('chipGeneral')
-                      : isPageSettings
-                        ? tr('chipPageSettings')
-                        : tr('chipEdit')}
-              </div>
-            </div>
-          </div>
+          <PanelHero {...panelHero} />
           <Suspense
             fallback={
               <div className='rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.09),rgb(var(--panel-surface-rgb)/0.04))] px-4 py-10'>

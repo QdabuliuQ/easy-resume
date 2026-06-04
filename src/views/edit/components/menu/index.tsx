@@ -1,14 +1,6 @@
 'use client';
-import {
-  AppstoreOutlined,
-  ProfileOutlined,
-  SettingOutlined,
-  SlidersOutlined,
-  UploadOutlined,
-} from '@ant-design/icons';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
-import { Magic } from '@icon-park/react';
 import { useTranslations } from 'next-intl';
 import { useMemo, useRef } from 'react';
 import { configStore } from '@/mobx';
@@ -17,30 +9,13 @@ import {
   getResumeImportValidationError,
   normalizeResumeImportPayload,
 } from '@/lib/validateResumeImportJson';
-const GRADIENT_ID = 'resume-menu-item-grad';
+import MenuGradientDefs from './menuGradientDefs';
+import MenuItemIcon from './menuItemIcon';
 /** 侧栏内容区宽 108 - padding 40 */
 const MENU_TILE_SIZE_PX = 68;
 const MENU_TILE_SHADOW_PAD_PX = 6;
 const MENU_TILE_TOP_LINE_INSET_PX = MENU_TILE_SHADOW_PAD_PX + 4;
 const menuTileClass = `relative flex cursor-pointer select-none flex-col items-center justify-center gap-0.5 overflow-visible rounded-[18px] py-2.5 text-[11px] transition-all duration-200 ease-out`;
-function MenuItemIcon({ menuKey, selected }: { menuKey: string; selected: boolean }) {
-  const antIconCls = selected
-    ? 'relative z-[1] text-[20px] mb-[3px] transition-[fill] duration-200 [&_svg]:!fill-[url(#resume-menu-item-grad)]'
-    : 'relative z-[1] text-[20px] mb-[3px] transition-[fill] duration-200 [&_svg]:!fill-[var(--menu-icon-muted)]';
-  if (menuKey === 'import-template') return <UploadOutlined className={antIconCls} />;
-  if (menuKey === 'resume') return <ProfileOutlined className={antIconCls} />;
-  if (menuKey === 'resume-template') return <AppstoreOutlined className={antIconCls} />;
-  if (menuKey === 'general-settings') return <SettingOutlined className={antIconCls} />;
-  if (menuKey === 'page-settings') return <SlidersOutlined className={antIconCls} />;
-  return (
-    <Magic
-      theme='outline'
-      size='20'
-      fill={selected ? `url(#${GRADIENT_ID})` : 'var(--menu-icon-muted)'}
-      className='relative z-[1] transition-[fill] duration-200 mb-[3px]'
-    />
-  );
-}
 type MenuProps = {
   activeKey: string;
   onActiveKeyChange: (key: string) => void;
@@ -198,14 +173,7 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
         aria-hidden
         onChange={onImportFile}
       />
-      <svg width={0} height={0} className='absolute' aria-hidden>
-        <defs>
-          <linearGradient id={GRADIENT_ID} x1='0%' y1='0%' x2='100%' y2='0%'>
-            <stop offset='0%' stopColor='var(--color-primary-gradient-start)' />
-            <stop offset='100%' stopColor='var(--color-primary)' />
-          </linearGradient>
-        </defs>
-      </svg>
+      <MenuGradientDefs />
       <div className='flex h-full min-h-0 w-full flex-1 flex-col'>
         <div className='flex min-h-0 flex-1 flex-col items-center overflow-y-auto overscroll-contain py-3 [scrollbar-width:thin]'>
           <div className='flex w-full flex-col items-center gap-1.5'>
