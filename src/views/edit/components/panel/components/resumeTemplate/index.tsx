@@ -14,7 +14,7 @@ import { Page } from '@/modules';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { renderResumePageModules } from '@/views/edit/components/canvas/renderResumePageModules';
-import ResumeFontCdn from '@/views/edit/components/canvas/resumeFontCdn';
+import ResumeFontCdn from '@/views/edit/components/canvas/ResumeFontCdn';
 
 /** 侧栏模板卡片内仅预览首页，缩放略小于走马灯以便双列容纳 */
 export const TEMPLATE_CARD_PREVIEW_SCALE = 0.2;
