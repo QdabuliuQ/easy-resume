@@ -4,6 +4,8 @@ import {
   BING_SITE_VERIFICATION,
   BYTEDANCE_SITE_VERIFICATION,
   GOOGLE_SITE_VERIFICATION,
+  SO360_SITE_VERIFICATION,
+  SHENMA_SITE_VERIFICATION,
   SOGOU_SITE_VERIFICATION,
   getSiteName,
   getSiteUrl,
@@ -60,6 +62,8 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
       'msvalidate.01': BING_SITE_VERIFICATION,
       'sogou_site_verification': SOGOU_SITE_VERIFICATION,
       'bytedance-verification-code': BYTEDANCE_SITE_VERIFICATION,
+      '360-site-verification': SO360_SITE_VERIFICATION,
+      'shenma-site-verification': SHENMA_SITE_VERIFICATION,
     },
   };
 }
