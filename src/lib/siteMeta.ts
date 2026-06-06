@@ -42,40 +42,81 @@ export function getSiteUrl(): URL {
   return new URL('http://localhost:3010');
 }
 
-export const SITE_JSON_LD_SOFTWARE_NAME = `${SITE_NAME_ZH}（${SITE_NAME_EN}）简历编辑器`;
+const WEB_APP_JSON_LD = {
+  zh: {
+    name: '青松简历在线简历编辑器',
+    description:
+      'AI 在线简历编辑与导出平台，模块化编辑工作经历、项目与技能，画布实时预览，支持 PDF、图片与 JSON 导出，数据本地存储。',
+    browserRequirements: '需要启用 JavaScript',
+  },
+  en: {
+    name: 'EasyResume Online Resume Editor',
+    description:
+      'AI-powered online resume editor and export platform with modular editing, live canvas preview, and PDF, JPEG, and JSON export with local-first storage.',
+    browserRequirements: 'Requires JavaScript',
+  },
+} as const;
 
-export const SITE_JSON_LD_SOFTWARE_DESCRIPTION =
-  '青松简历是在线求职简历编辑器，支持工作经历、项目经历、教育与专业技能模块化编辑，画布实时预览，AI 智能建议，本地存储，导出 PDF、图片与 JSON。';
-
-/** 根 layout 注入：SoftwareApplication（百度 / Google 富结果） */
-export function siteSoftwareApplicationJsonLd(): Record<string, unknown> {
+export function siteWebApplicationJsonLd(opts?: {
+  locale?: string;
+  image?: string;
+}): Record<string, unknown> {
+  const isEn = opts?.locale === 'en';
+  const locale = isEn ? 'en' : 'zh';
   const base = getSiteUrl().href.replace(/\/$/, '');
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: SITE_JSON_LD_SOFTWARE_NAME,
-    url: base,
-    applicationCategory: 'UtilityApplication',
+  const copy = WEB_APP_JSON_LD[locale];
+  const node: Record<string, unknown> = {
+    '@type': 'WebApplication',
+    '@id': `${base}/${locale}/#webapp`,
+    name: copy.name,
+    alternateName: isEn ? SITE_NAME_ZH : SITE_NAME_EN,
+    url: `${base}/${locale}`,
+    applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
-    description: SITE_JSON_LD_SOFTWARE_DESCRIPTION,
+    browserRequirements: copy.browserRequirements,
+    description: copy.description,
+    inLanguage: isEn ? 'en' : 'zh-CN',
     offers: {
       '@type': 'Offer',
       price: '0',
       priceCurrency: 'CNY',
     },
   };
+  if (opts?.image) node.image = opts.image;
+  return node;
 }
 
-export function siteJsonLdGraph(opts?: { locale?: string }): Record<string, unknown> {
-  const base = getSiteUrl().href.replace(/\/$/, '');
-  const inLanguage = opts?.locale === 'en' ? 'en' : 'zh-CN';
+/** @deprecated use siteWebApplicationJsonLd */
+export function siteSoftwareApplicationJsonLd(): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    '@id': `${base}/#website`,
-    name: getSiteName(opts?.locale),
-    url: base,
-    description: SITE_DESCRIPTION_DEFAULT,
-    inLanguage,
+    ...siteWebApplicationJsonLd({ locale: 'zh' }),
+  };
+}
+
+export function siteJsonLdGraph(opts?: {
+  locale?: string;
+  image?: string;
+}): Record<string, unknown> {
+  const base = getSiteUrl().href.replace(/\/$/, '');
+  const locale = opts?.locale === 'en' ? 'en' : 'zh';
+  const inLanguage = locale === 'en' ? 'en' : 'zh-CN';
+  const description =
+    locale === 'en'
+      ? WEB_APP_JSON_LD.en.description
+      : SITE_DESCRIPTION_DEFAULT;
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': `${base}/#website`,
+        name: getSiteName(locale),
+        url: `${base}/${locale}`,
+        description,
+        inLanguage,
+      },
+      siteWebApplicationJsonLd({ locale, image: opts?.image }),
+    ],
   };
 }

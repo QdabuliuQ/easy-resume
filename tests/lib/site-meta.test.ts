@@ -30,15 +30,18 @@ describe('siteMeta', () => {
     expect(getSiteUrl().href).toBe('http://localhost:3010/');
   });
 
-  it('siteJsonLdGraph includes locale', () => {
+  it('siteJsonLdGraph includes locale WebSite and WebApplication', () => {
     const g = siteJsonLdGraph({ locale: 'en' });
-    expect(g.inLanguage).toBe('en');
-    expect(g['@type']).toBe('WebSite');
+    const graph = g['@graph'] as Record<string, unknown>[];
+    expect(g['@context']).toBe('https://schema.org');
+    expect(graph[0]['@type']).toBe('WebSite');
+    expect((graph[0] as { inLanguage: string }).inLanguage).toBe('en');
+    expect(graph[1]['@type']).toBe('WebApplication');
   });
 
   it('siteSoftwareApplicationJsonLd has offers', () => {
     const j = siteSoftwareApplicationJsonLd();
-    expect(j['@type']).toBe('SoftwareApplication');
+    expect(j['@type']).toBe('WebApplication');
     expect((j.offers as { price: string }).price).toBe('0');
   });
 });

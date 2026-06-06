@@ -7,7 +7,6 @@ import {
   SITE_DESCRIPTION_DEFAULT,
   SITE_NAME_ZH,
   getSiteUrl,
-  siteSoftwareApplicationJsonLd,
 } from '@/lib/siteMeta';
 import { logo } from '@/lib/brandAssets';
 
@@ -46,13 +45,6 @@ export default function RootLayout({
         <script
           key='theme-bootstrap'
           dangerouslySetInnerHTML={{ __html: themeBootstrap }}
-        />
-        <script
-          key='json-ld-software'
-          type='application/ld+json'
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(siteSoftwareApplicationJsonLd()),
-          }}
         />
         <Script id='ttzz' src={BYTEGOOFY_PUSH_SCRIPT_SRC} strategy='beforeInteractive' />
       </head>

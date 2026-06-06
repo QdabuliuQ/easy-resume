@@ -18,9 +18,54 @@ import {
 
 type SiteT = (key: string, values?: Record<string, string>) => string;
 
+function buildOpenGraph(
+  locale: string,
+  t: SiteT,
+  opts: { title: string; description: string; url: string },
+) {
+  const siteName = getSiteName(locale);
+  const ogPreviewImage = getSiteOgPreviewImage();
+  return {
+    title: opts.title,
+    description: opts.description,
+    type: 'website' as const,
+    locale: locale === 'en' ? 'en_US' : 'zh_CN',
+    siteName,
+    url: opts.url,
+    images: [
+      {
+        url: ogPreviewImage,
+        width: SITE_OG_PREVIEW_WIDTH,
+        height: SITE_OG_PREVIEW_HEIGHT,
+        alt: t('ogImageAlt', { siteName }),
+      },
+    ],
+  };
+}
+
+export function buildBaseSiteMetadata(locale: string, t: SiteT): Metadata {
+  const siteName = getSiteName(locale);
+  const title = `${siteName}-${t('titleDefault')}`;
+  const description = t('description');
+  const originBase = getSiteUrl().href.replace(/\/$/, '');
+  const ogPreviewImage = getSiteOgPreviewImage();
+  const pageUrl = `${originBase}/${locale}`;
+  return {
+    title: { default: title, template: `%s | ${siteName}` },
+    description,
+    openGraph: buildOpenGraph(locale, t, { title, description, url: pageUrl }),
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogPreviewImage],
+    },
+  };
+}
+
 export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
   const siteName = getSiteName(locale);
-  const title = t('titleDefault');
+  const title = `${siteName}-${t('titleDefault')}`;
   const description = t('description');
   const originBase = getSiteUrl().href.replace(/\/$/, '');
   const ogPreviewImage = getSiteOgPreviewImage();
@@ -28,33 +73,11 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+  const pageUrl = `${originBase}/${locale}`;
   return {
-    title: { default: title, template: `%s | ${siteName}` },
-    description,
+    ...buildBaseSiteMetadata(locale, t),
     keywords,
     alternates: { canonical: `./` },
-    openGraph: {
-      title,
-      description,
-      type: 'website',
-      locale: locale === 'en' ? 'en_US' : 'zh_CN',
-      siteName,
-      url: `${originBase}/${locale}`,
-      images: [
-        {
-          url: ogPreviewImage,
-          width: SITE_OG_PREVIEW_WIDTH,
-          height: SITE_OG_PREVIEW_HEIGHT,
-          alt: t('ogImageAlt', { siteName }),
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [ogPreviewImage],
-    },
     verification: { google: GOOGLE_SITE_VERIFICATION },
     other: {
       thumbnail: ogPreviewImage,
@@ -64,6 +87,13 @@ export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
       'bytedance-verification-code': BYTEDANCE_SITE_VERIFICATION,
       '360-site-verification': SO360_SITE_VERIFICATION,
       'shenma-site-verification': SHENMA_SITE_VERIFICATION,
+    },
+    openGraph: buildOpenGraph(locale, t, { title, description, url: pageUrl }),
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogPreviewImage],
     },
   };
 }
@@ -75,18 +105,21 @@ export function buildEditMetadata(locale: string, t: SiteT): Metadata {
   const title = `${siteName}-${suffix}`;
   const originBase = getSiteUrl().href.replace(/\/$/, '');
   const canonicalEdit = `${originBase}/${locale}/edit`;
+  const ogPreviewImage = getSiteOgPreviewImage();
   return {
     title,
     description,
     alternates: { canonical: canonicalEdit },
-    openGraph: {
+    openGraph: buildOpenGraph(locale, t, {
       title,
       description,
-      type: 'website',
-      locale: locale === 'en' ? 'en_US' : 'zh_CN',
-      siteName,
       url: canonicalEdit,
+    }),
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogPreviewImage],
     },
-    twitter: { card: 'summary', title, description },
   };
 }

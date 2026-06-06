@@ -1,6 +1,6 @@
 export default {
   Site: {
-    titleDefault: 'Personal Online Resume | Work Experience, Projects & Skills',
+    titleDefault: 'AI Resume Editor & Export',
     description:
       'EasyResume: build a professional online resume with modular editing, live preview, and AI polish. Export PDF, JPEG, or JSON locally—no signup required.',
     keywords:
