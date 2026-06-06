@@ -7,7 +7,7 @@ export function getSiteName(locale?: string | null): string {
 
 export const BAIDU_SITE_VERIFICATION = 'codeva-1cW7ZWxH7V';
 export const BING_SITE_VERIFICATION = 'A57DE6B0DEE3B356C208709D84FE45B5';
-export const SOGOU_SITE_VERIFICATION = 'HfHGIFRatG';
+export const SOGOU_SITE_VERIFICATION = 'QMl8ijjXYf';
 export const BYTEDANCE_SITE_VERIFICATION = 'mZD9AKpG/j1o8DDIeXbp';
 export const GOOGLE_SITE_VERIFICATION = 'Ey63mYPPiHyXAF3c_L9RW2oBN8LAkYy2hHaBgqAnNtA';
 export const SO360_SITE_VERIFICATION = '2004f1668ee6569ea7978203217a9efc';
