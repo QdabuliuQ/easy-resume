@@ -20,7 +20,7 @@ type SiteT = (key: string, values?: Record<string, string>) => string;
 
 export function buildHomeMetadata(locale: string, t: SiteT): Metadata {
   const siteName = getSiteName(locale);
-  const title = `${siteName}-${t('titleDefault')}`;
+  const title = t('titleDefault');
   const description = t('description');
   const originBase = getSiteUrl().href.replace(/\/$/, '');
   const ogPreviewImage = getSiteOgPreviewImage();
@@ -78,7 +78,6 @@ export function buildEditMetadata(locale: string, t: SiteT): Metadata {
   return {
     title,
     description,
-    robots: { index: false, follow: true },
     alternates: { canonical: canonicalEdit },
     openGraph: {
       title,

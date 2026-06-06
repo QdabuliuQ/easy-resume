@@ -18,7 +18,7 @@ export const BYTEGOOFY_PUSH_SCRIPT_SRC =
   'https://lf1-cdn-tos.bytegoofy.com/goofy/ttzz/push.js?a2e238a07fe015bff49e92c93f7ab1ec6f705268b424ef6d30f3a9e42be80c46b3e414cba65c376eba389ba56d9ee0846cad2206506a6529fe6ee21a7373effb434c445cf6444b10ea9756ea44e128a6';
 
 export const SITE_DESCRIPTION_DEFAULT =
-  'AI 辅助的在线简历编辑器：模块化编排、富文本、画布预览，导出 PDF / 图片(JPEG) / JSON，数据可本地备份。';
+  '青松简历（resume.qdabuliuq.cn）是专业在线求职简历制作网站，面向求职者免费使用，支持模块化编辑工作经历、项目案例、教育与专业技能，画布实时预览排版，AI 智能润色与重写建议，浏览器本地存储无需注册，一键导出 PDF、图片与 JSON，多设备 JSON 同步，助你快速打造高质量可投递简历。';
 
 function resolveSiteUrlRaw(): string | undefined {
   const explicit =
@@ -45,7 +45,7 @@ export function getSiteUrl(): URL {
 export const SITE_JSON_LD_SOFTWARE_NAME = `${SITE_NAME_ZH}（${SITE_NAME_EN}）简历编辑器`;
 
 export const SITE_JSON_LD_SOFTWARE_DESCRIPTION =
-  '在线免费简历编辑、PDF导出、模板下载工具';
+  '青松简历是在线求职简历编辑器，支持工作经历、项目经历、教育与专业技能模块化编辑，画布实时预览，AI 智能建议，本地存储，导出 PDF、图片与 JSON。';
 
 /** 根 layout 注入：SoftwareApplication（百度 / Google 富结果） */
 export function siteSoftwareApplicationJsonLd(): Record<string, unknown> {

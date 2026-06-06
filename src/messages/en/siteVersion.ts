@@ -1,15 +1,15 @@
 export default {
   Site: {
-    titleDefault: 'AI resume editor & export',
+    titleDefault: 'Personal Online Resume | Work Experience, Projects & Skills',
     description:
-      'Edit experience, projects, and skills in modules; live canvas preview; export PDF, JPEG image, and JSON with AI-assisted wording.',
+      'EasyResume: build a professional online resume with modular editing, live preview, and AI polish. Export PDF, JPEG, or JSON locally—no signup required.',
     keywords:
-      'resume,resume builder,online resume,PDF resume,job search,EasyResume,AI resume',
+      'online resume,personal resume,work experience,projects,professional skills,resume builder,job search,PDF resume,resume.qdabuliuq.cn,EasyResume',
     ogImageAlt: '{siteName} preview',
     logoAlt: '{siteName} logo',
     editTitle: 'Resume editor · live canvas preview · PDF, JPEG & JSON export',
     editDescription:
-      'Edit resume modules, global layout, and typography on the canvas; export PDF, JPEG image, JSON, and optional local folder backup.',
+      'EasyResume editor: live canvas preview, AI polish, and layout controls. Export PDF, JPEG, or JSON; local backup keeps data in your browser—no signup.',
     jsonLdBrowserNeedsJs: 'JavaScript is required',
   },
   Version: {
