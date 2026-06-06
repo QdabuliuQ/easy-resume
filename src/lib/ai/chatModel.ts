@@ -1,5 +1,10 @@
 import { ChatOpenAI } from '@langchain/openai';
+import type { BaseLanguageModelInput } from '@langchain/core/language_models/base';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
+import type { AIMessageChunk } from '@langchain/core/messages';
+import type { Runnable } from '@langchain/core/runnables';
+
+export type AppChatModel = Runnable<BaseLanguageModelInput, AIMessageChunk>;
 
 const XFYUN_MAAS_BASE_URL =
   process.env.XFYUN_MAAS_BASE_URL?.trim() ||
@@ -33,7 +38,7 @@ function createChatanywhereModel(temperature: number): BaseChatModel | null {
 }
 
 /** 优先讯飞星辰 Coding Plan MaaS，失败时降级 ChatAnywhere */
-export function createChatModel(opts?: { temperature?: number }): BaseChatModel {
+export function createChatModel(opts?: { temperature?: number }): AppChatModel {
   const temperature = opts?.temperature ?? 0.7;
   const primary = createXfyunMaasModel(temperature);
   const fallback = createChatanywhereModel(temperature);
