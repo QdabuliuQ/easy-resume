@@ -6,7 +6,8 @@
  *   → LangChain（src/lib/ai/polish/service.ts）→ ChatAnywhere
  *
  * 环境变量：
- *   CHATANYWHERE_API_KEY — 必填，服务端直连 ChatAnywhere OpenAI 兼容接口
+ *   XFYUN_MAAS_API_KEY — 讯飞星辰 Coding Plan（优先）
+ *   CHATANYWHERE_API_KEY — 降级备用
  *
  * 请求体（JSON）：
  *   type: 'job' | 'project' | 'education' | 'skill'

@@ -94,7 +94,10 @@ Create `.env.local` at the project root (do not commit secrets). See `.env.local
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CHATANYWHERE_API_KEY` | Yes | Key from [ChatAnywhere free API](https://github.com/chatanywhere/GPT_API_free) for AI polish, resume scoring, etc. (default model: deepseek-v4-flash) |
+| `XFYUN_MAAS_API_KEY` | One of two | [iFlytek Astron Coding Plan](https://www.xfyun.cn/doc/spark/CodingPlan.html) API key (`appId:apiSecret`), default model `astron-code-latest` |
+| `CHATANYWHERE_API_KEY` | One of two | [ChatAnywhere free API](https://github.com/chatanywhere/GPT_API_free); used as fallback when XFYun fails (`deepseek-v4-flash`) |
+| `XFYUN_MAAS_BASE_URL` | No | XFYun MaaS base URL, default `https://maas-coding-api.cn-huabei-1.xf-yun.com/v2` |
+| `XFYUN_MAAS_MODEL` | No | XFYun model id, default `astron-code-latest` |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Browser executable for PDF/PNG export via Puppeteer. In dev, Puppeteer’s bundled Chromium is used if unset; in production on Linux the default is `/usr/bin/chromium-browser` |
 
 `PUPPETEER_EXECUTABLE_PATH` examples:

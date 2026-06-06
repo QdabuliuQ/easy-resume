@@ -285,7 +285,7 @@ function RichTextEditor({
               if (!polishing) void runAiPolishFromParent();
             }}
             className={
-              'bg-gradient-primary absolute right-2 top-[7px] z-[4] inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-2.5 text-[11px] font-medium text-white shadow-sm ' +
+              'bg-gradient-primary absolute right-2 top-[9px] z-[4] inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-2.5 text-[11px] font-medium text-white shadow-sm ' +
               'outline-none transition-[filter,opacity] hover:brightness-110 disabled:pointer-events-none disabled:opacity-65'
             }
           >
@@ -297,7 +297,7 @@ function RichTextEditor({
             ) : (
               <Magic theme="outline" size="13" fill="#fff" />
             )}
-            {tr('aiPolish')}
+            <span className='leading-[12px]'>{tr('aiPolish')}</span>
           </button>
         ) : null}
         {polishing ? (

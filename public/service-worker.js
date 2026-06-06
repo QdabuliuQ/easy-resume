@@ -150,6 +150,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Never cache dev HMR / turbopack assets.
+  if (
+    url.pathname.includes('webpack-hmr') ||
+    url.pathname.includes('turbopack') ||
+    url.pathname.includes('hot-update')
+  ) {
+    return;
+  }
+
   // Static assets: cache first, then network and cache update.
   if (
     url.pathname.startsWith('/_next/static/') ||

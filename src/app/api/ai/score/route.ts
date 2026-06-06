@@ -6,7 +6,8 @@
  *   → LangChain（src/lib/ai/score/service.ts）→ ChatAnywhere
  *
  * 环境变量：
- *   CHATANYWHERE_API_KEY      — 必填，LLM 调用
+ *   XFYUN_MAAS_API_KEY        — 讯飞星辰 Coding Plan（优先）
+ *   CHATANYWHERE_API_KEY      — 降级备用
  *   UPSTASH_REDIS_REST_URL    — 必填，限流 + 结果缓存
  *   UPSTASH_REDIS_REST_TOKEN  — 必填
  *

@@ -13,6 +13,7 @@ import {
   resumeInfo1FieldTextColor,
   resumePageContentInnerWidthCss,
   resumePageHasSideCol,
+  RESUME_PAGE_SIDE_COL_WIDTH_RATIO,
 } from '@/lib/resumePageLayout';
 import { resolveExportPrintOrigin, buildExportResumeUrl } from '@/lib/exportPrintOrigin';
 import { makeGlobalStyle } from '../modules/fixtures';
@@ -24,8 +25,10 @@ describe('lib helpers', () => {
 
   it('normalizes hex and rgb color values', () => {
     expect(hexForColorInput('rgb(255, 0, 16)', '#000000')).toBe('#ff0010');
+    expect(hexForColorInput('#abc', '#000000')).toBe('#aabbcc');
     expect(hexForColorInput('abc', '#000000')).toBe('#aabbcc');
     expect(hexForColorInput('invalid', '#123456')).toBe('#123456');
+    expect(hexForColorInput('rgba(0,0,0,0.5)', '#fff')).toBe('#000000');
   });
 
   it('merges global style and maps legacy dims to pageSize', () => {
@@ -51,6 +54,8 @@ describe('lib helpers', () => {
     expect(cssLengthToPx('96px')).toBe(96);
     expect(cssLengthToPx('1in')).toBe(96);
     expect(cssLengthToPx('25.4mm')).toBeCloseTo(96, 6);
+    expect(cssLengthToPx('')).toBe(0);
+    expect(cssLengthToPx('bad')).toBe(0);
   });
 
   it('handles page layout helpers', () => {
@@ -59,7 +64,9 @@ describe('lib helpers', () => {
     expect(resumePageHasSideCol('default')).toBe(false);
     expect(resumeInfo1FieldTextColor('leftCol')).toBe('#fff');
     expect(resumeInfo1FieldSeparatorColor('default')).toBe('#999');
-    expect(resumePageContentInnerWidthCss('210mm', 'leftCol', 20)).toContain('calc(210mm * 0.7 - 40px)');
+    expect(resumePageContentInnerWidthCss('210mm', 'leftCol', 20)).toContain(
+      `calc(210mm * ${1 - RESUME_PAGE_SIDE_COL_WIDTH_RATIO} - 40px)`,
+    );
   });
 
   it('resolves export origin and builds export url', () => {
@@ -70,5 +77,8 @@ describe('lib helpers', () => {
     const url = buildExportResumeUrl('https://a.com/', 'zh', 'token + 1', 'image');
     expect(url).toContain('/zh/export/resume?token=token%20%2B%201');
     expect(url.endsWith('&mode=image')).toBe(true);
+
+    const enUrl = buildExportResumeUrl('https://a.com', 'en', 't');
+    expect(enUrl).toBe('https://a.com/en/export/resume?token=t');
   });
 });

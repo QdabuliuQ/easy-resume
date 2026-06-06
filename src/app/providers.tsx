@@ -11,7 +11,6 @@ import {
 } from '@/lib/themeStore';
 
 const ADM_PRIMARY = '#0e9c8d';
-const SW_DEV_ENABLED = process.env.NEXT_PUBLIC_ENABLE_SW_IN_DEV === 'true';
 
 export function AntdProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
@@ -19,15 +18,18 @@ export function AntdProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (process.env.NODE_ENV !== 'production' && !SW_DEV_ENABLED) {
-      // Keep development free of stale runtime caches.
-      navigator.serviceWorker
-        .getRegistrations()
-        .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())));
-      caches
-        .keys()
-        .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
-        .catch(() => undefined);
+    if (process.env.NODE_ENV !== 'production') {
+      const cleanupDevServiceWorker = async () => {
+        const hadController = Boolean(navigator.serviceWorker.controller);
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key) => caches.delete(key)));
+        if (hadController || registrations.length > 0) {
+          window.location.reload();
+        }
+      };
+      cleanupDevServiceWorker().catch(() => undefined);
       return;
     }
 

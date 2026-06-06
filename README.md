@@ -95,7 +95,10 @@ npm run start
 
 | 变量 | 必填 | 说明 |
 |------|------|------|
-| `CHATANYWHERE_API_KEY` | 是 | [ChatAnywhere 免费 API](https://github.com/chatanywhere/GPT_API_free) 的 Key，用于 AI 润色、简历评分等（默认模型 deepseek-v4-flash） |
+| `XFYUN_MAAS_API_KEY` | 二选一 | [讯飞星辰 Coding Plan](https://www.xfyun.cn/doc/spark/CodingPlan.html) API Key（`appId:apiSecret`），默认模型 `astron-code-latest` |
+| `CHATANYWHERE_API_KEY` | 二选一 | [ChatAnywhere 免费 API](https://github.com/chatanywhere/GPT_API_free) 的 Key；讯飞不可用时自动降级（`deepseek-v4-flash`） |
+| `XFYUN_MAAS_BASE_URL` | 否 | 讯飞 MaaS 地址，默认 `https://maas-coding-api.cn-huabei-1.xf-yun.com/v2` |
+| `XFYUN_MAAS_MODEL` | 否 | 讯飞模型 ID，默认 `astron-code-latest` |
 | `PUPPETEER_EXECUTABLE_PATH` | 否 | 导出 PDF/PNG 时 Puppeteer 使用的浏览器可执行文件路径。开发环境未设置时由 Puppeteer 自带 Chromium；生产环境 Linux 默认 `/usr/bin/chromium-browser` |
 
 `PUPPETEER_EXECUTABLE_PATH` 示例：
