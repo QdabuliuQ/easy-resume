@@ -69,6 +69,7 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
             resetKey={moduleActive}
             title={module?.options?.title ?? ''}
             fallbackTitle={to('fallbackTitle')}
+            panelItemId={`${moduleActive}_title`}
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
@@ -102,6 +103,7 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
           <RichTextEditor
             instanceKey={`${moduleActive}-other`}
             html={module.options.description ?? ''}
+            dataPanelItemId={`${moduleActive}_description`}
             onHtmlChange={updateDescription}
             maxPlainLength={RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH}
             placeholder={to('placeholder')}

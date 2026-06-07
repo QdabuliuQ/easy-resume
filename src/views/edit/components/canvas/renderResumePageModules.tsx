@@ -52,6 +52,7 @@ export function renderResumePageModules(
           sourceId: String(m.id ?? i),
           domId: String(m.id ?? i),
           showHeader: true,
+          selectable: false,
           options: (m.options ?? {}) as Record<string, unknown>,
           sectionOrdinal: shellOrd,
         }}

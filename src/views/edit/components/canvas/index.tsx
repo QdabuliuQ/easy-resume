@@ -55,6 +55,8 @@ import { CanvasScaleContext } from './canvasScaleContext';
 import { PAGE_STACK_GAP_PX } from './pageStackGap';
 import ResumeFontCdn from './ResumeFontCdn';
 import CanvasModuleFragment from './moduleFragment';
+import SelectableGuideLines from './SelectableGuideLines';
+import { useSelectableGuideHover } from './useSelectableGuideHover';
 
 /** 容器内左右留白，用于判断是否需缩小画布（缩放时两侧至少各 40） */
 const CANVAS_SIDE_PAD = 70;
@@ -63,6 +65,7 @@ const RENDER_DEBOUNCE_MS = 180;
 const PAGE_FIT_EPSILON_PX = 1;
 const MEASURE_HEIGHT_EPSILON_PX = 0.1;
 const MEASURE_FRAME_DELAY = 10;
+const CANVAS_STAGE_VERTICAL_PADDING_PX = 80;
 
 /** 合并默认 globalStyle，避免 cfg 里缺字段时渲染异常 */
 
@@ -134,7 +137,7 @@ function readLayoutHeightPx(el: HTMLElement): number {
 function buildModuleNode(
   module: LayoutModule,
   gs: GlobalStyle,
-  opts?: { forceSideCol?: boolean },
+  opts?: { forceSideCol?: boolean; selectable?: boolean },
 ): ReactElement | null {
   if (module.type === 'info1') {
     return (
@@ -154,6 +157,7 @@ function buildModuleNode(
         sourceId: module.id,
         domId: module.id,
         showHeader: true,
+        selectable: opts?.selectable ?? true,
         options: module.options ?? {},
         ...(module.sectionOrdinal ? { sectionOrdinal: module.sectionOrdinal } : {}),
       }}
@@ -162,9 +166,13 @@ function buildModuleNode(
   );
 }
 
-type CanvasProps = { onOpenGeneralSettings?: () => void };
+type CanvasProps = {
+  onOpenGeneralSettings?: () => void;
+  mode?: 'edit' | 'preview';
+};
 
-function Canvas({ onOpenGeneralSettings }: CanvasProps) {
+function Canvas({ onOpenGeneralSettings, mode = 'edit' }: CanvasProps) {
+  const isEditMode = mode === 'edit';
   const tc = useTranslations('Edit.canvas');
   const locale = useLocale();
   const pathname = usePathname();
@@ -215,9 +223,9 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
   const measureNodes = useMemo(
     () => layoutModules.map((module) => ({
       module,
-      node: buildModuleNode(module, layoutGlobalStyle),
+      node: buildModuleNode(module, layoutGlobalStyle, { selectable: isEditMode }),
     })).filter((item): item is { module: LayoutModule; node: ReactElement } => Boolean(item.node)),
-    [layoutModules, layoutGlobalStyle],
+    [layoutModules, layoutGlobalStyle, isEditMode],
   );
 
   const buildPagination = useMemoizedFn(() => {
@@ -310,7 +318,10 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
     }
 
     const sideSlot = sideColLayout && info1Module
-      ? buildModuleNode({ ...info1Module, index: 0 }, gs, { forceSideCol: true })
+      ? buildModuleNode({ ...info1Module, index: 0 }, gs, {
+          forceSideCol: true,
+          selectable: isEditMode,
+        })
       : null;
 
     const nextPages = layoutPages.map((page, pageIndex) => {
@@ -450,6 +461,7 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
   const contentW = pageWPx;
   const pageCount = Math.max(1, pages.length);
   const contentH = pageCount * pageHPx + Math.max(0, pageCount - 1) * PAGE_STACK_GAP_PX;
+  const guideLineHeight = contentH * scale + CANVAS_STAGE_VERTICAL_PADDING_PX;
 
   const updateScale = useMemoizedFn(() => {
     const el = containerRef.current;
@@ -546,11 +558,17 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
           document.body
         )
       : null;
+  const { hoverRect, updateSelectableHover, clearSelectableHover } = useSelectableGuideHover({
+    containerRef,
+    stageRef: canvasStageRef,
+  });
 
   return (
     <div
       ref={containerRef}
       className='relative flex h-full w-full min-h-0 flex-col items-center justify-start overflow-auto rounded-md'
+      onMouseMove={isEditMode ? (event) => updateSelectableHover(event.clientX, event.clientY) : undefined}
+      onMouseLeave={isEditMode ? clearSelectableHover : undefined}
     >
       <ResumeFontCdn font={globalStyle.resumeFont} />
       <div
@@ -592,12 +610,17 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
               ref={canvasStageRef}
               className='relative flex w-full flex-col items-center py-[40px]'
             >
-              <ModuleOperation stageRef={canvasStageRef}>{pages}</ModuleOperation>
+              {isEditMode ? <ModuleOperation stageRef={canvasStageRef}>{pages}</ModuleOperation> : pages}
             </div>
           </CanvasScaleContext.Provider>
         </div>
       </div>
 
+      {isEditMode && hoverRect ? (
+        <SelectableGuideLines hoverRect={hoverRect} verticalLineHeight={guideLineHeight} />
+      ) : null}
+
+      {isEditMode ? (
       <div className='pointer-events-none fixed right-[20px] bottom-[20px] z-20 flex flex-col items-end gap-2'>
         {backupReady ? (
           <Tooltip title={tc('backupOnTooltip')} placement='left'>
@@ -738,8 +761,9 @@ function Canvas({ onOpenGeneralSettings }: CanvasProps) {
           </button>
         </Tooltip>
       </div>
+      ) : null}
 
-      {previewOverlay}
+      {isEditMode ? previewOverlay : null}
 
     </div>
   );

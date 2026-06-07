@@ -66,6 +66,7 @@ function buildFragmentNode(
         sourceId: slotKey,
         domId: slotKey,
         showHeader: mod.showHeader !== false,
+        selectable: false,
         options: mod.options ?? {},
         ...(sectionOrdinal != null && sectionOrdinal > 0 ? { sectionOrdinal } : {}),
       }}

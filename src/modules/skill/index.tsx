@@ -1,10 +1,8 @@
 import { memo } from 'react';
-
-import ResumeQuillHtml from '@/components/resumeQuillHtml';
-import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 import { GlobalStyle } from '../utils/common.type';
 import { observer } from 'mobx-react';
 import SectionModuleShell from '../layout/sectionModuleShell';
+import RichDescriptionBody from '../shared/richDescriptionBody';
 
 export interface SkillProps {
   id: string;
@@ -26,17 +24,14 @@ function Skill(props: Props) {
   }
   const { config, globalStyle } = props;
   const { id, options } = config;
-  const { fontSize, lineHeight } = globalStyle;
-
   return (
     <SectionModuleShell moduleId={id} headerConfig={options} moduleType={config.type} globalStyle={globalStyle}>
-      {plainTextFromRichHtml(options.description) ? (
-        <ResumeQuillHtml
-          html={options.description}
-          style={{ fontSize: fontSize + 'px', lineHeight: lineHeight }}
-          className='text-black'
-        />
-      ) : null}
+      <RichDescriptionBody
+        description={options.description}
+        globalStyle={globalStyle}
+        selectable
+        dataItemId={`${id}_description`}
+      />
     </SectionModuleShell>
   );
 }

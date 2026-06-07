@@ -61,6 +61,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
   const [module, setModule] = useState<EducationProps | null>(null);
   const gradId = useId().replace(/:/g, '');
   const iconGradId = `education-icon-grad-${gradId}`;
+  const pid = useMemoizedFn((index: number, key: string) => `${moduleActive}_${index}_${key}`);
 
   useEffect(() => {
     const m = getModule(moduleActive);
@@ -217,6 +218,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
             resetKey={moduleActive}
             title={module?.options?.title ?? ''}
             fallbackTitle={te('fallbackTitle')}
+            panelItemId={`${moduleActive}_title`}
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
@@ -290,6 +292,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.school}
+                          data-panel-item-id={pid(index, 'school')}
                           placeholder={te('schoolPh')}
                           onChange={(e) => handleChange(e, index, 'school')}
                         />
@@ -307,12 +310,14 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <ResponsiveSelect
-                          options={degree}
-                          value={item.degree}
-                          onChange={(e) => handleChange(e, index, 'degree')}
-                          placeholder={te('degreePh')}
-                        />
+                        <div data-panel-item-id={pid(index, 'degree')}>
+                          <ResponsiveSelect
+                            options={degree}
+                            value={item.degree}
+                            onChange={(e) => handleChange(e, index, 'degree')}
+                            placeholder={te('degreePh')}
+                          />
+                        </div>
                       </FormItem>
                     </Col>
                     <Col span={12}>
@@ -330,6 +335,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.major}
+                          data-panel-item-id={pid(index, 'major')}
                           placeholder={te('majorPh')}
                           onChange={(e) => handleChange(e, index, 'major')}
                         />
@@ -346,6 +352,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         <Cascader
                           options={city}
                           value={item.city}
+                          data-panel-item-id={pid(index, 'city')}
                           onChange={(e) => handleChange(e, index, 'city')}
                           placeholder={te('cityPh')}
                         />
@@ -359,13 +366,15 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           <Notes theme='outline' size='15' fill={FORM_ICON_FILL} />
                         }
                       >
-                        <ResponsiveSelect
-                          options={schoolType}
-                          value={item.tags}
-                          onChange={(e) => handleChange(e, index, 'tags')}
-                          placeholder={te('schoolTypePh')}
-                          mode='multiple'
-                        />
+                        <div data-panel-item-id={pid(index, 'tags')}>
+                          <ResponsiveSelect
+                            options={schoolType}
+                            value={item.tags}
+                            onChange={(e) => handleChange(e, index, 'tags')}
+                            placeholder={te('schoolTypePh')}
+                            mode='multiple'
+                          />
+                        </div>
                       </FormItem>
                     </Col>
                     <Col span={24}>
@@ -383,6 +392,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.academy}
+                          data-panel-item-id={pid(index, 'academy')}
                           placeholder={te('collegePh')}
                           onChange={(e) => handleChange(e, index, 'academy')}
                         />
@@ -400,16 +410,18 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <ResponsiveRangeDatePicker
-                          style={{ width: '100%' }}
-                          value={[
-                            item.startDate ? dayjs(item.startDate) : undefined,
-                            item.endDate ? dayjs(item.endDate) : undefined,
-                          ]}
-                          format='YYYY-MM'
-                          placeholder={[te('periodPhStart'), te('periodPhEnd')]}
-                          onChange={(e) => handleChange(e, index, 'date')}
-                        />
+                        <div data-panel-item-id={pid(index, 'date')}>
+                          <ResponsiveRangeDatePicker
+                            style={{ width: '100%' }}
+                            value={[
+                              item.startDate ? dayjs(item.startDate) : undefined,
+                              item.endDate ? dayjs(item.endDate) : undefined,
+                            ]}
+                            format='YYYY-MM'
+                            placeholder={[te('periodPhStart'), te('periodPhEnd')]}
+                            onChange={(e) => handleChange(e, index, 'date')}
+                          />
+                        </div>
                       </FormItem>
                     </Col>
                     <Col span={24}>
@@ -428,6 +440,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           <RichTextEditor
                             instanceKey={`${moduleActive}-${index}`}
                             html={item.description ?? ''}
+                            dataPanelItemId={pid(index, 'description')}
                             onHtmlChange={(next) =>
                               handleDescriptionHtml(index, next)
                             }

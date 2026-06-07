@@ -53,6 +53,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
   const [module, setModule] = useState<ProjectProps | null>(null);
   const gradId = useId().replace(/:/g, '');
   const iconGradId = `project-icon-grad-${gradId}`;
+  const pid = useMemoizedFn((index: number, key: string) => `${moduleActive}_${index}_${key}`);
 
   useEffect(() => {
     const m = getModule(moduleActive);
@@ -200,6 +201,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
             resetKey={moduleActive}
             title={module?.options?.title ?? ''}
             fallbackTitle={tp('fallbackTitle')}
+            panelItemId={`${moduleActive}_title`}
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
@@ -275,6 +277,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.name}
+                          data-panel-item-id={pid(index, 'name')}
                           placeholder={tp('namePh')}
                           onChange={(e) => handleChange(e, index, 'name')}
                         />
@@ -295,6 +298,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.role}
+                          data-panel-item-id={pid(index, 'role')}
                           placeholder={tp('rolePh')}
                           onChange={(e) => handleChange(e, index, 'role')}
                         />
@@ -312,16 +316,18 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <ResponsiveRangeDatePicker
-                          style={{ width: '100%' }}
-                          value={[
-                            item.startDate ? dayjs(item.startDate) : undefined,
-                            item.endDate ? dayjs(item.endDate) : undefined,
-                          ]}
-                          format='YYYY-MM'
-                          placeholder={[tp('periodPhStart'), tp('periodPhEnd')]}
-                          onChange={(e) => handleChange(e, index, 'date')}
-                        />
+                        <div data-panel-item-id={pid(index, 'date')}>
+                          <ResponsiveRangeDatePicker
+                            style={{ width: '100%' }}
+                            value={[
+                              item.startDate ? dayjs(item.startDate) : undefined,
+                              item.endDate ? dayjs(item.endDate) : undefined,
+                            ]}
+                            format='YYYY-MM'
+                            placeholder={[tp('periodPhStart'), tp('periodPhEnd')]}
+                            onChange={(e) => handleChange(e, index, 'date')}
+                          />
+                        </div>
                       </FormItem>
                     </Col>
                     <Col span={24}>
@@ -340,6 +346,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                           <RichTextEditor
                             instanceKey={`${moduleActive}-${index}`}
                             html={item.description ?? ''}
+                            dataPanelItemId={pid(index, 'description')}
                             onHtmlChange={(next) =>
                               handleDescriptionHtml(index, next)
                             }

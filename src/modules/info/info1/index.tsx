@@ -13,6 +13,7 @@ import {
   resumeInfo1FieldTextColor,
   resumePageHasSideCol,
 } from '@/lib/resumePageLayout';
+import SafeText from '@/modules/shared/safeText';
 import { observer } from 'mobx-react';
 
 export interface InfoProps {
@@ -87,14 +88,16 @@ function Info1(props: Props) {
           const a = sal?.[0] ?? '';
           const b = sal?.[1] ?? '';
           rowElements.push(
-            <span
+            <SafeText
               key={`${String(a)}-${String(b)}`}
+              selectable
+              dataItemId={`${id}_expectedSalary`}
               className={inSideCol ? undefined : 'text-black'}
               style={{ fontSize, lineHeight, color: fieldColor }}
             >
               {lbl('expectedSalary')}
               {a} - {b}
-            </span>
+            </SafeText>
           );
         } else if (props.config.options[key as keyof InfoProps['options']]) {
           const val = props.config.options[key as keyof InfoProps['options']];
@@ -105,14 +108,16 @@ function Info1(props: Props) {
                 ? formatIntentCityDisplay(val as unknown)
                 : String(val);
           rowElements.push(
-            <span
+            <SafeText
               key={`${String(key)}-${i}-${j}`}
+              selectable
+              dataItemId={`${id}_${String(key)}`}
               className={inSideCol ? undefined : 'text-black'}
               style={{ fontSize, lineHeight, color: fieldColor }}
             >
               {lbl(String(key))}
               {display}
-            </span>
+            </SafeText>
           );
         }
         if (j !== row.length - 1) {
@@ -174,12 +179,14 @@ function Info1(props: Props) {
                 : 'w-full'
       }
     >
-      <div
-        className={`mb-[10px] font-bold leading-none ${inSideCol ? textAlignSide : 'text-black'} ${inSideCol ? '' : position === 'center' ? 'text-center' : ''} ${!inSideCol && position === 'left' ? 'text-right' : ''}`}
+      <SafeText
+        className={`mb-[10px] inline-block shrink-0 whitespace-nowrap font-bold leading-none ${inSideCol ? textAlignSide : 'text-black'} ${inSideCol ? '' : position === 'center' ? 'text-center' : ''} ${!inSideCol && position === 'left' ? 'text-right' : ''}`}
+        selectable
+        dataItemId={`${id}_name`}
         style={{ fontSize: fontSize * 1.7, color: inSideCol ? '#fff' : fieldColor }}
       >
         {name}
-      </div>
+      </SafeText>
       <div className='w-full'>{itemLayout}</div>
     </div>
   );

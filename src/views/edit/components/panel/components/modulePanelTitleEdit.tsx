@@ -11,6 +11,7 @@ export type ModulePanelTitleEditProps = {
   fallbackTitle: string;
   maxLength?: number;
   disabled?: boolean;
+  panelItemId?: string;
   onCommit: (nextTitle: string) => void;
 };
 
@@ -20,6 +21,7 @@ function ModulePanelTitleEdit({
   fallbackTitle,
   maxLength = 40,
   disabled = false,
+  panelItemId,
   onCommit,
 }: ModulePanelTitleEditProps) {
   const tm = useTranslations('Edit.modulePanel');
@@ -49,6 +51,7 @@ function ModulePanelTitleEdit({
             autoFocus
             maxLength={maxLength}
             value={draft}
+            data-panel-item-id={panelItemId}
             onChange={(e) => setDraft(e.target.value)}
             onBlur={commit}
             onPressEnter={(e) => (e.target as HTMLInputElement).blur()}

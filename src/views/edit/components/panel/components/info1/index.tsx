@@ -95,6 +95,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
   const [form] = Form.useForm();
   const cropperRef = useRef<any>(null);
   const mid = moduleId ?? moduleActiveStore.getModuleActive;
+  const pid = useMemoizedFn((key: string) => `${mid}_${key}`);
   const editOpen = moduleActiveStore.getModuleActive === mid;
   const uploadButton = useMemo(
     () => (
@@ -472,34 +473,38 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                     </div>
                   }
                 >
-                  <ResponsiveSelect
-                    value={(option.position as string) ?? 'right'}
-                    options={POSITION_OPTS.map((o) => ({
-                      value: o.value,
-                      label: ti(o.labelKey),
-                    }))}
-                    onChange={(value) =>
-                      configStore.setConfigOption(mid, {
-                        ...configStore.getConfigOption(mid),
-                        position: value,
-                      })
-                    }
-                  />
+                  <div data-panel-item-id={pid('position')}>
+                    <ResponsiveSelect
+                      value={(option.position as string) ?? 'right'}
+                      options={POSITION_OPTS.map((o) => ({
+                        value: o.value,
+                        label: ti(o.labelKey),
+                      }))}
+                      onChange={(value) =>
+                        configStore.setConfigOption(mid, {
+                          ...configStore.getConfigOption(mid),
+                          position: value,
+                        })
+                      }
+                    />
+                  </div>
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={15} className='mb-1'>
               <Col span={24}>
                 <Form.Item label={<span className='text-[12px] text-fg/85'>{ti('showTitleLabel')}</span>}>
-                  <Switch
-                    checked={option.showTitle === true}
-                    onChange={(checked) =>
-                      configStore.setConfigOption(mid, {
-                        ...configStore.getConfigOption(mid),
-                        showTitle: checked,
-                      })
-                    }
-                  />
+                  <div data-panel-item-id={pid('showTitle')}>
+                    <Switch
+                      checked={option.showTitle === true}
+                      onChange={(checked) =>
+                        configStore.setConfigOption(mid, {
+                          ...configStore.getConfigOption(mid),
+                          showTitle: checked,
+                        })
+                      }
+                    />
+                  </div>
                 </Form.Item>
               </Col>
             </Row>
@@ -522,37 +527,43 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                       <Input
                         maxLength={30}
                         defaultValue={option[item.key]}
+                        data-panel-item-id={pid(item.key)}
                         placeholder={`${ti('enterPrefix')}${ti(`fields.${item.key}` as never)}`}
                         onChange={(e) => inputHandler(item.key, e.target.value)}
                       />
                     ) : item.controllerType === 'date-picker' ? (
-                      <ResponsiveDatePicker
-                        defaultValue={option[item.key]}
-                        style={{ width: '100%' }}
-                        placeholder={`${ti('selectPrefix')}${ti(`fields.${item.key}` as never)}`}
-                        onChange={(_, dateString) =>
-                          inputHandler(
-                            item.key,
-                            Array.isArray(dateString)
-                              ? dateString.join('/')
-                              : dateString || ''
-                          )
-                        }
-                      />
+                      <div data-panel-item-id={pid(item.key)}>
+                        <ResponsiveDatePicker
+                          defaultValue={option[item.key]}
+                          style={{ width: '100%' }}
+                          placeholder={`${ti('selectPrefix')}${ti(`fields.${item.key}` as never)}`}
+                          onChange={(_, dateString) =>
+                            inputHandler(
+                              item.key,
+                              Array.isArray(dateString)
+                                ? dateString.join('/')
+                                : dateString || ''
+                            )
+                          }
+                        />
+                      </div>
                     ) : item.controllerType === 'select' ? (
-                      <ResponsiveSelect
-                        defaultValue={option[item.key]}
-                        options={item.options}
-                        placeholder={`${ti('selectPrefix')}${ti(`fields.${item.key}` as never)}`}
-                        showSearch
-                        filterOption={filterOption}
-                        onChange={(value) => inputHandler(item.key, value)}
-                      />
+                      <div data-panel-item-id={pid(item.key)}>
+                        <ResponsiveSelect
+                          defaultValue={option[item.key]}
+                          options={item.options}
+                          placeholder={`${ti('selectPrefix')}${ti(`fields.${item.key}` as never)}`}
+                          showSearch
+                          filterOption={filterOption}
+                          onChange={(value) => inputHandler(item.key, value)}
+                        />
+                      </div>
                     ) : item.controllerType === 'input-salary' ? (
                       <div className='w-full flex items-center justify-between'>
                         <Input
                           maxLength={30}
                           defaultValue={salaryValue[0]}
+                          data-panel-item-id={pid('expectedSalary_0')}
                           style={{ width: '43%' }}
                           placeholder={ti('salaryPh')}
                           onChange={(e) => salaryInputHandler(0, e.target.value)}
@@ -561,6 +572,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           defaultValue={salaryValue[1]}
+                          data-panel-item-id={pid('expectedSalary_1')}
                           style={{ width: '43%' }}
                           placeholder={ti('salaryPh')}
                           onChange={(e) => salaryInputHandler(1, e.target.value)}
@@ -576,6 +588,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                             : undefined
                         }
                         defaultValue={option[item.key]}
+                        data-panel-item-id={pid(item.key)}
                         options={item.options}
                         placeholder={`${ti('selectPrefix')}${ti(`fields.${item.key}` as never)}`}
                         onChange={(value) => {
@@ -586,7 +599,8 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                         }}
                       />
                     ) : item.controllerType === 'image' ? (
-                      <Upload
+                      <div data-panel-item-id={pid(item.key)}>
+                        <Upload
                         beforeUpload={(file) => beforeUpload(file, item.key)}
                         showUploadList={false}
                         className='w-full [&_.ant-upload-wrapper]:w-full [&_.ant-upload-select]:!m-0 [&_.ant-upload-select]:!h-auto [&_.ant-upload-select]:!w-full [&_.ant-upload-select]:!border-0 [&_.ant-upload-select]:!bg-transparent'
@@ -617,7 +631,8 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                         ) : (
                           uploadButton
                         )}
-                      </Upload>
+                        </Upload>
+                      </div>
                     ) : null}
                   </Form.Item>
                 </Col>

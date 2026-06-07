@@ -33,6 +33,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<CertificateProps | null>(null);
   const gradId = useId().replace(/:/g, '');
+  const pid = useMemoizedFn((index: number, key: string) => `${moduleActive}_${index}_${key}`);
 
   useEffect(() => {
     const m = getModule(moduleActive);
@@ -167,6 +168,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
             resetKey={moduleActive}
             title={module?.options?.title ?? ''}
             fallbackTitle={tc('fallbackTitle')}
+            panelItemId={`${moduleActive}_title`}
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
@@ -240,6 +242,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                           <Input
                             maxLength={30}
                             value={item.name}
+                            data-panel-item-id={pid(index, 'name')}
                             placeholder={tc('namePh')}
                             onChange={(e) => handleChange(index, 'name', e)}
                           />
@@ -257,12 +260,14 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                             />
                           }
                         >
-                          <ResponsiveDatePicker
-                            style={{ width: '100%' }}
-                            value={dayjs(item.date)}
-                            placeholder={tc('datePh')}
-                            onChange={(e) => handleChange(index, 'date', e)}
-                          />
+                          <div data-panel-item-id={pid(index, 'date')}>
+                            <ResponsiveDatePicker
+                              style={{ width: '100%' }}
+                              value={dayjs(item.date)}
+                              placeholder={tc('datePh')}
+                              onChange={(e) => handleChange(index, 'date', e)}
+                            />
+                          </div>
                         </FormItem>
                       </Col>
                     </Row>

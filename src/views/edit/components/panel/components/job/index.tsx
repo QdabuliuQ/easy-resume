@@ -58,6 +58,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
   const [module, setModule] = useState<JobProps | null>(null);
   const gradId = useId().replace(/:/g, '');
   const iconGradId = `job-icon-grad-${gradId}`;
+  const pid = useMemoizedFn((index: number, key: string) => `${moduleActive}_${index}_${key}`);
 
   useEffect(() => {
     const m = getModule(moduleActive);
@@ -219,6 +220,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
             resetKey={moduleActive}
             title={module?.options?.title ?? ''}
             fallbackTitle={tj('fallbackTitle')}
+            panelItemId={`${moduleActive}_title`}
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
@@ -292,6 +294,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.company}
+                          data-panel-item-id={pid(index, 'company')}
                           placeholder={tj('companyPh')}
                           onChange={(e) => handleChange(e, index, 'company')}
                         />
@@ -312,6 +315,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.post}
+                          data-panel-item-id={pid(index, 'post')}
                           placeholder={tj('rolePh')}
                           onChange={(e) => handleChange(e, index, 'post')}
                         />
@@ -332,6 +336,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.department}
+                          data-panel-item-id={pid(index, 'department')}
                           placeholder={tj('deptPh')}
                           onChange={(e) => handleChange(e, index, 'department')}
                         />
@@ -352,6 +357,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         <Cascader
                           value={item.city}
                           options={city}
+                          data-panel-item-id={pid(index, 'city')}
                           placeholder={tj('cityPh')}
                           onChange={(e) => handleChange(e, index, 'city')}
                         />
@@ -369,16 +375,18 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <ResponsiveRangeDatePicker
-                          style={{ width: '100%' }}
-                          value={[
-                            item.startDate ? dayjs(item.startDate) : undefined,
-                            item.endDate ? dayjs(item.endDate) : undefined,
-                          ]}
-                          placeholder={[tj('periodPhStart'), tj('periodPhEnd')]}
-                          onChange={(e) => handleChange(e, index, 'date')}
-                          format='YYYY-MM'
-                        />
+                        <div data-panel-item-id={pid(index, 'date')}>
+                          <ResponsiveRangeDatePicker
+                            style={{ width: '100%' }}
+                            value={[
+                              item.startDate ? dayjs(item.startDate) : undefined,
+                              item.endDate ? dayjs(item.endDate) : undefined,
+                            ]}
+                            placeholder={[tj('periodPhStart'), tj('periodPhEnd')]}
+                            onChange={(e) => handleChange(e, index, 'date')}
+                            format='YYYY-MM'
+                          />
+                        </div>
                       </FormItem>
                     </Col>
                     <Col span={24}>
@@ -393,6 +401,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                           <RichTextEditor
                             instanceKey={`${moduleActive}-${index}`}
                             html={item.description ?? ''}
+                            dataPanelItemId={pid(index, 'description')}
                             onHtmlChange={(next) =>
                               handleDescriptionHtml(index, next)
                             }

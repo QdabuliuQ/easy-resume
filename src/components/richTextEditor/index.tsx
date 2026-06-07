@@ -95,6 +95,7 @@ function RichTextEditor({
   placeholder,
   onAiPolishClick,
   maxPlainLength = RICH_TEXT_MAX_PLAIN_LENGTH,
+  dataPanelItemId,
 }: {
   instanceKey: string;
   html: string;
@@ -102,6 +103,7 @@ function RichTextEditor({
   placeholder?: string;
   onAiPolishClick?: (richTextHtml: string, ctx?: AiPolishStreamContext) => Promise<string>;
   maxPlainLength?: number;
+  dataPanelItemId?: string;
 }) {
   const message = useAppMessage();
   const tr = useTranslations('Edit.richText');
@@ -266,7 +268,7 @@ function RichTextEditor({
   });
 
   return (
-    <div className="min-w-0">
+    <div className="min-w-0" data-panel-item-id={dataPanelItemId}>
       <div className="relative min-w-0">
         <div className={styles.host} style={tipCssVars}>
           <div ref={hostRef} className="min-w-0" />

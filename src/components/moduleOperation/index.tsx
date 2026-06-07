@@ -57,6 +57,76 @@ function afterReorder(fn: () => void) {
   });
 }
 
+function resolveModuleIdFromItemId(itemId: string, moduleIds: string[]): string | null {
+  let hit: string | null = null;
+  for (const id of moduleIds) {
+    if (itemId === id || itemId.startsWith(`${id}_`)) {
+      if (!hit || id.length > hit.length) hit = id;
+    }
+  }
+  return hit;
+}
+
+function focusPanelFieldByItemId(itemId: string) {
+  const sel = `[data-panel-item-id="${CSS.escape(itemId)}"]`;
+  const placeCaretToEnd = (el: HTMLElement) => {
+    if (!el.isContentEditable) return;
+    const selApi = window.getSelection();
+    if (!selApi) return;
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    selApi.removeAllRanges();
+    selApi.addRange(range);
+  };
+  const openAntdPopupIfNeeded = (holder: HTMLElement, target: HTMLElement) => {
+    const root = target.closest('.ant-select,.ant-picker,.ant-cascader') as HTMLElement | null
+      ?? holder.querySelector('.ant-select,.ant-picker,.ant-cascader');
+    if (!root) return;
+    const trigger =
+      (root.querySelector('.ant-select-selector') as HTMLElement | null)
+      ?? (root.querySelector('.ant-picker-input input') as HTMLElement | null)
+      ?? (root.querySelector('.ant-select-selection-search-input') as HTMLElement | null)
+      ?? (root.querySelector('input') as HTMLElement | null)
+      ?? root;
+    if (typeof trigger.focus === 'function') trigger.focus();
+    trigger.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    trigger.click();
+  };
+
+  const tryFocus = () => {
+    const holder = document.querySelector(sel) as HTMLElement | null;
+    if (!holder) return false;
+    holder.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const target =
+      holder.matches('input,textarea,select,[contenteditable="true"]')
+        ? holder
+        : (holder.querySelector(
+            'input,textarea,select,[contenteditable="true"],.ql-editor,.ant-select-selection-search-input',
+          ) as HTMLElement | null) ?? holder;
+    if (typeof target.focus === 'function') target.focus();
+    if (target.classList.contains('ql-editor')) {
+      holder.click();
+      requestAnimationFrame(() => {
+        if (typeof target.focus === 'function') target.focus();
+        placeCaretToEnd(target);
+      });
+    }
+    openAntdPopupIfNeeded(holder, target);
+    if (!holder.matches('input,textarea') && target === holder) holder.click();
+    return true;
+  };
+
+  if (tryFocus()) return;
+  let retries = 30;
+  const tick = () => {
+    if (tryFocus() || retries <= 0) return;
+    retries -= 1;
+    window.setTimeout(tick, 80);
+  };
+  window.setTimeout(tick, 80);
+}
+
 type ToolbarBox = {
   top: number;
   visible: boolean;
@@ -203,6 +273,19 @@ function ModuleOperation({
   }, [activeId, scrollActiveModuleIntoView]);
 
   const hostClick = useMemoizedFn((e: React.MouseEvent) => {
+    const itemNode = (e.target as HTMLElement).closest('[data-item-id]');
+    const itemId = itemNode?.getAttribute('data-item-id')?.trim();
+    if (itemId) {
+      const moduleId = resolveModuleIdFromItemId(
+        itemId,
+        orderedModules.map((m) => m.id),
+      );
+      if (moduleId) {
+        moduleActiveStore.setModuleActive(moduleId);
+        focusPanelFieldByItemId(itemId);
+      }
+      return;
+    }
     const t = (e.target as HTMLElement).closest(`[${RESUME_MODULE_ID_ATTR}]`);
     const id = t?.getAttribute(RESUME_MODULE_ID_ATTR);
     if (!id) return;
