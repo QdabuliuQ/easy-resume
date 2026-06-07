@@ -14,12 +14,17 @@ export type ResumeAiFieldOptimize = {
   optimizeValue: string;
 };
 
-export type ResumeAiAnalyzeResult = {
+export type ResumeAiScoreResult = {
   totalScore: number;
   dimensionEvaluate: ResumeAiDimensionEvaluate[];
+};
+
+export type ResumeAiOptimizeResult = {
   fieldOptimizeList: ResumeAiFieldOptimize[];
 };
 
-export type ResumeAiAnalyzeResponse = ResumeAiAnalyzeResult & {
-  cached?: boolean;
-};
+export type ResumeAiAnalyzeResult = ResumeAiScoreResult & ResumeAiOptimizeResult;
+
+export type ResumeAiScoreResponse = ResumeAiScoreResult & { cached?: boolean };
+export type ResumeAiOptimizeResponse = ResumeAiOptimizeResult & { cached?: boolean };
+export type ResumeAiAnalyzeResponse = ResumeAiAnalyzeResult & { cached?: boolean };

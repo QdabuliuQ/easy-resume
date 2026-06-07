@@ -10,7 +10,7 @@ import { useAppMessage } from '@/hooks/useAppMessage';
 import { observer } from 'mobx-react';
 import { useTranslations } from 'next-intl';
 import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react';
-import { analyzeResumeWithAi } from '@/api/analyzeResume';
+import { analyzeResumeOptimize, analyzeResumeScore } from '@/api/analyzeResume';
 import type { ResumeAiAnalyzeResult } from '@/lib/ai/score/types';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore } from '@/mobx';
@@ -52,8 +52,10 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const cfg = configStore.getConfig;
   const { addModuleByType } = useModuleHandle();
   const [addOpen, setAddOpen] = useState(false);
-  const [analyzeLoading, setAnalyzeLoading] = useState(false);
+  const [scoreLoading, setScoreLoading] = useState(false);
+  const [optimizeLoading, setOptimizeLoading] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<ResumeAiAnalyzeResult | null>(null);
+  const analyzeLoading = scoreLoading || optimizeLoading;
   const isAiScore = menuActiveKey === 'ai-score';
   const isResumeTemplate = menuActiveKey === 'resume-template';
   const isGeneralSettings = menuActiveKey === 'general-settings';
@@ -67,31 +69,55 @@ function Resume({ menuActiveKey }: ResumeProps) {
       message.warning(tr('noConfigWarn'));
       return;
     }
+    const pagesForAnalyze = (cfgInner.pages ?? []).map((page) => {
+      const modules = Array.isArray(page.modules)
+        ? page.modules.map((module) => {
+            if (String(module?.type ?? '') !== 'info1') return module;
+            const options =
+              module?.options && typeof module.options === 'object'
+                ? removeAvatar(module.options as Record<string, unknown>)
+                : module?.options;
+            return { ...module, options };
+          })
+        : page.modules;
+      return { ...page, modules };
+    });
+    const analyzeSessionId =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const payload = { pages: pagesForAnalyze };
     setAiAnalysis(null);
-    setAnalyzeLoading(true);
-    void (async () => {
-      try {
-        const pagesForAnalyze = (cfgInner.pages ?? []).map((page) => {
-          const modules = Array.isArray(page.modules)
-            ? page.modules.map((module) => {
-                if (String(module?.type ?? '') !== 'info1') return module;
-                const options =
-                module?.options && typeof module.options === 'object'
-                  ? removeAvatar(module.options as Record<string, unknown>)
-                  : module?.options;
-                return { ...module, options };
-              })
-            : page.modules;
-          return { ...page, modules };
-        });
-        const result = await analyzeResumeWithAi({ pages: pagesForAnalyze });
-        setAiAnalysis(result);
-      } catch (e) {
+    setScoreLoading(true);
+    setOptimizeLoading(true);
+    void analyzeResumeScore(payload, analyzeSessionId)
+      .then((res) => {
+        const { cached, ...score } = res;
+        void cached;
+        setAiAnalysis((prev) => ({
+          totalScore: score.totalScore,
+          dimensionEvaluate: score.dimensionEvaluate,
+          fieldOptimizeList: prev?.fieldOptimizeList ?? [],
+        }));
+      })
+      .catch((e) => {
         message.error(e instanceof Error ? e.message : tr('analyzeFail'));
-      } finally {
-        setAnalyzeLoading(false);
-      }
-    })();
+      })
+      .finally(() => setScoreLoading(false));
+    void analyzeResumeOptimize(payload, analyzeSessionId)
+      .then((res) => {
+        const { cached, ...optimize } = res;
+        void cached;
+        setAiAnalysis((prev) => ({
+          totalScore: prev?.totalScore ?? 0,
+          dimensionEvaluate: prev?.dimensionEvaluate ?? [],
+          fieldOptimizeList: optimize.fieldOptimizeList,
+        }));
+      })
+      .catch((e) => {
+        message.error(e instanceof Error ? e.message : tr('analyzeFail'));
+      })
+      .finally(() => setOptimizeLoading(false));
   }, [analyzeLoading, message, tr]);
   return (
     <div className='relative flex h-full min-h-0 flex-1 flex-col text-black [transform:translateZ(0)] bg-[var(--resume-panel-bg)]'>
@@ -112,7 +138,11 @@ function Resume({ menuActiveKey }: ResumeProps) {
             }
           >
             {isAiScore ? (
-              <AiScore loading={analyzeLoading} analysis={aiAnalysis} />
+              <AiScore
+                scoreLoading={scoreLoading}
+                optimizeLoading={optimizeLoading}
+                analysis={aiAnalysis}
+              />
             ) : isResumeTemplate ? (
               <ResumeTemplate />
             ) : isGeneralSettings ? (

@@ -1,12 +1,12 @@
 /**
- * POST /api/ai/score — 简历 AI 综合评分与维度评价
+ * POST /api/ai/optimize — 简历 AI 字段优化建议
  *
  * 请求体：{ pages: unknown[], analyzeSessionId?: string }
- * 与 /api/ai/optimize 并行调用时传相同 analyzeSessionId，共享限流配额。
+ * 与 /api/ai/score 并行调用时传相同 analyzeSessionId，共享限流配额。
  */
 import crypto from 'crypto';
 import { type NextRequest } from 'next/server';
-import { analyzeResumeScore } from '@/lib/ai/score/service';
+import { analyzeResumeOptimize } from '@/lib/ai/score/service';
 import {
   checkAnalyzeRateLimit,
   err,
@@ -18,7 +18,7 @@ import {
   setCachedJson,
   type AnalyzeRequestBody,
 } from '@/lib/ai/score/routeShared';
-import type { ResumeAiScoreResult } from '@/lib/ai/score/types';
+import type { ResumeAiOptimizeResult } from '@/lib/ai/score/types';
 
 export async function POST(req: NextRequest) {
   let body: AnalyzeRequestBody = {};
@@ -33,15 +33,15 @@ export async function POST(req: NextRequest) {
   const rate = await checkAnalyzeRateLimit(ipHash, body.analyzeSessionId);
   if (!rate.allowed) return err(rate.message, 429, rate.resetIn);
   const hash = hashResumeContent(body.pages);
-  const cacheKey = `resume:score:${hash}`;
-  const cached = await getCachedJson<ResumeAiScoreResult>(cacheKey);
+  const cacheKey = `resume:optimize:${hash}`;
+  const cached = await getCachedJson<ResumeAiOptimizeResult>(cacheKey);
   if (cached) return ok({ ...cached, cached: true });
-  let result: ResumeAiScoreResult;
+  let result: ResumeAiOptimizeResult;
   try {
-    result = await analyzeResumeScore({ pages: body.pages });
+    result = await analyzeResumeOptimize({ pages: body.pages });
   } catch (e) {
     const message = e instanceof Error ? e.message : '未知错误';
-    return err(`AI 评分失败：${message}`, 502);
+    return err(`AI 优化建议失败：${message}`, 502);
   }
   setCachedJson(cacheKey, result);
   return ok({ ...result, cached: false });

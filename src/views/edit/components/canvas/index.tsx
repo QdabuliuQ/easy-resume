@@ -65,7 +65,6 @@ const RENDER_DEBOUNCE_MS = 180;
 const PAGE_FIT_EPSILON_PX = 1;
 const MEASURE_HEIGHT_EPSILON_PX = 0.1;
 const MEASURE_FRAME_DELAY = 10;
-const CANVAS_STAGE_VERTICAL_PADDING_PX = 80;
 
 /** 合并默认 globalStyle，避免 cfg 里缺字段时渲染异常 */
 
@@ -461,7 +460,23 @@ function Canvas({ onOpenGeneralSettings, mode = 'edit' }: CanvasProps) {
   const contentW = pageWPx;
   const pageCount = Math.max(1, pages.length);
   const contentH = pageCount * pageHPx + Math.max(0, pageCount - 1) * PAGE_STACK_GAP_PX;
-  const guideLineHeight = contentH * scale + CANVAS_STAGE_VERTICAL_PADDING_PX;
+  const [guideViewport, setGuideViewport] = useState({
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0,
+  });
+
+  const updateGuideViewport = useMemoizedFn(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    setGuideViewport({
+      left: el.scrollLeft,
+      top: el.scrollTop,
+      width: el.clientWidth,
+      height: el.clientHeight,
+    });
+  });
 
   const updateScale = useMemoizedFn(() => {
     const el = containerRef.current;
@@ -493,6 +508,18 @@ function Canvas({ onOpenGeneralSettings, mode = 'edit' }: CanvasProps) {
     ro.observe(el);
     return () => ro.disconnect();
   }, [updateScale]);
+
+  useLayoutEffect(() => {
+    updateGuideViewport();
+  }, [updateGuideViewport, scale, pages.length]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onScroll = () => updateGuideViewport();
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [updateGuideViewport]);
 
   useEffect(() => {
     return () => {
@@ -617,7 +644,7 @@ function Canvas({ onOpenGeneralSettings, mode = 'edit' }: CanvasProps) {
       </div>
 
       {isEditMode && hoverRect ? (
-        <SelectableGuideLines hoverRect={hoverRect} verticalLineHeight={guideLineHeight} />
+        <SelectableGuideLines hoverRect={hoverRect} viewport={guideViewport} />
       ) : null}
 
       {isEditMode ? (

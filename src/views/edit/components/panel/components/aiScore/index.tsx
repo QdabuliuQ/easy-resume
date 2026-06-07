@@ -118,6 +118,15 @@ function EmptyAnalysisHint() {
   );
 }
 
+function SectionLoading({ label }: { label: string }) {
+  return (
+    <div className='flex min-h-[80px] flex-col items-center justify-center gap-2 py-4'>
+      <Spin size='small' />
+      <span className='text-[11px] text-fg/55'>{label}</span>
+    </div>
+  );
+}
+
 function collapseExpandIcon({ isActive }: { isActive?: boolean }) {
   return (
     <Up
@@ -131,11 +140,13 @@ function collapseExpandIcon({ isActive }: { isActive?: boolean }) {
 
 function AiScore({
   score: scoreProp,
-  loading = false,
+  scoreLoading = false,
+  optimizeLoading = false,
   analysis = null,
 }: {
   score?: number;
-  loading?: boolean;
+  scoreLoading?: boolean;
+  optimizeLoading?: boolean;
   analysis?: ResumeAiAnalyzeResult | null;
 }) {
   const ta = useTranslations('Edit.aiScore');
@@ -209,8 +220,8 @@ function AiScore({
                   );
                 })}
               </div>
-            ) : loading ? (
-              <div className='min-h-[80px]' aria-hidden />
+            ) : scoreLoading ? (
+              <SectionLoading label={ta('analyzing')} />
             ) : (
               <EmptyAnalysisHint />
             )}
@@ -218,7 +229,7 @@ function AiScore({
         ),
       },
     ],
-    [loading, dimensionRows, ta]
+    [scoreLoading, dimensionRows, ta]
   );
   const suggestionItems = useMemo(
     () => [
@@ -322,8 +333,8 @@ function AiScore({
                 })}
               </ul>
               </>
-            ) : loading ? (
-              <div className='min-h-[80px]' aria-hidden />
+            ) : optimizeLoading ? (
+              <SectionLoading label={ta('analyzing')} />
             ) : (
               <EmptyAnalysisHint />
             )}
@@ -331,17 +342,17 @@ function AiScore({
         ),
       },
     ],
-    [loading, fieldList, actionableCount, onApply, onApplyAll, ta]
+    [optimizeLoading, fieldList, actionableCount, onApply, onApplyAll, ta]
   );
   return (
     <div className='relative flex h-full min-h-0 flex-col gap-3 overflow-auto px-0.5 pt-0.5 text-left'>
-      {loading ? (
-        <div className='absolute inset-0 z-[8] flex flex-col items-center justify-center gap-3 rounded-2xl bg-[var(--panel-scrim)] backdrop-blur-sm'>
-          <Spin size='large' />
-          <span className='text-[12px] text-fg/55'>{ta('analyzing')}</span>
-        </div>
-      ) : null}
-      <section className={`${panelShellClass} shrink-0 px-4 pb-4 pt-4`}>
+      <section className={`${panelShellClass} relative shrink-0 px-4 pb-4 pt-4`}>
+        {scoreLoading ? (
+          <div className='absolute inset-0 z-[2] flex flex-col items-center justify-center gap-2 rounded-2xl bg-[var(--panel-scrim)]/80 backdrop-blur-[2px]'>
+            <Spin size='default' />
+            <span className='text-[11px] text-fg/55'>{ta('analyzing')}</span>
+          </div>
+        ) : null}
         <div className='mb-3 flex items-center justify-between gap-3'>
           <div>
             <p className='text-[12px] uppercase tracking-[0.16em] text-fg/58'>{ta('scoreCardTitle')}</p>
