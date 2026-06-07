@@ -107,7 +107,7 @@ ${FIELD_WHITELIST}
 下面是我要你分析的简历 JSON 配置内容：`;
 
 export const RESUME_AI_SCORE_SYSTEM =
-  '你只输出合法 JSON 对象，禁止 Markdown、禁止代码围栏、禁止任何 JSON 以外的文字。必须包含 totalScore 与 dimensionEvaluate 四个维度。';
+  '你只输出合法 JSON 对象，禁止 Markdown、禁止代码围栏、禁止任何 JSON 以外的文字。必须包含 totalScore 与 dimensionEvaluate 四个维度。dimensionEvaluate 每项字段名只能是 dimensionName、status、remark；remark 用单行中文，禁止英文双引号；禁止复述输入简历 JSON 片段。';
 
 export const RESUME_AI_OPTIMIZE_SYSTEM =
   '你只输出合法 JSON 对象，禁止 Markdown、禁止代码围栏、禁止任何 JSON 以外的文字。fieldOptimizeList：job/project/education/certificate 必须含 moduleItemId；moduleId 必须与输入 JSON 中模块 id 完全一致；optimizeValue 禁止与原文相同或敷衍复述。';

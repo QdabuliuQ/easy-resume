@@ -15,7 +15,7 @@ const XFYUN_MAAS_MODEL =
 const CHATANYWHERE_BASE_URL = 'https://api.chatanywhere.tech/v1';
 const CHATANYWHERE_MODEL = 'deepseek-v4-flash';
 
-function createXfyunMaasModel(temperature: number): BaseChatModel | null {
+function createXfyunMaasModel(temperature: number, jsonMode?: boolean): BaseChatModel | null {
   const key = process.env.XFYUN_MAAS_API_KEY?.trim();
   if (!key) return null;
   return new ChatOpenAI({
@@ -23,10 +23,11 @@ function createXfyunMaasModel(temperature: number): BaseChatModel | null {
     model: XFYUN_MAAS_MODEL,
     temperature,
     configuration: { baseURL: XFYUN_MAAS_BASE_URL },
+    modelKwargs: jsonMode ? { response_format: { type: 'json_object' } } : undefined,
   });
 }
 
-function createChatanywhereModel(temperature: number): BaseChatModel | null {
+function createChatanywhereModel(temperature: number, jsonMode?: boolean): BaseChatModel | null {
   const key = process.env.CHATANYWHERE_API_KEY?.trim();
   if (!key) return null;
   return new ChatOpenAI({
@@ -34,14 +35,16 @@ function createChatanywhereModel(temperature: number): BaseChatModel | null {
     model: CHATANYWHERE_MODEL,
     temperature,
     configuration: { baseURL: CHATANYWHERE_BASE_URL },
+    modelKwargs: jsonMode ? { response_format: { type: 'json_object' } } : undefined,
   });
 }
 
 /** 优先讯飞星辰 Coding Plan MaaS，失败时降级 ChatAnywhere */
-export function createChatModel(opts?: { temperature?: number }): AppChatModel {
+export function createChatModel(opts?: { temperature?: number; jsonMode?: boolean }): AppChatModel {
   const temperature = opts?.temperature ?? 0.7;
-  const primary = createXfyunMaasModel(temperature);
-  const fallback = createChatanywhereModel(temperature);
+  const jsonMode = opts?.jsonMode ?? false;
+  const primary = createXfyunMaasModel(temperature, jsonMode);
+  const fallback = createChatanywhereModel(temperature, jsonMode);
   if (primary && fallback) {
     return primary.withFallbacks([fallback]);
   }

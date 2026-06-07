@@ -1,6 +1,7 @@
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { createChatModel } from '@/lib/ai/chatModel';
+import { parseAiJsonObject } from '@/lib/ai/parseAiJson';
 import {
   RESUME_AI_OPTIMIZE_PROMPT,
   RESUME_AI_OPTIMIZE_SYSTEM,
@@ -22,21 +23,6 @@ const optimizePrompt = ChatPromptTemplate.fromMessages([
   ['system', RESUME_AI_OPTIMIZE_SYSTEM],
   ['human', '{analyzePrompt}\n{jsonText}'],
 ]);
-
-function stripAssistantJsonFence(s: string): string {
-  const t = s.trim();
-  const m = /^```(?:json)?\s*\r?\n?([\s\S]*?)```$/im.exec(t);
-  if (m) return m[1].trim();
-  return t;
-}
-
-function extractJsonObject(raw: string): Record<string, unknown> {
-  const text = stripAssistantJsonFence(raw);
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start < 0 || end < start) throw new Error('模型返回中未找到 JSON 对象');
-  return JSON.parse(text.slice(start, end + 1)) as Record<string, unknown>;
-}
 
 function parseFieldOptimizeList(rows: unknown): ResumeAiFieldOptimize[] {
   if (!Array.isArray(rows)) return [];
@@ -63,7 +49,7 @@ function parseFieldOptimizeList(rows: unknown): ResumeAiFieldOptimize[] {
 }
 
 function parseResumeAiScoreResult(raw: string): ResumeAiScoreResult {
-  const j = extractJsonObject(raw);
+  const j = parseAiJsonObject(raw);
   const totalScore = Number(j.totalScore);
   if (!Number.isFinite(totalScore)) throw new Error('totalScore 无效');
   const dimensionEvaluate = Array.isArray(j.dimensionEvaluate) ? j.dimensionEvaluate : [];
@@ -81,30 +67,60 @@ function parseResumeAiScoreResult(raw: string): ResumeAiScoreResult {
 }
 
 function parseResumeAiOptimizeResult(raw: string): ResumeAiOptimizeResult {
-  const j = extractJsonObject(raw);
+  const j = parseAiJsonObject(raw);
   return {
     fieldOptimizeList: parseFieldOptimizeList(j.fieldOptimizeList),
   };
 }
 
-async function invokeAi(prompt: ChatPromptTemplate, analyzePrompt: string, resumeJson: unknown) {
+async function invokeAiRaw(
+  prompt: ChatPromptTemplate,
+  analyzePrompt: string,
+  resumeJson: unknown,
+  opts: { jsonMode: boolean; temperature: number },
+): Promise<string> {
   const jsonText = JSON.stringify(resumeJson ?? {});
   const chain = prompt
-    .pipe(createChatModel({ temperature: 0.2 }))
+    .pipe(createChatModel({ temperature: opts.temperature, jsonMode: opts.jsonMode }))
     .pipe(new StringOutputParser());
   const raw = await chain.invoke({ analyzePrompt, jsonText });
   if (!raw.trim()) throw new Error('模型返回为空');
   return raw;
 }
 
+async function invokeAiParsed<T>(
+  prompt: ChatPromptTemplate,
+  analyzePrompt: string,
+  resumeJson: unknown,
+  parse: (raw: string) => T,
+): Promise<T> {
+  const attempts: { jsonMode: boolean; temperature: number }[] = [
+    { jsonMode: true, temperature: 0.2 },
+    { jsonMode: false, temperature: 0 },
+  ];
+  let lastError: Error | undefined;
+  for (const attempt of attempts) {
+    try {
+      const raw = await invokeAiRaw(prompt, analyzePrompt, resumeJson, attempt);
+      return parse(raw);
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error(String(e));
+    }
+  }
+  throw lastError ?? new Error('AI 解析失败');
+}
+
 export async function analyzeResumeScore(resumeJson: unknown): Promise<ResumeAiScoreResult> {
-  const raw = await invokeAi(scorePrompt, RESUME_AI_SCORE_PROMPT, resumeJson);
-  return parseResumeAiScoreResult(raw);
+  return invokeAiParsed(scorePrompt, RESUME_AI_SCORE_PROMPT, resumeJson, parseResumeAiScoreResult);
 }
 
 export async function analyzeResumeOptimize(resumeJson: unknown): Promise<ResumeAiOptimizeResult> {
-  const raw = await invokeAi(optimizePrompt, RESUME_AI_OPTIMIZE_PROMPT, resumeJson);
-  return parseResumeAiOptimizeResult(raw);
+  return invokeAiParsed(
+    optimizePrompt,
+    RESUME_AI_OPTIMIZE_PROMPT,
+    resumeJson,
+    parseResumeAiOptimizeResult,
+  );
 }
 
 /** @deprecated 使用 analyzeResumeScore + analyzeResumeOptimize */
