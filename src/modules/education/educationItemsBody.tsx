@@ -9,7 +9,7 @@ export interface EducationItemLike {
   major?: string;
   startDate?: string;
   endDate?: string;
-  city?: string;
+  city?: string | string[];
   tags?: unknown[];
   academy?: string;
   description?: string;
@@ -39,7 +39,11 @@ export default function EducationItemsBody({
         const degree = typeof item.degree === 'string' ? item.degree : '';
         const major = typeof item.major === 'string' ? item.major : '';
         const academy = typeof item.academy === 'string' ? item.academy : '';
-        const city = typeof item.city === 'string' ? item.city : '';
+        const city = Array.isArray(item.city)
+          ? item.city.join(' - ')
+          : typeof item.city === 'string'
+            ? item.city
+            : '';
         const description = typeof item.description === 'string' ? item.description : '';
         return (
           <div

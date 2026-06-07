@@ -14,7 +14,7 @@ export interface JobProps {
       company: string;
       post: string;
       department: string;
-      city: string;
+      city: string | string[];
       startDate: string;
       endDate: string;
       description: string;

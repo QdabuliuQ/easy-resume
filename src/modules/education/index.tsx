@@ -16,7 +16,7 @@ export interface EducationProps {
       major: string;
       startDate: string;
       endDate: string;
-      city: string;
+      city: string | string[];
       tags: string[];
       academy: string;
       description: string;

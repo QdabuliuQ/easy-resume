@@ -7,7 +7,7 @@ export interface JobItemLike {
   company?: string;
   post?: string;
   department?: string;
-  city?: string;
+  city?: string | string[];
   startDate?: string;
   endDate?: string;
   description?: string;
@@ -34,7 +34,11 @@ export default function JobItemsBody({
         const company = typeof item.company === 'string' ? item.company : '';
         const post = typeof item.post === 'string' ? item.post : '';
         const department = typeof item.department === 'string' ? item.department : '';
-        const city = typeof item.city === 'string' ? item.city : '';
+        const city = Array.isArray(item.city)
+          ? item.city.join(' - ')
+          : typeof item.city === 'string'
+            ? item.city
+            : '';
         const startDate = typeof item.startDate === 'string' ? item.startDate : '';
         const endDate = typeof item.endDate === 'string' ? item.endDate : '';
         const description = typeof item.description === 'string' ? item.description : '';

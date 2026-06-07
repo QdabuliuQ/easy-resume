@@ -2,8 +2,13 @@
 
 import 'antd-mobile/es/global';
 import { App, ConfigProvider, theme } from 'antd';
+import enUS from 'antd/locale/en_US';
+import zhCN from 'antd/locale/zh_CN';
 import { ConfigProvider as MobileConfigProvider } from 'antd-mobile';
-import { useEffect, useSyncExternalStore, type ReactNode } from 'react';
+import dayjs from 'dayjs';
+import 'dayjs/locale/en';
+import 'dayjs/locale/zh-cn';
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import {
   getAppTheme,
   getServerAppTheme,
@@ -13,6 +18,8 @@ import {
 const ADM_PRIMARY = '#0e9c8d';
 
 export function AntdProvider({ children }: { children: ReactNode }) {
+  const [isEn, setIsEn] = useState(false);
+
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       return;
@@ -57,6 +64,24 @@ export function AntdProvider({ children }: { children: ReactNode }) {
     register();
   }, []);
 
+  useEffect(() => {
+    const sync = () => {
+      const lang = document.documentElement.lang || '';
+      setIsEn(lang.toLowerCase().startsWith('en'));
+    };
+    sync();
+    const obs = new MutationObserver(sync);
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['lang'],
+    });
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    dayjs.locale(isEn ? 'en' : 'zh-cn');
+  }, [isEn]);
+
   const appTheme = useSyncExternalStore(
     subscribeAppTheme,
     getAppTheme,
@@ -65,6 +90,7 @@ export function AntdProvider({ children }: { children: ReactNode }) {
   const isDark = appTheme === 'dark';
   return (
     <ConfigProvider
+      locale={isEn ? enUS : zhCN}
       theme={{
         algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
