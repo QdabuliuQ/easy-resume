@@ -103,7 +103,11 @@ function Info1(props: Props) {
           const val = props.config.options[key as keyof InfoProps['options']];
           const display =
             key === 'city'
-              ? normalizeResumeCityDisplay(String(val))
+              ? normalizeResumeCityDisplay(
+                  Array.isArray(val) ? val.filter(Boolean).join('/') : String(val),
+                )
+              : key === 'origin'
+                ? (Array.isArray(val) ? val.filter(Boolean).join('/') : String(val))
               : key === 'intentCity'
                 ? formatIntentCityDisplay(val as unknown)
                 : String(val);

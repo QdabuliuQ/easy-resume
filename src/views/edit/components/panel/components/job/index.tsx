@@ -71,7 +71,9 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
         city:
           typeof item.city === 'string' && item.city
             ? item.city.split(' - ')
-            : item.city || '',
+            : Array.isArray(item.city)
+              ? item.city
+              : [],
       }));
       setModule(cloned);
     } else {
@@ -110,7 +112,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
     if (key === 'company' || key === 'post' || key === 'department') {
       module.options.items[index][key] = e.target.value;
     } else if (key === 'city') {
-      module.options.items[index][key] = e.join(' - ');
+      module.options.items[index][key] = Array.isArray(e) ? e : [];
     } else if (key === 'date') {
       module.options.items[index].startDate = e[0].format('YYYY-MM');
       module.options.items[index].endDate = e[1].format('YYYY-MM');
@@ -135,7 +137,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
       company: '',
       post: '',
       department: '',
-      city: '',
+      city: [],
       startDate: undefined as any,
       endDate: undefined as any,
       description: '',

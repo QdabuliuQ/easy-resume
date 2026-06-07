@@ -66,7 +66,17 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
   useEffect(() => {
     const m = getModule(moduleActive);
     if (m) {
-      setModule(ensureResumeModuleItemsId(JSON.parse(JSON.stringify(m)) as EducationProps));
+      const cloned = ensureResumeModuleItemsId(JSON.parse(JSON.stringify(m)) as EducationProps);
+      cloned.options.items = cloned.options.items.map((item: any) => ({
+        ...item,
+        city:
+          typeof item.city === 'string' && item.city
+            ? item.city.split(' - ')
+            : Array.isArray(item.city)
+              ? item.city
+              : [],
+      }));
+      setModule(cloned);
     } else {
       setModule(null);
     }
@@ -78,9 +88,12 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
       if (!config) return;
       const res = getModuleIndex(moduleActive);
       if (!res) return;
-      config.pages[res.page].modules[res.module] = JSON.parse(
-        JSON.stringify(mod)
-      );
+      const _module = JSON.parse(JSON.stringify(mod));
+      _module.options.items = _module.options.items.map((item: any) => ({
+        ...item,
+        city: Array.isArray(item.city) ? item.city.join(' - ') : item.city,
+      }));
+      config.pages[res.page].modules[res.module] = _module;
       configStore.setConfig({
         ...config,
         pages: [...config.pages],
@@ -106,7 +119,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
       school: '',
       degree: undefined as any,
       major: '',
-      city: '',
+      city: [],
       tags: [],
       academy: '',
       startDate: undefined as any,
@@ -175,7 +188,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
       module.options.items[index].startDate = e[0].format('YYYY-MM');
       module.options.items[index].endDate = e[1].format('YYYY-MM');
     } else if (key === 'city') {
-      module.options.items[index][key] = e.join(' - ');
+      module.options.items[index][key] = Array.isArray(e) ? e : [];
     }
     updateModule(module);
   });
