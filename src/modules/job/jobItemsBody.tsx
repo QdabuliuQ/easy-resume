@@ -60,10 +60,12 @@ export default function JobItemsBody({
             {(post || department || city) && (
               <div className='mb-[5px] flex min-w-0 justify-between gap-2'>
                 <div className='min-w-0 flex-[6] break-words'>
+                  <SafeText text={post} selectable={selectable} dataItemId={`${moduleId}_${index}_post`} />
                   <SafeText
-                    text={`${post}${post ? ' ' : ''}${department}`}
+                    text={department}
                     selectable={selectable}
-                    dataItemId={`${moduleId}_${index}_post`}
+                    className={post && department ? 'ml-1' : undefined}
+                    dataItemId={`${moduleId}_${index}_department`}
                   />
                 </div>
                 <div className='shrink-0 text-right'>
