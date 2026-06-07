@@ -5,10 +5,19 @@ import crypto from 'crypto';
 export const CACHE_TTL_SEC = 300;
 const ANALYZE_SESSION_TTL_SEC = 120;
 
-export const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+let redisClient: Redis | null | undefined;
+
+function getRedis(): Redis | null {
+  if (redisClient !== undefined) return redisClient;
+  const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+  if (!url || !token) {
+    redisClient = null;
+    return null;
+  }
+  redisClient = new Redis({ url, token });
+  return redisClient;
+}
 
 type ApiSuccess<T> = { success: true; data: T };
 type ApiError = { success: false; error: string; retryAfter?: number };
@@ -48,6 +57,7 @@ export function parseAnalyzeBody(body: AnalyzeRequestBody): NextResponse<ApiErro
 }
 
 async function checkRateLimit(
+  redis: Redis,
   key: string,
   limit: number,
   windowSec: number,
@@ -75,12 +85,12 @@ async function checkRateLimit(
 
 type RateLimitDenied = { allowed: false; resetIn: number; message: string };
 
-async function applyAnalyzeRateLimit(ipHash: string): Promise<RateLimitDenied | { allowed: true }> {
+async function applyAnalyzeRateLimit(redis: Redis, ipHash: string): Promise<RateLimitDenied | { allowed: true }> {
   const minuteKey = `ratelimit:analyze:1m:${ipHash}`;
   const hourKey = `ratelimit:analyze:1h:${ipHash}`;
   const [minuteCheck, hourCheck] = await Promise.all([
-    checkRateLimit(minuteKey, 2, 60),
-    checkRateLimit(hourKey, 10, 3600),
+    checkRateLimit(redis, minuteKey, 2, 60),
+    checkRateLimit(redis, hourKey, 10, 3600),
   ]);
   if (!minuteCheck.allowed) {
     return {
@@ -101,13 +111,16 @@ async function applyAnalyzeRateLimit(ipHash: string): Promise<RateLimitDenied | 
 
 /**
  * 同一次分析（score + optimize 并行）共享 analyzeSessionId，仅首请求计入限流。
+ * 未配置 Upstash 时跳过限流。
  */
 export async function checkAnalyzeRateLimit(
   ipHash: string,
   analyzeSessionId?: string,
 ): Promise<RateLimitDenied | { allowed: true }> {
+  const redis = getRedis();
+  if (!redis) return { allowed: true };
   const sessionId = analyzeSessionId?.trim();
-  if (!sessionId) return applyAnalyzeRateLimit(ipHash);
+  if (!sessionId) return applyAnalyzeRateLimit(redis, ipHash);
   const batchKey = `analyze:batch:${ipHash}:${sessionId}`;
   const blockedKey = `analyze:blocked:${ipHash}:${sessionId}`;
   const count = await redis.incr(batchKey);
@@ -127,7 +140,7 @@ export async function checkAnalyzeRateLimit(
     }
     return { allowed: true };
   }
-  const rate = await applyAnalyzeRateLimit(ipHash);
+  const rate = await applyAnalyzeRateLimit(redis, ipHash);
   if (!rate.allowed) {
     await redis.set(blockedKey, String(rate.resetIn), { ex: ANALYZE_SESSION_TTL_SEC });
   }
@@ -135,10 +148,14 @@ export async function checkAnalyzeRateLimit(
 }
 
 export async function getCachedJson<T>(cacheKey: string): Promise<T | null> {
+  const redis = getRedis();
+  if (!redis) return null;
   const cached = await redis.get<T>(cacheKey);
   return cached ?? null;
 }
 
 export function setCachedJson<T>(cacheKey: string, value: T): void {
+  const redis = getRedis();
+  if (!redis) return;
   void redis.set(cacheKey, value, { ex: CACHE_TTL_SEC }).catch(() => {});
 }
