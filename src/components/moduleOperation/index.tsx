@@ -162,7 +162,7 @@ function ModuleOperation({
 
   const orderedModules = useMemo(
     () => flattenModules(configStore.getConfig),
-    [configStore.getConfig],
+    [],
   );
 
   const activeModuleMeta = useMemo(() => {
@@ -237,7 +237,7 @@ function ModuleOperation({
 
   useLayoutEffect(() => {
     updateToolbarPos('active');
-  }, [activeId, configStore.getConfig, updateToolbarPos]);
+  }, [activeId, updateToolbarPos]);
 
   useLayoutEffect(() => {
     const host = hostRef.current;
