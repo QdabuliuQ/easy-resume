@@ -6,6 +6,8 @@
   "scripts": {
     "lint:pritter": "prettier --write src/",
     "dev": "next dev",
+    "clean:next": "rm -rf .next",
+    "prebuild": "npm run clean:next",
     "build": "next build",
     "lint": "eslint src",
     "test": "vitest run",
