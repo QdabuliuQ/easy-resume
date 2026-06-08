@@ -1,6 +1,6 @@
 import logo from '@/assets/brand/logo.png';
-import preview from '@/assets/brand/preview.png';
-import previewLight from '@/assets/brand/preview_light.png';
+import preview from '@/assets/brand/preview.webp';
+import previewLight from '@/assets/brand/preview_light.webp';
 import { getSiteUrl } from '@/lib/siteMeta';
 
 export { logo, preview, previewLight };

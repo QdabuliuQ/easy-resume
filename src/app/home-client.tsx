@@ -4,13 +4,12 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
+import HeroPreviewCompare from '@/components/heroPreviewCompare';
 import {
   DownOutlined,
   GithubOutlined,
   GlobalOutlined,
-  LeftOutlined,
   MoonOutlined,
-  RightOutlined,
   SunOutlined,
 } from '@ant-design/icons';
 import { Popover } from 'antd';
@@ -22,11 +21,14 @@ import {
   useState,
   useSyncExternalStore,
   type KeyboardEvent,
-  type PointerEvent,
 } from 'react';
 import bgDark from '@/assets/brand/bg_dark.svg';
 import bgLight from '@/assets/brand/bg_light.svg';
-import { logo, preview, previewLight } from '@/lib/brandAssets';
+import photo1Dark from '@/assets/brand/photo1.webp';
+import photo1Light from '@/assets/brand/photo1_light.webp';
+import photo2Dark from '@/assets/brand/photo2.webp';
+import photo2Light from '@/assets/brand/photo2_light.webp';
+import { logo } from '@/lib/brandAssets';
 import {
   getServerThemeSnapshot,
   getThemeSnapshot,
@@ -34,6 +36,13 @@ import {
   toggleAppTheme,
 } from '@/lib/themeStore';
 import Typed from 'typed.js';
+
+const PHOTOS = {
+  photo1Dark,
+  photo1Light,
+  photo2Dark,
+  photo2Light,
+}
 
 const HomeResumeTemplateMarquee = dynamic(
   () => import('@/components/homeResumeTemplateMarquee'),
@@ -99,277 +108,6 @@ const HeroTypingTitle = memo(function HeroTypingTitle({
   );
 });
 
-function HeroPreviewCompare({
-  reduceMotion,
-  onDragStateChange,
-  compareFigure,
-  compareSlider,
-  previewLightAlt,
-  previewDarkAlt,
-}: {
-  reduceMotion: boolean;
-  onDragStateChange?: (dragging: boolean) => void;
-  compareFigure: string;
-  compareSlider: string;
-  previewLightAlt: string;
-  previewDarkAlt: string;
-}) {
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const handleRef = useRef<HTMLDivElement>(null);
-  const pctRef = useRef(50);
-  const pendingXRef = useRef<number | null>(null);
-  const wrapGeomRef = useRef({ left: 0, width: 0 });
-  const snapRafRef = useRef<number | null>(null);
-  const dragRafRef = useRef<number | null>(null);
-  const draggingRef = useRef(false);
-  const [pct, setPct] = useState(50);
-  const cancelSnap = () => {
-    if (snapRafRef.current != null) {
-      cancelAnimationFrame(snapRafRef.current);
-      snapRafRef.current = null;
-    }
-  };
-  const cancelDragRaf = () => {
-    if (dragRafRef.current != null) {
-      cancelAnimationFrame(dragRafRef.current);
-      dragRafRef.current = null;
-    }
-  };
-  const refreshWrapGeom = () => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    wrapGeomRef.current = { left: r.left, width: r.width };
-  };
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(() => refreshWrapGeom());
-    ro.observe(el);
-    refreshWrapGeom();
-    return () => ro.disconnect();
-  }, []);
-  useEffect(
-    () => () => {
-      onDragStateChange?.(false);
-      cancelSnap();
-      cancelDragRaf();
-    },
-    [onDragStateChange]
-  );
-  const syncPctVisual = (p: number) => {
-    pctRef.current = p;
-    const clamped = Math.min(100, Math.max(0, p));
-    const pp = `${clamped.toFixed(3)}%`;
-    const fr = Math.max(clamped / 100, 0.001);
-    wrapRef.current?.style.setProperty('--compare-pct', pp);
-    wrapRef.current?.style.setProperty('--compare-fr', String(fr));
-    handleRef.current?.setAttribute('aria-valuenow', String(Math.round(p)));
-  };
-  const applyClientX = (clientX: number) => {
-    let { left, width: w } = wrapGeomRef.current;
-    if (w <= 0) {
-      refreshWrapGeom();
-      ({ left, width: w } = wrapGeomRef.current);
-    }
-    if (w <= 0) return;
-    const x = Math.min(Math.max(clientX - left, 0), w);
-    syncPctVisual((x / w) * 100);
-  };
-  const scheduleApplyClientX = (clientX: number) => {
-    pendingXRef.current = clientX;
-    if (dragRafRef.current != null) return;
-    dragRafRef.current = requestAnimationFrame(() => {
-      dragRafRef.current = null;
-      const x = pendingXRef.current;
-      if (x == null) return;
-      pendingXRef.current = null;
-      applyClientX(x);
-    });
-  };
-  const snapToCenter = () => {
-    cancelSnap();
-    const start = pctRef.current;
-    if (reduceMotion || Math.abs(start - 50) < 0.35) {
-      syncPctVisual(50);
-      setPct(50);
-      return;
-    }
-    const dur = 420;
-    const t0 = performance.now();
-    const tick = (now: number) => {
-      const u = Math.min(1, (now - t0) / dur);
-      const eased = 1 - (1 - u) ** 3;
-      syncPctVisual(start + (50 - start) * eased);
-      if (u < 1) snapRafRef.current = requestAnimationFrame(tick);
-      else {
-        snapRafRef.current = null;
-        syncPctVisual(50);
-        setPct(50);
-      }
-    };
-    snapRafRef.current = requestAnimationFrame(tick);
-  };
-  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    cancelSnap();
-    cancelDragRaf();
-    draggingRef.current = true;
-    onDragStateChange?.(true);
-    refreshWrapGeom();
-    wrapRef.current?.setPointerCapture(e.pointerId);
-    applyClientX(e.clientX);
-  };
-  const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
-    if (!wrapRef.current?.hasPointerCapture(e.pointerId) && e.pointerType === 'touch') return;
-    scheduleApplyClientX(e.clientX);
-  };
-  const onPointerEnter = (e: PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === 'touch') return;
-    cancelSnap();
-    cancelDragRaf();
-    onDragStateChange?.(true);
-    refreshWrapGeom();
-    applyClientX(e.clientX);
-  };
-  const onPointerLeave = (e: PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === 'touch' || wrapRef.current?.hasPointerCapture(e.pointerId)) return;
-    cancelDragRaf();
-    pendingXRef.current = null;
-    onDragStateChange?.(false);
-    setPct(pctRef.current);
-    snapToCenter();
-  };
-  const onPointerUp = (e: PointerEvent<HTMLDivElement>) => {
-    cancelDragRaf();
-    pendingXRef.current = null;
-    applyClientX(e.clientX);
-    draggingRef.current = false;
-    onDragStateChange?.(false);
-    setPct(pctRef.current);
-    try {
-      wrapRef.current?.releasePointerCapture(e.pointerId);
-    } catch {
-      /* noop */
-    }
-    snapToCenter();
-  };
-  const onHandleKey = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      e.preventDefault();
-      const step = e.shiftKey ? 10 : 3;
-      setPct((p) => {
-        const n = e.key === 'ArrowLeft' ? p - step : p + step;
-        return Math.min(100, Math.max(0, n));
-      });
-    }
-    if (e.key === 'Home') {
-      e.preventDefault();
-      setPct(0);
-    }
-    if (e.key === 'End') {
-      e.preventDefault();
-      setPct(100);
-    }
-  };
-  return (
-    <figure className='mx-auto w-[80vw] max-w-[min(900px,92vw)]' aria-label={compareFigure}>
-      <div
-        ref={wrapRef}
-        className='relative w-full touch-none overflow-hidden rounded-2xl border border-white/[0.09] bg-[rgb(22_20_24)] shadow-[0_28px_80px_rgb(0_0_0/0.45)] ring-1 ring-white/[0.04]'
-        style={{
-          ['--compare-pct' as string]: `${pct.toFixed(3)}%`,
-          ['--compare-fr' as string]: String(Math.max(pct / 100, 0.001)),
-          WebkitBackfaceVisibility: 'hidden',
-          willChange: 'transform',
-        }}
-        onPointerEnter={onPointerEnter}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerLeave={onPointerLeave}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        onLostPointerCapture={() => {
-          if (!draggingRef.current) return;
-          draggingRef.current = false;
-          onDragStateChange?.(false);
-          setPct(pctRef.current);
-          snapToCenter();
-        }}
-      >
-        <Image
-          src={previewLight}
-          alt={previewLightAlt}
-          width={1920}
-          height={999}
-          sizes='(max-width:1024px) 80vw, 900px'
-          className='pointer-events-none block h-auto w-full select-none'
-          draggable={false}
-        />
-        <div className='pointer-events-none absolute inset-0'>
-          <div
-            className='absolute inset-0 overflow-hidden'
-            style={{
-              transformOrigin: 'left center',
-              transform: 'scaleX(var(--compare-fr, 0.5))',
-              willChange: 'transform',
-            }}
-          >
-            <div
-              className='absolute inset-0'
-              style={{
-                transformOrigin: 'left center',
-                transform: 'scaleX(calc(1 / max(var(--compare-fr, 0.5), 0.001)))',
-                willChange: 'transform',
-              }}
-            >
-              <Image
-                src={preview}
-                alt={previewDarkAlt}
-                fill
-                sizes='(max-width:1024px) 80vw, 900px'
-                className='pointer-events-none select-none object-cover object-left-top'
-                priority
-                draggable={false}
-              />
-            </div>
-          </div>
-        </div>
-        <div
-          ref={handleRef}
-          role='slider'
-          tabIndex={0}
-          aria-valuenow={Math.round(pct)}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label={compareSlider}
-          aria-orientation='horizontal'
-          onKeyDown={onHandleKey}
-          className={`group absolute inset-y-0 z-10 flex w-10 -translate-x-1/2 cursor-ew-resize flex-col items-center outline-none ${focusRing}`}
-          style={{ left: 'var(--compare-pct, 50%)' }}
-        >
-          <div className='relative my-1 flex min-h-0 w-full flex-1 flex-col items-center justify-center py-1'>
-            <div className='flex h-full min-h-[100px] w-full flex-row items-center justify-center gap-0.5'>
-              <LeftOutlined
-                aria-hidden
-                className='pointer-events-none shrink-0 text-[11px] [&_svg]:!fill-[var(--color-primary-gradient-start)] drop-shadow-[0_1px_2px_rgb(0_0_0/0.4)]'
-              />
-              <span
-                aria-hidden
-                className='h-full min-h-[100px] w-[4px] max-w-[8px] shrink-0 rounded-full bg-gradient-to-b from-[var(--color-primary-gradient-start)] to-[var(--color-primary)] transition-[width] duration-200 ease-out group-hover:w-[6px] group-focus-visible:w-[6px]'
-              />
-              <RightOutlined
-                aria-hidden
-                className='pointer-events-none shrink-0 text-[11px] [&_svg]:!fill-[var(--color-primary)] drop-shadow-[0_1px_2px_rgb(0_0_0/0.4)]'
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </figure>
-  );
-}
-
 type HighlightBlock = {
   title: string;
   desc: string;
@@ -403,7 +141,43 @@ export default function Home() {
   );
   const [scrolled, setScrolled] = useState(false);
   const [reveal, setReveal] = useState<Record<string, boolean>>({});
+  const [pointerPos, setPointerPos] = useState(() => ({
+    x: typeof window === 'undefined' ? 0 : window.innerWidth / 2,
+    y: typeof window === 'undefined' ? 0 : window.innerHeight / 2,
+  }));
   const themeToggleOriginRef = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    let raf: number | null = null;
+    let pending: { x: number; y: number } | null = null;
+
+    const flush = () => {
+      raf = null;
+      if (!pending) return;
+      setPointerPos(pending);
+      pending = null;
+    };
+
+    const onMove = (e: MouseEvent) => {
+      pending = { x: e.clientX, y: e.clientY };
+      if (raf != null) return;
+      raf = requestAnimationFrame(flush);
+    };
+
+    const onLeave = () => {
+      pending = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+      if (raf != null) return;
+      raf = requestAnimationFrame(flush);
+    };
+
+    window.addEventListener('mousemove', onMove, { passive: true });
+    window.addEventListener('mouseleave', onLeave, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseleave', onLeave);
+      if (raf != null) cancelAnimationFrame(raf);
+    };
+  }, []);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 14);
     onScroll();
@@ -680,6 +454,9 @@ export default function Home() {
             compareSlider={t('compareSlider')}
             previewLightAlt={t('previewLightAlt')}
             previewDarkAlt={t('previewDarkAlt')}
+            focusRingClass={focusRing}
+            pointerX={pointerPos.x}
+            pointerY={pointerPos.y}
           />
 
         </section>
@@ -729,24 +506,13 @@ export default function Home() {
                       </li>
                     </ul>
                   </div>
-                  <div
-                    className={`rounded-2xl border border-[var(--editor-shell-border)] bg-[var(--editor-shell-panel-strong)] p-6 shadow-[var(--editor-shell-shadow)] transition-shadow duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:shadow-[0_28px_72px_rgb(var(--surface-fg-rgb)/0.12)] md:p-8 ${idx === 1 ? 'lg:order-1' : ''
-                      }`}
-                  >
-                    <div className='flex flex-col gap-4'>
-                      <div className='h-2 w-24 rounded bg-[rgb(var(--surface-fg-rgb)/0.1)]' />
-                      <div className='space-y-2'>
-                        <div className='h-2 w-full rounded bg-[rgb(var(--surface-fg-rgb)/0.07)]' />
-                        <div className='h-2 w-[88%] rounded bg-[rgb(var(--surface-fg-rgb)/0.07)]' />
-                        <div className='h-2 w-[72%] rounded bg-[rgb(var(--surface-fg-rgb)/0.07)]' />
-                      </div>
-                      <div className='grid grid-cols-3 gap-2 pt-2'>
-                        <div className='aspect-[4/3] rounded-lg bg-[rgb(var(--surface-fg-rgb)/0.06)]' />
-                        <div className='aspect-[4/3] rounded-lg bg-[rgb(var(--surface-fg-rgb)/0.06)]' />
-                        <div className='aspect-[4/3] rounded-lg bg-[rgb(var(--surface-fg-rgb)/0.06)]' />
-                      </div>
-                    </div>
-                  </div>
+                  <Image
+                      src={appTheme === 'dark' ? PHOTOS[`photo${idx + 1}Dark`] : PHOTOS[`photo${idx + 1}Light`]}
+                      alt={block.title}
+                      className='h-auto w-full rounded-xl object-cover'
+                      sizes='(max-width: 1024px) 100vw, 50vw'
+                      loading='lazy'
+                    />
                 </div>
               ))}
             </div>
@@ -817,7 +583,7 @@ export default function Home() {
             style={{ background: 'var(--gradient-primary)', WebkitBackfaceVisibility: 'hidden' }}
           >
             <h2 className='text-xl font-semibold text-white md:text-2xl'>{t('closingTitle')}</h2>
-            <p className='mx-auto mt-3 max-w-[46ch] text-sm leading-7 text-white/85'>
+            <p className='mx-auto mt-3 max-w-[48ch] text-sm leading-7 text-white/85'>
               {t('closingDesc')}
             </p>
             <span
