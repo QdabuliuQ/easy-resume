@@ -401,11 +401,6 @@ export default function Home() {
   );
   const [scrolled, setScrolled] = useState(false);
   const [reveal, setReveal] = useState<Record<string, boolean>>({});
-  const [finePointer, setFinePointer] = useState(true);
-  const [isComparing, setIsComparing] = useState(false);
-  const glowRef = useRef<HTMLDivElement>(null);
-  const mouseTargetRef = useRef({ x: 0, y: 0 });
-  const rafRef = useRef<number | null>(null);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 14);
     onScroll();
@@ -433,60 +428,6 @@ export default function Home() {
     nodes.forEach((node) => observer.observe(node));
     return () => observer.disconnect();
   }, []);
-
-  useEffect(() => {
-    const media = window.matchMedia('(pointer: fine)');
-    const onMediaChange = (event: MediaQueryListEvent) => setFinePointer(event.matches);
-    setFinePointer(media.matches);
-    media.addEventListener('change', onMediaChange);
-    return () => media.removeEventListener('change', onMediaChange);
-  }, []);
-
-  useEffect(() => {
-    const glow = glowRef.current;
-    if (!glow) return;
-
-    if (!finePointer || isComparing) {
-      glow.style.left = 'calc(50vw - 240px)';
-      glow.style.top = 'calc(40vh - 240px)';
-      glow.style.opacity = isComparing ? '0.28' : '0.52';
-      return;
-    }
-    glow.style.opacity = '0.72';
-
-    const flush = () => {
-      rafRef.current = null;
-      const { x, y } = mouseTargetRef.current;
-      glow.style.left = `${x - 240}px`;
-      glow.style.top = `${y - 240}px`;
-    };
-
-    const onMouseMove = (event: MouseEvent) => {
-      mouseTargetRef.current = { x: event.clientX, y: event.clientY };
-      if (rafRef.current !== null) return;
-      rafRef.current = window.requestAnimationFrame(flush);
-    };
-
-    const onMouseLeave = (event?: MouseEvent) => {
-      if (event && event.relatedTarget) return;
-      mouseTargetRef.current = { x: window.innerWidth / 2, y: window.innerHeight * 0.4 };
-      if (rafRef.current !== null) return;
-      rafRef.current = window.requestAnimationFrame(flush);
-    };
-
-    onMouseLeave();
-    window.addEventListener('mousemove', onMouseMove, { passive: true });
-    window.addEventListener('mouseout', onMouseLeave, { passive: true });
-
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseout', onMouseLeave);
-      if (rafRef.current !== null) {
-        window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    };
-  }, [finePointer, isComparing]);
 
   const navClass = useMemo(
     () =>
@@ -532,34 +473,13 @@ export default function Home() {
     <main className='relative min-h-screen bg-[var(--editor-shell-bg)] text-[var(--text-strong)]'>
       <div className='pointer-events-none absolute inset-0 z-0 overflow-hidden'>
         <div
-          ref={glowRef}
-          className='fixed left-0 top-0 h-[480px] w-[480px] rounded-full blur-[90px] transition-opacity duration-500'
+          className='absolute inset-0'
           style={{
-            opacity: finePointer ? 0.72 : 0.52,
-            willChange: 'top, left',
-            background:
-              'radial-gradient(circle, color-mix(in srgb, var(--color-primary) 24%, transparent), color-mix(in srgb, var(--color-primary-gradient-start) 18%, transparent) 44%, transparent 74%)',
-          }}
-        />
-        <div
-          className='absolute -top-28 left-[-10%] h-[360px] w-[360px] rounded-full blur-2xl'
-          style={{
-            background:
-              'radial-gradient(circle, color-mix(in srgb, var(--color-primary) 28%, transparent), transparent 72%)',
-          }}
-        />
-        <div
-          className='absolute top-[18%] right-[-6%] h-[340px] w-[340px] rounded-full blur-2xl'
-          style={{
-            background:
-              'radial-gradient(circle, color-mix(in srgb, var(--color-primary-gradient-start) 26%, transparent), transparent 70%)',
-          }}
-        />
-        <div
-          className='absolute bottom-[12%] left-[35%] h-[260px] w-[260px] rounded-full blur-2xl'
-          style={{
-            background:
-              'radial-gradient(circle, color-mix(in srgb, var(--color-primary) 18%, transparent), transparent 68%)',
+            backgroundImage: "url('/bg.svg')",
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'cover',
+            opacity: 0.46,
           }}
         />
       </div>
@@ -732,7 +652,6 @@ export default function Home() {
 
           <HeroPreviewCompare
             reduceMotion={reduceMotion}
-            onDragStateChange={setIsComparing}
             compareFigure={t('compareFigure')}
             compareSlider={t('compareSlider')}
             previewLightAlt={t('previewLightAlt')}
