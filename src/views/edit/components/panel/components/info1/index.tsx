@@ -77,8 +77,12 @@ function formatPreviewValue(key: string, opt: Record<string, unknown>): string {
   if (key === 'intentCity') {
     return formatIntentCityDisplay(v) || '—';
   }
-  if (key === 'birthday' && v != null && typeof v === 'object' && typeof (v as { format?: (f: string) => string }).format === 'function') {
-    return (v as { format: (f: string) => string }).format('YYYY-MM-DD');
+  if (key === 'birthday' && v != null && typeof v === 'object') {
+    const asDayjs = v as { format?: (f: string) => string; isValid?: () => boolean };
+    if (typeof asDayjs.format === 'function') {
+      if (typeof asDayjs.isValid === 'function' && !asDayjs.isValid()) return '—';
+      return asDayjs.format('YYYY-MM-DD');
+    }
   }
   if ((key === 'city' || key === 'origin') && Array.isArray(v)) {
     const s = (v as unknown[]).filter(Boolean).join('/');
@@ -119,7 +123,12 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
           for (const key in _module.options) {
             if (Object.prototype.hasOwnProperty.call(_module.options, key)) {
               if (key === 'birthday') {
-                _module.options[key] = dayjs(_module.options[key]);
+                const raw = _module.options[key];
+                const parsed =
+                  typeof raw === 'string' && raw.trim()
+                    ? dayjs(raw)
+                    : null;
+                _module.options[key] = parsed && parsed.isValid() ? parsed : undefined;
               } else if (key === 'intentCity') {
                 _module.options[key] = normalizeIntentCityToCascaderValue(
                   _module.options[key]

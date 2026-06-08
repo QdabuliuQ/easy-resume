@@ -21,6 +21,7 @@ import {
   SunOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
+import { Selected } from '@icon-park/react';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Popover, Tooltip } from 'antd';
@@ -53,16 +54,16 @@ import { flattenModules } from '@/utils/resumePages';
 import ModuleOperation from '@/components/moduleOperation';
 import { CanvasScaleContext } from './canvasScaleContext';
 import { PAGE_STACK_GAP_PX } from './pageStackGap';
-import ResumeFontCdn from './ResumeFontCdn';
+import ResumeFontCdn from './resumeFontCdn';
 import CanvasModuleFragment from './moduleFragment';
-import SelectableGuideLines from './SelectableGuideLines';
+import SelectableGuideLines from './selectableGuideLines';
 import { useSelectableGuideHover } from './useSelectableGuideHover';
 
 /** 容器内左右留白，用于判断是否需缩小画布（缩放时两侧至少各 40） */
 const CANVAS_SIDE_PAD = 70;
 const PREVIEW_EXIT_MS = 200;
 const RENDER_DEBOUNCE_MS = 180;
-const PAGE_FIT_EPSILON_PX = 1;
+const PAGE_FIT_EPSILON_PX = 0.5;
 const MEASURE_HEIGHT_EPSILON_PX = 0.1;
 const MEASURE_FRAME_DELAY = 10;
 
@@ -167,10 +168,11 @@ function buildModuleNode(
 
 type CanvasProps = {
   onOpenGeneralSettings?: () => void;
+  onOpenResumePanel?: () => void;
   mode?: 'edit' | 'preview';
 };
 
-function Canvas({ onOpenGeneralSettings, mode = 'edit' }: CanvasProps) {
+function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: CanvasProps) {
   const isEditMode = mode === 'edit';
   const tc = useTranslations('Edit.canvas');
   const locale = useLocale();
@@ -182,6 +184,7 @@ function Canvas({ onOpenGeneralSettings, mode = 'edit' }: CanvasProps) {
   const moduleHeights = useRef<Record<string, number>>({});
   const [pages, setPages] = useState<Array<React.ReactNode>>([]);
   const [layoutRevision, setLayoutRevision] = useState(0);
+  const [quickSelectEnabled, setQuickSelectEnabled] = useState(true);
 
   const currentConfig = configStore.getConfig as ResumeConfig | null;
   const layoutConfig = (currentConfig ?? resume) as ResumeConfig;
@@ -222,9 +225,9 @@ function Canvas({ onOpenGeneralSettings, mode = 'edit' }: CanvasProps) {
   const measureNodes = useMemo(
     () => layoutModules.map((module) => ({
       module,
-      node: buildModuleNode(module, layoutGlobalStyle, { selectable: isEditMode }),
+      node: buildModuleNode(module, layoutGlobalStyle, { selectable: isEditMode && quickSelectEnabled }),
     })).filter((item): item is { module: LayoutModule; node: ReactElement } => Boolean(item.node)),
-    [layoutModules, layoutGlobalStyle, isEditMode],
+    [layoutModules, layoutGlobalStyle, isEditMode, quickSelectEnabled],
   );
 
   const buildPagination = useMemoizedFn(() => {
@@ -309,7 +312,8 @@ function Canvas({ onOpenGeneralSettings, mode = 'edit' }: CanvasProps) {
         });
         usedHeight = effectiveHeight;
         const overflowHeight = remaining - visibleHeight;
-        offsetY = moduleHeight - overflowHeight;
+        const nextOffsetY = moduleHeight - overflowHeight;
+        offsetY = nextOffsetY;
         remaining = overflowHeight;
         startNextPage();
         isFirstFragment = false;
@@ -319,7 +323,7 @@ function Canvas({ onOpenGeneralSettings, mode = 'edit' }: CanvasProps) {
     const sideSlot = sideColLayout && info1Module
       ? buildModuleNode({ ...info1Module, index: 0 }, gs, {
           forceSideCol: true,
-          selectable: isEditMode,
+          selectable: isEditMode && quickSelectEnabled,
         })
       : null;
 
@@ -594,8 +598,8 @@ function Canvas({ onOpenGeneralSettings, mode = 'edit' }: CanvasProps) {
     <div
       ref={containerRef}
       className='relative flex h-full w-full min-h-0 flex-col items-center justify-start overflow-auto rounded-md'
-      onMouseMove={isEditMode ? (event) => updateSelectableHover(event.clientX, event.clientY) : undefined}
-      onMouseLeave={isEditMode ? clearSelectableHover : undefined}
+      onMouseMove={isEditMode && quickSelectEnabled ? (event) => updateSelectableHover(event.clientX, event.clientY) : undefined}
+      onMouseLeave={isEditMode && quickSelectEnabled ? clearSelectableHover : undefined}
     >
       <ResumeFontCdn font={globalStyle.resumeFont} />
       <div
@@ -637,13 +641,20 @@ function Canvas({ onOpenGeneralSettings, mode = 'edit' }: CanvasProps) {
               ref={canvasStageRef}
               className='relative flex w-full flex-col items-center py-[40px]'
             >
-              {isEditMode ? <ModuleOperation stageRef={canvasStageRef}>{pages}</ModuleOperation> : pages}
+              {isEditMode ? (
+                <ModuleOperation
+                  stageRef={canvasStageRef}
+                  onModuleActivated={onOpenResumePanel}
+                >
+                  {pages}
+                </ModuleOperation>
+              ) : pages}
             </div>
           </CanvasScaleContext.Provider>
         </div>
       </div>
 
-      {isEditMode && hoverRect ? (
+      {isEditMode && quickSelectEnabled && hoverRect ? (
         <SelectableGuideLines hoverRect={hoverRect} viewport={guideViewport} />
       ) : null}
 
@@ -676,6 +687,23 @@ function Canvas({ onOpenGeneralSettings, mode = 'edit' }: CanvasProps) {
             </span>
           </Tooltip>
         )}
+        <Tooltip
+          title={quickSelectEnabled
+            ? (locale === 'zh' ? '快捷选中：开启' : 'Quick select: on')
+            : (locale === 'zh' ? '快捷选中：关闭' : 'Quick select: off')}
+          placement='left'
+        >
+          <button
+            type='button'
+            onClick={() => setQuickSelectEnabled((value) => !value)}
+            className={`canvas-float-btn ${quickSelectEnabled ? 'text-emerald-500' : ''}`}
+            aria-label={quickSelectEnabled
+              ? (locale === 'zh' ? '关闭快捷选中编辑' : 'Disable quick select edit')
+              : (locale === 'zh' ? '开启快捷选中编辑' : 'Enable quick select edit')}
+          >
+            <Selected theme='outline' size='17' fill='currentColor' />
+          </button>
+        </Tooltip>
         <Tooltip
           title={locale === 'zh' ? tc('langSwitchToEn') : tc('langSwitchToZh')}
           placement='left'

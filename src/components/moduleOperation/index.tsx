@@ -144,9 +144,11 @@ const HIDDEN_TOOLBAR: ToolbarBox = {
 function ModuleOperation({
   children,
   stageRef,
+  onModuleActivated,
 }: {
   children: React.ReactNode;
   stageRef: RefObject<HTMLDivElement | null>;
+  onModuleActivated?: () => void;
 }) {
   const tm = useTranslations('Edit.moduleOperation');
   const { confirm, contextHolder } = useResponsiveConfirm();
@@ -282,6 +284,7 @@ function ModuleOperation({
       );
       if (moduleId) {
         moduleActiveStore.setModuleActive(moduleId);
+        onModuleActivated?.();
         focusPanelFieldByItemId(itemId);
       }
       return;
@@ -289,7 +292,12 @@ function ModuleOperation({
     const t = (e.target as HTMLElement).closest(`[${RESUME_MODULE_ID_ATTR}]`);
     const id = t?.getAttribute(RESUME_MODULE_ID_ATTR);
     if (!id) return;
-    moduleActiveStore.setModuleActive(activeId === id ? 'global' : id);
+    if (activeId === id) {
+      moduleActiveStore.setModuleActive('global');
+      return;
+    }
+    moduleActiveStore.setModuleActive(id);
+    onModuleActivated?.();
   });
 
   const deleteHandle = useMemoizedFn(() => {

@@ -58,7 +58,10 @@ function Edit() {
             <Container menuActiveKey={menuActiveKey} />
           </div>
           <div className='editor-shell-card editor-shell-card-strong box-border flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[32px]'>
-            <Canvas onOpenGeneralSettings={() => setMenuActiveKey('general-settings')} />
+            <Canvas
+              onOpenGeneralSettings={() => setMenuActiveKey('general-settings')}
+              onOpenResumePanel={() => setMenuActiveKey('resume')}
+            />
           </div>
         </div>
       </div>
