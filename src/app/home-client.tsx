@@ -24,6 +24,8 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from 'react';
+import bgDark from '@/assets/brand/bg_dark.svg';
+import bgLight from '@/assets/brand/bg_light.svg';
 import { logo, preview, previewLight } from '@/lib/brandAssets';
 import {
   getServerThemeSnapshot,
@@ -401,6 +403,7 @@ export default function Home() {
   );
   const [scrolled, setScrolled] = useState(false);
   const [reveal, setReveal] = useState<Record<string, boolean>>({});
+  const themeToggleOriginRef = useRef<{ x: number; y: number } | null>(null);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 14);
     onScroll();
@@ -472,14 +475,24 @@ export default function Home() {
   return (
     <main className='relative min-h-screen bg-[var(--editor-shell-bg)] text-[var(--text-strong)]'>
       <div className='pointer-events-none absolute inset-0 z-0 overflow-hidden'>
+        <img
+          src={(appTheme === 'dark' ? bgDark : bgLight).src}
+          alt=''
+          aria-hidden='true'
+          className='fixed inset-0 w-[100vw]'
+        />
         <div
-          className='absolute inset-0'
+          className='absolute -left-[14vw] -top-[16vh] h-[52vh] w-[52vh] rounded-full blur-3xl'
           style={{
-            backgroundImage: "url('/bg.svg')",
-            backgroundPosition: 'center top',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: 'cover',
-            opacity: 0.46,
+            background: 'var(--home-glow-a)',
+            opacity: 'var(--home-glow-a-opacity)',
+          }}
+        />
+        <div
+          className='absolute -bottom-[20vh] right-[-10vw] h-[48vh] w-[48vh] rounded-full blur-3xl'
+          style={{
+            background: 'var(--home-glow-b)',
+            opacity: 'var(--home-glow-b-opacity)',
           }}
         />
       </div>
@@ -585,7 +598,18 @@ export default function Home() {
               </span>
               <button
                 type='button'
-                onClick={(e) => toggleAppTheme({ x: e.clientX, y: e.clientY })}
+                onPointerDown={(e) => {
+                  themeToggleOriginRef.current = { x: e.clientX, y: e.clientY };
+                }}
+                onClick={(e) => {
+                  const origin = themeToggleOriginRef.current;
+                  themeToggleOriginRef.current = null;
+                  if (origin) {
+                    toggleAppTheme(origin);
+                    return;
+                  }
+                  toggleAppTheme({ x: e.clientX, y: e.clientY });
+                }}
                 aria-label={themeNavHint}
                 className={`cursor-pointer inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-fg/14 bg-fg/[0.06] text-fg/85 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/10 ${focusRing}`}
               >

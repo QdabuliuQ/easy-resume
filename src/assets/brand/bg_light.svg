@@ -1,0 +1,133 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .glow-strong { fill: rgba(24, 191, 167, 0.16); }
+    .glow-soft { fill: rgba(124, 236, 178, 0.09); }
+    .surface { fill: rgba(255, 255, 255, 0.5); stroke: rgba(20, 184, 166, 0.24); }
+    .surface-soft { fill: rgba(255, 255, 255, 0.3); stroke: rgba(20, 184, 166, 0.2); }
+    .line { fill: rgba(100, 116, 139, 0.42); }
+    .line-soft { fill: rgba(148, 163, 184, 0.26); }
+    .mint { fill: #18bfa7; }
+    .mint-soft { fill: rgba(24, 191, 167, 0.16); stroke: rgba(20, 184, 166, 0.3); }
+    .mint-line { stroke: rgba(20, 184, 166, 0.34); }
+    .clear { fill: rgba(255, 255, 255, 0.18); }
+  </style>
+
+  <defs>
+    <linearGradient id="mintRail" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#8CE8A9" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#12B9A5" stop-opacity="0.9"/>
+    </linearGradient>
+    <filter id="softBlur" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="34"/>
+    </filter>
+    <filter id="floatShadow" x="-35%" y="-35%" width="170%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
+    <filter id="lightShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <g opacity="0.86">
+    <circle class="glow-strong" cx="248" cy="220" r="180" filter="url(#softBlur)"/>
+    <circle class="glow-soft" cx="1666" cy="536" r="230" filter="url(#softBlur)"/>
+    <circle class="glow-soft" cx="1048" cy="928" r="240" filter="url(#softBlur)"/>
+  </g>
+
+  <g opacity="0.34">
+    <path class="mint-line" d="M-28 724C142 660 252 718 394 604C510 510 520 418 648 354" stroke-width="1.4"/>
+    <path class="mint-line" d="M1302 548C1426 492 1486 412 1558 308C1646 180 1810 210 1950 346" stroke-width="1.4"/>
+    <path class="mint-line" d="M1378 948C1514 876 1588 914 1718 830C1804 776 1810 694 1938 650" stroke-width="1.4"/>
+  </g>
+
+  <g filter="url(#floatShadow)">
+    <g transform="translate(116 414) rotate(-7)">
+      <rect class="surface" width="292" height="382" rx="24"/>
+      <rect class="mint-soft" x="28" y="30" width="74" height="74" rx="18"/>
+      <circle class="mint" cx="65" cy="58" r="18" opacity="0.72"/>
+      <rect class="mint" x="48" y="81" width="34" height="10" rx="5" opacity="0.48"/>
+      <rect class="line" x="122" y="36" width="124" height="8" rx="4"/>
+      <rect class="mint" x="122" y="60" width="86" height="7" rx="3.5" opacity="0.36"/>
+      <rect class="line-soft" x="28" y="132" width="238" height="10" rx="5"/>
+      <rect class="line-soft" x="28" y="158" width="192" height="8" rx="4"/>
+      <rect class="mint" x="28" y="198" width="216" height="10" rx="5" opacity="0.26"/>
+      <rect class="line-soft" x="28" y="226" width="236" height="8" rx="4"/>
+      <rect class="line-soft" x="28" y="252" width="204" height="8" rx="4"/>
+      <rect class="line-soft" x="28" y="296" width="180" height="10" rx="5"/>
+      <rect class="mint" x="28" y="324" width="124" height="8" rx="4" opacity="0.28"/>
+    </g>
+
+    <g transform="translate(1514 178) rotate(8)">
+      <rect class="surface-soft" width="272" height="172" rx="24"/>
+      <rect x="26" y="27" width="74" height="17" rx="8.5" fill="url(#mintRail)" opacity="0.52"/>
+      <rect class="line-soft" x="26" y="62" width="220" height="8" rx="4"/>
+      <rect class="line-soft" x="26" y="88" width="162" height="8" rx="4"/>
+      <rect class="mint-soft" x="26" y="124" width="98" height="25" rx="12.5"/>
+      <rect class="clear" x="138" y="124" width="66" height="25" rx="12.5"/>
+    </g>
+
+    <g transform="translate(1582 654) rotate(-10)">
+      <rect class="surface-soft" width="252" height="324" rx="22"/>
+      <rect class="line" x="30" y="31" width="142" height="10" rx="5"/>
+      <rect class="mint" x="30" y="58" width="74" height="7" rx="3.5" opacity="0.36"/>
+      <rect class="line-soft" x="30" y="96" width="192" height="8" rx="4"/>
+      <rect class="line-soft" x="30" y="122" width="156" height="8" rx="4"/>
+      <rect class="mint" x="30" y="158" width="118" height="9" rx="4.5" opacity="0.28"/>
+      <rect class="line-soft" x="30" y="186" width="192" height="8" rx="4"/>
+      <rect class="line-soft" x="30" y="212" width="166" height="8" rx="4"/>
+      <rect class="line-soft" x="30" y="252" width="138" height="9" rx="4.5"/>
+      <rect class="mint" x="30" y="280" width="90" height="8" rx="4" opacity="0.3"/>
+    </g>
+  </g>
+
+  <g filter="url(#lightShadow)" opacity="0.88">
+    <g transform="translate(254 782) rotate(6)">
+      <rect class="surface-soft" width="318" height="118" rx="22"/>
+      <circle class="mint-soft" cx="51" cy="59" r="22"/>
+      <path d="M43 59L49 65L62 50" stroke="#18bfa7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect class="line-soft" x="88" y="35" width="150" height="9" rx="4.5"/>
+      <rect class="line-soft" x="88" y="60" width="194" height="8" rx="4"/>
+      <rect class="mint" x="88" y="82" width="130" height="8" rx="4" opacity="0.25"/>
+    </g>
+
+    <g transform="translate(1354 468) rotate(4)">
+      <rect class="surface-soft" width="302" height="132" rx="22"/>
+      <rect class="mint-soft" x="25" y="25" width="56" height="27" rx="13.5"/>
+      <rect class="clear" x="96" y="25" width="66" height="27" rx="13.5"/>
+      <rect class="clear" x="176" y="25" width="72" height="27" rx="13.5"/>
+      <rect class="line-soft" x="25" y="74" width="232" height="8" rx="4"/>
+      <rect class="mint" x="25" y="98" width="172" height="8" rx="4" opacity="0.24"/>
+    </g>
+  </g>
+
+  <g opacity="0.7">
+    <g transform="translate(434 254) rotate(-13)">
+      <rect class="clear" width="106" height="35" rx="17.5" stroke="rgba(20, 184, 166, 0.2)"/>
+      <circle class="mint" cx="26" cy="17.5" r="6" opacity="0.62"/>
+      <rect class="line-soft" x="43" y="13.5" width="42" height="8" rx="4"/>
+    </g>
+    <g transform="translate(1412 812) rotate(12)">
+      <rect class="clear" width="128" height="39" rx="19.5" stroke="rgba(20, 184, 166, 0.2)"/>
+      <circle class="mint" cx="28" cy="19.5" r="7" opacity="0.58"/>
+      <rect class="line-soft" x="48" y="15" width="56" height="9" rx="4.5"/>
+    </g>
+    <g transform="translate(124 226) rotate(9)">
+      <rect class="clear" width="130" height="39" rx="19.5" stroke="rgba(20, 184, 166, 0.2)"/>
+      <circle class="mint" cx="28" cy="19.5" r="7" opacity="0.54"/>
+      <rect class="line-soft" x="48" y="15" width="58" height="9" rx="4.5"/>
+    </g>
+  </g>
+
+  <g opacity="0.44">
+    <path class="mint-line" d="M454 606H610" stroke-width="1" stroke-dasharray="5 8"/>
+    <path class="mint-line" d="M1316 590H1484" stroke-width="1" stroke-dasharray="5 8"/>
+    <path class="mint-line" d="M1458 368C1426 414 1394 446 1328 462" stroke-width="1" stroke-dasharray="5 8"/>
+    <path class="mint-line" d="M486 394C532 360 566 336 626 326" stroke-width="1" stroke-dasharray="5 8"/>
+    <circle class="mint" cx="506" cy="606" r="3"/>
+    <circle class="mint" cx="610" cy="606" r="3"/>
+    <circle class="mint" cx="1328" cy="462" r="3"/>
+    <circle class="mint" cx="1458" cy="368" r="3"/>
+    <circle class="mint" cx="1484" cy="590" r="3"/>
+    <circle class="mint" cx="1316" cy="590" r="3"/>
+  </g>
+</svg>

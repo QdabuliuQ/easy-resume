@@ -100,20 +100,6 @@
   animation: canvas-preview-content-exit 0.18s ease both;
 }
 
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-
-::view-transition-old(root) {
-  z-index: 1;
-}
-
-::view-transition-new(root) {
-  z-index: 2;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .info1-panel-animate {
     animation: none;
@@ -157,6 +143,12 @@
     radial-gradient(circle at center, rgb(255 255 255 / 0.03) 0%, transparent 60%);
   --shell-grid-line: rgb(var(--surface-fg-rgb) / 0.018);
   --shell-grid-mask: linear-gradient(180deg, rgb(0 0 0 / 0.7), transparent 82%);
+  --home-bg-image-opacity: 0.46;
+  --home-bg-image-filter: saturate(1) contrast(1);
+  --home-glow-a: radial-gradient(circle, color-mix(in srgb, var(--color-primary-gradient-start) 58%, transparent) 0%, transparent 68%);
+  --home-glow-a-opacity: 0.42;
+  --home-glow-b: radial-gradient(circle, color-mix(in srgb, var(--color-primary) 52%, transparent) 0%, transparent 70%);
+  --home-glow-b-opacity: 0.38;
 
   /* —— 文本 —— */
   --text-strong: rgb(var(--surface-fg-rgb) / 0.96);
@@ -294,25 +286,31 @@
   --surface-bg-rgb: 255 255 255;
   --panel-surface-rgb: 255 255 255;
 
-  --color-background: #f3eef0;
-  --editor-shell-bg: #f3eef0;
-  --editor-shell-panel: rgb(255 255 255 / 0.86);
-  --editor-shell-panel-strong: rgb(255 255 255 / 0.96);
+  --color-background: #ffffff;
+  --editor-shell-bg: #ffffff;
+  --editor-shell-panel: rgb(255 255 255 / 0.92);
+  --editor-shell-panel-strong: rgb(255 255 255 / 0.98);
   --editor-shell-panel-soft: rgb(var(--surface-fg-rgb) / 0.04);
   --editor-shell-border: rgb(var(--surface-fg-rgb) / 0.1);
   --editor-shell-shadow: 0 18px 48px rgb(var(--surface-fg-rgb) / 0.1);
   --editor-shell-highlight: rgb(141 227 164 / 0.14);
 
   --shell-bg-image:
-    radial-gradient(circle at 12% 18%, rgb(14 156 141 / 0.14), transparent 28%),
-    radial-gradient(circle at 82% 16%, rgb(141 227 164 / 0.18), transparent 24%),
-    radial-gradient(circle at 74% 84%, rgb(96 84 255 / 0.08), transparent 30%),
-    linear-gradient(180deg, #faf6f5 0%, #ece6e8 100%);
+    radial-gradient(circle at 12% 18%, rgb(14 156 141 / 0.12), transparent 34%),
+    radial-gradient(circle at 82% 16%, rgb(141 227 164 / 0.16), transparent 30%),
+    radial-gradient(circle at 74% 84%, rgb(96 84 255 / 0.02), transparent 38%),
+    linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
   --shell-bg-overlay:
-    linear-gradient(135deg, rgb(255 255 255 / 0.5) 0%, transparent 32%),
-    radial-gradient(circle at center, rgb(255 255 255 / 0.3) 0%, transparent 60%);
+    linear-gradient(135deg, rgb(255 255 255 / 0.68) 0%, transparent 34%),
+    radial-gradient(circle at center, rgb(255 255 255 / 0.42) 0%, transparent 62%);
   --shell-grid-line: rgb(var(--surface-fg-rgb) / 0.028);
   --shell-grid-mask: linear-gradient(180deg, rgb(0 0 0 / 0.5), transparent 82%);
+  --home-bg-image-opacity: 0.28;
+  --home-bg-image-filter: saturate(1.08) contrast(1.06);
+  --home-glow-a: radial-gradient(circle, color-mix(in srgb, var(--color-primary-gradient-start) 78%, white 22%) 0%, transparent 70%);
+  --home-glow-a-opacity: 0.56;
+  --home-glow-b: radial-gradient(circle, color-mix(in srgb, var(--color-primary) 72%, white 28%) 0%, transparent 72%);
+  --home-glow-b-opacity: 0.5;
 
   --text-strong: rgb(var(--surface-fg-rgb) / 0.92);
   --text-base: rgb(var(--surface-fg-rgb) / 0.78);
@@ -326,7 +324,7 @@
   --float-btn-fg: rgb(var(--surface-fg-rgb) / 0.78);
   --float-btn-shadow: 0 10px 24px rgb(var(--surface-fg-rgb) / 0.12);
 
-  --overlay-scrim: rgb(243 238 240 / 0.92);
+  --overlay-scrim: rgb(255 255 255 / 0.96);
   --overlay-panel-bg: rgb(var(--surface-fg-rgb) / 0.04);
   --overlay-panel-bg-hover: rgb(var(--surface-fg-rgb) / 0.08);
   --overlay-divider: rgb(var(--surface-fg-rgb) / 0.1);

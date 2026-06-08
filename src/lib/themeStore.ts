@@ -2,15 +2,7 @@
 export type ThemePreference = 'dark' | 'light' | 'system';
 export type ResolvedTheme = 'dark' | 'light';
 
-type DocumentWithViewTransition = Document & {
-  startViewTransition?: (updateCallback: () => void | Promise<void>) => {
-    ready: Promise<void>;
-    finished: Promise<void>;
-  };
-};
-
 const STORAGE_KEY = 'easy-resume-theme';
-const THEME_TRANSITION_DURATION_MS = 760;
 const listeners = new Set<() => void>();
 
 let preference: ThemePreference = 'dark';
@@ -108,58 +100,19 @@ export function setAppTheme(next: ThemePreference) {
 }
 
 export function setAppThemeWithTransition(next: ThemePreference, opts?: { x?: number; y?: number }) {
+  void opts;
   if (preference === next) return;
   if (typeof window === 'undefined') {
     setAppTheme(next);
     return;
   }
 
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const doc = document as DocumentWithViewTransition;
-  if (reducedMotion || typeof doc.startViewTransition !== 'function') {
+  if (themeTransitionInFlight) {
     setAppTheme(next);
     return;
   }
 
-  const x = Number.isFinite(opts?.x) ? Math.max(0, Math.min(window.innerWidth, opts!.x!)) : window.innerWidth / 2;
-  const y = Number.isFinite(opts?.y) ? Math.max(0, Math.min(window.innerHeight, opts!.y!)) : window.innerHeight / 2;
-
-  try {
-    if (themeTransitionInFlight) {
-      setAppTheme(next);
-      return;
-    }
-
-    themeTransitionInFlight = true;
-    const vt = doc.startViewTransition(() => {
-      setAppTheme(next);
-    });
-
-    void vt.ready.then(() => {
-      const maxX = Math.max(x, window.innerWidth - x);
-      const maxY = Math.max(y, window.innerHeight - y);
-      const radius = Math.hypot(maxX, maxY);
-
-      document.documentElement.animate(
-        {
-          clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`],
-        },
-        {
-          duration: THEME_TRANSITION_DURATION_MS,
-          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-          pseudoElement: '::view-transition-new(root)',
-        }
-      );
-    });
-
-    void vt.finished.finally(() => {
-      themeTransitionInFlight = false;
-      flushQueuedToggle();
-    });
-  } catch {
-    themeTransitionInFlight = false;
-    setAppTheme(next);
-  }
+  setAppTheme(next);
 }
 
 /** 快速切换：按当前生效主题在亮/暗之间切换 */
