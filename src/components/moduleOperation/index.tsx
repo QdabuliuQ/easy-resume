@@ -79,7 +79,6 @@ function parseItemTargetFromItemId(
   moduleIds: string[],
 ): ParsedItemTarget | null {
   const segments = itemId.split('_').filter(Boolean);
-  console.log('Parsing itemId:', { segments, moduleIds });
   if (!segments.length) return null;
 
   const first = segments[0];
@@ -93,9 +92,9 @@ function parseItemTargetFromItemId(
       ? segments.slice(1)
       : itemId.startsWith(`${moduleId}_`)
         ? itemId
-            .slice(moduleId.length + 1)
-            .split('_')
-            .filter(Boolean)
+          .slice(moduleId.length + 1)
+          .split('_')
+          .filter(Boolean)
         : [];
 
   if (!rest.length) {
@@ -130,8 +129,8 @@ function panelItemExists(itemId: string): boolean {
 function findPanelItemIdByPrefix(prefix: string, moduleId?: string): string | null {
   const root = moduleId
     ? (document.querySelector(
-        `[data-panel-module-id="${CSS.escape(moduleId)}"]`,
-      ) as HTMLElement | null)
+      `[data-panel-module-id="${CSS.escape(moduleId)}"]`,
+    ) as HTMLElement | null)
     : null;
   const scope: ParentNode = root ?? document;
   const holder = scope.querySelector(
@@ -141,39 +140,16 @@ function findPanelItemIdByPrefix(prefix: string, moduleId?: string): string | nu
 }
 
 function focusPanelByParsedTarget(itemId: string, target: ParsedItemTarget) {
-  const picked: string[] = [];
-  const push = (id: string | null) => {
-    if (!id) return;
-    if (!picked.includes(id)) picked.push(id);
-  };
-
-  if (target.optionIndex !== null) {
-    const rowPrefix = `${target.moduleId}_${target.optionIndex}_`;
-    if (target.fieldPath) {
-      push(`${target.moduleId}_${target.optionIndex}_${target.fieldPath}`);
-    }
-    if (target.field && target.field !== target.fieldPath) {
-      push(`${target.moduleId}_${target.optionIndex}_${target.field}`);
-    }
-    push(itemId);
-    push(findPanelItemIdByPrefix(rowPrefix, target.moduleId));
-  } else if (target.field) {
-    push(itemId);
-    push(findPanelItemIdByPrefix(`${target.moduleId}_${target.field}`, target.moduleId));
-  } else {
-    push(itemId);
+  if (moduleActiveStore.getModuleActive !== target.moduleId) {
+    moduleActiveStore.setModuleActive(target.moduleId);
   }
-
-  const hit = picked.find(panelItemExists);
-  if (hit) {
-    focusPanelFieldByItemId(hit);
-    return;
-  }
-  focusFirstPanelFieldForModule(target.moduleId);
+  setTimeout(() => {
+    focusPanelFieldByItemId(itemId);
+  }, 0);
 }
 
 function focusPanelFieldByItemId(itemId: string) {
-  const sel = `[data-panel-item-id="${CSS.escape(itemId)}"]`;
+  const sel = `[data-panel-item-id="${itemId}"]`;
   const placeCaretToEnd = (el: HTMLElement) => {
     if (!el.isContentEditable) return;
     const selApi = window.getSelection();
@@ -202,47 +178,27 @@ function focusPanelFieldByItemId(itemId: string) {
   const tryFocus = () => {
     const holder = document.querySelector(sel) as HTMLElement | null;
     if (!holder) return false;
-    holder.scrollIntoView({ behavior: 'instant', block: 'center' });
-    const target =
-      holder.matches('input,textarea,select,[contenteditable="true"]')
-        ? holder
-        : (holder.querySelector(
-            'input,textarea,select,[contenteditable="true"],.ql-editor,.ant-select-selection-search-input',
+
+    window.setTimeout(() => {
+      holder.scrollIntoView({ behavior: 'instant', block: 'center' });
+
+      const target =
+        holder.matches('input,textarea,[contenteditable="true"]')
+          ? holder
+          : (holder.querySelector(
+            'input,textarea,[contenteditable="true"],.ql-editor,.ant-select-selection-search-input',
           ) as HTMLElement | null) ?? holder;
-    if (typeof target.focus === 'function') target.focus();
-    if (target.classList.contains('ql-editor')) {
-      holder.click();
-      requestAnimationFrame(() => {
-        if (typeof target.focus === 'function') target.focus();
+          console.log(target, 'target')
+      if (typeof target.focus === 'function') target.focus();
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+        const len = target.value.length;
+        target.setSelectionRange(len, len);
+      } else {
         placeCaretToEnd(target);
-      });
-    }
-    openAntdPopupIfNeeded(holder, target);
-    if (!holder.matches('input,textarea') && target === holder) holder.click();
-    return true;
-  };
+      }
+      openAntdPopupIfNeeded(holder, target);
+    }, 200);
 
-  if (tryFocus()) return;
-  let retries = 30;
-  const tick = () => {
-    if (tryFocus() || retries <= 0) return;
-    retries -= 1;
-    window.setTimeout(tick, 80);
-  };
-  window.setTimeout(tick, 80);
-}
-
-function focusFirstPanelFieldForModule(moduleId: string) {
-  const FIELD_SEL = 'input:not([type="hidden"]):not([disabled]),textarea:not([disabled]),[contenteditable="true"],.ql-editor,.ant-select-selection-search-input';
-  const tryFocus = (): boolean => {
-    const section = document.querySelector(
-      `[data-panel-module-id="${CSS.escape(moduleId)}"]`,
-    ) as HTMLElement | null;
-    if (!section) return false;
-    const target = section.querySelector(FIELD_SEL) as HTMLElement | null;
-    if (!target) return false;
-    target.scrollIntoView({ behavior: 'instant', block: 'center' });
-    target.focus();
     return true;
   };
   if (tryFocus()) return;
@@ -411,7 +367,6 @@ function ModuleOperation({
         itemId,
         orderedModules.map((m) => m.id),
       );
-      console.log('Parsed click target:', { itemId, parsed });
       if (parsed) {
         moduleActiveStore.setModuleActive(parsed.moduleId);
         onModuleActivated?.();
@@ -429,8 +384,6 @@ function ModuleOperation({
     }
     moduleActiveStore.setModuleActive(id);
     onModuleActivated?.();
-    // 模块级点击：面板切换后聚焦模块第一个字段
-    requestAnimationFrame(() => focusFirstPanelFieldForModule(id));
   });
 
   const deleteHandle = useMemoizedFn(() => {
