@@ -115,6 +115,7 @@ function RichTextEditor({
   const [polishing, setPolishing] = useState(false);
   const [plainCount, setPlainCount] = useState(0);
   const [loadingEditor, setLoadingEditor] = useState(true);
+  const [toolbarHeight, setToolbarHeight] = useState(39);
 
   const tipCssVars = useMemo(() => {
     const q = JSON.stringify;
@@ -178,6 +179,11 @@ function RichTextEditor({
       };
       q.on('text-change', onTextChange);
       setLoadingEditor(false);
+
+      const toolbar = el.previousElementSibling;
+      if (toolbar instanceof HTMLElement && toolbar.classList.contains('ql-toolbar')) {
+        setToolbarHeight(toolbar.getBoundingClientRect().height - 1);
+      }
 
       if (disposed) {
         q.off('text-change', onTextChange);
@@ -282,12 +288,13 @@ function RichTextEditor({
           <button
             type="button"
             aria-busy={polishing}
-            disabled={polishing || loadingEditor}
+            disabled={polishing || loadingEditor || plainCount === 0}
             onClick={() => {
               if (!polishing) void runAiPolishFromParent();
             }}
+            style={{ top: Math.max(0, (toolbarHeight - 26) / 2) }}
             className={
-              'bg-gradient-primary absolute right-2 top-[9px] z-[4] inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-2.5 text-[11px] font-medium text-white shadow-sm ' +
+              'bg-gradient-primary absolute right-2 z-[4] inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-2.5 text-[11px] font-medium text-white shadow-sm ' +
               'outline-none transition-[filter,opacity] hover:brightness-110 disabled:pointer-events-none disabled:opacity-65'
             }
           >

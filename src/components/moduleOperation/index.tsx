@@ -67,6 +67,111 @@ function resolveModuleIdFromItemId(itemId: string, moduleIds: string[]): string 
   return hit;
 }
 
+type ParsedItemTarget = {
+  moduleId: string;
+  optionIndex: number | null;
+  field: string | null;
+  fieldPath: string | null;
+};
+
+function parseItemTargetFromItemId(
+  itemId: string,
+  moduleIds: string[],
+): ParsedItemTarget | null {
+  const segments = itemId.split('_').filter(Boolean);
+  console.log('Parsing itemId:', { segments, moduleIds });
+  if (!segments.length) return null;
+
+  const first = segments[0];
+  const moduleId = moduleIds.includes(first)
+    ? first
+    : resolveModuleIdFromItemId(itemId, moduleIds);
+  if (!moduleId) return null;
+
+  const rest =
+    moduleId === first
+      ? segments.slice(1)
+      : itemId.startsWith(`${moduleId}_`)
+        ? itemId
+            .slice(moduleId.length + 1)
+            .split('_')
+            .filter(Boolean)
+        : [];
+
+  if (!rest.length) {
+    return { moduleId, optionIndex: null, field: null, fieldPath: null };
+  }
+
+  const second = rest[0];
+  if (/^\d+$/.test(second)) {
+    const tail = rest.slice(1);
+    return {
+      moduleId,
+      optionIndex: Number(second),
+      field: tail[0] ?? null,
+      fieldPath: tail.length ? tail.join('_') : null,
+    };
+  }
+
+  return {
+    moduleId,
+    optionIndex: null,
+    field: second,
+    fieldPath: rest.join('_'),
+  };
+}
+
+function panelItemExists(itemId: string): boolean {
+  return !!document.querySelector(
+    `[data-panel-item-id="${CSS.escape(itemId)}"]`,
+  );
+}
+
+function findPanelItemIdByPrefix(prefix: string, moduleId?: string): string | null {
+  const root = moduleId
+    ? (document.querySelector(
+        `[data-panel-module-id="${CSS.escape(moduleId)}"]`,
+      ) as HTMLElement | null)
+    : null;
+  const scope: ParentNode = root ?? document;
+  const holder = scope.querySelector(
+    `[data-panel-item-id^="${CSS.escape(prefix)}"]`,
+  ) as HTMLElement | null;
+  return holder?.getAttribute('data-panel-item-id')?.trim() ?? null;
+}
+
+function focusPanelByParsedTarget(itemId: string, target: ParsedItemTarget) {
+  const picked: string[] = [];
+  const push = (id: string | null) => {
+    if (!id) return;
+    if (!picked.includes(id)) picked.push(id);
+  };
+
+  if (target.optionIndex !== null) {
+    const rowPrefix = `${target.moduleId}_${target.optionIndex}_`;
+    if (target.fieldPath) {
+      push(`${target.moduleId}_${target.optionIndex}_${target.fieldPath}`);
+    }
+    if (target.field && target.field !== target.fieldPath) {
+      push(`${target.moduleId}_${target.optionIndex}_${target.field}`);
+    }
+    push(itemId);
+    push(findPanelItemIdByPrefix(rowPrefix, target.moduleId));
+  } else if (target.field) {
+    push(itemId);
+    push(findPanelItemIdByPrefix(`${target.moduleId}_${target.field}`, target.moduleId));
+  } else {
+    push(itemId);
+  }
+
+  const hit = picked.find(panelItemExists);
+  if (hit) {
+    focusPanelFieldByItemId(hit);
+    return;
+  }
+  focusFirstPanelFieldForModule(target.moduleId);
+}
+
 function focusPanelFieldByItemId(itemId: string) {
   const sel = `[data-panel-item-id="${CSS.escape(itemId)}"]`;
   const placeCaretToEnd = (el: HTMLElement) => {
@@ -97,7 +202,7 @@ function focusPanelFieldByItemId(itemId: string) {
   const tryFocus = () => {
     const holder = document.querySelector(sel) as HTMLElement | null;
     if (!holder) return false;
-    holder.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    holder.scrollIntoView({ behavior: 'instant', block: 'center' });
     const target =
       holder.matches('input,textarea,select,[contenteditable="true"]')
         ? holder
@@ -117,6 +222,29 @@ function focusPanelFieldByItemId(itemId: string) {
     return true;
   };
 
+  if (tryFocus()) return;
+  let retries = 30;
+  const tick = () => {
+    if (tryFocus() || retries <= 0) return;
+    retries -= 1;
+    window.setTimeout(tick, 80);
+  };
+  window.setTimeout(tick, 80);
+}
+
+function focusFirstPanelFieldForModule(moduleId: string) {
+  const FIELD_SEL = 'input:not([type="hidden"]):not([disabled]),textarea:not([disabled]),[contenteditable="true"],.ql-editor,.ant-select-selection-search-input';
+  const tryFocus = (): boolean => {
+    const section = document.querySelector(
+      `[data-panel-module-id="${CSS.escape(moduleId)}"]`,
+    ) as HTMLElement | null;
+    if (!section) return false;
+    const target = section.querySelector(FIELD_SEL) as HTMLElement | null;
+    if (!target) return false;
+    target.scrollIntoView({ behavior: 'instant', block: 'center' });
+    target.focus();
+    return true;
+  };
   if (tryFocus()) return;
   let retries = 30;
   const tick = () => {
@@ -162,7 +290,8 @@ function ModuleOperation({
 
   const orderedModules = useMemo(
     () => flattenModules(configStore.getConfig),
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [configStore.getConfig],
   );
 
   const activeModuleMeta = useMemo(() => {
@@ -278,14 +407,16 @@ function ModuleOperation({
     const itemNode = (e.target as HTMLElement).closest('[data-item-id]');
     const itemId = itemNode?.getAttribute('data-item-id')?.trim();
     if (itemId) {
-      const moduleId = resolveModuleIdFromItemId(
+      const parsed = parseItemTargetFromItemId(
         itemId,
         orderedModules.map((m) => m.id),
       );
-      if (moduleId) {
-        moduleActiveStore.setModuleActive(moduleId);
+      console.log('Parsed click target:', { itemId, parsed });
+      if (parsed) {
+        moduleActiveStore.setModuleActive(parsed.moduleId);
         onModuleActivated?.();
-        focusPanelFieldByItemId(itemId);
+        // 延迟一帧，让面板 tab 切换的 React 更新先完成
+        requestAnimationFrame(() => focusPanelByParsedTarget(itemId, parsed));
       }
       return;
     }
@@ -298,6 +429,8 @@ function ModuleOperation({
     }
     moduleActiveStore.setModuleActive(id);
     onModuleActivated?.();
+    // 模块级点击：面板切换后聚焦模块第一个字段
+    requestAnimationFrame(() => focusFirstPanelFieldForModule(id));
   });
 
   const deleteHandle = useMemoizedFn(() => {
