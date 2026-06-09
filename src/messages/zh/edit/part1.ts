@@ -203,6 +203,7 @@ export default {
     italic: '斜体',
     underline: '下划线',
     strike: '删除线',
+    color: '字体颜色',
     link: '插入链接',
     listOrdered: '有序列表',
     listBullet: '无序列表',

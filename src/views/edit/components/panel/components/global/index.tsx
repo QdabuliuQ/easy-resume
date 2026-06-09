@@ -5,8 +5,7 @@ import { useTranslations } from 'next-intl';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { observer } from 'mobx-react';
 import { Col, ColorPicker, Form, InputNumber, Row } from 'antd';
-import { responsiveConfirm } from '@/hooks/useResponsiveConfirm';
-import { useMobileEdit } from '@/views/edit/mobile/context';
+import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import ResponsiveSelect from '@/components/responsiveSelect';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import Title from '@/components/title';
@@ -26,7 +25,7 @@ import { RESUME_PAGE_SIZE_OPTIONS } from '@/lib/resumePageSize';
 
 function Global() {
   const tg = useTranslations('Edit.globalPanel');
-  const mobile = useMobileEdit();
+  const { confirm, contextHolder } = useResponsiveConfirm();
   const global = configStore.getConfig?.globalStyle;
   const [form] = Form.useForm();
   const headerStyleOptions = useMemo(
@@ -140,7 +139,9 @@ function Global() {
   });
 
   return (
-    <div className='[&_.ant-color-picker-trigger]:!w-full [&_.ant-color-picker-trigger_.ant-color-picker-clear]:!w-full [&_.ant-color-picker-trigger_.ant-color-picker-clear::after]:!w-full [&_.ant-color-picker-trigger_.ant-color-picker-clear::after]:rotate-[354deg] [&_.ant-color-picker-trigger_.ant-color-picker-color-block]:!w-full [&_.react-grid-placeholder]:!bg-transparent'>
+    <>
+      {contextHolder}
+      <div className='[&_.ant-color-picker-trigger]:!w-full [&_.ant-color-picker-trigger_.ant-color-picker-clear]:!w-full [&_.ant-color-picker-trigger_.ant-color-picker-clear::after]:!w-full [&_.ant-color-picker-trigger_.ant-color-picker-clear::after]:rotate-[354deg] [&_.ant-color-picker-trigger_.ant-color-picker-color-block]:!w-full [&_.react-grid-placeholder]:!bg-transparent'>
       {global && (
         <Form form={form} variant='filled' layout='vertical'>
           <Title title={tg('globalStyleTitle')} />
@@ -261,7 +262,7 @@ function Global() {
               {moduleLayout
                 ? moduleLayout.map((item: any, index: number) => {
                     const openDeleteConfirm = () => {
-                      responsiveConfirm(mobile, {
+                      confirm({
                         title: tg('tipTitle'),
                         content: tg('tipDeleteContent'),
                         okText: tg('ok'),
@@ -315,7 +316,8 @@ function Global() {
           </div>
         </Form>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

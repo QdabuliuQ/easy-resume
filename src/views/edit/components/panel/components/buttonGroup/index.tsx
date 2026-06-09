@@ -2,8 +2,7 @@
 import { ArrowCircleUp, ArrowCircleDown, DeleteOne, Copy } from '@icon-park/react';
 import { Tooltip } from 'antd';
 import { useTranslations } from 'next-intl';
-import { responsiveConfirm } from '@/hooks/useResponsiveConfirm';
-import { useMobileEdit } from '@/views/edit/mobile/context';
+import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { memo } from 'react';
 
 const circleBtn =
@@ -33,9 +32,9 @@ function ButtonGroup(props: {
   flush?: boolean;
 }) {
   const tb = useTranslations('Edit.buttonGroup');
-  const mobile = useMobileEdit();
+  const { confirm, contextHolder } = useResponsiveConfirm();
   const askDelete = () =>
-    responsiveConfirm(mobile, {
+    confirm({
       title: tb('confirmDeleteTitle'),
       content: tb('confirmDeleteContent'),
       okText: tb('ok'),
@@ -45,17 +44,82 @@ function ButtonGroup(props: {
     });
   if (props.flush) {
     return (
-      <div className={flushWrapClass}>
-        <div className={flushClusterClass}>
+      <>
+        {contextHolder}
+        <div className={flushWrapClass}>
+          <div className={flushClusterClass}>
+            {props.showUp && (
+              <Tooltip placement='top' title={tb('moveUp')}>
+                <button
+                  type='button'
+                  className={flushBtnClass}
+                  onClick={props.handleUp}
+                  aria-label={tb('moveUp')}
+                >
+                  <ArrowCircleUp theme='outline' size='15' fill='currentColor' />
+                </button>
+              </Tooltip>
+            )}
+            {props.showDown && (
+              <Tooltip placement='top' title={tb('moveDown')}>
+                <button
+                  type='button'
+                  className={flushBtnClass}
+                  onClick={props.handleDown}
+                  aria-label={tb('moveDown')}
+                >
+                  <ArrowCircleDown theme='outline' size='15' fill='currentColor' />
+                </button>
+              </Tooltip>
+            )}
+            <Tooltip
+              placement='top'
+              title={props.copyDisabled ? tb('copyDisabled') : tb('copy')}
+            >
+              <button
+                type='button'
+                disabled={props.copyDisabled}
+                className={flushBtnClass}
+                onClick={props.handleCopy}
+                aria-label={tb('copy')}
+              >
+                <Copy theme='outline' size='15' fill='currentColor' />
+              </button>
+            </Tooltip>
+          </div>
+          <Tooltip placement='top' title={tb('delete')}>
+            <button
+              type='button'
+              className={flushDeleteBtnClass}
+              aria-label={tb('delete')}
+              onClick={askDelete}
+            >
+              <DeleteOne theme='outline' size='17' fill='currentColor' />
+            </button>
+          </Tooltip>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {contextHolder}
+      <div className='mt-3 flex w-full items-center justify-between rounded-xl border border-fg/[0.06] bg-[var(--panel-inset-bg)] px-3 py-2'>
+        <div className='flex items-center gap-[10px]'>
           {props.showUp && (
             <Tooltip placement='top' title={tb('moveUp')}>
               <button
                 type='button'
-                className={flushBtnClass}
+                className={`${circleGradient} text-fg/65 hover:text-[var(--color-primary)]`}
                 onClick={props.handleUp}
                 aria-label={tb('moveUp')}
               >
-                <ArrowCircleUp theme='outline' size='15' fill='currentColor' />
+                <ArrowCircleUp
+                  theme='outline'
+                  size='15'
+                  fill='currentColor'
+                />
               </button>
             </Tooltip>
           )}
@@ -63,114 +127,55 @@ function ButtonGroup(props: {
             <Tooltip placement='top' title={tb('moveDown')}>
               <button
                 type='button'
-                className={flushBtnClass}
+                className={`${circleGradient} text-fg/65 hover:text-[var(--color-primary)]`}
                 onClick={props.handleDown}
                 aria-label={tb('moveDown')}
               >
-                <ArrowCircleDown theme='outline' size='15' fill='currentColor' />
+                <ArrowCircleDown
+                  theme='outline'
+                  size='15'
+                  fill='currentColor'
+                />
               </button>
             </Tooltip>
           )}
           <Tooltip
             placement='top'
-            title={props.copyDisabled ? tb('copyDisabled') : tb('copy')}
+            title={
+              props.copyDisabled ? tb('copyDisabled') : tb('copy')
+            }
           >
             <button
               type='button'
               disabled={props.copyDisabled}
-              className={flushBtnClass}
+              className={`${circleBtn} bg-[var(--panel-btn-success-bg)] text-fg/65 hover:text-[var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-45`}
               onClick={props.handleCopy}
               aria-label={tb('copy')}
             >
-              <Copy theme='outline' size='15' fill='currentColor' />
+              <Copy
+                theme='outline'
+                size='15'
+                fill='currentColor'
+              />
             </button>
           </Tooltip>
         </div>
         <Tooltip placement='top' title={tb('delete')}>
           <button
             type='button'
-            className={flushDeleteBtnClass}
+            className={`${circleBtn} border-[color:color-mix(in_srgb,var(--panel-tone-rose)_22%,var(--float-btn-border))] bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_10%,var(--float-btn-bg))] text-[color:var(--module-op-delete-icon)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),var(--panel-shadow-icon-btn)] transition-[transform,background-color,border-color,color,box-shadow] hover:border-[color:color-mix(in_srgb,var(--panel-tone-rose)_34%,var(--float-btn-border-hover))] hover:bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_18%,var(--float-btn-bg-hover))] hover:text-[color:var(--module-op-delete-icon-hover)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),var(--panel-shadow-primary-glow)] active:bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_24%,var(--float-btn-bg))]`}
             aria-label={tb('delete')}
             onClick={askDelete}
           >
-            <DeleteOne theme='outline' size='17' fill='currentColor' />
-          </button>
-        </Tooltip>
-      </div>
-    );
-  }
-
-  return (
-    <div className='mt-3 flex w-full items-center justify-between rounded-xl border border-fg/[0.06] bg-[var(--panel-inset-bg)] px-3 py-2'>
-      <div className='flex items-center gap-[10px]'>
-        {props.showUp && (
-          <Tooltip placement='top' title={tb('moveUp')}>
-            <button
-              type='button'
-              className={`${circleGradient} text-fg/65 hover:text-[var(--color-primary)]`}
-              onClick={props.handleUp}
-              aria-label={tb('moveUp')}
-            >
-              <ArrowCircleUp
-                theme='outline'
-                size='15'
-                fill='currentColor'
-              />
-            </button>
-          </Tooltip>
-        )}
-        {props.showDown && (
-          <Tooltip placement='top' title={tb('moveDown')}>
-            <button
-              type='button'
-              className={`${circleGradient} text-fg/65 hover:text-[var(--color-primary)]`}
-              onClick={props.handleDown}
-              aria-label={tb('moveDown')}
-            >
-              <ArrowCircleDown
-                theme='outline'
-                size='15'
-                fill='currentColor'
-              />
-            </button>
-          </Tooltip>
-        )}
-        <Tooltip
-          placement='top'
-          title={
-            props.copyDisabled ? tb('copyDisabled') : tb('copy')
-          }
-        >
-          <button
-            type='button'
-            disabled={props.copyDisabled}
-            className={`${circleBtn} bg-[var(--panel-btn-success-bg)] text-fg/65 hover:text-[var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-45`}
-            onClick={props.handleCopy}
-            aria-label={tb('copy')}
-          >
-            <Copy
+            <DeleteOne
               theme='outline'
-              size='15'
+              size='17'
               fill='currentColor'
             />
           </button>
         </Tooltip>
       </div>
-      <Tooltip placement='top' title={tb('delete')}>
-        <button
-          type='button'
-          className={`${circleBtn} border-[color:color-mix(in_srgb,var(--panel-tone-rose)_22%,var(--float-btn-border))] bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_10%,var(--float-btn-bg))] text-[color:var(--module-op-delete-icon)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),var(--panel-shadow-icon-btn)] transition-[transform,background-color,border-color,color,box-shadow] hover:border-[color:color-mix(in_srgb,var(--panel-tone-rose)_34%,var(--float-btn-border-hover))] hover:bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_18%,var(--float-btn-bg-hover))] hover:text-[color:var(--module-op-delete-icon-hover)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),var(--panel-shadow-primary-glow)] active:bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_24%,var(--float-btn-bg))]`}
-          aria-label={tb('delete')}
-          onClick={askDelete}
-        >
-          <DeleteOne
-            theme='outline'
-            size='17'
-            fill='currentColor'
-          />
-        </button>
-      </Tooltip>
-    </div>
+    </>
   );
 }
 

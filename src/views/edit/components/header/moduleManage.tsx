@@ -21,8 +21,7 @@ import { useMemoizedFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
 import { Popover, Space } from 'antd';
 import { useAppMessage } from '@/hooks/useAppMessage';
-import { responsiveConfirm } from '@/hooks/useResponsiveConfirm';
-import { useMobileEdit } from '@/views/edit/mobile/context';
+import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { observer } from 'mobx-react';
 import { memo, useMemo, useState, type CSSProperties } from 'react';
 import { configStore } from '@/mobx';
@@ -266,7 +265,7 @@ function ModuleManageInner({
   const message = useAppMessage();
   const t = useTranslations('Edit.moduleManage');
   const th = useTranslations('Edit.header');
-  const mobile = useMobileEdit();
+  const { confirm, contextHolder } = useResponsiveConfirm();
   const [popOpen, setPopOpen] = useState(false);
   const { removeModuleFromConfig, reorderFlattenedModules } = useModuleHandle();
 
@@ -289,7 +288,7 @@ function ModuleManageInner({
           options: {},
         } as ModuleRow),
     );
-    responsiveConfirm(mobile, {
+    confirm({
       title: t('deleteModuleTitle'),
       content: t('deleteModuleContent', { name }),
       okText: t('deleteOk'),
@@ -328,6 +327,7 @@ function ModuleManageInner({
 
   return (
     <>
+      {contextHolder}
       {inline ? (
         <div className={className}>{list}</div>
       ) : (

@@ -14,7 +14,7 @@ import {
 
 function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
   const message = useAppMessage();
-  const { confirm } = useResponsiveConfirm();
+  const { confirm, contextHolder } = useResponsiveConfirm();
   const tm = useTranslations('Edit.mobile');
   const tr = useTranslations('Edit.resumeTemplate');
   const cards = useMemo(
@@ -61,40 +61,43 @@ function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className='fixed inset-0 z-[200] flex flex-col bg-[var(--editor-shell-bg)]'>
-      <div className='flex shrink-0 items-center justify-between border-b border-fg/10 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]'>
-        <span className='text-sm font-semibold text-fg/90'>{tm('navTemplates')}</span>
-        <button
-          type='button'
-          onClick={onClose}
-          aria-label={tm('closeTemplates')}
-          className='flex h-9 w-9 items-center justify-center rounded-full border border-fg/14 text-fg/70'
-        >
-          <CloseOutlined />
-        </button>
+    <>
+      {contextHolder}
+      <div className='fixed inset-0 z-[200] flex flex-col bg-[var(--editor-shell-bg)]'>
+        <div className='flex shrink-0 items-center justify-between border-b border-fg/10 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]'>
+          <span className='text-sm font-semibold text-fg/90'>{tm('navTemplates')}</span>
+          <button
+            type='button'
+            onClick={onClose}
+            aria-label={tm('closeTemplates')}
+            className='flex h-9 w-9 items-center justify-center rounded-full border border-fg/14 text-fg/70'
+          >
+            <CloseOutlined />
+          </button>
+        </div>
+        <div className='min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4'>
+          <ul className='grid grid-cols-2 gap-3'>
+            {cards.map((t) => (
+              <li key={t.id} className='min-w-0'>
+                <button
+                  type='button'
+                  onClick={() => onPick(t)}
+                  className='flex w-full flex-col overflow-hidden rounded-2xl border border-fg/10 bg-fg/[0.03] text-left'
+                >
+                  <div className='border-b border-fg/8 px-2 py-1.5'>
+                    <span className='block truncate text-[11px] font-semibold text-fg/88'>{t.title}</span>
+                    <span className='text-[10px] text-fg/45'>{t.orderLabel}</span>
+                  </div>
+                  <div className='flex justify-center overflow-hidden bg-[rgb(var(--surface-fg-rgb)/0.04)] py-2'>
+                    <TemplateFirstPagePreview template={t} scale={TEMPLATE_CARD_PREVIEW_SCALE} />
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-      <div className='min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4'>
-        <ul className='grid grid-cols-2 gap-3'>
-          {cards.map((t) => (
-            <li key={t.id} className='min-w-0'>
-              <button
-                type='button'
-                onClick={() => onPick(t)}
-                className='flex w-full flex-col overflow-hidden rounded-2xl border border-fg/10 bg-fg/[0.03] text-left'
-              >
-                <div className='border-b border-fg/8 px-2 py-1.5'>
-                  <span className='block truncate text-[11px] font-semibold text-fg/88'>{t.title}</span>
-                  <span className='text-[10px] text-fg/45'>{t.orderLabel}</span>
-                </div>
-                <div className='flex justify-center overflow-hidden bg-[rgb(var(--surface-fg-rgb)/0.04)] py-2'>
-                  <TemplateFirstPagePreview template={t} scale={TEMPLATE_CARD_PREVIEW_SCALE} />
-                </div>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+    </>
   );
 }
 

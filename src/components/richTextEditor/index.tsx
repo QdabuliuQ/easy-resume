@@ -53,19 +53,29 @@ export const DEFAULT_QUILL_TOOLBAR_ROWS = [
     'italic',
     'underline',
     'strike',
+    { color: [] },
     'link',
     { list: 'ordered' },
     { list: 'bullet' },
   ],
 ] as const;
 
-type ToolbarTrKey = 'bold' | 'italic' | 'underline' | 'strike' | 'link' | 'listOrdered' | 'listBullet';
+type ToolbarTrKey =
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'strike'
+  | 'color'
+  | 'link'
+  | 'listOrdered'
+  | 'listBullet';
 
 const QL_TO_TR: Partial<Record<string, ToolbarTrKey>> = {
   bold: 'bold',
   italic: 'italic',
   underline: 'underline',
   strike: 'strike',
+  color: 'color',
   link: 'link',
 };
 
@@ -85,6 +95,16 @@ function localizeQuillSnowToolbar(toolbarEl: Element, tr: (key: ToolbarTrKey) =>
       btn.setAttribute('aria-label', label);
       btn.setAttribute('title', label);
     }
+  });
+  toolbarEl.querySelectorAll('select').forEach((sel) => {
+    const ql = Array.from(sel.classList).find((c) => c.startsWith('ql-'));
+    if (!ql) return;
+    const key = ql.slice('ql-'.length);
+    const tk = QL_TO_TR[key];
+    if (!tk) return;
+    const label = tr(tk);
+    sel.setAttribute('aria-label', label);
+    sel.setAttribute('title', label);
   });
 }
 

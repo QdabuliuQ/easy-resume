@@ -2,7 +2,6 @@
 import type { ReactNode } from 'react';
 import { Modal, type ModalFuncProps } from 'antd';
 import type { HookAPI } from 'antd/es/modal/useModal';
-import { Dialog } from 'antd-mobile';
 import { useMobileEdit } from '@/views/edit/mobile/context';
 
 export type ResponsiveConfirmOptions = {
@@ -39,37 +38,26 @@ export function responsiveConfirm(
   modal?: HookAPI
 ) {
   if (mobile) {
+    const api = modal ?? Modal;
     return new Promise<boolean>((resolve) => {
-      Dialog.show({
-        title: opts.title,
-        content: opts.content,
-        closeOnAction: true,
-        onClose: () => {
-          opts.onCancel?.();
-          resolve(false);
+      let settled = false;
+      const finish = (result: boolean) => {
+        if (settled) return;
+        settled = true;
+        resolve(result);
+      };
+      api.confirm({
+        ...toAntd(opts),
+        icon: opts.icon ?? null,
+        centered: opts.centered ?? true,
+        onOk: async () => {
+          await opts.onOk?.();
+          finish(true);
         },
-        actions: [
-          [
-            {
-              key: 'cancel',
-              text: opts.cancelText ?? '取消',
-              onClick: async () => {
-                await opts.onCancel?.();
-                resolve(false);
-              },
-            },
-            {
-              key: 'confirm',
-              text: opts.okText ?? '确定',
-              bold: true,
-              danger: !!opts.danger,
-              onClick: async () => {
-                await opts.onOk?.();
-                resolve(true);
-              },
-            },
-          ],
-        ],
+        onCancel: async () => {
+          await opts.onCancel?.();
+          finish(false);
+        },
       });
     });
   }
@@ -84,7 +72,7 @@ export function useResponsiveConfirm() {
     mobile,
     modal,
     confirm: (opts: ResponsiveConfirmOptions) =>
-      responsiveConfirm(mobile, opts, mobile ? undefined : modal),
-    contextHolder: mobile ? null : contextHolder,
+      responsiveConfirm(mobile, opts, modal),
+    contextHolder,
   };
 }

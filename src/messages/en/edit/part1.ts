@@ -204,6 +204,7 @@ export default {
     italic: 'Italic',
     underline: 'Underline',
     strike: 'Strikethrough',
+    color: 'Text color',
     link: 'Insert link',
     listOrdered: 'Ordered list',
     listBullet: 'Bullet list',
