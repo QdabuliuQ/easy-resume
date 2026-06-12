@@ -45,13 +45,13 @@
               "wechat": "helin_art",
               "birthday": "1997-04-08",
               "gender": "女",
-              "stature": "",
-              "weight": "",
+              "stature": null,
+              "weight": null,
               "ethnic": "汉族",
               "origin": "江西/赣州",
               "maritalStatus": "未婚",
               "politicalStatus": "群众",
-              "site": "",
+              "site": null,
               "expectedSalary": [
                 "7k",
                 "14k"

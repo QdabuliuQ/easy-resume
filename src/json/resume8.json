@@ -45,13 +45,13 @@
               "wechat": "chenhao_edu",
               "birthday": "1994-12-05",
               "gender": "男",
-              "stature": "",
-              "weight": "",
+              "stature": null,
+              "weight": null,
               "ethnic": "汉族",
               "origin": "广东/梅州",
               "maritalStatus": "未婚",
               "politicalStatus": "中共党员",
-              "site": "",
+              "site": null,
               "expectedSalary": [
                 "8k",
                 "15k"

@@ -1,29 +1,86 @@
 'use client';
 import { Popover } from 'antd';
+import {
+  Add,
+  AutoHeightOne,
+  BirthdayCake,
+  BoyTwo,
+  Briefcase,
+  BuildingTwo,
+  City,
+  Delete,
+  Family,
+  Finance,
+  IdCardV,
+  LocalTwo,
+  Mail,
+  Male,
+  PhoneCall,
+  WebPage,
+  Wechat,
+  Weight,
+  Workbench,
+} from '@icon-park/react';
 import { useTranslations } from 'next-intl';
 import { observer } from 'mobx-react';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState, type ComponentType } from 'react';
 import GridLayout from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import { info } from '@/modules/utils/constant';
-import { AddOne, Delete } from '@icon-park/react';
+
+const CHIP_ICON_FILL = 'var(--info-layout-chip-icon)';
+
+const INFO_FIELD_ICONS: Record<string, ComponentType<{ theme?: 'outline'; size?: number; fill?: string; className?: string }>> = {
+  phone: PhoneCall,
+  email: Mail,
+  city: City,
+  status: Workbench,
+  intentCity: BuildingTwo,
+  intentPosts: Briefcase,
+  wechat: Wechat,
+  birthday: BirthdayCake,
+  gender: Male,
+  stature: AutoHeightOne,
+  weight: Weight,
+  ethnic: BoyTwo,
+  origin: LocalTwo,
+  maritalStatus: Family,
+  politicalStatus: IdCardV,
+  site: WebPage,
+  expectedSalary: Finance,
+};
+
+function FieldIcon({ fieldKey }: { fieldKey: string }) {
+  const Icon = INFO_FIELD_ICONS[fieldKey];
+  if (!Icon) return null;
+  return (
+    <Icon
+      theme='outline'
+      size={14}
+      fill={CHIP_ICON_FILL}
+      className='shrink-0'
+    />
+  );
+}
 
 function FieldChip(props: {
+  fieldKey: string;
   label: string;
   onRemove: () => void;
 }) {
   const t = useTranslations('Edit.infoLayout');
   return (
-    <div className='info-layout-chip info-layout-chip-field box-border flex h-6 w-full max-w-full min-w-0 cursor-move items-center gap-0.5 rounded-md border px-1 text-[9px] leading-none'>
+    <div className='info-layout-chip info-layout-chip-field box-border flex h-full min-h-[32px] w-full max-w-full min-w-0 cursor-move items-center gap-1 rounded-lg border px-2 py-1.5 text-[12px] leading-none'>
+      <FieldIcon fieldKey={props.fieldKey} />
       <span
-        className='min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-center font-medium'
+        className='min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[12px]'
         title={props.label}
       >
         {props.label}
       </span>
       <button
         type='button'
-        className='info-layout-chip-btn info-layout-chip-btn-delete inline-flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 outline-none transition-colors'
+        className='info-layout-chip-btn info-layout-chip-btn-delete inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-0 outline-none transition-colors'
         aria-label={t('deleteAria')}
         title={t('deleteTitle')}
         onMouseDown={(e) => e.stopPropagation()}
@@ -34,47 +91,46 @@ function FieldChip(props: {
           props.onRemove();
         }}
       >
-        <Delete theme='outline' size='10' fill='currentColor' />
+        <Delete theme='outline' size='14' fill='currentColor' />
       </button>
     </div>
   );
 }
 
-/** 与 FieldChip 同款容器与排版，右侧为添加按钮 */
-function AddFieldChip(props: { label: string; onAdd: () => void }) {
+function AddFieldChip(props: { fieldKey: string; label: string; onAdd: () => void }) {
   const t = useTranslations('Edit.infoLayout');
   return (
     <button
       type='button'
-      className='info-layout-chip info-layout-chip-add box-border flex h-6 w-full max-w-full min-w-0 cursor-pointer items-center gap-0.5 rounded-md border border-dashed px-1 text-[9px] leading-none outline-none transition-colors'
-      title={props.label}
+      className='info-layout-chip info-layout-chip-add box-border flex h-full min-h-[32px] w-full max-w-full min-w-0 cursor-pointer items-center gap-2 rounded-lg border px-2 py-1.5 text-[12px] leading-none outline-none transition-colors'
+      title={t('addTitle')}
       aria-label={t('addAria')}
       onClick={(e) => {
         e.preventDefault();
         props.onAdd();
       }}
     >
-      <AddOne theme='outline' size='10' fill='currentColor' className='shrink-0' />
+      <FieldIcon fieldKey={props.fieldKey} />
       <span
-        className='min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left font-medium'
+        className='min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-[12px]'
         title={props.label}
       >
         {props.label}
       </span>
+      <Add theme='outline' size='14' fill='currentColor' />
     </button>
   );
 }
 
-/** 12 栅格；每项占 3 列 → 一行最多 4 个，保证四字标签完整显示 */
+/** 12 栅格；每项占 3 列 → 一行最多 4 个 */
 const GRID_COLS = 12;
 const FIELD_W = 3;
-const ROW_H = 24;
-const ROW_GAP = 6;
-const WIDTH = 500;
+const ROW_H = 34;
+const ROW_GAP = 12;
+const WIDTH = 520;
 
 function rowsToLayout(rows: Array<Array<string>>) {
-  const next: Array<{ i: string; x: number; y: number; w: number; h: number }> =
-    [];
+  const next: Array<{ i: string; x: number; y: number; w: number; h: number }> = [];
   let baseY = 0;
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -101,7 +157,6 @@ function rowsToLayout(rows: Array<Array<string>>) {
 
 type GridItem = { i: string; x: number; y: number; w: number; h: number };
 
-/** 保留各行顺序（可拖出独立新行），仅在行内从左_PACK x */
 function normalizeLayoutItems(items: GridItem[]): GridItem[] {
   if (!items.length) return [];
   const byY = new Map<number, GridItem[]>();
@@ -162,12 +217,12 @@ function InfoLayout(props: {
     props.onDragStop(finalLayout);
   };
 
-  const removeItem = (value: any) => {
+  const removeItem = (value: string) => {
     const newLayout = layout.filter((item) => item.i !== value);
     onDragStop(newLayout);
   };
 
-  const addItem = (value: any) => {
+  const addItem = (value: string) => {
     if (!layout.length) {
       onDragStop([{ i: value, x: 0, y: 0, w: FIELD_W, h: 1 }]);
       return;
@@ -203,17 +258,16 @@ function InfoLayout(props: {
     return keys;
   }, [layout]);
 
-  /** Popover 内不要用 WidthProvider：会按气泡整宽测量，栅格错位、出现伪「重复」与横向灰条 */
   const gridMaxY = layout.length ? Math.max(...layout.map((l) => l.y)) : 0;
   const gridHeightPx = gridContentHeightPx(layout.length, gridMaxY);
 
   const gridChromeClassName =
-    'w-[500px] max-w-[min(500px,calc(100vw-48px))] overflow-x-hidden [&_.react-grid-layout]:!min-h-0 [&_.react-grid-layout]:!overflow-hidden [&_.react-grid-item.react-draggable-dragging]:!z-[100] [&_.react-grid-item.react-draggable-dragging]:!rounded-lg [&_.react-grid-item.react-draggable-dragging]:!opacity-95 [&_.react-grid-item.react-draggable-dragging]:!shadow-[0_6px_16px_rgb(0_0_0/0.18)] [&_.react-grid-item.react-grid-placeholder]:!z-[99] [&_.react-grid-item.react-grid-placeholder]:!h-[24px] [&_.react-grid-item.react-grid-placeholder]:!min-h-0 [&_.react-grid-item.react-grid-placeholder]:!max-h-[24px] [&_.react-grid-item.react-grid-placeholder]:!rounded-lg [&_.react-grid-item.react-grid-placeholder]:!border-2 [&_.react-grid-item.react-grid-placeholder]:!border-dashed [&_.react-grid-item.react-grid-placeholder]:!border-[color-mix(in_srgb,var(--color-primary)_55%,transparent)] [&_.react-grid-item.react-grid-placeholder]:!bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] [&_.react-grid-item.react-grid-placeholder]:!opacity-100';
+    'w-[500px] max-w-[min(500px,calc(100vw-48px))] overflow-x-hidden [&_.react-grid-layout]:!min-h-0 [&_.react-grid-layout]:!overflow-hidden [&_.react-grid-item.react-draggable-dragging]:!z-[100] [&_.react-grid-item.react-draggable-dragging]:!rounded-lg [&_.react-grid-item.react-draggable-dragging]:!opacity-95 [&_.react-grid-item.react-draggable-dragging]:!shadow-[0_6px_16px_rgb(0_0_0/0.18)] [&_.react-grid-item.react-grid-placeholder]:!z-[99] [&_.react-grid-item.react-grid-placeholder]:!h-[34px] [&_.react-grid-item.react-grid-placeholder]:!min-h-0 [&_.react-grid-item.react-grid-placeholder]:!max-h-[34px] [&_.react-grid-item.react-grid-placeholder]:!rounded-lg [&_.react-grid-item.react-grid-placeholder]:!border-2 [&_.react-grid-item.react-grid-placeholder]:!border-dashed [&_.react-grid-item.react-grid-placeholder]:!border-[color-mix(in_srgb,var(--color-primary)_55%,transparent)] [&_.react-grid-item.react-grid-placeholder]:!bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] [&_.react-grid-item.react-grid-placeholder]:!opacity-100';
 
   const layoutPopoverContent = (
     <div className={gridChromeClassName}>
       <div
-        className='w-full overflow-hidden rounded-lg'
+        className='w-full overflow-hidden rounded-lg bg-[var(--info-layout-grid-bg)]'
         style={{ height: gridHeightPx }}
       >
         <GridLayout
@@ -222,7 +276,7 @@ function InfoLayout(props: {
           cols={GRID_COLS}
           rowHeight={ROW_H}
           width={WIDTH}
-          margin={[6, ROW_GAP]}
+          margin={[ROW_GAP, ROW_GAP]}
           isResizable={false}
           compactType={null}
           preventCollision={false}
@@ -235,9 +289,10 @@ function InfoLayout(props: {
             return (
               <div
                 key={item.i}
-                className='box-border flex h-full w-full cursor-move items-stretch px-px'
+                className='box-border flex h-full w-full cursor-move items-stretch'
               >
                 <FieldChip
+                  fieldKey={item.i}
                   label={label}
                   onRemove={() => removeItem(item.i)}
                 />
@@ -247,17 +302,14 @@ function InfoLayout(props: {
         </GridLayout>
       </div>
       {addableFieldKeys.length > 0 ? (
-        <div className='info-layout-chip-divider mt-2 flex w-full flex-wrap gap-2 border-t pt-2.5 px-1.5'>
+        <div className='info-layout-chip-divider mt-3 grid grid-cols-4 gap-2 border-t py-3 bg-[var(--info-layout-grid-bg)] px-3 rounded-lg'>
           {addableFieldKeys.map((key) => (
-            <div
+            <AddFieldChip
               key={key}
-              className='box-border min-w-0 shrink-0 basis-[calc((100%-1.5rem)/4)]'
-            >
-              <AddFieldChip
-                label={info[key as keyof typeof info]}
-                onAdd={() => addItem(key)}
-              />
-            </div>
+              fieldKey={key}
+              label={info[key as keyof typeof info]}
+              onAdd={() => addItem(key)}
+            />
           ))}
         </div>
       ) : null}
@@ -272,10 +324,10 @@ function InfoLayout(props: {
       placement='bottomLeft'
       styles={{
         body: {
-          paddingLeft: 10,
-          paddingRight: 10,
-          paddingBottom: 15,
-          paddingTop: 5,
+          paddingLeft: 12,
+          paddingRight: 12,
+          paddingBottom: 12,
+          paddingTop: 12,
           width: WIDTH + 28,
           maxWidth: 'min(calc(100vw - 24px), 528px)',
           backgroundColor: 'var(--info-layout-popover-bg)',

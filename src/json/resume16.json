@@ -45,13 +45,13 @@
               "wechat": "zhangwei_cg",
               "birthday": "1994-05-18",
               "gender": "男",
-              "stature": "",
-              "weight": "",
+              "stature": null,
+              "weight": null,
               "ethnic": "汉族",
               "origin": "广西/南宁",
               "maritalStatus": "已婚",
               "politicalStatus": "群众",
-              "site": "",
+              "site": null,
               "expectedSalary": [
                 "7k",
                 "13k"

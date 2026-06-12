@@ -170,6 +170,7 @@ export default {
     addAria: '添加',
     addTitle: '添加',
     fieldLayout: '字段布局',
+    supplementaryInfo: '辅助信息',
   },
   buttonGroup: {
     moveUp: '上移',

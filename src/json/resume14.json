@@ -45,13 +45,13 @@
               "wechat": "chenya_admin",
               "birthday": "1996-10-25",
               "gender": "女",
-              "stature": "",
-              "weight": "",
+              "stature": null,
+              "weight": null,
               "ethnic": "汉族",
               "origin": "湖南/岳阳",
               "maritalStatus": "未婚",
               "politicalStatus": "群众",
-              "site": "",
+              "site": null,
               "expectedSalary": [
                 "6k",
                 "10k"

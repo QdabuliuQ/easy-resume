@@ -197,6 +197,7 @@
   --info-layout-chip-icon: rgb(255 255 255 / 0.7);
   --info-layout-chip-icon-hover-bg: rgb(255 255 255 / 0.1);
   --info-layout-chip-divider: rgb(255 255 255 / 0.1);
+  --info-layout-grid-bg: rgba(104, 104, 104, 0.239);
   --menu-selected-inner: rgb(56 54 58 / 0.9);
   --menu-icon-muted: #97929f;
 
@@ -356,6 +357,7 @@
   --info-layout-chip-icon: rgb(var(--surface-fg-rgb) / 0.55);
   --info-layout-chip-icon-hover-bg: rgb(var(--surface-fg-rgb) / 0.08);
   --info-layout-chip-divider: rgb(var(--surface-fg-rgb) / 0.1);
+  --info-layout-grid-bg: rgb(var(--surface-fg-rgb) / 0.06);
   --menu-selected-inner: rgb(255 255 255 / 0.94);
   --menu-icon-muted: rgb(var(--surface-fg-rgb) / 0.42);
 
@@ -476,13 +478,13 @@ html[data-prefers-color-scheme='dark'] {
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
 }
 .info-layout-chip-add {
-  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--info-layout-chip-border));
-  background-color: color-mix(in srgb, var(--color-primary) 6%, var(--info-layout-chip-bg));
+  border-color: var(--info-layout-chip-border);
+  background-color: var(--info-layout-chip-bg);
   color: var(--info-layout-chip-fg);
 }
 .info-layout-chip-add:hover {
   border-color: color-mix(in srgb, var(--color-primary) 42%, var(--info-layout-chip-border));
-  background-color: color-mix(in srgb, var(--color-primary) 12%, var(--info-layout-chip-bg));
+  background-color: color-mix(in srgb, var(--color-primary) 10%, var(--info-layout-chip-bg));
 }
 .info-layout-chip-btn {
   color: var(--info-layout-chip-icon);

@@ -188,7 +188,6 @@ function focusPanelFieldByItemId(itemId: string) {
           : (holder.querySelector(
             'input,textarea,[contenteditable="true"],.ql-editor,.ant-select-selection-search-input',
           ) as HTMLElement | null) ?? holder;
-          console.log(target, 'target')
       if (typeof target.focus === 'function') target.focus();
       if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
         const len = target.value.length;

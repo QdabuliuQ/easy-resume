@@ -171,6 +171,7 @@ export default {
     addAria: 'Add',
     addTitle: 'Add',
     fieldLayout: 'Field layout',
+    supplementaryInfo: 'Supplementary info',
   },
   buttonGroup: {
     moveUp: 'Move up',

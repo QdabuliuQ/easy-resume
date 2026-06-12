@@ -32,13 +32,13 @@
               "wechat": "huangli_operate",
               "birthday": "1997-02-10",
               "gender": "女",
-              "stature": "",
-              "weight": "",
+              "stature": null,
+              "weight": null,
               "ethnic": "汉族",
               "origin": "广西/南宁",
               "maritalStatus": "未婚",
               "politicalStatus": "群众",
-              "site": "",
+              "site": null,
               "expectedSalary": [
                 "8k",
                 "15k"

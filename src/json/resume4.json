@@ -32,13 +32,13 @@
               "wechat": "zhangmin_law",
               "birthday": "1993-07-19",
               "gender": "女",
-              "stature": "",
-              "weight": "",
+              "stature": null,
+              "weight": null,
               "ethnic": "汉族",
               "origin": "江西/南昌",
               "maritalStatus": "未婚",
               "politicalStatus": "群众",
-              "site": "",
+              "site": null,
               "expectedSalary": [
                 "10k",
                 "18k"

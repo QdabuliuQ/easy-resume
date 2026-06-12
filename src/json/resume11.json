@@ -45,13 +45,13 @@
               "wechat": "suzixuan_pm",
               "birthday": "1995-09-12",
               "gender": "女",
-              "stature": "",
-              "weight": "",
+              "stature": null,
+              "weight": null,
               "ethnic": "汉族",
               "origin": "湖北/武汉",
               "maritalStatus": "未婚",
               "politicalStatus": "群众",
-              "site": "",
+              "site": null,
               "expectedSalary": [
                 "15k",
                 "25k"

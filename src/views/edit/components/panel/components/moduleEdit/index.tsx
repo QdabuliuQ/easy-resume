@@ -49,16 +49,6 @@ const panelHasOwnTitle = new Set([
  * 这里需要覆盖 sticky 模块导航本身的高度，否则跳转后模块顶部会被挡住。
  */
 const SCROLL_INTO_VIEW_MARGIN_TOP = 77;
-const PANEL_FOCUS_SELECTOR =
-  'input:not([type="hidden"]):not([disabled]),textarea:not([disabled]),[contenteditable="true"],.ql-editor,.ant-select-selection-search-input';
-
-function focusFirstEditableInSection(section: HTMLElement): boolean {
-  const target = section.querySelector(PANEL_FOCUS_SELECTOR) as HTMLElement | null;
-  if (!target) return false;
-  target.scrollIntoView({ behavior: 'instant', block: 'center' });
-  target.focus();
-  return true;
-}
 
 function scrollParentEl(el: HTMLElement | null): Element | null {
   let p: Element | null = el?.parentElement ?? null;
@@ -106,30 +96,6 @@ function ModuleEdit() {
     const el = sectionRefs.current.get(activeId);
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [activeId]);
-
-  useEffect(() => {
-    if (activeId === 'global' || !activeId) return;
-    let retries = 60;
-    let timer: number | null = null;
-
-    const tick = () => {
-      const section =
-        sectionRefs.current.get(activeId)
-        ?? (document.querySelector(
-          `[data-panel-module-id="${CSS.escape(activeId)}"]`,
-        ) as HTMLElement | null);
-      if (section && focusFirstEditableInSection(section)) return;
-      if (retries <= 0) return;
-      retries -= 1;
-      timer = window.setTimeout(tick, 80);
-    };
-
-    requestAnimationFrame(tick);
-
-    return () => {
-      if (timer != null) window.clearTimeout(timer);
-    };
-  }, [activeId, moduleEntries.length]);
 
   useEffect(() => {
     const sec = navStickyRef.current;

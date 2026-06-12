@@ -45,13 +45,13 @@
               "wechat": "wangjun_sales",
               "birthday": "1993-06-25",
               "gender": "男",
-              "stature": "",
-              "weight": "",
+              "stature": null,
+              "weight": null,
               "ethnic": "汉族",
               "origin": "四川/成都",
               "maritalStatus": "已婚",
               "politicalStatus": "群众",
-              "site": "",
+              "site": null,
               "expectedSalary": [
                 "8k",
                 "20k"

@@ -45,13 +45,13 @@
               "wechat": "linting_hr",
               "birthday": "1995-04-18",
               "gender": "女",
-              "stature": "",
-              "weight": "",
+              "stature": null,
+              "weight": null,
               "ethnic": "汉族",
               "origin": "福建/厦门",
               "maritalStatus": "未婚",
               "politicalStatus": "群众",
-              "site": "",
+              "site": null,
               "expectedSalary": [
                 "7k",
                 "13k"

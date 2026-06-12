@@ -32,13 +32,13 @@
               "wechat": "limei_caiwu",
               "birthday": "1994-11-22",
               "gender": "女",
-              "stature": "",
-              "weight": "",
+              "stature": null,
+              "weight": null,
               "ethnic": "汉族",
               "origin": "广东/佛山",
               "maritalStatus": "已婚",
               "politicalStatus": "群众",
-              "site": "",
+              "site": null,
               "expectedSalary": [
                 "7k",
                 "12k"

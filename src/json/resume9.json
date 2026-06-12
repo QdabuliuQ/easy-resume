@@ -45,13 +45,13 @@
               "wechat": "wujia_nurse",
               "birthday": "1997-03-12",
               "gender": "女",
-              "stature": "",
-              "weight": "",
+              "stature": null,
+              "weight": null,
               "ethnic": "汉族",
               "origin": "广西/桂林",
               "maritalStatus": "未婚",
               "politicalStatus": "群众",
-              "site": "",
+              "site": null,
               "expectedSalary": [
                 "6k",
                 "11k"

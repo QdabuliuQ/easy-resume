@@ -45,13 +45,13 @@
               "wechat": "zhouyu_ui",
               "birthday": "1996-08-20",
               "gender": "女",
-              "stature": "",
-              "weight": "",
+              "stature": null,
+              "weight": null,
               "ethnic": "汉族",
               "origin": "湖南/衡阳",
               "maritalStatus": "未婚",
               "politicalStatus": "群众",
-              "site": "",
+              "site": null,
               "expectedSalary": [
                 "12k",
                 "20k"
