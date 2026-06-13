@@ -23,14 +23,22 @@ import {
 } from '@icon-park/react';
 import { useTranslations } from 'next-intl';
 import { observer } from 'mobx-react';
-import { memo, useEffect, useMemo, useState, type ComponentType } from 'react';
+import { memo, useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import GridLayout from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import { info } from '@/modules/utils/constant';
 
 const CHIP_ICON_FILL = 'var(--info-layout-chip-icon)';
 
-const INFO_FIELD_ICONS: Record<string, ComponentType<{ theme?: 'outline'; size?: number; fill?: string; className?: string }>> = {
+const INFO_FIELD_ICONS: Record<
+  string,
+  ComponentType<{
+    theme?: 'outline';
+    size?: number;
+    fill?: string;
+    className?: string;
+  }>
+> = {
   phone: PhoneCall,
   email: Mail,
   city: City,
@@ -97,7 +105,11 @@ function FieldChip(props: {
   );
 }
 
-function AddFieldChip(props: { fieldKey: string; label: string; onAdd: () => void }) {
+function AddFieldChip(props: {
+  fieldKey: string;
+  label: string;
+  onAdd: () => void;
+}) {
   const t = useTranslations('Edit.infoLayout');
   return (
     <button
@@ -127,10 +139,12 @@ const GRID_COLS = 12;
 const FIELD_W = 3;
 const ROW_H = 34;
 const ROW_GAP = 12;
-const WIDTH = 520;
+/** Popover 内容区宽度（528 - 左右 padding 12×2） */
+const WIDTH = 504;
 
 function rowsToLayout(rows: Array<Array<string>>) {
-  const next: Array<{ i: string; x: number; y: number; w: number; h: number }> = [];
+  const next: Array<{ i: string; x: number; y: number; w: number; h: number }> =
+    [];
   let baseY = 0;
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -197,6 +211,21 @@ function InfoLayout(props: {
 }) {
   const ti = useTranslations('Edit.infoLayout');
   const [layout, setLayout] = useState<Array<any>>([]);
+  const gridWrapRef = useRef<HTMLDivElement>(null);
+  const [gridWidth, setGridWidth] = useState(WIDTH);
+
+  useEffect(() => {
+    const el = gridWrapRef.current;
+    if (!el) return;
+    const syncWidth = () => {
+      const next = Math.floor(el.clientWidth);
+      if (next > 0) setGridWidth(next);
+    };
+    syncWidth();
+    const ro = new ResizeObserver(syncWidth);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     setLayout(rowsToLayout(props.layout));
@@ -228,7 +257,9 @@ function InfoLayout(props: {
       return;
     }
     const maxY = Math.max(...layout.map((l) => l.y));
-    const lastRow = layout.filter((l) => l.y === maxY).sort((a, b) => a.x - b.x);
+    const lastRow = layout
+      .filter((l) => l.y === maxY)
+      .sort((a, b) => a.x - b.x);
     const usedWidth = lastRow.reduce((s, l) => s + (l.w || FIELD_W), 0);
     if (usedWidth + FIELD_W <= GRID_COLS) {
       onDragStop([
@@ -262,11 +293,12 @@ function InfoLayout(props: {
   const gridHeightPx = gridContentHeightPx(layout.length, gridMaxY);
 
   const gridChromeClassName =
-    'w-[500px] max-w-[min(500px,calc(100vw-48px))] overflow-x-hidden [&_.react-grid-layout]:!min-h-0 [&_.react-grid-layout]:!overflow-hidden [&_.react-grid-item.react-draggable-dragging]:!z-[100] [&_.react-grid-item.react-draggable-dragging]:!rounded-lg [&_.react-grid-item.react-draggable-dragging]:!opacity-95 [&_.react-grid-item.react-draggable-dragging]:!shadow-[0_6px_16px_rgb(0_0_0/0.18)] [&_.react-grid-item.react-grid-placeholder]:!z-[99] [&_.react-grid-item.react-grid-placeholder]:!h-[34px] [&_.react-grid-item.react-grid-placeholder]:!min-h-0 [&_.react-grid-item.react-grid-placeholder]:!max-h-[34px] [&_.react-grid-item.react-grid-placeholder]:!rounded-lg [&_.react-grid-item.react-grid-placeholder]:!border-2 [&_.react-grid-item.react-grid-placeholder]:!border-dashed [&_.react-grid-item.react-grid-placeholder]:!border-[color-mix(in_srgb,var(--color-primary)_55%,transparent)] [&_.react-grid-item.react-grid-placeholder]:!bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] [&_.react-grid-item.react-grid-placeholder]:!opacity-100';
+    'w-full max-w-full overflow-x-hidden [&_.react-grid-layout]:!min-h-0 [&_.react-grid-layout]:!overflow-hidden [&_.react-grid-item.react-draggable-dragging]:!z-[100] [&_.react-grid-item.react-draggable-dragging]:!rounded-lg [&_.react-grid-item.react-draggable-dragging]:!opacity-95 [&_.react-grid-item.react-draggable-dragging]:!shadow-[0_6px_16px_rgb(0_0_0/0.18)] [&_.react-grid-item.react-grid-placeholder]:!z-[99] [&_.react-grid-item.react-grid-placeholder]:!h-[34px] [&_.react-grid-item.react-grid-placeholder]:!min-h-0 [&_.react-grid-item.react-grid-placeholder]:!max-h-[34px] [&_.react-grid-item.react-grid-placeholder]:!rounded-lg [&_.react-grid-item.react-grid-placeholder]:!border-2 [&_.react-grid-item.react-grid-placeholder]:!border-dashed [&_.react-grid-item.react-grid-placeholder]:!border-[color-mix(in_srgb,var(--color-primary)_55%,transparent)] [&_.react-grid-item.react-grid-placeholder]:!bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] [&_.react-grid-item.react-grid-placeholder]:!opacity-100';
 
   const layoutPopoverContent = (
     <div className={gridChromeClassName}>
       <div
+        ref={gridWrapRef}
         className='w-full overflow-hidden rounded-lg bg-[var(--info-layout-grid-bg)]'
         style={{ height: gridHeightPx }}
       >
@@ -275,7 +307,7 @@ function InfoLayout(props: {
           layout={layout}
           cols={GRID_COLS}
           rowHeight={ROW_H}
-          width={WIDTH}
+          width={gridWidth}
           margin={[ROW_GAP, ROW_GAP]}
           isResizable={false}
           compactType={null}
@@ -328,7 +360,7 @@ function InfoLayout(props: {
           paddingRight: 12,
           paddingBottom: 12,
           paddingTop: 12,
-          width: WIDTH + 28,
+          width: WIDTH + 24,
           maxWidth: 'min(calc(100vw - 24px), 528px)',
           backgroundColor: 'var(--info-layout-popover-bg)',
           borderRadius: 10,

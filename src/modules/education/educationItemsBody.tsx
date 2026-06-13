@@ -58,21 +58,26 @@ export default function EducationItemsBody({
                   className='min-w-0 break-words font-bold'
                   dataItemId={`${moduleId}_${index}_school`}
                 />
-                <div className='flex shrink-0 flex-wrap items-center'>
-                  {tags.map((tag, tagIndex) => {
-                    const tagStr = typeof tag === 'string' ? tag : '';
-                    return (
-                      <SafeText
-                        key={`${tagIndex}-${tagStr}`}
-                        text={tagStr}
-                        selectable={selectable}
-                        dataItemId={`${moduleId}_${index}_tag_${tagIndex}`}
-                        style={{ backgroundColor: color, color: '#fff', fontSize: `${fontSize - 4}px` }}
-                        className='not-last:mr-[5px] rounded-[5px] px-[5px] py-[2px]'
-                      />
-                    );
-                  })}
-                </div>
+                {tags.length > 0 && (
+                  <SafeText
+                    selectable={selectable}
+                    dataItemId={`${moduleId}_${index}_tags`}
+                    className='flex shrink-0 flex-wrap items-center'
+                  >
+                    {tags.map((tag, tagIndex) => {
+                      const tagStr = typeof tag === 'string' ? tag : '';
+                      return (
+                        <span
+                          key={`${tagIndex}-${tagStr}`}
+                          style={{ backgroundColor: color, color: '#fff', fontSize: `${fontSize - 4}px` }}
+                          className='not-last:mr-[5px] rounded-[5px] px-[5px] py-[2px]'
+                        >
+                          {tagStr}
+                        </span>
+                      );
+                    })}
+                  </SafeText>
+                )}
               </div>
               <div className='shrink-0 text-right whitespace-nowrap'>
                 <SafeText
@@ -82,14 +87,30 @@ export default function EducationItemsBody({
                 />
               </div>
             </div>
-            {degree && (
+            {(major || degree || academy) && (
               <div className='mb-[5px] flex min-w-0 justify-between gap-2'>
-                <div className='min-w-0 flex-[7] break-words'>
-                  <SafeText
-                    text={`${major} ${degree} ${academy}`.trim()}
-                    selectable={selectable}
-                    dataItemId={`${moduleId}_${index}_degree`}
-                  />
+                <div className='flex min-w-0 flex-[7] flex-wrap items-center gap-x-[10px] break-words'>
+                  {major && (
+                    <SafeText
+                      text={major}
+                      selectable={selectable}
+                      dataItemId={`${moduleId}_${index}_major`}
+                    />
+                  )}
+                  {degree && (
+                    <SafeText
+                      text={degree}
+                      selectable={selectable}
+                      dataItemId={`${moduleId}_${index}_degree`}
+                    />
+                  )}
+                  {academy && (
+                    <SafeText
+                      text={academy}
+                      selectable={selectable}
+                      dataItemId={`${moduleId}_${index}_academy`}
+                    />
+                  )}
                 </div>
                 <div className='shrink-0 text-right'>
                   <SafeText

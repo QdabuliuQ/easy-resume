@@ -88,16 +88,24 @@ function Info1(props: Props) {
           const a = sal?.[0] ?? '';
           const b = sal?.[1] ?? '';
           rowElements.push(
-            <SafeText
-              key={`${String(a)}-${String(b)}`}
-              selectable
-              dataItemId={`${id}_expectedSalary`}
+            <span
+              key={`expectedSalary-${i}-${j}`}
               className={inSideCol ? undefined : 'text-black'}
               style={{ fontSize, lineHeight, color: fieldColor }}
             >
               {lbl('expectedSalary')}
-              {a} - {b}
-            </SafeText>
+              <SafeText
+                text={a}
+                selectable
+                dataItemId={`${id}_expectedSalary_0`}
+              />
+              {' - '}
+              <SafeText
+                text={b}
+                selectable
+                dataItemId={`${id}_expectedSalary_1`}
+              />
+            </span>
           );
         } else if (props.config.options[key as keyof InfoProps['options']]) {
           const val = props.config.options[key as keyof InfoProps['options']];
