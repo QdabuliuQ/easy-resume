@@ -75,8 +75,13 @@ describe('Info1 module', () => {
     await waitFor(() => {
       expect(screen.getByText(/手机号：13800000000/)).toBeInTheDocument();
       expect(screen.getByText(/邮箱：zhangsan@example.com/)).toBeInTheDocument();
-      expect(screen.getByText(/期望薪资：20k - 30k/)).toBeInTheDocument();
     });
+    expect(document.querySelector('[data-item-id="info-1_expectedSalary_0"]')?.textContent).toBe(
+      '20k'
+    );
+    expect(document.querySelector('[data-item-id="info-1_expectedSalary_1"]')?.textContent).toBe(
+      '30k'
+    );
   });
 
   it('omits avatar placeholder and inline labels when disabled', async () => {

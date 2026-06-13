@@ -72,7 +72,9 @@ describe('resume content modules', () => {
     expect(screen.getByText('教育经历')).toBeInTheDocument();
     expect(screen.getByText('浙江大学')).toBeInTheDocument();
     expect(screen.getByText('985')).toBeInTheDocument();
-    expect(screen.getByText(/计算机科学 本科 软件学院/)).toBeInTheDocument();
+    expect(screen.getByText('计算机科学')).toBeInTheDocument();
+    expect(screen.getByText('本科')).toBeInTheDocument();
+    expect(screen.getByText('软件学院')).toBeInTheDocument();
     expect(screen.getByText(/GPA 3.8/)).toBeInTheDocument();
   });
 
