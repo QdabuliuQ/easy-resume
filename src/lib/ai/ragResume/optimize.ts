@@ -5,6 +5,7 @@ import { buildSceneRetriever } from '@/lib/ai/ragResume/knowledge';
 import type { OptimizeRequest, OptimizeScene } from '@/lib/ai/ragResume/types';
 import { sanitizeRichTextHtml, unwrapFencedHtml } from '@/utils/sanitizeHtml';
 
+// 进入 RAG 前先把原始文本规整化，避免空字符串、null 等输入破坏检索质量。
 function normalizeRawText(text: string): string {
   return String(text ?? '').trim();
 }
@@ -31,8 +32,8 @@ const OPTIMIZE_HUMAN = `你将收到：
 
 请严格执行：
 1. 只返回优化后的HTML富文本，不返回解释。
-2. 仅允许标签：<b>、<i>、<u>、<ul>、<li>。
-3. 必须使用<ul><li>结构，禁止<ol>。
+2. 仅允许标签：<b>、<i>、<u>、<ul>、<ol>、<li>。
+3. 可按内容需要使用<ul><li>或<ol><li>结构；若不适合列表，也可以不使用<ul>/<ol>。
 4. 语言简洁、专业，符合ATS筛选。
 5. 保留事实，不新增原文未给出的经历、数据。
 
@@ -55,9 +56,13 @@ export async function optimizeByScene(
   const rawText = normalizeRawText(req.rawText);
   if (!rawText) throw new Error('原始文本不能为空');
 
+  // 先做检索：根据场景 + 岗位 + 原文，从本地知识库中召回最相关的规则片段。
   const retriever = await buildSceneRetriever(scene, req.postType);
   const knowledgeContext = await retriever.retrieve(rawText);
 
+  // Prompt 由两层组成：
+  // - system: 角色与边界（不能编造事实）
+  // - human: 本次任务输入，包括原始文本和检索出来的规则上下文
   const prompt = ChatPromptTemplate.fromMessages([
     ['system', SCENE_SYSTEM[scene]],
     ['human', OPTIMIZE_HUMAN],
@@ -67,11 +72,14 @@ export async function optimizeByScene(
     .pipe(createChatModel({ temperature: 0.8 }))
     .pipe(new StringOutputParser());
 
+  // 如果没有命中岗位专属规则，仍然会回退到全局规则，从而保证链路可用。
   const rawHtml = await chain.invoke({
     postType: req.postType || '未指定岗位',
     sceneLabel: SCENE_LABEL[scene],
     rawText,
     knowledgeContext: knowledgeContext || '未命中岗位规则，仅应用全局规则。',
   });
+
+  // 模型输出不可信，最后统一做一次 HTML 解围栏 + 白名单清洗，防止非法标签落入编辑器。
   return sanitizeRichTextHtml(unwrapFencedHtml(rawHtml));
 }

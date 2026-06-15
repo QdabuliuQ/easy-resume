@@ -5,9 +5,14 @@ import { pipeline } from '@xenova/transformers';
 import { matchRole, normalizeRoleKey, toRoleLabel } from '@/lib/ai/ragResume/roles';
 import type { OptimizeScene, RagKnowledgeDoc } from '@/lib/ai/ragResume/types';
 
+// 本地 RAG 知识库根目录。这里存放的是可被检索的规则文本，而不是模型参数。
 const RAG_ROOT = path.join(process.cwd(), 'src', 'rag-resume-knowledge');
 const GLOBAL_RULE_FILE = 'global-rules.txt';
 
+// 不同润色场景各自绑定一组知识文件：
+// - dir: 该场景的规则目录
+// - sceneGlobalFile: 该场景通用规则
+// - roleSuffix: 岗位规则文件后缀，用于按岗位补充更细的规则
 const SCENE_CONFIG: Record<
   OptimizeScene,
   { dir: string; sceneGlobalFile: string; roleSuffix: string }
@@ -30,10 +35,13 @@ const SCENE_CONFIG: Record<
 };
 
 type IndexedChunk = {
+  // 原始知识片段文本。后续会直接拼接进 Prompt 作为 grounding context。
   content: string;
+  // 该片段的 embedding 向量，用于做相似度检索。
   vector: number[];
 };
 
+// 同一个场景/岗位的索引构建成本较高，因此按 cacheKey 缓存 Promise，避免并发重复构建。
 const vectorStoreCache = new Map<string, Promise<IndexedChunk[]>>();
 
 let extractorPromise: Promise<
@@ -42,6 +50,7 @@ let extractorPromise: Promise<
 
 async function getExtractor() {
   if (!extractorPromise) {
+    // 使用轻量本地 embedding 模型，避免额外依赖远端向量服务。
     extractorPromise = pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2') as Promise<
       (text: string, opts: { pooling: 'mean'; normalize: boolean }) => Promise<{ data: number[] }>
     >;
@@ -49,6 +58,7 @@ async function getExtractor() {
   return extractorPromise;
 }
 
+// LangChain 的 Embeddings 抽象封装，便于后续替换成本地模型/远端 embedding 服务。
 class TransformersJSEmbeddings extends Embeddings {
   constructor() {
     super({});
@@ -76,6 +86,8 @@ function getEmbeddings(): TransformersJSEmbeddings {
   return embeddingsSingleton;
 }
 
+// 长规则文本不能整篇直接拿去做召回，否则粒度过粗、噪音高。
+// 这里使用重叠切块，让一条规则跨块边界时仍有较高概率被召回。
 function chunkText(text: string, chunkSize = 700, overlap = 120): string[] {
   const clean = text.replace(/\r\n/g, '\n').trim();
   if (!clean) return [];
@@ -118,6 +130,7 @@ async function loadDocs(scene: OptimizeScene, roleKey: string | null): Promise<R
   });
 
   const docs: RagKnowledgeDoc[] = [
+    // 先加载全局规则：适用于所有岗位、所有场景的基本约束。
     {
       id: `${scene}:global:resume`,
       text: globalRuleText,
@@ -127,6 +140,7 @@ async function loadDocs(scene: OptimizeScene, roleKey: string | null): Promise<R
       scope: 'global',
     },
     {
+      // 再加载该场景的通用格式规则，例如“工作经历应该怎么写”。
       id: `${scene}:global:scene`,
       text: sceneGlobalText,
       source: path.posix.join(cfg.dir, cfg.sceneGlobalFile),
@@ -141,6 +155,7 @@ async function loadDocs(scene: OptimizeScene, roleKey: string | null): Promise<R
   const target = roleDocs.find((x) => x.roleKey === roleKey);
   if (!target) return docs;
 
+  // 如果岗位匹配成功，再追加一份岗位专属规则，形成 global + scene + role 三层上下文。
   const roleText = await readFile(path.join(sceneDir, target.name), 'utf-8');
   docs.push({
     id: `${scene}:role:${target.roleKey}`,
@@ -164,6 +179,7 @@ async function listRoleKeys(scene: OptimizeScene): Promise<string[]> {
 }
 
 export async function buildSceneRetriever(scene: OptimizeScene, postType: string) {
+  // 先尝试把自由文本岗位名归一化到知识库已存在的岗位 key 上。
   const roleKeys = await listRoleKeys(scene);
   const matched = matchRole(postType, roleKeys);
   const cacheKey = `${scene}:${matched?.roleKey ?? 'global'}`;
@@ -173,6 +189,7 @@ export async function buildSceneRetriever(scene: OptimizeScene, postType: string
       cacheKey,
       (async () => {
         const docs = await loadDocs(scene, matched?.roleKey ?? null);
+        // 索引阶段只做一次：文档 -> 切块 -> embedding。
         const chunks = docs.flatMap((doc) => chunkText(doc.text));
         const vectors = await getEmbeddings().embedDocuments(chunks);
         return chunks.map((content, idx) => ({ content, vector: vectors[idx] || [] }));
@@ -184,6 +201,7 @@ export async function buildSceneRetriever(scene: OptimizeScene, postType: string
   return {
     matchedRole: matched,
     async retrieve(rawText: string) {
+      // 查询向量由“岗位 + 原始文本”组成：岗位词控制召回范围，原始文本提供具体语义。
       const query = `${postType}\n${rawText}`.trim();
       const queryVector = await getEmbeddings().embedQuery(query);
 
@@ -193,6 +211,7 @@ export async function buildSceneRetriever(scene: OptimizeScene, postType: string
           score: cosineSimilarity(queryVector, item.vector),
         }))
         .sort((a, b) => b.score - a.score)
+        // 这里只取 top-5，避免给 Prompt 注入过多噪音。
         .slice(0, 5);
 
       return scored
@@ -204,6 +223,7 @@ export async function buildSceneRetriever(scene: OptimizeScene, postType: string
 }
 
 function cosineSimilarity(a: number[], b: number[]): number {
+  // 余弦相似度是最常见的 embedding 检索打分方式；值越大，语义越接近。
   if (!a.length || !b.length) return 0;
   const size = Math.min(a.length, b.length);
   let dot = 0;
