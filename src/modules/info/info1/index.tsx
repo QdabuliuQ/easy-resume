@@ -162,7 +162,7 @@ function Info1(props: Props) {
       );
     }
     setItemLayout(elements);
-  }, [layout, position, showTitleOn, inSideCol, fieldColor, sepColor, props, tField, fontSize, lineHeight]);
+  }, [layout, position, showTitleOn, inSideCol, fieldColor, sepColor, props, tField, fontSize, lineHeight, id]);
 
   const avatarBlock = showAvatar ? (
     <div

@@ -1,0 +1,34 @@
+rubric_id: GLOBAL_SCORE_RUBRIC_V1
+version: v1
+base_score: 100
+total_score_formula: total_score = clamp(0, 100, round(base_score + sum(bonus) - sum(penalty)))
+rounding: integer
+clamp_range: 0..100
+
+# 维度用于 dimensionEvaluate 的固定输出
+dimensions:
+- 简历结构
+- 内容逻辑与STAR法则
+- 专业用词与表达
+- 量化成果与数据支撑
+
+# 维度配比用于解释，不强制模型做浮点计算
+dimension_weights:
+  简历结构: 0.25
+  内容逻辑与STAR法则: 0.30
+  专业用词与表达: 0.20
+  量化成果与数据支撑: 0.25
+
+# 评分过程约束
+scoring_constraints:
+- 每条加减分必须能映射到 rule_id
+- 同一证据最多命中 1 条同类规则，避免重复扣分
+- 未命中规则时，不得编造扣分/加分原因
+- 仅基于输入简历 JSON 打分，不允许臆造经历
+- 当证据不足时给保守评分，不按最差情况一票否决
+
+# 推荐输出扩展（兼容当前 totalScore + dimensionEvaluate）
+recommended_extra_output:
+- hitRules: string[]
+- deductions: [{ ruleId, reason, delta, evidencePath }]
+- bonuses: [{ ruleId, reason, delta, evidencePath }]

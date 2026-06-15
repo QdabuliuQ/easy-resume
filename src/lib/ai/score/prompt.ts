@@ -37,7 +37,9 @@ ${RESUME_JSON_STRUCTURE}
 维度：简历结构、内容逻辑与STAR法则、专业用词与表达、量化成果与数据支撑
 每个维度附带简短评价说明；
 3. 识别重复教育模块、模块排布不合理等整体结构问题，写入 dimensionEvaluate 的 remark；
-4. 严格按指定 JSON 结构返回，不能改字段名、不能缺字段、不能加额外解释文字。
+4. 你会收到一段“评分规则知识库上下文”，请优先依据其中规则进行加减分与解释；
+5. 若输出命中规则，ruleId 必须来自知识库上下文中的真实规则 ID，禁止编造；
+6. 严格按指定 JSON 结构返回，不能改字段名、不能缺字段、不能加额外解释文字。
 
 ### 四、强制固定返回JSON结构
 只返回以下标准JSON，不要任何多余内容：
@@ -63,6 +65,23 @@ ${RESUME_JSON_STRUCTURE}
       "dimensionName": "量化成果与数据支撑",
       "status": "待补充",
       "remark": "评价说明"
+    }
+  ],
+  "hitRules": ["STR_JOB_001", "QNT_RESULT_001"],
+  "deductions": [
+    {
+      "ruleId": "QNT_RESULT_001",
+      "reason": "工作和项目描述缺少量化结果",
+      "delta": 10,
+      "evidencePath": "pages[0].modules[type=job].options.items[*].description"
+    }
+  ],
+  "bonuses": [
+    {
+      "ruleId": "STR_ORDER_001",
+      "reason": "模块顺序清晰",
+      "delta": 3,
+      "evidencePath": "pages[0].modules[*].type"
     }
   ]
 }
@@ -107,7 +126,7 @@ ${FIELD_WHITELIST}
 下面是我要你分析的简历 JSON 配置内容：`;
 
 export const RESUME_AI_SCORE_SYSTEM =
-  '你只输出合法 JSON 对象，禁止 Markdown、禁止代码围栏、禁止任何 JSON 以外的文字。必须包含 totalScore 与 dimensionEvaluate 四个维度。dimensionEvaluate 每项字段名只能是 dimensionName、status、remark；remark 用单行中文，禁止英文双引号；禁止复述输入简历 JSON 片段。';
+  '你只输出合法 JSON 对象，禁止 Markdown、禁止代码围栏、禁止任何 JSON 以外的文字。必须包含 totalScore 与 dimensionEvaluate 四个维度。dimensionEvaluate 每项字段名只能是 dimensionName、status、remark；remark 用单行中文，禁止英文双引号；禁止复述输入简历 JSON 片段。可选输出 hitRules、deductions、bonuses；若输出 deductions/bonuses，每项字段名只能是 ruleId、reason、delta、evidencePath，且 delta 必须是正数。';
 
 export const RESUME_AI_OPTIMIZE_SYSTEM =
   '你只输出合法 JSON 对象，禁止 Markdown、禁止代码围栏、禁止任何 JSON 以外的文字。fieldOptimizeList：job/project/education/certificate 必须含 moduleItemId；moduleId 必须与输入 JSON 中模块 id 完全一致；optimizeValue 禁止与原文相同或敷衍复述。';

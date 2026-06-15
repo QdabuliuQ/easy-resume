@@ -4,6 +4,13 @@ export type ResumeAiDimensionEvaluate = {
   remark: string;
 };
 
+export type ResumeAiScoreRuleDelta = {
+  ruleId: string;
+  reason: string;
+  delta: number;
+  evidencePath?: string;
+};
+
 export type ResumeAiFieldOptimize = {
   pageIndex: number;
   moduleType: string;
@@ -17,6 +24,9 @@ export type ResumeAiFieldOptimize = {
 export type ResumeAiScoreResult = {
   totalScore: number;
   dimensionEvaluate: ResumeAiDimensionEvaluate[];
+  hitRules?: string[];
+  deductions?: ResumeAiScoreRuleDelta[];
+  bonuses?: ResumeAiScoreRuleDelta[];
 };
 
 export type ResumeAiOptimizeResult = {

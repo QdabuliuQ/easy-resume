@@ -344,6 +344,7 @@ function AiScore({
     ],
     [optimizeLoading, fieldList, actionableCount, onApply, onApplyAll, ta]
   );
+
   return (
     <div className='relative flex h-full min-h-0 flex-col gap-3 overflow-auto px-0.5 pt-0.5 text-left'>
       <section className={`${panelShellClass} relative shrink-0 px-4 pb-4 pt-4`}>

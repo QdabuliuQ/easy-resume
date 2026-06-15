@@ -120,25 +120,6 @@ function parseItemTargetFromItemId(
   };
 }
 
-function panelItemExists(itemId: string): boolean {
-  return !!document.querySelector(
-    `[data-panel-item-id="${CSS.escape(itemId)}"]`,
-  );
-}
-
-function findPanelItemIdByPrefix(prefix: string, moduleId?: string): string | null {
-  const root = moduleId
-    ? (document.querySelector(
-      `[data-panel-module-id="${CSS.escape(moduleId)}"]`,
-    ) as HTMLElement | null)
-    : null;
-  const scope: ParentNode = root ?? document;
-  const holder = scope.querySelector(
-    `[data-panel-item-id^="${CSS.escape(prefix)}"]`,
-  ) as HTMLElement | null;
-  return holder?.getAttribute('data-panel-item-id')?.trim() ?? null;
-}
-
 function focusPanelByParsedTarget(itemId: string, target: ParsedItemTarget) {
   if (moduleActiveStore.getModuleActive !== target.moduleId) {
     moduleActiveStore.setModuleActive(target.moduleId);

@@ -1,0 +1,234 @@
+# 通用评分规则 v1（不区分岗位）
+# 规则原子字段:
+# rule_id | dimension | weight | polarity | trigger | evidence_path | scoring | severity | suggestion | version
+
+rule_id: HF_PRIVACY_001
+dimension: 专业用词与表达
+weight: 15
+polarity: penalty
+trigger: 出现身份证号、银行卡号、家庭住址等敏感隐私信息
+evidence_path: pages[*].modules[*].options[*]
+scoring: 命中扣 15 分
+severity: high
+suggestion: 删除敏感隐私，仅保留必要联系方式
+version: v1
+
+rule_id: HF_EMPTY_001
+dimension: 简历结构
+weight: 20
+polarity: penalty
+trigger: 有效模块数量 < 3（不含空模块）
+evidence_path: pages[*].modules[*]
+scoring: 命中扣 20 分
+severity: high
+suggestion: 至少补充个人信息、经历模块、技能模块
+version: v1
+
+rule_id: STR_EDU_001
+dimension: 简历结构
+weight: 8
+polarity: penalty
+trigger: 缺少 education 模块 或 education.items 为空
+evidence_path: pages[*].modules[type=education].options.items
+scoring: 命中扣 8 分
+severity: high
+suggestion: 补充学校、学历、专业、起止时间
+version: v1
+
+rule_id: STR_JOB_001
+dimension: 简历结构
+weight: 10
+polarity: penalty
+trigger: 缺少 job 模块 或 job.items 为空
+evidence_path: pages[*].modules[type=job].options.items
+scoring: 命中扣 10 分
+severity: high
+suggestion: 至少补充 1 条工作经历（职责+结果）
+version: v1
+
+rule_id: STR_PROJECT_001
+dimension: 简历结构
+weight: 8
+polarity: penalty
+trigger: 缺少 project 模块 或 project.items 为空
+evidence_path: pages[*].modules[type=project].options.items
+scoring: 命中扣 8 分
+severity: medium
+suggestion: 补充 1-2 条核心项目经历
+version: v1
+
+rule_id: STR_SKILL_001
+dimension: 简历结构
+weight: 6
+polarity: penalty
+trigger: skill.description 为空或长度 < 40
+evidence_path: pages[*].modules[type=skill].options.description
+scoring: 命中扣 6 分
+severity: medium
+suggestion: 列出核心技能栈与熟练程度
+version: v1
+
+rule_id: STR_DUP_001
+dimension: 简历结构
+weight: 6
+polarity: penalty
+trigger: 存在同类型模块重复且内容高度重叠（如教育模块重复）
+evidence_path: pages[*].modules[type=*]
+scoring: 命中扣 6 分
+severity: medium
+suggestion: 合并重复模块，保留最完整版本
+version: v1
+
+rule_id: STR_TIME_001
+dimension: 简历结构
+weight: 6
+polarity: penalty
+trigger: job/project/education 中超过 30% 条目缺少起止时间
+evidence_path: pages[*].modules[type in(job,project,education)].options.items[*].startDate/endDate
+scoring: 命中扣 6 分
+severity: medium
+suggestion: 补全每条经历的起止时间
+version: v1
+
+rule_id: LOG_STAR_001
+dimension: 内容逻辑与STAR法则
+weight: 8
+polarity: penalty
+trigger: job.description/project.description 仅写职责堆砌，无任务场景或动作过程
+evidence_path: pages[*].modules[type in(job,project)].options.items[*].description
+scoring: 命中扣 8 分
+severity: high
+suggestion: 按场景-任务-动作-结果重写描述
+version: v1
+
+rule_id: LOG_STAR_002
+dimension: 内容逻辑与STAR法则
+weight: 6
+polarity: penalty
+trigger: 多条经历描述模板化重复，无法体现阶段差异
+evidence_path: pages[*].modules[type in(job,project)].options.items[*].description
+scoring: 命中扣 6 分
+severity: medium
+suggestion: 每条经历突出不同目标与贡献
+version: v1
+
+rule_id: LOG_ROLE_001
+dimension: 内容逻辑与STAR法则
+weight: 5
+polarity: penalty
+trigger: 项目经历缺少角色/职责字段（role 为空或缺失）
+evidence_path: pages[*].modules[type=project].options.items[*].role
+scoring: 命中扣 5 分
+severity: medium
+suggestion: 补充你在项目中的具体角色与边界
+version: v1
+
+rule_id: LOG_ALIGN_001
+dimension: 内容逻辑与STAR法则
+weight: 4
+polarity: penalty
+trigger: 个人优势、技能、经历之间关键词完全脱节
+evidence_path: pages[*].modules[type in(skill,other,job,project)]
+scoring: 命中扣 4 分
+severity: low
+suggestion: 统一关键词，建立技能-实践-成果链路
+version: v1
+
+rule_id: EXP_LANG_001
+dimension: 专业用词与表达
+weight: 6
+polarity: penalty
+trigger: 存在明显口语化、情绪化表达（如“很厉害”“非常棒”）
+evidence_path: pages[*].modules[*].options[*]
+scoring: 命中扣 6 分
+severity: medium
+suggestion: 使用客观、专业、可验证表达
+version: v1
+
+rule_id: EXP_LANG_002
+dimension: 专业用词与表达
+weight: 4
+polarity: penalty
+trigger: 标点混乱、连续错别字、同一句过长难读
+evidence_path: pages[*].modules[*].options[*]
+scoring: 命中扣 4 分
+severity: low
+suggestion: 统一标点并拆分长句，控制句长
+version: v1
+
+rule_id: EXP_LANG_003
+dimension: 专业用词与表达
+weight: 3
+polarity: penalty
+trigger: 描述中出现“负责了很多”“参与了很多”等空泛措辞占比过高
+evidence_path: pages[*].modules[type in(job,project)].options.items[*].description
+scoring: 命中扣 3 分
+severity: low
+suggestion: 将空泛描述替换为具体动作与产出
+version: v1
+
+rule_id: QNT_RESULT_001
+dimension: 量化成果与数据支撑
+weight: 10
+polarity: penalty
+trigger: job/project 描述几乎无量化结果（如效率提升、成本下降、规模数据）
+evidence_path: pages[*].modules[type in(job,project)].options.items[*].description
+scoring: 命中扣 10 分
+severity: high
+suggestion: 每条核心经历至少补充 1 个量化结果
+version: v1
+
+rule_id: QNT_RESULT_002
+dimension: 量化成果与数据支撑
+weight: 6
+polarity: penalty
+trigger: 只有过程没有业务结果（影响对象、业务价值缺失）
+evidence_path: pages[*].modules[type in(job,project)].options.items[*].description
+scoring: 命中扣 6 分
+severity: medium
+suggestion: 增加业务影响描述（转化率、时效、稳定性等）
+version: v1
+
+rule_id: QNT_RESULT_003
+dimension: 量化成果与数据支撑
+weight: 4
+polarity: bonus
+trigger: 至少 2 条经历包含明确指标且可对比（前后变化）
+evidence_path: pages[*].modules[type in(job,project)].options.items[*].description
+scoring: 命中加 4 分
+severity: low
+suggestion: 保持指标口径统一，避免夸张
+version: v1
+
+rule_id: STR_ORDER_001
+dimension: 简历结构
+weight: 3
+polarity: bonus
+trigger: 模块顺序清晰（个人信息->技能/优势->经历->教育->证书）
+evidence_path: pages[*].modules[*].type
+scoring: 命中加 3 分
+severity: low
+suggestion: 继续保持阅读路径一致性
+version: v1
+
+rule_id: LOG_CONSIST_001
+dimension: 内容逻辑与STAR法则
+weight: 4
+polarity: bonus
+trigger: 经历时间线连续且无明显冲突，叙事递进清晰
+evidence_path: pages[*].modules[type in(job,project,education)].options.items[*]
+scoring: 命中加 4 分
+severity: low
+suggestion: 继续保持时间线与角色变化的可解释性
+version: v1
+
+rule_id: EXP_KEYWORD_001
+dimension: 专业用词与表达
+weight: 4
+polarity: bonus
+trigger: 技能/经历中使用稳定、可验证的专业术语，且上下文一致
+evidence_path: pages[*].modules[type in(skill,job,project)].options[*]
+scoring: 命中加 4 分
+severity: low
+suggestion: 保留术语一致性，避免堆词
+version: v1

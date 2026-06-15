@@ -146,6 +146,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
       }
     }
     return null;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mid, configStore.getConfig]);
 
   const avatarValue =

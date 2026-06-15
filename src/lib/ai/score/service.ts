@@ -2,17 +2,15 @@ import { StringOutputParser } from '@langchain/core/output_parsers';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { createChatModel } from '@/lib/ai/chatModel';
 import { parseAiJsonObject } from '@/lib/ai/parseAiJson';
+import { retrieveScoreRulesContext } from '@/lib/ai/score/knowledge';
 import {
   RESUME_AI_OPTIMIZE_PROMPT,
   RESUME_AI_OPTIMIZE_SYSTEM,
   RESUME_AI_SCORE_PROMPT,
   RESUME_AI_SCORE_SYSTEM,
 } from '@/lib/ai/score/prompt';
-import type {
-  ResumeAiFieldOptimize,
-  ResumeAiOptimizeResult,
-  ResumeAiScoreResult,
-} from '@/lib/ai/score/types';
+import { resumeAiOptimizeResultSchema, resumeAiScoreResultSchema } from '@/lib/ai/score/schema';
+import type { ResumeAiFieldOptimize, ResumeAiOptimizeResult, ResumeAiScoreResult } from '@/lib/ai/score/types';
 
 const scorePrompt = ChatPromptTemplate.fromMessages([
   ['system', RESUME_AI_SCORE_SYSTEM],
@@ -50,26 +48,14 @@ function parseFieldOptimizeList(rows: unknown): ResumeAiFieldOptimize[] {
 
 function parseResumeAiScoreResult(raw: string): ResumeAiScoreResult {
   const j = parseAiJsonObject(raw);
-  const totalScore = Number(j.totalScore);
-  if (!Number.isFinite(totalScore)) throw new Error('totalScore 无效');
-  const dimensionEvaluate = Array.isArray(j.dimensionEvaluate) ? j.dimensionEvaluate : [];
-  return {
-    totalScore,
-    dimensionEvaluate: dimensionEvaluate.map((row) => {
-      const r = row as Record<string, unknown>;
-      return {
-        dimensionName: String(r.dimensionName ?? ''),
-        status: String(r.status ?? ''),
-        remark: String(r.remark ?? ''),
-      };
-    }),
-  };
+  return resumeAiScoreResultSchema.parse(j);
 }
 
 function parseResumeAiOptimizeResult(raw: string): ResumeAiOptimizeResult {
   const j = parseAiJsonObject(raw);
+  const parsed = resumeAiOptimizeResultSchema.parse(j);
   return {
-    fieldOptimizeList: parseFieldOptimizeList(j.fieldOptimizeList),
+    fieldOptimizeList: parseFieldOptimizeList(parsed.fieldOptimizeList),
   };
 }
 
@@ -111,7 +97,16 @@ async function invokeAiParsed<T>(
 }
 
 export async function analyzeResumeScore(resumeJson: unknown): Promise<ResumeAiScoreResult> {
-  return invokeAiParsed(scorePrompt, RESUME_AI_SCORE_PROMPT, resumeJson, parseResumeAiScoreResult);
+  let analyzePrompt = RESUME_AI_SCORE_PROMPT;
+  try {
+    const rulesContext = await retrieveScoreRulesContext(resumeJson, 6);
+    if (rulesContext.trim()) {
+      analyzePrompt = `${RESUME_AI_SCORE_PROMPT}\n\n### 五、评分规则知识库上下文（优先依据本节规则）\n${rulesContext}`;
+    }
+  } catch {
+    // Ignore retrieval failures and fallback to base score prompt.
+  }
+  return invokeAiParsed(scorePrompt, analyzePrompt, resumeJson, parseResumeAiScoreResult);
 }
 
 export async function analyzeResumeOptimize(resumeJson: unknown): Promise<ResumeAiOptimizeResult> {

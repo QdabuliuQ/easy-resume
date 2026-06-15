@@ -7,7 +7,7 @@ const listeners = new Set<() => void>();
 
 let preference: ThemePreference = 'dark';
 let mediaMq: MediaQueryList | null = null;
-let themeTransitionInFlight = false;
+const themeTransitionInFlight = false;
 let queuedToggleCount = 0;
 let queuedToggleOpts: { x?: number; y?: number } | undefined;
 

@@ -273,6 +273,7 @@ function ModuleManageInner({
     const cfg = configStore.getConfig;
     if (!cfg?.pages?.length) return [];
     return cfg.pages.flatMap((p: { modules: ModuleRow[] }) => p.modules ?? []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configStore.getConfig]);
 
   const reorder = useMemoizedFn((next: ModuleRow[]) => {
