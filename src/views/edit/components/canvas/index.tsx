@@ -6,25 +6,17 @@ import {
   useLayoutEffect,
   useMemo,
   type ReactElement,
+  type ReactNode,
   useRef,
   useState,
   useSyncExternalStore,
 } from 'react';
 import { useMemoizedFn } from 'ahooks';
 import {
-  CheckCircleOutlined,
   CloseOutlined,
-  EyeOutlined,
-  GithubOutlined,
-  HomeOutlined,
-  MoonOutlined,
-  SunOutlined,
-  WarningOutlined,
 } from '@ant-design/icons';
-import { Selected } from '@icon-park/react';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { Popover, Tooltip } from 'antd';
 import { createPortal } from 'react-dom';
 import resume from '@/json/resume.defaults';
 import type { GlobalStyle } from '@/modules/utils/common.type';
@@ -58,6 +50,7 @@ import ResumeFontCdn from './resumeFontCdn';
 import CanvasModuleFragment from './moduleFragment';
 import SelectableGuideLines from './selectableGuideLines';
 import { useSelectableGuideHover } from './useSelectableGuideHover';
+import CanvasFloatActions from './canvasFloatActions';
 
 /** 容器内左右留白，用于判断是否需缩小画布（缩放时两侧至少各 40） */
 const CANVAS_SIDE_PAD = 70;
@@ -66,6 +59,63 @@ const RENDER_DEBOUNCE_MS = 180;
 const PAGE_FIT_EPSILON_PX = 0.5;
 const MEASURE_HEIGHT_EPSILON_PX = 0.1;
 const MEASURE_FRAME_DELAY = 10;
+
+type LayoutSubtreeContext = CanvasRenderingContext2D & {
+  layoutSubtree?: (...args: unknown[]) => unknown;
+  drawElementImage?: (...args: unknown[]) => unknown;
+};
+
+type HighPerfBrowserHint =
+  | { kind: 'nonChrome' }
+  | { kind: 'needUpgrade'; version: number }
+  | { kind: 'chromeReady'; version: number };
+
+function detectLayoutSubtreeSupport(): boolean {
+  if (typeof document === 'undefined') return false;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d') as LayoutSubtreeContext | null;
+  return Boolean(ctx && typeof ctx.drawElementImage === 'function');
+}
+
+function tryInvokeLayoutSubtree(target: HTMLElement): void {
+  if (typeof document === 'undefined') return;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d') as LayoutSubtreeContext | null;
+  if (!ctx || typeof ctx.layoutSubtree !== 'function') return;
+  // API 仍处于实验阶段，参数签名可能变化，这里仅做 best-effort 调用并安全回退。
+  void ctx.layoutSubtree(target);
+}
+
+function detectHighPerfBrowserHint(): HighPerfBrowserHint {
+  if (typeof navigator === 'undefined') return { kind: 'nonChrome' };
+
+  type NavigatorWithUAData = Navigator & {
+    userAgentData?: { brands?: Array<{ brand: string; version: string }> };
+  };
+
+  const nav = navigator as NavigatorWithUAData;
+
+  const ua = nav.userAgent ?? '';
+  const vendor = nav.vendor ?? '';
+  const uaData = nav.userAgentData;
+
+  const hasGoogleChromeBrand = Boolean(
+    uaData?.brands?.some((item) => item.brand === 'Google Chrome'),
+  );
+  const hasChromeToken = /Chrome\/(\d+)/.test(ua);
+  const isEdgeLike = /Edg\//.test(ua);
+  const isOperaLike = /OPR\//.test(ua);
+
+  const isChrome = (hasGoogleChromeBrand || (hasChromeToken && vendor.includes('Google'))) && !isEdgeLike && !isOperaLike;
+  if (!isChrome) return { kind: 'nonChrome' };
+
+  const match = ua.match(/Chrome\/(\d+)/);
+  const major = match ? Number(match[1]) : NaN;
+  const version = Number.isFinite(major) ? major : 0;
+
+  if (version >= 149) return { kind: 'chromeReady', version };
+  return { kind: 'needUpgrade', version };
+}
 
 /** 合并默认 globalStyle，避免 cfg 里缺字段时渲染异常 */
 
@@ -443,7 +493,13 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
   const [scale, setScale] = useState(1);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewClosing, setPreviewClosing] = useState(false);
+  const [highPerfMode, setHighPerfMode] = useState(false);
+  const [layoutSubtreeSupported, setLayoutSubtreeSupported] = useState(false);
+  const [highPerfRenderOk, setHighPerfRenderOk] = useState(false);
+  const [highPerfBrowserHint, setHighPerfBrowserHint] = useState<HighPerfBrowserHint>({ kind: 'nonChrome' });
   const previewCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const perfCanvasRef = useRef<HTMLCanvasElement>(null);
+  const renderSourceRef = useRef<HTMLDivElement>(null);
   const themeSnap = useSyncExternalStore(
     subscribeAppTheme,
     getThemeSnapshot,
@@ -464,6 +520,8 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
   const contentW = pageWPx;
   const pageCount = Math.max(1, pages.length);
   const contentH = pageCount * pageHPx + Math.max(0, pageCount - 1) * PAGE_STACK_GAP_PX;
+  const useCanvasPresentation =
+    highPerfMode && layoutSubtreeSupported && highPerfRenderOk && !isEditMode;
   const [guideViewport, setGuideViewport] = useState({
     left: 0,
     top: 0,
@@ -526,6 +584,11 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
   }, [updateGuideViewport]);
 
   useEffect(() => {
+    setLayoutSubtreeSupported(detectLayoutSubtreeSupport());
+    setHighPerfBrowserHint(detectHighPerfBrowserHint());
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (renderDebounceTimerRef.current) {
         clearTimeout(renderDebounceTimerRef.current);
@@ -536,6 +599,69 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
       }
     };
   }, []);
+
+  useLayoutEffect(() => {
+    if (!highPerfMode || !layoutSubtreeSupported) return;
+    const host = canvasStageRef.current;
+    if (!host) return;
+    try {
+      tryInvokeLayoutSubtree(host);
+    } catch {
+      // Ignore runtime errors from experimental API and keep normal render path.
+    }
+  }, [highPerfMode, layoutSubtreeSupported, pages.length, layoutRevision, scale]);
+
+  const renderCanvasSnapshot = useMemoizedFn(() => {
+    const canvas = perfCanvasRef.current;
+    const source = renderSourceRef.current;
+    if (!canvas || !source) return false;
+    const ctx = canvas.getContext('2d') as LayoutSubtreeContext | null;
+    if (!ctx || typeof ctx.drawElementImage !== 'function') return false;
+
+    const ratio = typeof window !== 'undefined' ? Math.max(1, window.devicePixelRatio || 1) : 1;
+    const width = Math.max(1, Math.round(contentW * scale));
+    const height = Math.max(1, Math.round(contentH * scale));
+
+    if (canvas.width !== Math.round(width * ratio)) canvas.width = Math.round(width * ratio);
+    if (canvas.height !== Math.round(height * ratio)) canvas.height = Math.round(height * ratio);
+
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+
+    try {
+      // WICG HTML-in-Canvas 实验能力：将 DOM 元素直接绘制到 2D canvas。
+      // 参数签名仍可能变化，当前按最常见的 (element, x, y) 方式调用。
+      void ctx.drawElementImage(source, 0, 0);
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
+  useLayoutEffect(() => {
+    if (!highPerfMode || !layoutSubtreeSupported) {
+      setHighPerfRenderOk(false);
+      return;
+    }
+
+    let raf = 0;
+    raf = requestAnimationFrame(() => {
+      const ok = renderCanvasSnapshot();
+      setHighPerfRenderOk(ok);
+    });
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [
+    highPerfMode,
+    layoutSubtreeSupported,
+    renderCanvasSnapshot,
+    pages.length,
+    layoutRevision,
+    scale,
+    contentW,
+    contentH,
+  ]);
 
   const openPreview = useMemoizedFn(() => {
     if (previewCloseTimerRef.current) {
@@ -594,6 +720,42 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
     stageRef: canvasStageRef,
   });
 
+  const highPerfTooltipTitle: ReactNode = useMemo(() => {
+    if (layoutSubtreeSupported) {
+      return highPerfMode ? tc('highPerfOnTooltip') : tc('highPerfOffTooltip');
+    }
+
+    if (highPerfBrowserHint.kind === 'nonChrome') {
+      return locale === 'zh'
+        ? '高性能渲染模式建议使用 Chrome 浏览器。'
+        : 'High-performance rendering mode is available in Chrome browser.';
+    }
+
+    if (highPerfBrowserHint.kind === 'needUpgrade') {
+      return locale === 'zh'
+        ? `当前 Chrome ${highPerfBrowserHint.version || ''} 版本过低，请升级到 149 或更高版本。`
+        : `Your Chrome ${highPerfBrowserHint.version || ''} is too old. Please upgrade to version 149 or newer.`;
+    }
+
+    return (
+      <span>
+        {locale === 'zh'
+          ? '检测到 Chrome 149+，请先开启实验能力：'
+          : 'Chrome 149+ detected. Enable the experiment first: '}
+        <a
+          href='chrome://flags/#canvas-draw-element'
+          onClick={(event) => {
+            event.preventDefault();
+            window.open('chrome://flags/#canvas-draw-element');
+          }}
+          className='underline underline-offset-2'
+        >
+          chrome://flags/#canvas-draw-element
+        </a>
+      </span>
+    );
+  }, [highPerfBrowserHint, highPerfMode, layoutSubtreeSupported, locale, tc]);
+
   return (
     <div
       ref={containerRef}
@@ -627,13 +789,29 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
           ))}
         </Page>
       </div>
-      <div style={{ width: contentW * scale, height: contentH * scale }}>
+      <div className='relative' style={{ width: contentW * scale, height: contentH * scale }}>
+        {highPerfMode && layoutSubtreeSupported ? (
+          <canvas
+            ref={perfCanvasRef}
+            className='absolute inset-0 z-[1]'
+            style={{
+              width: contentW * scale,
+              height: contentH * scale,
+              opacity: useCanvasPresentation ? 1 : 0,
+              pointerEvents: 'none',
+            }}
+            aria-label='canvas-render-snapshot'
+          />
+        ) : null}
         <div
+          ref={renderSourceRef}
           style={{
             width: pw,
             boxSizing: 'border-box',
             transform: `scale(${scale})`,
             transformOrigin: 'top left',
+            opacity: useCanvasPresentation ? 0 : 1,
+            pointerEvents: 'auto',
           }}
         >
           <CanvasScaleContext.Provider value={scale}>
@@ -659,163 +837,36 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
       ) : null}
 
       {isEditMode ? (
-      <div className='pointer-events-none fixed right-[20px] bottom-[20px] z-20 flex flex-col items-end gap-2'>
-        {backupReady ? (
-          <Tooltip title={tc('backupOnTooltip')} placement='left'>
-            <span className='pointer-events-auto inline-flex'>
-              <button
-                type='button'
-                disabled
-                className='inline-flex h-[42px] w-[42px] cursor-default items-center justify-center rounded-full border border-emerald-500/45 bg-emerald-500/20 text-emerald-500 shadow-[0_16px_34px_rgb(0_0_0/0.12)] backdrop-blur-[8px]'
-                aria-label={tc('backupOnAria')}
-              >
-                <CheckCircleOutlined className='text-[17px]' />
-              </button>
-            </span>
-          </Tooltip>
-        ) : (
-          <Tooltip title={tc('backupOffTooltip')} placement='left'>
-            <span className='pointer-events-auto inline-flex'>
-              <button
-                type='button'
-                onClick={() => onOpenGeneralSettings?.()}
-                className='inline-flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-full border border-red-500/45 bg-red-500/20 text-red-500 shadow-[0_16px_34px_rgb(0_0_0/0.12)] backdrop-blur-[8px]'
-                aria-label={tc('backupOpenSettingsAria')}
-              >
-                <WarningOutlined className='text-[17px]' />
-              </button>
-            </span>
-          </Tooltip>
-        )}
-        <Tooltip
-          title={quickSelectEnabled
-            ? (locale === 'zh' ? '快捷选中：开启' : 'Quick select: on')
-            : (locale === 'zh' ? '快捷选中：关闭' : 'Quick select: off')}
-          placement='left'
-        >
-          <button
-            type='button'
-            onClick={() => setQuickSelectEnabled((value) => !value)}
-            className={`canvas-float-btn ${quickSelectEnabled ? 'text-emerald-500' : ''}`}
-            aria-label={quickSelectEnabled
-              ? (locale === 'zh' ? '关闭快捷选中编辑' : 'Disable quick select edit')
-              : (locale === 'zh' ? '开启快捷选中编辑' : 'Enable quick select edit')}
-          >
-            <Selected theme='outline' size='17' fill='currentColor' />
-          </button>
-        </Tooltip>
-        <Tooltip
-          title={locale === 'zh' ? tc('langSwitchToEn') : tc('langSwitchToZh')}
-          placement='left'
-        >
-          <button
-            type='button'
-            onClick={() =>
-              router.replace(pathname, { locale: locale === 'zh' ? 'en' : 'zh' })
-            }
-            className='canvas-float-btn font-semibold'
-            aria-label={locale === 'zh' ? tc('langSwitchAriaToEn') : tc('langSwitchAriaToZh')}
-          >
-            <span className='text-[12px] leading-none tracking-tight'>
-              {locale === 'zh' ? tc('langBadgeEn') : tc('langBadgeZh')}
-            </span>
-          </button>
-        </Tooltip>
-        <Popover
-          placement='left'
-          trigger='hover'
-          mouseEnterDelay={0.12}
-          open={themePopoverOpen}
-          onOpenChange={setThemePopoverOpen}
-          styles={{ body: { padding: 6 } }}
-          content={
-            <div className='flex min-w-[116px] flex-col gap-0.5'>
-              <button
-                type='button'
-                onClick={(e) => {
-                  setAppThemeWithTransition('light', { x: e.clientX, y: e.clientY });
-                  setThemePopoverOpen(false);
-                }}
-                className={`w-full cursor-pointer rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
-                  themePref === 'light' ? 'bg-fg/12 text-fg' : 'text-fg/85 hover:bg-fg/[0.08]'
-                }`}
-              >
-                {tc('themeMenuLight')}
-              </button>
-              <button
-                type='button'
-                onClick={(e) => {
-                  setAppThemeWithTransition('dark', { x: e.clientX, y: e.clientY });
-                  setThemePopoverOpen(false);
-                }}
-                className={`w-full cursor-pointer rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
-                  themePref === 'dark' ? 'bg-fg/12 text-fg' : 'text-fg/85 hover:bg-fg/[0.08]'
-                }`}
-              >
-                {tc('themeMenuDark')}
-              </button>
-              <button
-                type='button'
-                onClick={(e) => {
-                  setAppThemeWithTransition('system', { x: e.clientX, y: e.clientY });
-                  setThemePopoverOpen(false);
-                }}
-                className={`w-full cursor-pointer rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
-                  themePref === 'system' ? 'bg-fg/12 text-fg' : 'text-fg/85 hover:bg-fg/[0.08]'
-                }`}
-              >
-                {tc('themeMenuSystem')}
-              </button>
-            </div>
-          }
-        >
-          <button
-            type='button'
-            className='canvas-float-btn'
-            aria-label={tc('toggleThemeAria')}
-            aria-haspopup='menu'
-          >
-            {appTheme === 'dark' ? (
-              <SunOutlined className='text-[17px]' />
-            ) : (
-              <MoonOutlined className='text-[17px]' />
-            )}
-          </button>
-        </Popover>
-
-        <Tooltip title={tc('homeTooltip')} placement='left'>
-          <button
-            type='button'
-            onClick={() => router.push('/')}
-            className='canvas-float-btn'
-            aria-label={tc('backHomeAria')}
-          >
-            <HomeOutlined className='text-[17px]' />
-          </button>
-        </Tooltip>
-
-        <Tooltip title={tc('githubTooltip')} placement='left'>
-          <button
-            type='button'
-            onClick={() => window.open('https://github.com/QdabuliuQ/easy-resume', '_blank', 'noopener,noreferrer')}
-            className='canvas-float-btn'
-            aria-label={tc('githubAria')}
-          >
-            <GithubOutlined className='text-[17px]' />
-          </button>
-        </Tooltip>
-
-        <Tooltip title={tc('previewTooltip')} placement='left'>
-          <button
-            type='button'
-            onClick={openPreview}
-            className='canvas-float-btn'
-            aria-label={tc('previewAria')}
-          >
-            <EyeOutlined className='text-[17px]' />
-          </button>
-        </Tooltip>
-      </div>
+        <CanvasFloatActions
+          backupReady={backupReady}
+          quickSelectEnabled={quickSelectEnabled}
+          onToggleQuickSelect={() => setQuickSelectEnabled((value) => !value)}
+          highPerfTooltipTitle={highPerfTooltipTitle}
+          layoutSubtreeSupported={layoutSubtreeSupported}
+          highPerfMode={highPerfMode}
+          onToggleHighPerfMode={() => {
+            if (!layoutSubtreeSupported) return;
+            setHighPerfMode((value) => !value);
+          }}
+          locale={locale}
+          langSwitchTitle={locale === 'zh' ? tc('langSwitchToEn') : tc('langSwitchToZh')}
+          langSwitchAria={locale === 'zh' ? tc('langSwitchAriaToEn') : tc('langSwitchAriaToZh')}
+          langBadge={locale === 'zh' ? tc('langBadgeEn') : tc('langBadgeZh')}
+          onSwitchLocale={() => router.replace(pathname, { locale: locale === 'zh' ? 'en' : 'zh' })}
+          themePopoverOpen={themePopoverOpen}
+          onThemePopoverOpenChange={setThemePopoverOpen}
+          themePref={themePref}
+          appTheme={appTheme}
+          onThemeSelect={(theme, x, y) => {
+            setAppThemeWithTransition(theme, { x, y });
+            setThemePopoverOpen(false);
+          }}
+          onOpenGeneralSettings={onOpenGeneralSettings}
+          onBackHome={() => router.push('/')}
+          onOpenGithub={() => window.open('https://github.com/QdabuliuQ/easy-resume', '_blank', 'noopener,noreferrer')}
+          onOpenPreview={openPreview}
+          tc={tc}
+        />
       ) : null}
 
       {isEditMode ? previewOverlay : null}

@@ -235,9 +235,12 @@ function ModuleOperation({
     const index = orderedModules.findIndex((m) => m.id === activeId);
     if (index < 0) return null;
     const mod = orderedModules[index];
+    const hasPinnedInfo1 = orderedModules[0]?.type === 'info1';
+    const isFirstNonInfo1 = hasPinnedInfo1 && mod.type !== 'info1' && index === 1;
     return {
       index,
-      isFirst: index === 0,
+      type: mod.type,
+      isFirst: index === 0 || isFirstNonInfo1,
       isLast: index === orderedModules.length - 1,
       label:
         (moduleType as Record<string, { name: string }>)[mod.type]?.name ??
@@ -294,6 +297,9 @@ function ModuleOperation({
   const moveActive = useMemoizedFn((dir: -1 | 1) => {
     if (activeId === 'global') return;
     const idx = orderedModules.findIndex((m) => m.id === activeId);
+    const activeModule = idx >= 0 ? orderedModules[idx] : null;
+    if (activeModule?.type === 'info1' && dir === 1) return;
+    if (dir === -1 && idx > 0 && orderedModules[idx - 1]?.type === 'info1') return;
     const next = idx + dir;
     if (idx < 0 || next < 0 || next >= orderedModules.length) return;
     reorderFlattenedModules(arrayMove(orderedModules, idx, next));
@@ -303,6 +309,11 @@ function ModuleOperation({
   useLayoutEffect(() => {
     updateToolbarPos('active');
   }, [activeId, updateToolbarPos]);
+
+  // 当模块顺序变化但 activeId 不变时，仍需重算工具条位置。
+  useLayoutEffect(() => {
+    updateToolbarPos('active');
+  }, [orderedModules, updateToolbarPos]);
 
   useLayoutEffect(() => {
     const host = hostRef.current;
@@ -424,7 +435,7 @@ function ModuleOperation({
                   <ArrowCircleUp theme='outline' size='17' fill='currentColor' />
                 </button>
               ) : null}
-              {!activeModuleMeta?.isLast ? (
+              {!activeModuleMeta?.isLast && activeModuleMeta?.type !== 'info1' ? (
                 <button
                   type='button'
                   onClick={(e) => {
