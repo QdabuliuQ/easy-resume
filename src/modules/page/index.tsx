@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { resumeFontStack } from '@/lib/resumeFont';
+import { resumeFontForExport, resumeFontStack } from '@/lib/resumeFont';
 import {
   normResumePageLayout,
   resumePageContentInnerWidthCss,
@@ -46,6 +46,7 @@ export default memo(function Page(props: PageProps) {
     : resumePageContentInnerWidthCss(snapWidth, layout, pagePadding);
   const innerHeight = `calc(${snapHeight} - ${resumePageInnerHeightDeductionPx({ padding: pagePadding, layout })}px)`;
   const snapMinH = snapTarget && continuous;
+  const normalizedFont = resumeFontForExport(resumeFont);
   const contentShell = (
     <div
       style={{
@@ -71,7 +72,7 @@ export default memo(function Page(props: PageProps) {
         color,
         fontSize: `${props.fontSize}px`,
         lineHeight: props.lineHeight,
-        fontFamily: resumeFontStack(resumeFont),
+        fontFamily: resumeFontStack(normalizedFont),
         display: 'flex',
         flexDirection: 'column',
         overflow: continuous ? 'visible' : 'hidden',
