@@ -131,6 +131,10 @@ function RichTextEditor({
   const hostRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<QuillType | null>(null);
   const onHtmlChangeRef = useRef(onHtmlChange);
+  const lastAppliedHtmlRef = useRef('');
+  const pendingStreamHtmlRef = useRef<string | null>(null);
+  const streamRafRef = useRef<number | null>(null);
+  const lastStreamCommitAtRef = useRef(0);
   onHtmlChangeRef.current = onHtmlChange;
   const [polishing, setPolishing] = useState(false);
   const [plainCount, setPlainCount] = useState(0);
@@ -238,8 +242,22 @@ function RichTextEditor({
     q.enable(!polishing);
   }, [polishing]);
 
-  const applyHtmlToQuill = useMemoizedFn((q: QuillType, nextHtml: string) => {
+  useEffect(() => {
+    return () => {
+      if (streamRafRef.current != null) {
+        cancelAnimationFrame(streamRafRef.current);
+        streamRafRef.current = null;
+      }
+    };
+  }, []);
+
+  const applyHtmlToQuill = useMemoizedFn((
+    q: QuillType,
+    nextHtml: string,
+    options?: { commit?: boolean },
+  ) => {
     const sanitized = sanitizeRichTextHtml(nextHtml);
+    if (sanitized === lastAppliedHtmlRef.current) return;
     if (sanitized) {
       try {
         const delta = q.clipboard.convert({ html: sanitized });
@@ -251,8 +269,33 @@ function RichTextEditor({
       q.setText('');
     }
     clampQuillPlainLength(q, maxPlainLength);
+    const currentSafeHtml = sanitizeRichTextHtml(q.root.innerHTML);
+    lastAppliedHtmlRef.current = currentSafeHtml;
     setPlainCount(getQuillPlainCharCount(q));
-    onHtmlChangeRef.current(sanitizeRichTextHtml(q.root.innerHTML));
+    if (options?.commit ?? true) {
+      onHtmlChangeRef.current(currentSafeHtml);
+    }
+  });
+
+  const flushStreamingHtml = useMemoizedFn((q: QuillType) => {
+    streamRafRef.current = null;
+    const pending = pendingStreamHtmlRef.current;
+    if (pending == null) return;
+    pendingStreamHtmlRef.current = null;
+    const now = Date.now();
+    const shouldCommit = now - lastStreamCommitAtRef.current >= 300;
+    applyHtmlToQuill(q, pending, { commit: shouldCommit });
+    if (shouldCommit) {
+      lastStreamCommitAtRef.current = now;
+    }
+  });
+
+  const enqueueStreamingHtml = useMemoizedFn((q: QuillType, htmlSoFar: string) => {
+    pendingStreamHtmlRef.current = htmlSoFar;
+    if (streamRafRef.current != null) return;
+    streamRafRef.current = requestAnimationFrame(() => {
+      flushStreamingHtml(q);
+    });
   });
 
   const runAiPolishFromParent = useMemoizedFn(async () => {
@@ -274,13 +317,19 @@ function RichTextEditor({
     }
     setPolishing(true);
     q.enable(false);
+    lastStreamCommitAtRef.current = 0;
     try {
       const polished = await onAiPolishClick(richTextHtml, {
         onStreamingHtml: (htmlSoFar) => {
-          applyHtmlToQuill(q, unwrapFencedHtml(htmlSoFar));
+          enqueueStreamingHtml(q, unwrapFencedHtml(htmlSoFar));
         },
       });
-      applyHtmlToQuill(q, polished);
+      if (streamRafRef.current != null) {
+        cancelAnimationFrame(streamRafRef.current);
+        streamRafRef.current = null;
+      }
+      pendingStreamHtmlRef.current = null;
+      applyHtmlToQuill(q, polished, { commit: true });
       message.success(tr('polishOk'));
     } catch (e) {
       const errText =

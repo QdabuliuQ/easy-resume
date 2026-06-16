@@ -217,12 +217,20 @@ function buildModuleNode(
 }
 
 type CanvasProps = {
+  highPerfMode?: boolean;
+  onToggleHighPerfMode?: () => void;
   onOpenGeneralSettings?: () => void;
   onOpenResumePanel?: () => void;
   mode?: 'edit' | 'preview';
 };
 
-function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: CanvasProps) {
+function Canvas({
+  highPerfMode = false,
+  onToggleHighPerfMode,
+  onOpenGeneralSettings,
+  onOpenResumePanel,
+  mode = 'edit',
+}: CanvasProps) {
   const isEditMode = mode === 'edit';
   const tc = useTranslations('Edit.canvas');
   const locale = useLocale();
@@ -493,7 +501,6 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
   const [scale, setScale] = useState(1);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewClosing, setPreviewClosing] = useState(false);
-  const [highPerfMode, setHighPerfMode] = useState(false);
   const [layoutSubtreeSupported, setLayoutSubtreeSupported] = useState(false);
   const [highPerfRenderOk, setHighPerfRenderOk] = useState(false);
   const [highPerfBrowserHint, setHighPerfBrowserHint] = useState<HighPerfBrowserHint>({ kind: 'nonChrome' });
@@ -520,8 +527,10 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
   const contentW = pageWPx;
   const pageCount = Math.max(1, pages.length);
   const contentH = pageCount * pageHPx + Math.max(0, pageCount - 1) * PAGE_STACK_GAP_PX;
+  const useLocalCanvasHighPerf = !isEditMode && highPerfMode;
+  const highPerfToggleSupported = layoutSubtreeSupported;
   const useCanvasPresentation =
-    highPerfMode && layoutSubtreeSupported && highPerfRenderOk && !isEditMode;
+    useLocalCanvasHighPerf && layoutSubtreeSupported && highPerfRenderOk;
   const [guideViewport, setGuideViewport] = useState({
     left: 0,
     top: 0,
@@ -601,7 +610,7 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
   }, []);
 
   useLayoutEffect(() => {
-    if (!highPerfMode || !layoutSubtreeSupported) return;
+    if (!useLocalCanvasHighPerf || !layoutSubtreeSupported) return;
     const host = canvasStageRef.current;
     if (!host) return;
     try {
@@ -609,7 +618,7 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
     } catch {
       // Ignore runtime errors from experimental API and keep normal render path.
     }
-  }, [highPerfMode, layoutSubtreeSupported, pages.length, layoutRevision, scale]);
+  }, [useLocalCanvasHighPerf, layoutSubtreeSupported, pages.length, layoutRevision, scale]);
 
   const renderCanvasSnapshot = useMemoizedFn(() => {
     const canvas = perfCanvasRef.current;
@@ -639,7 +648,7 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
   });
 
   useLayoutEffect(() => {
-    if (!highPerfMode || !layoutSubtreeSupported) {
+    if (!useLocalCanvasHighPerf || !layoutSubtreeSupported) {
       setHighPerfRenderOk(false);
       return;
     }
@@ -653,7 +662,7 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
       if (raf) cancelAnimationFrame(raf);
     };
   }, [
-    highPerfMode,
+    useLocalCanvasHighPerf,
     layoutSubtreeSupported,
     renderCanvasSnapshot,
     pages.length,
@@ -721,7 +730,7 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
   });
 
   const highPerfTooltipTitle: ReactNode = useMemo(() => {
-    if (layoutSubtreeSupported) {
+    if (highPerfToggleSupported) {
       return highPerfMode ? tc('highPerfOnTooltip') : tc('highPerfOffTooltip');
     }
 
@@ -754,7 +763,7 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
         </a>
       </span>
     );
-  }, [highPerfBrowserHint, highPerfMode, layoutSubtreeSupported, locale, tc]);
+  }, [highPerfBrowserHint, highPerfMode, highPerfToggleSupported, locale, tc]);
 
   return (
     <div
@@ -790,7 +799,7 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
         </Page>
       </div>
       <div className='relative' style={{ width: contentW * scale, height: contentH * scale }}>
-        {highPerfMode && layoutSubtreeSupported ? (
+        {useLocalCanvasHighPerf && layoutSubtreeSupported ? (
           <canvas
             ref={perfCanvasRef}
             className='absolute inset-0 z-[1]'
@@ -842,11 +851,11 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
           quickSelectEnabled={quickSelectEnabled}
           onToggleQuickSelect={() => setQuickSelectEnabled((value) => !value)}
           highPerfTooltipTitle={highPerfTooltipTitle}
-          layoutSubtreeSupported={layoutSubtreeSupported}
+          layoutSubtreeSupported={highPerfToggleSupported}
           highPerfMode={highPerfMode}
           onToggleHighPerfMode={() => {
-            if (!layoutSubtreeSupported) return;
-            setHighPerfMode((value) => !value);
+            if (!highPerfToggleSupported) return;
+            onToggleHighPerfMode?.();
           }}
           locale={locale}
           langSwitchTitle={locale === 'zh' ? tc('langSwitchToEn') : tc('langSwitchToZh')}
