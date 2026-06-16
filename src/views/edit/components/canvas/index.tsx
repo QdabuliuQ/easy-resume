@@ -832,8 +832,12 @@ function Canvas({ onOpenGeneralSettings, onOpenResumePanel, mode = 'edit' }: Can
         </div>
       </div>
 
-      {isEditMode && quickSelectEnabled && hoverRect ? (
-        <SelectableGuideLines hoverRect={hoverRect} viewport={guideViewport} />
+      {isEditMode && quickSelectEnabled ? (
+        <SelectableGuideLines
+          hoverRect={hoverRect}
+          visible={Boolean(hoverRect)}
+          viewport={guideViewport}
+        />
       ) : null}
 
       {isEditMode ? (
