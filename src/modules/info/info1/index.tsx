@@ -124,8 +124,14 @@ function Info1(props: Props) {
               key={`${String(key)}-${i}-${j}`}
               selectable
               dataItemId={`${id}_${String(key)}`}
-              className={inSideCol ? undefined : 'text-black'}
-              style={{ fontSize, lineHeight, color: fieldColor }}
+              className={inSideCol ? 'min-w-0' : 'min-w-0 text-black'}
+              style={{
+                fontSize,
+                lineHeight,
+                color: fieldColor,
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word',
+              }}
             >
               {lbl(String(key))}
               {display}
@@ -156,7 +162,7 @@ function Info1(props: Props) {
             ? 'flex items-center flex-wrap justify-end not-last:mb-[5px]'
             : 'flex items-center flex-wrap not-last:mb-[5px]';
       elements.push(
-        <div key={i} className={rowCls}>
+        <div key={i} className={`${rowCls} min-w-0`}>
           {rowElements}
         </div>
       );
