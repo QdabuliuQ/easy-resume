@@ -15,6 +15,8 @@ import CanvasModuleFragment from '@/views/edit/components/canvas/moduleFragment'
 import { renderResumePageModules } from '@/views/edit/components/canvas/renderResumePageModules';
 import ExportPrintFonts from '@/views/export/exportPrintFonts';
 import ResumeImageExportPage from '@/views/export/resumeImageExportPage';
+import { globalStylePageDimensions } from '@/lib/resumePageSize';
+import { cssLengthToApproxPx } from '@/utils/cssLength';
 
 export type ExportLayoutModule = {
   type: string;
@@ -80,6 +82,7 @@ function renderSlotsFromExportPages(
   gs: GlobalStyle,
   cfg: Record<string, unknown>,
   info1Side: { type: string; options?: unknown } | null,
+  effectiveHeight: number,
 ): ReactNode[] {
   const gap = moduleGapPx(gs, cfg as { pages?: { moduleMargin?: number }[] });
   const sideCol = shouldPlaceInfo1InSideCol(gs.layout);
@@ -138,7 +141,9 @@ function renderSlotsFromExportPages(
     return (
       <div key={`page-${pageIndex}`} className='pdf-page'>
         <Page {...gs} firstPage={pageIndex === 0} sideSlot={sideSlot}>
-          {children}
+          <div style={{ height: effectiveHeight, overflow: 'hidden' }}>
+            {children}
+          </div>
         </Page>
       </div>
     );
@@ -148,6 +153,7 @@ function renderSlotsFromExportPages(
 function renderFromLegacyPages(
   cfg: Record<string, unknown>,
   gs: GlobalStyle,
+  effectiveHeight: number,
 ): ReactNode[] {
   const pages = (cfg.pages as { modules?: unknown[] }[]) ?? [];
   return pages.map((page, pageIndex) => {
@@ -159,7 +165,9 @@ function renderFromLegacyPages(
     return (
       <div key={`page-${pageIndex}`} className='pdf-page'>
         <Page {...gs} firstPage={pageIndex === 0} sideSlot={sideSlot}>
-          {main}
+          <div style={{ height: effectiveHeight, overflow: 'hidden' }}>
+            {main}
+          </div>
         </Page>
       </div>
     );
@@ -181,6 +189,10 @@ export default function ResumePrintView({
     () => ({ ...gs, resumeFont: resumeFontForExport(gs.resumeFont) }),
     [gs],
   );
+  const effectiveHeight = useMemo(() => {
+    const pageHeight = cssLengthToApproxPx(globalStylePageDimensions(gs).height);
+    return Math.max(0, pageHeight - Number(gs.padding ?? 0) * 2);
+  }, [gs]);
   const info1Side = useMemo((): { type: string; options?: unknown } | null => {
     const m = findFirstInfo1Module(cfg);
     if (!m || !shouldPlaceInfo1InSideCol(gs.layout)) return null;
@@ -198,19 +210,23 @@ export default function ResumePrintView({
     }
     const exportPages = cfg.exportPages as ExportPage[] | null | undefined;
     if (Array.isArray(exportPages) && exportPages.length > 0) {
-      return renderSlotsFromExportPages(exportPages, printGs, cfg, info1Side);
+      return renderSlotsFromExportPages(exportPages, printGs, cfg, info1Side, effectiveHeight);
     }
-    const legacy = renderFromLegacyPages(cfg, printGs);
+    const legacy = renderFromLegacyPages(cfg, printGs, effectiveHeight);
     return legacy.length > 0 ? legacy : renderFromLegacyPages(
       { pages: [{ modules: flattenModules(cfg) }] },
       printGs,
+      effectiveHeight,
     );
-  }, [exportMode, cfg, printGs, assetOrigin, info1Side]);
+  }, [exportMode, cfg, printGs, assetOrigin, info1Side, effectiveHeight]);
   const bg = gs.backgroundColor ?? '#fff';
+  const pageDims = globalStylePageDimensions(gs);
   const pageBreakCss =
     exportMode === 'image'
       ? ''
       : `
+@page { size: ${pageDims.width} ${pageDims.height}; margin: 0; }
+html, body { margin: 0; padding: 0; }
 .pdf-page { page-break-after: always; break-after: page; }
 .pdf-page:last-child { page-break-after: auto; break-after: auto; }
 .export-print-root .pdf-page { box-shadow: none; border: none; border-radius: 0; }
