@@ -20,6 +20,7 @@ import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 function Skill({ moduleId }: { moduleId?: string } = {}) {
   const ts = useTranslations('Edit.skill');
   const { getModule, getModuleIndex } = useModuleHandle();
+  const config = configStore.getConfig;
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<SkillProps | null>(null);
@@ -33,7 +34,7 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
     } else {
       setModule(null);
     }
-  }, [moduleActive, getModule]);
+  }, [moduleActive, getModule, config]);
 
   const { run } = useDebounceFn(
     (mod: SkillProps) => {

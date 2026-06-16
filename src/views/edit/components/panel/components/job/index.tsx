@@ -53,6 +53,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
   const message = useAppMessage();
   const tj = useTranslations('Edit.job');
   const { getModule, getModuleIndex } = useModuleHandle();
+  const config = configStore.getConfig;
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<JobProps | null>(null);
@@ -79,7 +80,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
     } else {
       setModule(null);
     }
-  }, [moduleActive, getModule]);
+  }, [moduleActive, getModule, config]);
 
   const { run } = useDebounceFn(
     (mod: JobProps) => {

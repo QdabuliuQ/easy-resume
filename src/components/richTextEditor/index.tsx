@@ -191,6 +191,7 @@ function RichTextEditor({
       const beforeClamp = sanitizeRichTextHtml(q.root.innerHTML);
       clampQuillPlainLength(q, maxPlainLength);
       const afterClamp = sanitizeRichTextHtml(q.root.innerHTML);
+      lastAppliedHtmlRef.current = afterClamp;
       setPlainCount(getQuillPlainCharCount(q));
       if (beforeClamp !== afterClamp) {
         onHtmlChangeRef.current(afterClamp);
@@ -199,7 +200,9 @@ function RichTextEditor({
       const onTextChange = () => {
         clampQuillPlainLength(q, maxPlainLength);
         setPlainCount(getQuillPlainCharCount(q));
-        onHtmlChangeRef.current(sanitizeRichTextHtml(q.root.innerHTML));
+        const safeHtml = sanitizeRichTextHtml(q.root.innerHTML);
+        lastAppliedHtmlRef.current = safeHtml;
+        onHtmlChangeRef.current(safeHtml);
       };
       q.on('text-change', onTextChange);
       setLoadingEditor(false);
@@ -276,6 +279,18 @@ function RichTextEditor({
       onHtmlChangeRef.current(currentSafeHtml);
     }
   });
+
+  useEffect(() => {
+    const q = quillRef.current;
+    if (!q) return;
+    const incoming = sanitizeRichTextHtml(html ?? '');
+    const current = sanitizeRichTextHtml(q.root.innerHTML);
+    if (incoming === current) {
+      lastAppliedHtmlRef.current = current;
+      return;
+    }
+    applyHtmlToQuill(q, incoming, { commit: false });
+  }, [html, applyHtmlToQuill]);
 
   const flushStreamingHtml = useMemoizedFn((q: QuillType) => {
     streamRafRef.current = null;

@@ -48,6 +48,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
   const message = useAppMessage();
   const tp = useTranslations('Edit.project');
   const { getModule, getModuleIndex } = useModuleHandle();
+  const config = configStore.getConfig;
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<ProjectProps | null>(null);
@@ -62,7 +63,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
     } else {
       setModule(null);
     }
-  }, [moduleActive, getModule]);
+  }, [moduleActive, getModule, config]);
 
   const { run } = useDebounceFn(
     (module: ProjectProps) => {

@@ -56,6 +56,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
   const message = useAppMessage();
   const te = useTranslations('Edit.education');
   const { getModule, getModuleIndex } = useModuleHandle();
+  const config = configStore.getConfig;
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<EducationProps | null>(null);
@@ -80,7 +81,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
     } else {
       setModule(null);
     }
-  }, [moduleActive, getModule]);
+  }, [moduleActive, getModule, config]);
 
   const { run } = useDebounceFn(
     (mod: EducationProps) => {

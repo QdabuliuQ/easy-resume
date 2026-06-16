@@ -18,6 +18,7 @@ import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 function Other({ moduleId }: { moduleId?: string } = {}) {
   const to = useTranslations('Edit.other');
   const { getModule, getModuleIndex } = useModuleHandle();
+  const config = configStore.getConfig;
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<OtherProps | null>(null);
@@ -28,7 +29,7 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
     } else {
       setModule(null);
     }
-  }, [moduleActive, getModule]);
+  }, [moduleActive, getModule, config]);
   const { run } = useDebounceFn(
     (mod: OtherProps) => {
       const config = configStore.getConfig;
