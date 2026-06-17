@@ -1,4 +1,5 @@
 import SelectableRichDescription from '@/components/selectableRichDescription';
+import { formatResumeDateRange } from '@/utils/resumeDateDisplay';
 import { normalizeResumeCityDisplay } from '@/utils/resumeCityDisplay';
 import type { GlobalStyle } from '../utils/common.type';
 import SafeText from '../shared/safeText';
@@ -35,6 +36,7 @@ export default function EducationItemsBody({
         const school = typeof item.school === 'string' ? item.school : '';
         const startDate = typeof item.startDate === 'string' ? item.startDate : '';
         const endDate = typeof item.endDate === 'string' ? item.endDate : '';
+        const dateText = formatResumeDateRange(startDate, endDate);
         const tags = Array.isArray(item.tags) ? item.tags : [];
         const degree = typeof item.degree === 'string' ? item.degree : '';
         const major = typeof item.major === 'string' ? item.major : '';
@@ -79,13 +81,15 @@ export default function EducationItemsBody({
                   </SafeText>
                 )}
               </div>
-              <div className='shrink-0 text-right whitespace-nowrap'>
-                <SafeText
-                  text={`${startDate} - ${endDate}`}
-                  selectable={selectable}
-                  dataItemId={`${moduleId}_${index}_date`}
-                />
-              </div>
+              {dateText && (
+                <div className='shrink-0 text-right whitespace-nowrap'>
+                  <SafeText
+                    text={dateText}
+                    selectable={selectable}
+                    dataItemId={`${moduleId}_${index}_date`}
+                  />
+                </div>
+              )}
             </div>
             {(major || degree || academy) && (
               <div className='mb-[5px] flex min-w-0 justify-between gap-2'>

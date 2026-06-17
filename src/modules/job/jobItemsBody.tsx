@@ -1,4 +1,5 @@
 import SelectableRichDescription from '@/components/selectableRichDescription';
+import { formatResumeDateRange } from '@/utils/resumeDateDisplay';
 import { normalizeResumeCityDisplay } from '@/utils/resumeCityDisplay';
 import type { GlobalStyle } from '../utils/common.type';
 import SafeText from '../shared/safeText';
@@ -41,6 +42,7 @@ export default function JobItemsBody({
             : '';
         const startDate = typeof item.startDate === 'string' ? item.startDate : '';
         const endDate = typeof item.endDate === 'string' ? item.endDate : '';
+        const dateText = formatResumeDateRange(startDate, endDate);
         const description = typeof item.description === 'string' ? item.description : '';
 
         return (
@@ -53,13 +55,15 @@ export default function JobItemsBody({
               <div className='min-w-0 flex-[5] break-words font-bold'>
                 <SafeText text={company} selectable={selectable} dataItemId={`${moduleId}_${index}_company`} />
               </div>
-              <div className='shrink-0 text-right whitespace-nowrap'>
-                <SafeText
-                  text={`${startDate} - ${endDate}`}
-                  selectable={selectable}
-                  dataItemId={`${moduleId}_${index}_date`}
-                />
-              </div>
+              {dateText && (
+                <div className='shrink-0 text-right whitespace-nowrap'>
+                  <SafeText
+                    text={dateText}
+                    selectable={selectable}
+                    dataItemId={`${moduleId}_${index}_date`}
+                  />
+                </div>
+              )}
             </div>
             {(post || department || city) && (
               <div className='mb-[5px] flex min-w-0 justify-between gap-2'>

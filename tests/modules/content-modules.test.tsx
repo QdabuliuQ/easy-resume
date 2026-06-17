@@ -165,6 +165,36 @@ describe('resume content modules', () => {
     expect(screen.queryByText('负责简历编辑器性能优化')).not.toBeInTheDocument();
   });
 
+  it('hides date range when start and end are empty', () => {
+    render(
+      <Job
+        globalStyle={makeGlobalStyle()}
+        config={{
+          id: 'job-no-date',
+          type: 'job',
+          options: {
+            title: '工作',
+            items: [
+              {
+                id: 'job-item-no-date',
+                company: '无时间公司',
+                post: '工程师',
+                department: '',
+                city: '',
+                startDate: '',
+                endDate: '',
+                description: '',
+              },
+            ],
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByText('无时间公司')).toBeInTheDocument();
+    expect(document.querySelector('[data-item-id="job-no-date_0_date"]')).toBeNull();
+  });
+
   it('renders project role and hides empty rich text', () => {
     render(
       <Project

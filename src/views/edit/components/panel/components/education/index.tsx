@@ -186,8 +186,9 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
     } else if (key === 'degree' || key === 'tags') {
       module.options.items[index][key] = e;
     } else if (key === 'date') {
-      module.options.items[index].startDate = e[0].format('YYYY-MM');
-      module.options.items[index].endDate = e[1].format('YYYY-MM');
+      const dateArr = Array.isArray(e) ? e : [undefined, undefined];
+      module.options.items[index].startDate = dateArr[0]?.format('YYYY-MM') ?? '';
+      module.options.items[index].endDate = dateArr[1]?.format('YYYY-MM') ?? '';
     } else if (key === 'city') {
       module.options.items[index][key] = Array.isArray(e) ? e : [];
     }
