@@ -1,6 +1,6 @@
 .host {
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 6px;
   border: 1px solid var(--rte-host-border);
 }
@@ -120,6 +120,10 @@
   left: 16px !important;
   font-style: normal !important;
   color: var(--text-soft) !important;
+}
+
+.host :global(.ql-snow .ql-tooltip) {
+  z-index: 6;
 }
 
 .host :global(.ql-snow .ql-tooltip::before) {

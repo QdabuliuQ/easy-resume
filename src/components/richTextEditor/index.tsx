@@ -166,6 +166,7 @@ function RichTextEditor({
 
       const q = new QuillCtor(el, {
         theme: 'snow',
+        bounds: el.parentElement ?? undefined,
         placeholder: placeholder ?? tr('placeholderDefault'),
         modules: {
           toolbar: {
