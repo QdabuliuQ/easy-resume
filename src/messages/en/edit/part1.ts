@@ -223,6 +223,7 @@ export default {
     polishOk: 'Polish applied',
     polishFail: 'Polish failed—try again later',
     aiGenerating: 'Generating…',
+    aiCancel: 'Cancel',
     aiPolish: 'AI polish',
     tooltipVisitLink: 'Visit URL:',
     tooltipFormula: 'Enter formula:',

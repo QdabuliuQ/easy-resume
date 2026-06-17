@@ -364,6 +364,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                                   },
                                 },
                                 ctx?.onStreamingHtml,
+                                ctx?.signal,
                               )
                             }
                           />

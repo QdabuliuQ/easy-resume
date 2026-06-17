@@ -156,6 +156,7 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
                   intentPosts: intentPostsForPolish,
                 },
                 ctx?.onStreamingHtml,
+                ctx?.signal,
               )
             }
           />

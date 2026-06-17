@@ -46,7 +46,12 @@ function clampQuillPlainLength(q: QuillType, max: number) {
 
 export type AiPolishStreamContext = {
   onStreamingHtml?: (htmlSoFar: string) => void;
+  signal?: AbortSignal;
 };
+
+function isAbortError(e: unknown): boolean {
+  return e instanceof DOMException && e.name === 'AbortError';
+}
 export const DEFAULT_QUILL_TOOLBAR_ROWS = [
   [
     'bold',
@@ -135,6 +140,7 @@ function RichTextEditor({
   const pendingStreamHtmlRef = useRef<string | null>(null);
   const streamRafRef = useRef<number | null>(null);
   const lastStreamCommitAtRef = useRef(0);
+  const polishAbortRef = useRef<AbortController | null>(null);
   onHtmlChangeRef.current = onHtmlChange;
   const [polishing, setPolishing] = useState(false);
   const [plainCount, setPlainCount] = useState(0);
@@ -248,6 +254,7 @@ function RichTextEditor({
 
   useEffect(() => {
     return () => {
+      polishAbortRef.current?.abort();
       if (streamRafRef.current != null) {
         cancelAnimationFrame(streamRafRef.current);
         streamRafRef.current = null;
@@ -258,10 +265,10 @@ function RichTextEditor({
   const applyHtmlToQuill = useMemoizedFn((
     q: QuillType,
     nextHtml: string,
-    options?: { commit?: boolean },
+    options?: { commit?: boolean; force?: boolean },
   ) => {
     const sanitized = sanitizeRichTextHtml(nextHtml);
-    if (sanitized === lastAppliedHtmlRef.current) return;
+    if (sanitized === lastAppliedHtmlRef.current && !options?.force) return;
     if (sanitized) {
       try {
         const delta = q.clipboard.convert({ html: sanitized });
@@ -314,6 +321,10 @@ function RichTextEditor({
     });
   });
 
+  const cancelAiPolish = useMemoizedFn(() => {
+    polishAbortRef.current?.abort();
+  });
+
   const runAiPolishFromParent = useMemoizedFn(async () => {
     const q = quillRef.current;
     if (!q || polishing) return;
@@ -331,11 +342,15 @@ function RichTextEditor({
       message.info(tr('aiPendingInfo'));
       return;
     }
+    polishAbortRef.current?.abort();
+    const abortController = new AbortController();
+    polishAbortRef.current = abortController;
     setPolishing(true);
     q.enable(false);
     lastStreamCommitAtRef.current = 0;
     try {
       const polished = await onAiPolishClick(richTextHtml, {
+        signal: abortController.signal,
         onStreamingHtml: (htmlSoFar) => {
           enqueueStreamingHtml(q, unwrapFencedHtml(htmlSoFar));
         },
@@ -348,12 +363,28 @@ function RichTextEditor({
       applyHtmlToQuill(q, polished, { commit: true });
       message.success(tr('polishOk'));
     } catch (e) {
+      if (streamRafRef.current != null) {
+        cancelAnimationFrame(streamRafRef.current);
+        streamRafRef.current = null;
+      }
+      if (isAbortError(e)) {
+        const partialHtml =
+          pendingStreamHtmlRef.current ??
+          sanitizeRichTextHtml(q.root.innerHTML);
+        pendingStreamHtmlRef.current = null;
+        applyHtmlToQuill(q, partialHtml, { commit: true, force: true });
+        return;
+      }
+      pendingStreamHtmlRef.current = null;
       const errText =
         e instanceof Error && e.message?.trim()
           ? e.message.trim()
           : tr('polishFail');
       message.error(errText);
     } finally {
+      if (polishAbortRef.current === abortController) {
+        polishAbortRef.current = null;
+      }
       setPolishing(false);
     }
   });
@@ -396,7 +427,7 @@ function RichTextEditor({
         ) : null}
         {polishing ? (
           <div
-            className="pointer-events-none absolute inset-0 z-[5] flex flex-col items-center justify-center gap-2 rounded-md bg-neutral-900/55 text-[13px] font-medium text-white/95"
+            className="absolute inset-0 z-[5] flex flex-col items-center justify-center gap-3 rounded-md bg-neutral-900/55 text-[13px] font-medium text-white/95"
             role="status"
             aria-live="polite"
           >
@@ -405,6 +436,13 @@ function RichTextEditor({
               aria-hidden
             />
             <span>{tr('aiGenerating')}</span>
+            <button
+              type="button"
+              onClick={cancelAiPolish}
+              className="inline-flex h-8 cursor-pointer select-none items-center rounded-md border border-white/25 bg-white/10 px-4 text-[12px] font-medium text-white/95 outline-none transition-[background-color,border-color] hover:border-white/40 hover:bg-white/16"
+            >
+              {tr('aiCancel')}
+            </button>
           </div>
         ) : null}
       </div>

@@ -57,11 +57,13 @@ async function readPolishSse(
 export async function polishDescription(
   req: PolishRequest,
   onStreamingHtml?: (htmlSoFar: string) => void,
+  signal?: AbortSignal,
 ): Promise<string> {
   const res = await fetch('/api/ai/polish', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(req),
+    signal,
   });
   const ct = res.headers.get('content-type') || '';
   if (!res.ok) {

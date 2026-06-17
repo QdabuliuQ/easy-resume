@@ -223,6 +223,7 @@ export default {
     polishOk: '润色完成',
     polishFail: '润色失败，请稍后重试',
     aiGenerating: 'AI生成中...',
+    aiCancel: '取消',
     aiPolish: 'AI润色',
     tooltipVisitLink: '访问链接：',
     tooltipFormula: '请输入公式：',
