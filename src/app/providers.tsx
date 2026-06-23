@@ -10,9 +10,10 @@ import 'dayjs/locale/en';
 import 'dayjs/locale/zh-cn';
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import {
-  getAppTheme,
-  getServerAppTheme,
+  getServerThemeSnapshot,
+  getThemeSnapshot,
   subscribeAppTheme,
+  type ResolvedTheme,
 } from '@/lib/themeStore';
 
 const ADM_PRIMARY = '#0e9c8d';
@@ -82,11 +83,12 @@ export function AntdProvider({ children }: { children: ReactNode }) {
     dayjs.locale(isEn ? 'en' : 'zh-cn');
   }, [isEn]);
 
-  const appTheme = useSyncExternalStore(
+  const themeSnap = useSyncExternalStore(
     subscribeAppTheme,
-    getAppTheme,
-    getServerAppTheme,
+    getThemeSnapshot,
+    getServerThemeSnapshot,
   );
+  const appTheme = themeSnap.split('|')[1] as ResolvedTheme;
   const isDark = appTheme === 'dark';
   return (
     <ConfigProvider
@@ -97,11 +99,21 @@ export function AntdProvider({ children }: { children: ReactNode }) {
           colorPrimary: ADM_PRIMARY,
           colorBgLayout: isDark ? '#141414' : '#f5f5f5',
           colorBgContainer: isDark ? '#1f1f1f' : '#ffffff',
-          colorBgElevated: isDark ? '#262626' : '#ffffff',
+          colorBgElevated: isDark ? '#323236' : '#ffffff',
+          colorText: isDark ? 'rgba(255,255,255,0.92)' : 'rgba(30,26,33,0.92)',
+        },
+        components: {
+          Message: {
+            contentBg: isDark ? '#323236' : '#ffffff',
+            colorText: isDark ? 'rgba(255,255,255,0.92)' : 'rgba(30,26,33,0.92)',
+          },
+          Notification: {
+            colorBgElevated: isDark ? '#323236' : '#ffffff',
+          },
         },
       }}
     >
-      <App>
+      <App key={appTheme}>
         <MobileConfigProvider>{children}</MobileConfigProvider>
       </App>
     </ConfigProvider>

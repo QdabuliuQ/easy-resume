@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import HeroPreviewCompare from '@/components/heroPreviewCompare';
+import HomeRevealScope from '@/components/homeRevealScope';
 import {
   DownOutlined,
   GithubOutlined,
@@ -36,6 +37,7 @@ import {
   toggleAppTheme,
 } from '@/lib/themeStore';
 import Typed from 'typed.js';
+import gsap from 'gsap';
 
 const PHOTOS = {
   photo1Dark,
@@ -44,13 +46,13 @@ const PHOTOS = {
   photo2Light,
 }
 
-const HomeResumeTemplateMarquee = dynamic(
-  () => import('@/components/homeResumeTemplateMarquee'),
+const HomeResumeTemplateScroll = dynamic(
+  () => import('@/components/homeResumeTemplateScroll'),
   {
     ssr: false,
     loading: () => (
       <div
-        className='relative min-h-[200px] w-full border-y border-fg/10 bg-[rgb(var(--surface-fg-rgb)/0.03)] py-6 md:min-h-[220px]'
+        className='relative w-full border-y border-fg/10 bg-[rgb(var(--surface-fg-rgb)/0.03)] h-[calc(100vh-env(safe-area-inset-top,0px)-3.5rem)] sm:h-[calc(100vh-env(safe-area-inset-top,0px)-4rem)]'
         aria-hidden
       />
     ),
@@ -108,6 +110,74 @@ const HeroTypingTitle = memo(function HeroTypingTitle({
   );
 });
 
+const MAGNETIC_STRENGTH = 0.28;
+
+const HeroMagneticCta = memo(function HeroMagneticCta({
+  reduceMotion,
+  label,
+  onClick,
+  onKeyDown,
+  focusRing,
+}: {
+  reduceMotion: boolean;
+  label: string;
+  onClick: () => void;
+  onKeyDown: (e: KeyboardEvent<HTMLSpanElement>) => void;
+  focusRing: string;
+}) {
+  const zoneRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (reduceMotion) return;
+    const zone = zoneRef.current;
+    const btn = btnRef.current;
+    if (!zone || !btn) return;
+    const onMove = (e: MouseEvent) => {
+      const rect = zone.getBoundingClientRect();
+      const x = gsap.utils.mapRange(rect.left, rect.right, -rect.width / 2, rect.width / 2, e.clientX);
+      const y = gsap.utils.mapRange(rect.top, rect.bottom, -rect.height / 2, rect.height / 2, e.clientY);
+      gsap.to(btn, {
+        x: x * MAGNETIC_STRENGTH,
+        y: y * MAGNETIC_STRENGTH,
+        duration: 1.5,
+        ease: 'power2.out',
+        overwrite: true,
+      });
+    };
+    const onLeave = () => {
+      gsap.to(btn, {
+        x: 0,
+        y: 0,
+        duration: 0.15,
+        ease: 'power2.out',
+        overwrite: true,
+      });
+    };
+    zone.addEventListener('mousemove', onMove);
+    zone.addEventListener('mouseleave', onLeave);
+    return () => {
+      zone.removeEventListener('mousemove', onMove);
+      zone.removeEventListener('mouseleave', onLeave);
+      gsap.set(btn, { clearProps: 'transform' });
+    };
+  }, [reduceMotion]);
+  return (
+    <div ref={zoneRef} className='inline-flex p-3 -m-3'>
+      <span
+        ref={btnRef}
+        role='button'
+        tabIndex={0}
+        onClick={onClick}
+        onKeyDown={onKeyDown}
+        className={`inline-flex h-12 min-w-[158px] cursor-pointer items-center justify-center rounded-xl px-6 text-sm font-semibold text-white shadow-[0_16px_40px_rgb(var(--surface-fg-rgb)/0.12)] transition-[box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:shadow-[0_20px_44px_rgb(var(--surface-fg-rgb)/0.14)] ${focusRing}`}
+        style={{ background: 'var(--gradient-primary)', WebkitBackfaceVisibility: 'hidden' }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+});
+
 type HighlightBlock = {
   title: string;
   desc: string;
@@ -140,7 +210,6 @@ export default function Home() {
     () => false
   );
   const [scrolled, setScrolled] = useState(false);
-  const [reveal, setReveal] = useState<Record<string, boolean>>({});
   const [pointerPos, setPointerPos] = useState(() => ({
     x: typeof window === 'undefined' ? 0 : window.innerWidth / 2,
     y: typeof window === 'undefined' ? 0 : window.innerHeight / 2,
@@ -185,27 +254,6 @@ export default function Home() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        setReveal((prev) => {
-          const next = { ...prev };
-          for (const entry of entries) {
-            const key = (entry.target as HTMLElement).dataset.reveal;
-            if (!key) continue;
-            if (entry.isIntersecting) next[key] = true;
-          }
-          return next;
-        });
-      },
-      { threshold: 0, rootMargin: '0px 0px 120px 0px' }
-    );
-
-    const nodes = document.querySelectorAll<HTMLElement>('[data-reveal]');
-    nodes.forEach((node) => observer.observe(node));
-    return () => observer.disconnect();
-  }, []);
-
   const navClass = useMemo(
     () =>
       `fixed top-0 left-0 right-0 z-50 isolate w-full bg-[var(--editor-shell-bg)]/80 pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl transition-[background,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${scrolled
@@ -222,14 +270,6 @@ export default function Home() {
     }
     : undefined;
 
-  const revealClass = (key: string) =>
-    reduceMotion || reveal[key]
-      ? 'translate-y-0 opacity-100'
-      : 'translate-y-5 opacity-0';
-
-  const transitionReveal = reduceMotion
-    ? ''
-    : 'transition-[opacity,transform] duration-[560ms] ease-[cubic-bezier(0.22,1,0.36,1)]';
   const navKey =
     (fn: () => void) =>
       (e: KeyboardEvent<HTMLSpanElement>) => {
@@ -240,12 +280,6 @@ export default function Home() {
       };
   const pushPath = (path: string) => () => router.push(path);
   const openGh = () => window.open('https://github.com/QdabuliuQ/easy-resume', '_blank', 'noopener,noreferrer');
-  const toFeatures = () =>
-    document.getElementById('features')?.scrollIntoView({
-      behavior: reduceMotion ? 'auto' : 'smooth',
-      block: 'start',
-    });
-
   return (
     <main className='relative min-h-screen bg-[var(--editor-shell-bg)] text-[var(--text-strong)]'>
       <div className='pointer-events-none absolute inset-0 z-0 overflow-hidden'>
@@ -424,26 +458,14 @@ export default function Home() {
               <p className='max-w-[62ch] text-base leading-[1.75] text-fg/58 md:text-[17px] text-center mt-[15px]'>
                 {t('heroSub')}
               </p>
-              <div className='flex flex-wrap items-center gap-3 mt-[15px]'>
-                <span
-                  role='button'
-                  tabIndex={0}
+              <div className='mt-[15px]'>
+                <HeroMagneticCta
+                  reduceMotion={reduceMotion}
+                  label={t('ctaStart')}
                   onClick={pushPath('/edit')}
                   onKeyDown={navKey(pushPath('/edit'))}
-                  className={`inline-flex h-12 min-w-[158px] translate-y-0 cursor-pointer items-center justify-center rounded-xl px-6 text-sm font-semibold text-white shadow-[0_16px_40px_rgb(var(--surface-fg-rgb)/0.12)] transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-[2px] hover:shadow-[0_20px_44px_rgb(var(--surface-fg-rgb)/0.14)] motion-reduce:hover:translate-y-0 active:translate-y-0 ${focusRing}`}
-                  style={{ background: 'var(--gradient-primary)', WebkitBackfaceVisibility: 'hidden' }}
-                >
-                  {t('ctaStart')}
-                </span>
-                <span
-                  role='button'
-                  tabIndex={0}
-                  onClick={toFeatures}
-                  onKeyDown={navKey(toFeatures)}
-                  className={`inline-flex h-12 cursor-pointer items-center justify-center rounded-xl border border-fg/16 bg-fg/[0.04] px-5 text-sm font-medium text-fg/72 transition-[transform,background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:bg-fg/[0.07] hover:text-fg/88 motion-reduce:hover:translate-y-0 active:translate-y-0 ${focusRing}`}
-                >
-                  {t('ctaFeatures')}
-                </span>
+                  focusRing={focusRing}
+                />
               </div>
             </div>
           </div>
@@ -461,19 +483,17 @@ export default function Home() {
 
         </section>
 
-        <div className='relative mt-5 w-full overflow-x-hidden md:mt-14'>
-          <HomeResumeTemplateMarquee reduceMotion={reduceMotion} />
+        <div className='relative w-full overflow-x-hidden'>
+          <HomeResumeTemplateScroll reduceMotion={reduceMotion} />
         </div>
 
+        <HomeRevealScope reduceMotion={reduceMotion}>
         <section
           id='features'
           className='scroll-mt-[calc(3.5rem+env(safe-area-inset-top,0px))] border-t border-fg/[0.07] md:scroll-mt-[72px]'
         >
           <div className='mx-auto max-w-6xl px-5 py-16 md:py-20'>
-            <div
-              data-reveal='features-title'
-              className={`max-w-[52ch] ${transitionReveal} ${revealClass('features-title')}`}
-            >
+            <div data-home-reveal className='max-w-[52ch]'>
               <h2 className='text-2xl font-semibold tracking-tight text-fg/94 md:text-[1.75rem]'>
                 {t('featuresTitle')}
               </h2>
@@ -486,10 +506,9 @@ export default function Home() {
               {highlights.map((block, idx) => (
                 <div
                   key={block.title}
-                  data-reveal={`hl-${idx}`}
-                  className={`grid items-center gap-10 lg:grid-cols-2 lg:gap-14 ${transitionReveal} ${revealClass(`hl-${idx}`)}`}
+                  className='grid items-center gap-10 lg:grid-cols-2 lg:gap-14'
                 >
-                  <div className={idx === 1 ? 'lg:order-2' : ''}>
+                  <div data-home-reveal className={idx === 1 ? 'lg:order-2' : ''}>
                     <p className='text-[11px] font-semibold uppercase tracking-[0.2em] text-fg/38'>
                       {String(idx + 1).padStart(2, '0')}
                     </p>
@@ -506,6 +525,7 @@ export default function Home() {
                       </li>
                     </ul>
                   </div>
+                  <div data-home-reveal className={idx === 1 ? 'lg:order-1' : ''}>
                   <Image
                       src={appTheme === 'dark' ? PHOTOS[`photo${idx + 1}Dark`] : PHOTOS[`photo${idx + 1}Light`]}
                       alt={block.title}
@@ -513,14 +533,12 @@ export default function Home() {
                       sizes='(max-width: 1024px) 100vw, 50vw'
                       loading='lazy'
                     />
+                  </div>
                 </div>
               ))}
             </div>
 
-            <div
-              data-reveal='module-strip'
-              className={`mt-16 md:mt-20 ${transitionReveal} ${revealClass('module-strip')}`}
-            >
+            <div data-home-reveal className='mt-16 md:mt-20'>
               <div className='rounded-2xl border border-[var(--editor-shell-border)] bg-[var(--editor-shell-panel)] px-6 py-8 transition-[border-color,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-fg/14 hover:shadow-[var(--editor-shell-shadow)] md:flex md:items-start md:justify-between md:gap-10 md:px-10 md:py-10'>
                 <div className='max-w-[52ch]'>
                   <h3 className='text-lg font-semibold text-fg/92 md:text-xl'>{t('moduleTitle')}</h3>
@@ -545,19 +563,16 @@ export default function Home() {
 
         <section className='border-t border-fg/[0.07] bg-[rgb(var(--surface-fg-rgb)/0.02)]'>
           <div className='mx-auto max-w-6xl px-5 py-16 md:py-20'>
-            <div
-              data-reveal='faq-title'
-              className={`max-w-xl ${transitionReveal} ${revealClass('faq-title')}`}
-            >
+            <div data-home-reveal className='max-w-xl'>
               <h2 className='text-2xl font-semibold tracking-tight text-fg/94 md:text-[1.75rem]'>{t('faqTitle')}</h2>
               <p className='mt-2 text-sm leading-relaxed text-fg/56'>{t('faqDesc')}</p>
             </div>
             <div className='mt-10 grid items-start gap-4 sm:grid-cols-2 lg:mt-12 lg:gap-5'>
-              {faq.map((item, i) => (
+              {faq.map((item) => (
                 <details
                   key={item.q}
-                  data-reveal={`faq-${i}`}
-                  className={`group rounded-xl border border-[var(--editor-shell-border)] bg-[var(--editor-shell-panel-strong)] px-5 py-[18px] open:border-fg/14 open:shadow-[0_12px_32px_rgb(var(--surface-fg-rgb)/0.06)] hover:border-fg/12 ${transitionReveal} ${revealClass(`faq-${i}`)}`}
+                  data-home-reveal
+                  className='group rounded-xl border border-[var(--editor-shell-border)] bg-[var(--editor-shell-panel-strong)] px-5 py-[18px] open:border-fg/14 open:shadow-[0_12px_32px_rgb(var(--surface-fg-rgb)/0.06)] hover:border-fg/12'
                 >
                   <summary
                     className={`flex cursor-pointer list-none items-start justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden ${focusRing}`}
@@ -578,8 +593,8 @@ export default function Home() {
 
         <section className='mx-auto max-w-6xl px-5 pb-14 pt-6 md:pb-16'>
           <div
-            data-reveal='closing-cta'
-            className={`overflow-hidden rounded-3xl px-6 py-12 text-center md:px-12 md:py-14 ${transitionReveal} ${revealClass('closing-cta')}`}
+            data-home-reveal
+            className='overflow-hidden rounded-3xl px-6 py-12 text-center md:px-12 md:py-14'
             style={{ background: 'var(--gradient-primary)', WebkitBackfaceVisibility: 'hidden' }}
           >
             <h2 className='text-xl font-semibold text-white md:text-2xl'>{t('closingTitle')}</h2>
@@ -599,9 +614,9 @@ export default function Home() {
         </section>
 
         <footer
-          data-reveal='site-footer'
+          data-home-reveal
           aria-label='Site footer'
-          className={`mx-auto max-w-6xl px-5 pb-10 md:pb-12 ${transitionReveal} ${revealClass('site-footer')}`}
+          className='mx-auto max-w-6xl px-5 pb-10 md:pb-12'
         >
           <div className='relative flex flex-col items-center pt-8'>
             <div
@@ -622,6 +637,7 @@ export default function Home() {
             </a>
           </div>
         </footer>
+        </HomeRevealScope>
       </div>
     </main>
   );

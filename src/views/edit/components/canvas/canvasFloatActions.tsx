@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import {
   CheckCircleOutlined,
   EyeOutlined,
@@ -6,7 +5,6 @@ import {
   HomeOutlined,
   MoonOutlined,
   SunOutlined,
-  ThunderboltOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
 import { Selected } from '@icon-park/react';
@@ -16,10 +14,6 @@ type CanvasFloatActionsProps = {
   backupReady: boolean;
   quickSelectEnabled: boolean;
   onToggleQuickSelect: () => void;
-  highPerfTooltipTitle: ReactNode;
-  layoutSubtreeSupported: boolean;
-  highPerfMode: boolean;
-  onToggleHighPerfMode: () => void;
   locale: string;
   langSwitchTitle: string;
   langSwitchAria: string;
@@ -42,10 +36,6 @@ export default function CanvasFloatActions(props: CanvasFloatActionsProps) {
     backupReady,
     quickSelectEnabled,
     onToggleQuickSelect,
-    highPerfTooltipTitle,
-    layoutSubtreeSupported,
-    highPerfMode,
-    onToggleHighPerfMode,
     locale,
     langSwitchTitle,
     langSwitchAria,
@@ -64,7 +54,7 @@ export default function CanvasFloatActions(props: CanvasFloatActionsProps) {
   } = props;
 
   return (
-    <div className='pointer-events-none fixed right-[20px] bottom-[20px] z-20 flex flex-col items-end gap-2'>
+    <div className='pointer-events-none fixed right-[20px] bottom-[20px] z-[1401] flex flex-col items-end gap-2'>
       {backupReady ? (
         <Tooltip title={tc('backupOnTooltip')} placement='left'>
           <span className='pointer-events-auto inline-flex'>
@@ -107,17 +97,6 @@ export default function CanvasFloatActions(props: CanvasFloatActionsProps) {
             : (locale === 'zh' ? '开启快捷选中编辑' : 'Enable quick select edit')}
         >
           <Selected theme='outline' size='17' fill='currentColor' />
-        </button>
-      </Tooltip>
-      <Tooltip title={highPerfTooltipTitle} placement='left'>
-        <button
-          type='button'
-          disabled={!layoutSubtreeSupported}
-          onClick={onToggleHighPerfMode}
-          className={`canvas-float-btn ${highPerfMode ? 'text-emerald-500' : ''} ${!layoutSubtreeSupported ? 'cursor-not-allowed opacity-45' : ''}`}
-          aria-label={highPerfMode ? tc('highPerfDisableAria') : tc('highPerfEnableAria')}
-        >
-          <ThunderboltOutlined className='text-[17px]' />
         </button>
       </Tooltip>
       <Tooltip title={langSwitchTitle} placement='left'>

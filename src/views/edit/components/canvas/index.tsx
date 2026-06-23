@@ -6,7 +6,6 @@ import {
   useLayoutEffect,
   useMemo,
   type ReactElement,
-  type ReactNode,
   useRef,
   useState,
   useSyncExternalStore,
@@ -59,66 +58,6 @@ const RENDER_DEBOUNCE_MS = 180;
 const PAGE_FIT_EPSILON_PX = 0.5;
 const MEASURE_HEIGHT_EPSILON_PX = 0.1;
 const MEASURE_FRAME_DELAY = 10;
-
-type LayoutSubtreeContext = CanvasRenderingContext2D & {
-  layoutSubtree?: (...args: unknown[]) => unknown;
-  drawElementImage?: (...args: unknown[]) => unknown;
-};
-
-type HighPerfBrowserHint =
-  | { kind: 'nonChrome' }
-  | { kind: 'needUpgrade'; version: number }
-  | { kind: 'chromeReady'; version: number };
-
-function detectLayoutSubtreeSupport(): boolean {
-  if (typeof document === 'undefined') return false;
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d') as LayoutSubtreeContext | null;
-  return Boolean(ctx && typeof ctx.drawElementImage === 'function');
-}
-
-function tryInvokeLayoutSubtree(target: HTMLElement): void {
-  if (typeof document === 'undefined') return;
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d') as LayoutSubtreeContext | null;
-  if (!ctx || typeof ctx.layoutSubtree !== 'function') return;
-  // API 仍处于实验阶段，参数签名可能变化，这里仅做 best-effort 调用并安全回退。
-  void ctx.layoutSubtree(target);
-}
-
-function detectHighPerfBrowserHint(): HighPerfBrowserHint {
-  if (typeof navigator === 'undefined') return { kind: 'nonChrome' };
-
-  type NavigatorWithUAData = Navigator & {
-    userAgentData?: { brands?: Array<{ brand: string; version: string }> };
-  };
-
-  const nav = navigator as NavigatorWithUAData;
-
-  const ua = nav.userAgent ?? '';
-  const vendor = nav.vendor ?? '';
-  const uaData = nav.userAgentData;
-
-  const hasGoogleChromeBrand = Boolean(
-    uaData?.brands?.some((item) => item.brand === 'Google Chrome'),
-  );
-  const hasChromeToken = /Chrome\/(\d+)/.test(ua);
-  const isEdgeLike = /Edg\//.test(ua);
-  const isOperaLike = /OPR\//.test(ua);
-
-  const isChrome = (hasGoogleChromeBrand || (hasChromeToken && vendor.includes('Google'))) && !isEdgeLike && !isOperaLike;
-  if (!isChrome) return { kind: 'nonChrome' };
-
-  const match = ua.match(/Chrome\/(\d+)/);
-  const major = match ? Number(match[1]) : NaN;
-  const version = Number.isFinite(major) ? major : 0;
-
-  if (version >= 149) return { kind: 'chromeReady', version };
-  return { kind: 'needUpgrade', version };
-}
-
-/** 合并默认 globalStyle，避免 cfg 里缺字段时渲染异常 */
-
 
 interface ResumeModule {
   type: string;
@@ -217,16 +156,12 @@ function buildModuleNode(
 }
 
 type CanvasProps = {
-  highPerfMode?: boolean;
-  onToggleHighPerfMode?: () => void;
   onOpenGeneralSettings?: () => void;
   onOpenResumePanel?: () => void;
   mode?: 'edit' | 'preview';
 };
 
 function Canvas({
-  highPerfMode = false,
-  onToggleHighPerfMode,
   onOpenGeneralSettings,
   onOpenResumePanel,
   mode = 'edit',
@@ -501,12 +436,7 @@ function Canvas({
   const [scale, setScale] = useState(1);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewClosing, setPreviewClosing] = useState(false);
-  const [layoutSubtreeSupported, setLayoutSubtreeSupported] = useState(false);
-  const [highPerfRenderOk, setHighPerfRenderOk] = useState(false);
-  const [highPerfBrowserHint, setHighPerfBrowserHint] = useState<HighPerfBrowserHint>({ kind: 'nonChrome' });
   const previewCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const perfCanvasRef = useRef<HTMLCanvasElement>(null);
-  const renderSourceRef = useRef<HTMLDivElement>(null);
   const themeSnap = useSyncExternalStore(
     subscribeAppTheme,
     getThemeSnapshot,
@@ -527,10 +457,8 @@ function Canvas({
   const contentW = pageWPx;
   const pageCount = Math.max(1, pages.length);
   const contentH = pageCount * pageHPx + Math.max(0, pageCount - 1) * PAGE_STACK_GAP_PX;
-  const useLocalCanvasHighPerf = !isEditMode && highPerfMode;
-  const highPerfToggleSupported = layoutSubtreeSupported;
-  const useCanvasPresentation =
-    useLocalCanvasHighPerf && layoutSubtreeSupported && highPerfRenderOk;
+  const scaledW = contentW * scale;
+  const scaledH = contentH * scale;
   const [guideViewport, setGuideViewport] = useState({
     left: 0,
     top: 0,
@@ -593,11 +521,6 @@ function Canvas({
   }, [updateGuideViewport]);
 
   useEffect(() => {
-    setLayoutSubtreeSupported(detectLayoutSubtreeSupport());
-    setHighPerfBrowserHint(detectHighPerfBrowserHint());
-  }, []);
-
-  useEffect(() => {
     return () => {
       if (renderDebounceTimerRef.current) {
         clearTimeout(renderDebounceTimerRef.current);
@@ -608,69 +531,6 @@ function Canvas({
       }
     };
   }, []);
-
-  useLayoutEffect(() => {
-    if (!useLocalCanvasHighPerf || !layoutSubtreeSupported) return;
-    const host = canvasStageRef.current;
-    if (!host) return;
-    try {
-      tryInvokeLayoutSubtree(host);
-    } catch {
-      // Ignore runtime errors from experimental API and keep normal render path.
-    }
-  }, [useLocalCanvasHighPerf, layoutSubtreeSupported, pages.length, layoutRevision, scale]);
-
-  const renderCanvasSnapshot = useMemoizedFn(() => {
-    const canvas = perfCanvasRef.current;
-    const source = renderSourceRef.current;
-    if (!canvas || !source) return false;
-    const ctx = canvas.getContext('2d') as LayoutSubtreeContext | null;
-    if (!ctx || typeof ctx.drawElementImage !== 'function') return false;
-
-    const ratio = typeof window !== 'undefined' ? Math.max(1, window.devicePixelRatio || 1) : 1;
-    const width = Math.max(1, Math.round(contentW * scale));
-    const height = Math.max(1, Math.round(contentH * scale));
-
-    if (canvas.width !== Math.round(width * ratio)) canvas.width = Math.round(width * ratio);
-    if (canvas.height !== Math.round(height * ratio)) canvas.height = Math.round(height * ratio);
-
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.clearRect(0, 0, width, height);
-
-    try {
-      // WICG HTML-in-Canvas 实验能力：将 DOM 元素直接绘制到 2D canvas。
-      // 参数签名仍可能变化，当前按最常见的 (element, x, y) 方式调用。
-      void ctx.drawElementImage(source, 0, 0);
-      return true;
-    } catch {
-      return false;
-    }
-  });
-
-  useLayoutEffect(() => {
-    if (!useLocalCanvasHighPerf || !layoutSubtreeSupported) {
-      setHighPerfRenderOk(false);
-      return;
-    }
-
-    let raf = 0;
-    raf = requestAnimationFrame(() => {
-      const ok = renderCanvasSnapshot();
-      setHighPerfRenderOk(ok);
-    });
-    return () => {
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [
-    useLocalCanvasHighPerf,
-    layoutSubtreeSupported,
-    renderCanvasSnapshot,
-    pages.length,
-    layoutRevision,
-    scale,
-    contentW,
-    contentH,
-  ]);
 
   const openPreview = useMemoizedFn(() => {
     if (previewCloseTimerRef.current) {
@@ -729,41 +589,51 @@ function Canvas({
     stageRef: canvasStageRef,
   });
 
-  const highPerfTooltipTitle: ReactNode = useMemo(() => {
-    if (highPerfToggleSupported) {
-      return highPerfMode ? tc('highPerfOnTooltip') : tc('highPerfOffTooltip');
-    }
+  const floatActionsEl = isEditMode ? (
+    <CanvasFloatActions
+      backupReady={backupReady}
+      quickSelectEnabled={quickSelectEnabled}
+      onToggleQuickSelect={() => setQuickSelectEnabled((value) => !value)}
+      locale={locale}
+      langSwitchTitle={locale === 'zh' ? tc('langSwitchToEn') : tc('langSwitchToZh')}
+      langSwitchAria={locale === 'zh' ? tc('langSwitchAriaToEn') : tc('langSwitchAriaToZh')}
+      langBadge={locale === 'zh' ? tc('langBadgeEn') : tc('langBadgeZh')}
+      onSwitchLocale={() => router.replace(pathname, { locale: locale === 'zh' ? 'en' : 'zh' })}
+      themePopoverOpen={themePopoverOpen}
+      onThemePopoverOpenChange={setThemePopoverOpen}
+      themePref={themePref}
+      appTheme={appTheme}
+      onThemeSelect={(theme, x, y) => {
+        setAppThemeWithTransition(theme, { x, y });
+        setThemePopoverOpen(false);
+      }}
+      onOpenGeneralSettings={onOpenGeneralSettings}
+      onBackHome={() => router.push('/')}
+      onOpenGithub={() => window.open('https://github.com/QdabuliuQ/easy-resume', '_blank', 'noopener,noreferrer')}
+      onOpenPreview={openPreview}
+      tc={tc}
+    />
+  ) : null;
 
-    if (highPerfBrowserHint.kind === 'nonChrome') {
-      return locale === 'zh'
-        ? '高性能渲染模式建议使用 Chrome 浏览器。'
-        : 'High-performance rendering mode is available in Chrome browser.';
-    }
-
-    if (highPerfBrowserHint.kind === 'needUpgrade') {
-      return locale === 'zh'
-        ? `当前 Chrome ${highPerfBrowserHint.version || ''} 版本过低，请升级到 149 或更高版本。`
-        : `Your Chrome ${highPerfBrowserHint.version || ''} is too old. Please upgrade to version 149 or newer.`;
-    }
-
-    return (
-      <span>
-        {locale === 'zh'
-          ? '检测到 Chrome 149+，请先开启实验能力：'
-          : 'Chrome 149+ detected. Enable the experiment first: '}
-        <a
-          href='chrome://flags/#canvas-draw-element'
-          onClick={(event) => {
-            event.preventDefault();
-            window.open('chrome://flags/#canvas-draw-element');
-          }}
-          className='underline underline-offset-2'
-        >
-          chrome://flags/#canvas-draw-element
-        </a>
-      </span>
-    );
-  }, [highPerfBrowserHint, highPerfMode, highPerfToggleSupported, locale, tc]);
+  const resumeStage = (
+    <CanvasScaleContext.Provider value={scale}>
+      <div
+        ref={canvasStageRef}
+        className='relative flex w-full flex-col items-center py-[40px]'
+      >
+        {isEditMode ? (
+          <ModuleOperation
+            stageRef={canvasStageRef}
+            onModuleActivated={onOpenResumePanel}
+          >
+            {pages}
+          </ModuleOperation>
+        ) : (
+          pages
+        )}
+      </div>
+    </CanvasScaleContext.Provider>
+  );
 
   return (
     <div
@@ -798,46 +668,16 @@ function Canvas({
           ))}
         </Page>
       </div>
-      <div className='relative' style={{ width: contentW * scale, height: contentH * scale }}>
-        {useLocalCanvasHighPerf && layoutSubtreeSupported ? (
-          <canvas
-            ref={perfCanvasRef}
-            className='absolute inset-0 z-[1]'
-            style={{
-              width: contentW * scale,
-              height: contentH * scale,
-              opacity: useCanvasPresentation ? 1 : 0,
-              pointerEvents: 'none',
-            }}
-            aria-label='canvas-render-snapshot'
-          />
-        ) : null}
+      <div className='relative' style={{ width: scaledW, height: scaledH }}>
         <div
-          ref={renderSourceRef}
           style={{
             width: pw,
             boxSizing: 'border-box',
             transform: `scale(${scale})`,
             transformOrigin: 'top left',
-            opacity: useCanvasPresentation ? 0 : 1,
-            pointerEvents: 'auto',
           }}
         >
-          <CanvasScaleContext.Provider value={scale}>
-            <div
-              ref={canvasStageRef}
-              className='relative flex w-full flex-col items-center py-[40px]'
-            >
-              {isEditMode ? (
-                <ModuleOperation
-                  stageRef={canvasStageRef}
-                  onModuleActivated={onOpenResumePanel}
-                >
-                  {pages}
-                </ModuleOperation>
-              ) : pages}
-            </div>
-          </CanvasScaleContext.Provider>
+          {resumeStage}
         </div>
       </div>
 
@@ -849,38 +689,7 @@ function Canvas({
         />
       ) : null}
 
-      {isEditMode ? (
-        <CanvasFloatActions
-          backupReady={backupReady}
-          quickSelectEnabled={quickSelectEnabled}
-          onToggleQuickSelect={() => setQuickSelectEnabled((value) => !value)}
-          highPerfTooltipTitle={highPerfTooltipTitle}
-          layoutSubtreeSupported={highPerfToggleSupported}
-          highPerfMode={highPerfMode}
-          onToggleHighPerfMode={() => {
-            if (!highPerfToggleSupported) return;
-            onToggleHighPerfMode?.();
-          }}
-          locale={locale}
-          langSwitchTitle={locale === 'zh' ? tc('langSwitchToEn') : tc('langSwitchToZh')}
-          langSwitchAria={locale === 'zh' ? tc('langSwitchAriaToEn') : tc('langSwitchAriaToZh')}
-          langBadge={locale === 'zh' ? tc('langBadgeEn') : tc('langBadgeZh')}
-          onSwitchLocale={() => router.replace(pathname, { locale: locale === 'zh' ? 'en' : 'zh' })}
-          themePopoverOpen={themePopoverOpen}
-          onThemePopoverOpenChange={setThemePopoverOpen}
-          themePref={themePref}
-          appTheme={appTheme}
-          onThemeSelect={(theme, x, y) => {
-            setAppThemeWithTransition(theme, { x, y });
-            setThemePopoverOpen(false);
-          }}
-          onOpenGeneralSettings={onOpenGeneralSettings}
-          onBackHome={() => router.push('/')}
-          onOpenGithub={() => window.open('https://github.com/QdabuliuQ/easy-resume', '_blank', 'noopener,noreferrer')}
-          onOpenPreview={openPreview}
-          tc={tc}
-        />
-      ) : null}
+      {floatActionsEl}
 
       {isEditMode ? previewOverlay : null}
 

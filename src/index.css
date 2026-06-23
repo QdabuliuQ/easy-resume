@@ -28,18 +28,14 @@
   animation: info1-panel-enter 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-@keyframes home-templates-marquee {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
+.home-template-card-stage[data-active='true']:hover .home-template-card-overlay {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.home-templates-marquee-track {
-  animation: home-templates-marquee linear infinite;
-  will-change: transform;
+.home-template-card-static:hover .home-template-card-overlay {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 @keyframes canvas-preview-overlay-enter {
@@ -450,6 +446,16 @@ html[data-prefers-color-scheme='dark'] {
 .adm-dialog-footer .adm-dialog-action-row > .adm-dialog-button:first-child.adm-button-fill-none {
   --color: var(--adm-color-text-secondary);
   font-weight: 400;
+}
+
+.ant-message .ant-message-notice-content {
+  background: var(--antd-popup-bg) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid var(--antd-popup-border);
+  box-shadow: var(--panel-shadow-md);
+}
+.ant-message .ant-message-notice-content .ant-message-custom-content {
+  color: inherit;
 }
 .adm-dialog-footer .adm-dialog-action-row > .adm-dialog-button-bold.adm-button-fill-none:not(.adm-button-danger) {
   --color: var(--adm-color-primary);

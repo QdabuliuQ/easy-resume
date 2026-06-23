@@ -27,7 +27,7 @@ let snapRuntimeWarmed = false;
 let snapRuntimeWarmPromise: Promise<void> | null = null;
 
 const SNAP_HOST_STYLE =
-  'position:fixed;inset:0;z-index:2147483647;overflow:auto;background:#fff;opacity:0.01;pointer-events:none;';
+  'position:fixed;left:-100000px;top:0;z-index:-1;overflow:visible;opacity:1;pointer-events:none;width:max-content;';
 
 async function cropJpegBorder(blob: Blob, borderPx = 1): Promise<Blob> {
   if (borderPx <= 0) return blob;
