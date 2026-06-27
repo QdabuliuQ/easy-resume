@@ -5,6 +5,7 @@ import { prepareReactExport } from '../export/reactPrintMeta';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 180;
 
 async function generatePdfFromExportUrl(
   exportUrl: string,

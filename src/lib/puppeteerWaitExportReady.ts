@@ -3,17 +3,19 @@ import { settleFontsOrTimeout } from '@/app/api/pdf/loadInlineHtmlForPrint';
 
 const READY_SEL = '[data-export-ready="true"]';
 const ERR_SEL = '[data-export-error]';
+const NAV_TIMEOUT_MS = 60_000;
+const READY_TIMEOUT_MS = 45_000;
 
 export async function gotoExportResumeAndWait(page: Page, url: string) {
   await page.setJavaScriptEnabled(true);
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 120_000 });
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT_MS });
   const errEl = await page.$(ERR_SEL);
   if (errEl) {
     const msg = await page.$eval(ERR_SEL, (el) => el.textContent?.trim() || 'export page error');
     throw new Error(msg);
   }
   try {
-    await page.waitForSelector(READY_SEL, { timeout: 120_000 });
+    await page.waitForSelector(READY_SEL, { timeout: READY_TIMEOUT_MS });
   } catch (e) {
     const hint = await page
       .evaluate(() => {
@@ -27,16 +29,4 @@ export async function gotoExportResumeAndWait(page: Page, url: string) {
     throw new Error(hint ? `${base} (${hint})` : base);
   }
   await settleFontsOrTimeout(page);
-  await page.evaluate(async () => {
-    const families = ['Noto Sans SC', 'Noto Serif SC'];
-    await Promise.all(
-      families.map((f) =>
-        document.fonts.load(`400 16px "${f}"`).catch(() => undefined),
-      ),
-    );
-    await Promise.race([
-      document.fonts.ready,
-      new Promise<void>((r) => setTimeout(r, 12_000)),
-    ]);
-  });
 }

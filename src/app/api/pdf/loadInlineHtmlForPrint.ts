@@ -1,6 +1,6 @@
 import type { Page } from 'puppeteer';
 
-const FONT_READY_MS = 12_000;
+const FONT_READY_MS = 6_000;
 
 async function waitFontsReady(page: Page) {
   await page.evaluate(

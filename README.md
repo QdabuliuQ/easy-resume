@@ -117,6 +117,8 @@ npm run start
 |------|------|
 | `RESUME_PROJECT_ROOT` | 项目在服务器上的绝对路径，例如 `/root/easy-resume`（PM2 / 脚本等工作目录） |
 | `NEXT_PUBLIC_SITE_URL` | 站点对外访问的根 URL，例如 `https://resume.example.com`；用于 PDF 内相对链接补全、站点元信息。**需在 `npm run build` 前配置**，否则客户端 bundle 中不会生效 |
+| `EXPORT_BASE_URL` | Puppeteer 打开导出页用的地址；默认生产为 `http://127.0.0.1:3010`（本机回环，避免经 Nginx 超时）。多实例或特殊网络时再改 |
+| `PUPPETEER_EXECUTABLE_PATH` | 生产 Chromium 路径，Docker 镜像内为 `/usr/bin/chromium` |
 
 可选（启用 AI 评分限流与缓存时需配置，见 `.env.local.example`）：
 

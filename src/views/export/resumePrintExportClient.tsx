@@ -40,7 +40,7 @@ export default function ResumePrintExportClient({
       if (!cancelled) setReady(true);
     };
     const clear = scheduleExportReady(mark);
-    const fallback = window.setTimeout(mark, 15_000);
+    const fallback = window.setTimeout(mark, 6_000);
     return () => {
       cancelled = true;
       clear();

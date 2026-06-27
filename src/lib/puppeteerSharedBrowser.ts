@@ -57,3 +57,7 @@ export function withPuppeteerSession<T>(fn: () => Promise<T>): Promise<T> {
   );
   return job;
 }
+
+if (process.env.NODE_ENV === 'production') {
+  void getSharedBrowser().catch(() => undefined);
+}
