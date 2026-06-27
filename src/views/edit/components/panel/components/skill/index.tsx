@@ -1,9 +1,7 @@
 'use client';
 import { polishDescription } from '@/api/polishDescription';
 import { intentPostsFromResumeConfig } from '@/utils/intentPosts';
-import RichTextEditor, {
-  RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH,
-} from '@/components/richTextEditor';
+import RichTextEditor from '@/components/richTextEditor';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
@@ -146,7 +144,6 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
             html={module.options.description ?? ''}
             dataPanelItemId={`${moduleActive}_description`}
             onHtmlChange={updateDescription}
-            maxPlainLength={RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH}
             placeholder={ts('placeholder')}
             onAiPolishClick={(richTextHtml, ctx) =>
               polishDescription(

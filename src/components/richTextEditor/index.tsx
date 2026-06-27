@@ -30,8 +30,7 @@ async function loadQuillCtor(): Promise<QuillType> {
   return quillCtorPromise;
 }
 
-export const RICH_TEXT_MAX_PLAIN_LENGTH = 300;
-export const RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH = 2000;
+export const RICH_TEXT_MAX_PLAIN_LENGTH = 500;
 
 function getQuillPlainCharCount(q: QuillType): number {
   const L = q.getLength();

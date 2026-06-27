@@ -1,7 +1,5 @@
 'use client';
-import RichTextEditor, {
-  RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH,
-} from '@/components/richTextEditor';
+import RichTextEditor from '@/components/richTextEditor';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
@@ -106,7 +104,6 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
             html={module.options.description ?? ''}
             dataPanelItemId={`${moduleActive}_description`}
             onHtmlChange={updateDescription}
-            maxPlainLength={RICH_TEXT_LONG_BODY_MAX_PLAIN_LENGTH}
             placeholder={to('placeholder')}
           />
         </div>
