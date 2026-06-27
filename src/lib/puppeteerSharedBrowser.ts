@@ -6,12 +6,50 @@ import type { PdfExportTrace } from '@/lib/pdfExportLog';
 let globalBrowser: Browser | null = null;
 let launchPromise: Promise<Browser> | null = null;
 let sessionChain: Promise<unknown> = Promise.resolve();
+let sessionBusy = false;
+let sessionBusySince = 0;
+let sessionBusyTraceId: string | null = null;
 
+const LAUNCH_TIMEOUT_MS = 45_000;
+const SESSION_TIMEOUT_MS = 120_000;
 const TRANSIENT_PUPPETEER_RE =
   /detached|Target closed|Session closed|has been disconnected|Connection closed/i;
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(label)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 export function isSharedBrowserConnected(): boolean {
   return Boolean(globalBrowser?.connected);
+}
+
+export function isPuppeteerSessionBusy(): boolean {
+  return sessionBusy;
+}
+
+/** 队列卡死时强制清空（如 pm2 restart 前可手动调用） */
+export function resetPuppeteerSessionQueue(trace?: PdfExportTrace): void {
+  trace?.log('session queue force reset', {
+    wasBusy: sessionBusy,
+    busyTraceId: sessionBusyTraceId,
+    busyForMs: sessionBusy ? Date.now() - sessionBusySince : 0,
+  });
+  sessionChain = Promise.resolve();
+  sessionBusy = false;
+  sessionBusySince = 0;
+  sessionBusyTraceId = null;
 }
 
 export async function resetSharedBrowser(trace?: PdfExportTrace): Promise<void> {
@@ -26,8 +64,13 @@ async function launchGlobalBrowser(trace?: PdfExportTrace): Promise<Browser> {
   const opts = getPuppeteerLaunchOptions();
   trace?.log('browser.launch start', {
     executablePath: opts.executablePath ?? 'bundled',
+    timeoutMs: LAUNCH_TIMEOUT_MS,
   });
-  const browser = await puppeteer.launch(opts);
+  const browser = await withTimeout(
+    puppeteer.launch(opts),
+    LAUNCH_TIMEOUT_MS,
+    `Chromium 启动超时（${LAUNCH_TIMEOUT_MS}ms）`,
+  );
   trace?.log('browser.launch done');
   browser.once('disconnected', () => {
     globalBrowser = null;
@@ -75,24 +118,53 @@ export function withPuppeteerSession<T>(
   fn: () => Promise<T>,
   trace?: PdfExportTrace,
 ): Promise<T> {
-  trace?.log('puppeteer session queued');
-  const job = sessionChain.then(async (): Promise<T> => {
-    trace?.log('puppeteer session start');
+  const queuedAt = Date.now();
+  trace?.log('puppeteer session queued', {
+    sessionBusy,
+    busyTraceId: sessionBusyTraceId,
+    busyForMs: sessionBusy ? queuedAt - sessionBusySince : 0,
+  });
+
+  if (sessionBusy && queuedAt - sessionBusySince > SESSION_TIMEOUT_MS) {
+    trace?.log('puppeteer session queue stale, force reset');
+    resetPuppeteerSessionQueue(trace);
+    void resetSharedBrowser(trace);
+  }
+
+  const run = async (): Promise<T> => {
+    const queueWaitMs = Date.now() - queuedAt;
+    sessionBusy = true;
+    sessionBusySince = Date.now();
+    sessionBusyTraceId = trace?.id ?? null;
+    trace?.log('puppeteer session start', { queueWaitMs });
     try {
-      const result = await fn();
+      const result = await withTimeout(
+        (async () => {
+          try {
+            return await fn();
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            trace?.log('puppeteer session error', { error: msg });
+            if (TRANSIENT_PUPPETEER_RE.test(msg)) {
+              trace?.log('puppeteer session retry after transient error');
+              await resetSharedBrowser(trace);
+              return await fn();
+            }
+            throw e;
+          }
+        })(),
+        SESSION_TIMEOUT_MS,
+        `Puppeteer 导出超时（${SESSION_TIMEOUT_MS}ms）`,
+      );
       trace?.log('puppeteer session done');
       return result;
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      trace?.log('puppeteer session error', { error: msg });
-      if (TRANSIENT_PUPPETEER_RE.test(msg)) {
-        trace?.log('puppeteer session retry after transient error');
-        await resetSharedBrowser(trace);
-        return await fn();
-      }
-      throw e;
+    } finally {
+      sessionBusy = false;
+      sessionBusyTraceId = null;
     }
-  });
+  };
+
+  const job = sessionChain.catch(() => undefined).then(run);
   sessionChain = job.then(
     () => undefined,
     () => undefined,
