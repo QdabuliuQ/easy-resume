@@ -1,14 +1,9 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getPuppeteerLaunchOptions } from '@/lib/puppeteerLaunchOptions';
 
 describe('puppeteerLaunchOptions', () => {
-  const origEnv = process.env.NODE_ENV;
-  const origExec = process.env.PUPPETEER_EXECUTABLE_PATH;
-
   afterEach(() => {
-    process.env.NODE_ENV = origEnv;
-    if (origExec) process.env.PUPPETEER_EXECUTABLE_PATH = origExec;
-    else delete process.env.PUPPETEER_EXECUTABLE_PATH;
+    vi.unstubAllEnvs();
   });
 
   it('returns headless launch args for linux server', () => {
@@ -23,19 +18,19 @@ describe('puppeteerLaunchOptions', () => {
   });
 
   it('sets dbus env in production', () => {
-    process.env.NODE_ENV = 'production';
+    vi.stubEnv('NODE_ENV', 'production');
     const opts = getPuppeteerLaunchOptions();
     expect(opts.env?.DBUS_SESSION_BUS_ADDRESS).toBe('/dev/null');
   });
 
   it('uses custom executable path', () => {
-    process.env.PUPPETEER_EXECUTABLE_PATH = '/custom/chrome';
+    vi.stubEnv('PUPPETEER_EXECUTABLE_PATH', '/custom/chrome');
     expect(getPuppeteerLaunchOptions().executablePath).toBe('/custom/chrome');
   });
 
   it('uses prod chromium when NODE_ENV production', () => {
-    delete process.env.PUPPETEER_EXECUTABLE_PATH;
-    process.env.NODE_ENV = 'production';
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('PUPPETEER_EXECUTABLE_PATH', '');
     expect(getPuppeteerLaunchOptions().executablePath).toBe('/usr/bin/chromium-browser');
   });
 });
