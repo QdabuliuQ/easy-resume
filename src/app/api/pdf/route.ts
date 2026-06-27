@@ -1,4 +1,4 @@
-import { getSharedBrowser, withPuppeteerSession } from '@/lib/puppeteerSharedBrowser';
+import { getSharedBrowser, warmupSharedBrowser, withPuppeteerSession } from '@/lib/puppeteerSharedBrowser';
 import { gotoExportResumeAndWait } from '@/lib/puppeteerWaitExportReady';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { prepareReactExport } from '../export/reactPrintMeta';
@@ -6,6 +6,10 @@ import { prepareReactExport } from '../export/reactPrintMeta';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 180;
+
+if (process.env.NODE_ENV === 'production') {
+  void warmupSharedBrowser().catch(() => undefined);
+}
 
 async function generatePdfFromExportUrl(
   exportUrl: string,
