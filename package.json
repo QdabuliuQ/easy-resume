@@ -9,12 +9,14 @@
     "clean:next": "rm -rf .next node_modules/.cache",
     "prebuild": "npm run clean:next",
     "build": "next build",
+    "prestart": "node scripts/ensure-next-build.mjs",
+    "start": "next start -p 3010",
+    "deploy": "npm ci && npm run build",
     "lint": "eslint src",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "prepare": "husky install",
-    "start": "next start -p 3010"
+    "prepare": "husky install"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.1",
