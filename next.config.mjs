@@ -8,6 +8,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   experimental: {
+    instrumentationHook: true,
     serverComponentsExternalPackages: ['puppeteer', '@xenova/transformers', 'onnxruntime-node'],
   },
   images: {
