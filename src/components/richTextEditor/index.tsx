@@ -3,7 +3,7 @@ import { useAppMessage } from '@/hooks/useAppMessage';
 import { useMemoizedFn } from 'ahooks';
 import { useLocale, useTranslations } from 'next-intl';
 import { memo, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { sanitizeRichTextHtml, unwrapFencedHtml } from '@/utils/sanitizeHtml';
+import { sanitizeRichTextHtml, unwrapFencedHtml, plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 import 'quill/dist/quill.snow.css';
 import { Magic } from '@icon-park/react';
 import styles from './index.module.css';
@@ -113,6 +113,31 @@ function localizeQuillSnowToolbar(toolbarEl: Element, tr: (key: ToolbarTrKey) =>
   });
 }
 
+function bindPlainTextPaste(q: QuillType) {
+  const clipboard = q.getModule('clipboard');
+  if (!clipboard) return;
+  clipboard.onCapturePaste = (e: ClipboardEvent) => {
+    if (e.defaultPrevented || !q.isEnabled()) return;
+    e.preventDefault();
+    const range = q.getSelection(true);
+    if (range == null) return;
+    const html = e.clipboardData?.getData('text/html') ?? '';
+    let text = e.clipboardData?.getData('text/plain') ?? '';
+    if (!text && html) text = plainTextFromRichHtml(html);
+    if (!text) {
+      const urlList = e.clipboardData?.getData('text/uri-list');
+      if (urlList) text = clipboard.normalizeURIList(urlList);
+    }
+    const files = Array.from(e.clipboardData?.files || []);
+    if (!text && files.length > 0) {
+      q.uploader?.upload(range, files);
+      return;
+    }
+    if (!text) return;
+    clipboard.onPaste(range, { text });
+  };
+}
+
 function RichTextEditor({
   instanceKey,
   html,
@@ -181,6 +206,7 @@ function RichTextEditor({
         },
       });
       quillRef.current = q;
+      bindPlainTextPaste(q);
       const tb = el.previousElementSibling;
       if (tb?.classList.contains('ql-toolbar')) localizeQuillSnowToolbar(tb, tr);
       const tipInput = el.querySelector('.ql-tooltip input[type="text"]');
