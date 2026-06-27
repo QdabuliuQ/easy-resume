@@ -41,19 +41,34 @@ export function AntdProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    let refreshing = false;
+    const onControllerChange = () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+
     const register = async () => {
       try {
-        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        const registration = await navigator.serviceWorker.register('/service-worker.js', {
+          updateViaCache: 'none',
+        });
+
+        const pingUpdate = () => {
+          void registration.update().catch(() => undefined);
+        };
+        pingUpdate();
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') pingUpdate();
+        });
 
         registration.addEventListener('updatefound', () => {
           const installing = registration.installing;
-          if (!installing) {
-            return;
-          }
+          if (!installing) return;
           installing.addEventListener('statechange', () => {
             if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-              // New worker installed; the next full reload will pick up new cache.
-              console.info('[SW] new content is available; reload to update.');
+              console.info('[SW] new version installed; reloading…');
             }
           });
         });
@@ -63,6 +78,10 @@ export function AntdProvider({ children }: { children: ReactNode }) {
     };
 
     register();
+
+    return () => {
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+    };
   }, []);
 
   useEffect(() => {

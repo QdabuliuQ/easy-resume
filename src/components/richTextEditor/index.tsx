@@ -112,12 +112,27 @@ function localizeQuillSnowToolbar(toolbarEl: Element, tr: (key: ToolbarTrKey) =>
   });
 }
 
+function pastePlainTextAtSelection(
+  q: QuillType,
+  range: { index: number; length: number },
+  text: string,
+) {
+  const normalized = text.replace(/\r\n/g, '\n');
+  if (!normalized) return;
+  q.deleteText(range.index, range.length, 'user');
+  q.insertText(range.index, normalized, {}, 'user');
+  const nextIndex = range.index + normalized.length;
+  q.setSelection(nextIndex, 0, 'silent');
+  q.scrollSelectionIntoView();
+}
+
 function bindPlainTextPaste(q: QuillType) {
   const clipboard = q.getModule('clipboard');
   if (!clipboard) return;
   clipboard.onCapturePaste = (e: ClipboardEvent) => {
     if (e.defaultPrevented || !q.isEnabled()) return;
     e.preventDefault();
+    e.stopPropagation();
     const range = q.getSelection(true);
     if (range == null) return;
     const html = e.clipboardData?.getData('text/html') ?? '';
@@ -127,13 +142,8 @@ function bindPlainTextPaste(q: QuillType) {
       const urlList = e.clipboardData?.getData('text/uri-list');
       if (urlList) text = clipboard.normalizeURIList(urlList);
     }
-    const files = Array.from(e.clipboardData?.files || []);
-    if (!text && files.length > 0) {
-      q.uploader?.upload(range, files);
-      return;
-    }
     if (!text) return;
-    clipboard.onPaste(range, { text });
+    pastePlainTextAtSelection(q, range, text);
   };
 }
 
