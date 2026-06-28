@@ -27,6 +27,8 @@
  * 客户端解析见 src/api/polishDescription.ts
  */
 import { z } from 'zod';
+import crypto from 'crypto';
+import { checkPolishRateLimit, getClientIp } from '@/lib/ai/score/routeShared';
 import { streamPolishDescription } from '@/lib/ai/polish/service';
 import type { PolishRequest } from '@/lib/ai/polish/types';
 
@@ -64,7 +66,6 @@ const contextEducationSchema = z.object({
   studyTime: z.string().optional().default(''),
 });
 
-/** discriminatedUnion：根据 type 字段自动匹配对应 schema */
 const polishRequestSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('job'),
@@ -116,6 +117,15 @@ export async function POST(req: Request) {
     return Response.json({ error: '参数无效' }, { status: 400 });
   }
   const reqData = parsed.data as PolishRequest;
+
+  const ipHash = crypto.createHash('sha256').update(getClientIp(req)).digest('hex').slice(0, 16);
+  const rate = await checkPolishRateLimit(ipHash);
+  if (!rate.allowed) {
+    return Response.json(
+      { error: rate.message },
+      { status: 429, headers: { 'Retry-After': String(rate.resetIn) } },
+    );
+  }
 
   // ---------- 2. 建立 SSE 流，LangChain 逐 token 回调推送 ----------
   const stream = new ReadableStream<Uint8Array>({

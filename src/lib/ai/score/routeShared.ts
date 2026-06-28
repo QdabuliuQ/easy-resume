@@ -39,7 +39,7 @@ export function err(message: string, status: number, retryAfter?: number): NextR
   return NextResponse.json(body, { status, headers });
 }
 
-export function getClientIp(req: NextRequest): string {
+export function getClientIp(req: Pick<NextRequest, 'headers'> | Request): string {
   const forwarded = req.headers.get('x-forwarded-for');
   if (forwarded) return forwarded.split(',')[0].trim();
   return req.headers.get('x-real-ip') ?? '127.0.0.1';
@@ -145,6 +145,23 @@ export async function checkAnalyzeRateLimit(
     await redis.set(blockedKey, String(rate.resetIn), { ex: ANALYZE_SESSION_TTL_SEC });
   }
   return rate;
+}
+
+/** AI 润色：1 分钟最多 4 次（按 IP）。未配置 Upstash 时跳过限流。 */
+export async function checkPolishRateLimit(
+  ipHash: string,
+): Promise<RateLimitDenied | { allowed: true }> {
+  const redis = getRedis();
+  if (!redis) return { allowed: true };
+  const minuteCheck = await checkRateLimit(redis, `ratelimit:polish:1m:${ipHash}`, 4, 60);
+  if (!minuteCheck.allowed) {
+    return {
+      allowed: false,
+      resetIn: minuteCheck.resetIn,
+      message: `请求过于频繁，1 分钟内最多 4 次，请 ${minuteCheck.resetIn} 秒后重试`,
+    };
+  }
+  return { allowed: true };
 }
 
 export async function getCachedJson<T>(cacheKey: string): Promise<T | null> {
