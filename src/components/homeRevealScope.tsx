@@ -57,7 +57,7 @@ export default function HomeRevealScope({ reduceMotion, children }: HomeRevealSc
 
     return () => {
       io.disconnect();
-      for (const tween of tweens.values()) tween.kill();
+      tweens.forEach((tween) => tween.kill());
     };
   }, [reduceMotion]);
 
