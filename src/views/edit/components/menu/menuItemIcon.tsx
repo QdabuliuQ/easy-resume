@@ -1,5 +1,6 @@
 import {
   AppstoreOutlined,
+  FileTextOutlined,
   ProfileOutlined,
   SettingOutlined,
   SlidersOutlined,
@@ -19,6 +20,7 @@ export default function MenuItemIcon({ menuKey, selected }: MenuItemIconProps) {
     : 'relative z-[1] text-[20px] mb-[3px] transition-[fill] duration-200 [&_svg]:!fill-[var(--menu-icon-muted)]';
 
   if (menuKey === 'import-template') return <UploadOutlined className={antIconCls} />;
+  if (menuKey === 'import-resume') return <FileTextOutlined className={antIconCls} />;
   if (menuKey === 'resume') return <ProfileOutlined className={antIconCls} />;
   if (menuKey === 'resume-template') return <AppstoreOutlined className={antIconCls} />;
   if (menuKey === 'general-settings') return <SettingOutlined className={antIconCls} />;

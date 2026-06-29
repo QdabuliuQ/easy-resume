@@ -42,7 +42,7 @@ function hasRichPreview(html?: string): boolean {
 }
 
 const PREVIEW_HTML_CLASS =
-  'max-h-[140px] overflow-y-auto break-words text-[12px] text-fg/60';
+  'break-words text-[12px] text-fg/60';
 
 function Project({ moduleId }: { moduleId?: string } = {}) {
   const message = useAppMessage();

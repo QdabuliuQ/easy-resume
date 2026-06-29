@@ -35,3 +35,5 @@ webhook.cjs
 public/fonts/*
 .agents
 .codegraph
+.cache
+*.traineddata

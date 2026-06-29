@@ -483,11 +483,11 @@ export default function Home() {
 
         </section>
 
+        <HomeRevealScope reduceMotion={reduceMotion}>
         <div className='relative w-full overflow-x-hidden'>
           <HomeResumeTemplateScroll reduceMotion={reduceMotion} />
         </div>
 
-        <HomeRevealScope reduceMotion={reduceMotion}>
         <section
           id='features'
           className='scroll-mt-[calc(3.5rem+env(safe-area-inset-top,0px))] border-t border-fg/[0.07] md:scroll-mt-[72px]'

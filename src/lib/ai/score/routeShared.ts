@@ -164,6 +164,23 @@ export async function checkPolishRateLimit(
   return { allowed: true };
 }
 
+/** 简历文件识别：1 分钟最多 2 次（按 IP）。未配置 Upstash 时跳过限流。 */
+export async function checkResumeImportRateLimit(
+  ipHash: string,
+): Promise<RateLimitDenied | { allowed: true }> {
+  const redis = getRedis();
+  if (!redis) return { allowed: true };
+  const minuteCheck = await checkRateLimit(redis, `ratelimit:resume-import:1m:${ipHash}`, 2, 60);
+  if (!minuteCheck.allowed) {
+    return {
+      allowed: false,
+      resetIn: minuteCheck.resetIn,
+      message: `请求过于频繁，1 分钟内最多 2 次，请 ${minuteCheck.resetIn} 秒后重试`,
+    };
+  }
+  return { allowed: true };
+}
+
 export async function getCachedJson<T>(cacheKey: string): Promise<T | null> {
   const redis = getRedis();
   if (!redis) return null;

@@ -12,6 +12,9 @@ type HomeRevealScopeProps = {
   children: ReactNode;
 };
 
+const REVEAL_FROM_Y = 28;
+const REVEAL_HIDE_Y = 22;
+
 export default function HomeRevealScope({ reduceMotion, children }: HomeRevealScopeProps) {
   const scopeRef = useRef<HTMLDivElement>(null);
 
@@ -24,26 +27,47 @@ export default function HomeRevealScope({ reduceMotion, children }: HomeRevealSc
       if (!items.length) return;
 
       if (reduceMotion) {
-        gsap.set(items, { autoAlpha: 1, y: 0 });
+        gsap.set(items, { autoAlpha: 1, y: 0, scale: 1 });
         return;
       }
 
-      gsap.set(items, { autoAlpha: 0, y: 32 });
+      gsap.set(items, { autoAlpha: 0, y: REVEAL_FROM_Y, scale: 0.98 });
 
-      ScrollTrigger.batch(items, {
-        start: 'top 88%',
-        once: true,
-        onEnter: (batch) => {
-          gsap.to(batch, {
+      const triggers = items.map((el) => {
+        const show = () => {
+          gsap.to(el, {
             autoAlpha: 1,
             y: 0,
-            duration: 0.65,
-            stagger: 0.1,
+            scale: 1,
+            duration: 0.62,
             ease: 'power2.out',
             overwrite: 'auto',
           });
-        },
+        };
+        const hide = () => {
+          gsap.to(el, {
+            autoAlpha: 0,
+            y: REVEAL_HIDE_Y,
+            scale: 0.98,
+            duration: 0.42,
+            ease: 'power2.in',
+            overwrite: 'auto',
+          });
+        };
+        return ScrollTrigger.create({
+          trigger: el,
+          start: 'top 88%',
+          end: 'top 18%',
+          onEnter: show,
+          onEnterBack: show,
+          onLeave: hide,
+          onLeaveBack: hide,
+        });
       });
+
+      return () => {
+        for (const st of triggers) st.kill();
+      };
     },
     { scope: scopeRef, dependencies: [reduceMotion], revertOnUpdate: true },
   );

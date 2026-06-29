@@ -39,7 +39,7 @@ import {
   Info1,
   Page,
 } from '@/modules';
-import { configStore } from '@/mobx';
+import { configStore, resumeImportStore } from '@/mobx';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { flattenModules } from '@/utils/resumePages';
 import ModuleOperation from '@/components/moduleOperation';
@@ -50,6 +50,7 @@ import CanvasModuleFragment from './moduleFragment';
 import SelectableGuideLines from './selectableGuideLines';
 import { useSelectableGuideHover } from './useSelectableGuideHover';
 import CanvasFloatActions from './canvasFloatActions';
+import ResumeImportOverlay from './resumeImportOverlay';
 
 /** 容器内左右留白，用于判断是否需缩小画布（缩放时两侧至少各 40） */
 const CANVAS_SIDE_PAD = 70;
@@ -588,6 +589,11 @@ function Canvas({
     containerRef,
     stageRef: canvasStageRef,
   });
+  const importLoading = resumeImportStore.loading;
+  useEffect(() => {
+    if (importLoading) clearSelectableHover();
+  }, [importLoading, clearSelectableHover]);
+  const quickSelectActive = isEditMode && quickSelectEnabled && !importLoading;
 
   const floatActionsEl = isEditMode ? (
     <CanvasFloatActions
@@ -638,9 +644,9 @@ function Canvas({
   return (
     <div
       ref={containerRef}
-      className='relative flex h-full w-full min-h-0 flex-col items-center justify-start overflow-auto rounded-md'
-      onMouseMove={isEditMode && quickSelectEnabled ? (event) => updateSelectableHover(event.clientX, event.clientY) : undefined}
-      onMouseLeave={isEditMode && quickSelectEnabled ? clearSelectableHover : undefined}
+      className={`relative flex h-full w-full min-h-0 flex-col items-center justify-start rounded-md ${importLoading ? 'overflow-hidden touch-none' : 'overflow-auto'}`}
+      onMouseMove={quickSelectActive ? (event) => updateSelectableHover(event.clientX, event.clientY) : undefined}
+      onMouseLeave={quickSelectActive ? clearSelectableHover : undefined}
     >
       <ResumeFontCdn font={globalStyle.resumeFont} />
       <div
@@ -681,7 +687,7 @@ function Canvas({
         </div>
       </div>
 
-      {isEditMode && quickSelectEnabled ? (
+      {quickSelectActive ? (
         <SelectableGuideLines
           hoverRect={hoverRect}
           visible={Boolean(hoverRect)}
@@ -690,6 +696,8 @@ function Canvas({
       ) : null}
 
       {floatActionsEl}
+
+      {isEditMode ? <ResumeImportOverlay /> : null}
 
       {isEditMode ? previewOverlay : null}
 
