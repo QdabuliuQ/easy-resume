@@ -28,7 +28,7 @@
 </p>
 
 <p align="center">
-  <img src="./src/assets/brand/preview.webp" width="800" alt="青松简历项目预览">
+  <img src="https://img.qdabuliuq.cn/easy-resume/preview.webp" width="800" alt="青松简历项目预览">
 </p>
 
 ## ✨ 功能概览

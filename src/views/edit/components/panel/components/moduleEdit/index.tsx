@@ -11,8 +11,7 @@ import {
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { observer } from 'mobx-react';
-import photo4 from '@/assets/brand/photo4.png';
-import photo4Light from '@/assets/brand/photo4_light.png';
+import { photo4, photo4Light } from '@/lib/brandAssets';
 import {
   getServerThemeSnapshot,
   getThemeSnapshot,
