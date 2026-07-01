@@ -42,7 +42,7 @@ import { city, degree, schoolType } from '@/modules/utils/constant';
 import { EducationProps } from '@/modules/education';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
-import RichTextEditor from '@/components/richTextEditor';
+import RichTextEditor from '@/components/richTextEditor/lazy';
 import {
   canAddResumeModuleItem,
   resumeModuleItemLimitMessage,

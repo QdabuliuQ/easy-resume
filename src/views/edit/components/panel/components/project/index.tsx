@@ -24,7 +24,7 @@ import AddGradientButton from '../addGradientButton';
 import ButtonGroup from '../buttonGroup';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
-import RichTextEditor from '@/components/richTextEditor';
+import RichTextEditor from '@/components/richTextEditor/lazy';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import {
   canAddResumeModuleItem,

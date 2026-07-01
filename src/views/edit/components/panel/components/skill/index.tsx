@@ -1,7 +1,7 @@
 'use client';
 import { polishDescription } from '@/api/polishDescription';
 import { intentPostsFromResumeConfig } from '@/utils/intentPosts';
-import RichTextEditor from '@/components/richTextEditor';
+import RichTextEditor from '@/components/richTextEditor/lazy';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';

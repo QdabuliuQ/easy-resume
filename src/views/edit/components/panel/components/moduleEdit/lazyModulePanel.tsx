@@ -1,5 +1,6 @@
 'use client';
 import { memo, useEffect, useState, type ComponentType } from 'react';
+import { prefetchRichTextEditor } from '@/components/richTextEditor/lazy';
 
 type ModulePanel = ComponentType<{ moduleId?: string }>;
 
@@ -13,12 +14,15 @@ const panelLoaders: Record<string, () => Promise<{ default: ModulePanel }>> = {
   other: () => import('../other'),
 };
 
+const RTE_PANEL_TYPES = new Set(['skill', 'job', 'project', 'education', 'other']);
+
 function LazyModulePanel({ type, moduleId }: { type: string; moduleId: string }) {
   const [Panel, setPanel] = useState<ModulePanel | null>(null);
   useEffect(() => {
     let cancelled = false;
     const loader = panelLoaders[type];
     if (!loader) return;
+    if (RTE_PANEL_TYPES.has(type)) prefetchRichTextEditor();
     void loader().then((mod) => {
       if (!cancelled) setPanel(() => mod.default);
     });

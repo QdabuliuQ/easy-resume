@@ -39,7 +39,7 @@ import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import dayjs from 'dayjs';
 import { SolutionOutlined } from '@ant-design/icons';
-import RichTextEditor from '@/components/richTextEditor';
+import RichTextEditor from '@/components/richTextEditor/lazy';
 import {
   canAddResumeModuleItem,
   resumeModuleItemLimitMessage,
