@@ -651,12 +651,13 @@ function Canvas({
   );
 
   return (
-    <div
-      ref={containerRef}
-      className={`relative flex h-full w-full min-h-0 flex-col items-center justify-start rounded-md ${importLoading ? 'overflow-hidden touch-none' : 'overflow-auto'}`}
-      onMouseMove={quickSelectActive ? (event) => updateSelectableHover(event.clientX, event.clientY) : undefined}
-      onMouseLeave={quickSelectActive ? clearSelectableHover : undefined}
-    >
+    <div className='relative flex h-full w-full min-h-0 flex-col'>
+      <div
+        ref={containerRef}
+        className={`relative flex h-full w-full min-h-0 flex-col items-center justify-start rounded-md ${importLoading ? 'overflow-hidden touch-none' : 'overflow-auto'}`}
+        onMouseMove={quickSelectActive ? (event) => updateSelectableHover(event.clientX, event.clientY) : undefined}
+        onMouseLeave={quickSelectActive ? clearSelectableHover : undefined}
+      >
       <ResumeFontCdn font={globalStyle.resumeFont} />
       <div
         aria-hidden='true'
@@ -706,10 +707,11 @@ function Canvas({
 
       {floatActionsEl}
 
-      {isEditMode ? <ResumeImportOverlay /> : null}
-
       {isEditMode ? previewOverlay : null}
 
+      </div>
+
+      {isEditMode ? <ResumeImportOverlay /> : null}
     </div>
   );
 }

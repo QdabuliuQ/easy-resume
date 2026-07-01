@@ -14,8 +14,6 @@ const nextConfig = {
       '@puppeteer/browsers',
       '@xenova/transformers',
       'onnxruntime-node',
-      'pdf-parse',
-      'tesseract.js',
     ],
   },
   images: {

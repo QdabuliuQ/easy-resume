@@ -47,6 +47,7 @@ function ModuleEdit() {
   const activeId = moduleActiveStore.getModuleActive;
   const sectionRef = useRef<HTMLElement | null>(null);
   const navStickyRef = useRef<HTMLElement | null>(null);
+  const navScrollRef = useRef<HTMLDivElement | null>(null);
   const [navStuck, setNavStuck] = useState(false);
 
   const modulesFlat = useMemo(
@@ -78,10 +79,15 @@ function ModuleEdit() {
 
   useLayoutEffect(() => {
     if (activeId === 'global' || !activeId) return;
+    const navBtn = navScrollRef.current?.querySelector(
+      `[data-module-nav-id="${CSS.escape(activeId)}"]`,
+    ) as HTMLElement | null;
+    navBtn?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
     const scrollSection = () => {
       const el = sectionRef.current;
       if (!el) return false;
-      scrollElementIntoScrollParent(el, 'smooth', { align: 'start' });
+      scrollElementIntoScrollParent(el, 'smooth', { align: 'center' });
       return true;
     };
     requestAnimationFrame(() => {
@@ -134,13 +140,14 @@ function ModuleEdit() {
           navStuck ? 'rounded-b-[20px] rounded-t-none' : 'rounded-[20px]'
         }`}
       >
-        <div className='flex gap-2 overflow-x-auto pb-3.5'>
+        <div ref={navScrollRef} className='flex gap-2 overflow-x-auto pb-3.5'>
           {moduleEntries.map((mod) => {
             const selected = activeId === mod.id;
             return (
               <button
                 key={mod.id}
                 type='button'
+                data-module-nav-id={mod.id}
                 onClick={() => {
                   moduleActiveStore.setModuleActive(selected ? 'global' : mod.id);
                 }}
