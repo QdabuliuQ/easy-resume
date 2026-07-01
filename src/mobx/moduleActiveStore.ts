@@ -11,6 +11,10 @@ export default class ModuleActiveStore {
     this.moduleActive = value;
   }
 
+  reset() {
+    this.moduleActive = 'global';
+  }
+
   get getModuleActive(): string {
     return this.moduleActive;
   }

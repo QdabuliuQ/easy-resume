@@ -1,6 +1,7 @@
 'use client';
 import { useLayoutEffect, useState } from 'react';
 import Loading from '@/components/loading';
+import { resetEditSessionState } from '@/mobx/resetEditSessionState';
 import { resolveDeviceType, type DeviceType } from '@/lib/device';
 import DesktopEditPage from './desktop-edit-page';
 import MobileEditPage from './mobile-edit-page';
@@ -19,6 +20,7 @@ export default function EditDeviceRouter() {
   useLayoutEffect(() => {
     setDevice(readClientDevice());
   }, []);
+  useLayoutEffect(() => () => resetEditSessionState(), []);
   if (!device) return <Loading />;
   return device === 'mobile' ? <MobileEditPage /> : <DesktopEditPage />;
 }

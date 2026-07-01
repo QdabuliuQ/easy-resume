@@ -12,6 +12,11 @@ class ResumeImportStore {
     this.loading = loading;
     this.statusText = statusText;
   }
+
+  reset() {
+    this.loading = false;
+    this.statusText = '';
+  }
 }
 
 export default new ResumeImportStore();
