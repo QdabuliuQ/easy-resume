@@ -8,6 +8,7 @@ import {
   mobilePickerSheetBodyStyle,
   mobilePickerTriggerClass,
 } from '@/components/mobilePicker/shared';
+import PresentEndAction from '@/components/responsiveDatePicker/presentEndAction';
 
 function toDayjs(v: unknown): Dayjs | null {
   if (v == null || v === '') return null;
@@ -100,7 +101,12 @@ export function MobileDatePicker({
 
 type MobileRangeDatePickerProps = {
   value?: [Dayjs | undefined, Dayjs | undefined];
-  onChange?: (dates: [Dayjs, Dayjs] | null) => void;
+  endIsPresent?: boolean;
+  presentLabel?: string;
+  onChange?: (
+    dates: [Dayjs | null, Dayjs | null] | null,
+    meta: { endIsPresent: boolean },
+  ) => void;
   placeholder?: [string, string];
   disabled?: boolean;
   className?: string;
@@ -111,6 +117,8 @@ type MobileRangeDatePickerProps = {
 
 export function MobileRangeDatePicker({
   value,
+  endIsPresent = false,
+  presentLabel = '至今',
   onChange,
   placeholder = ['开始', '结束'],
   disabled,
@@ -123,6 +131,7 @@ export function MobileRangeDatePicker({
   const tm = useTranslations('Edit.mobile');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pick, setPick] = useState<'start' | 'end' | null>(null);
+  const [draftPresent, setDraftPresent] = useState(endIsPresent);
   const start = value?.[0];
   const end = value?.[1];
   const [draftStart, setDraftStart] = useState<Dayjs>(() => start ?? dayjs());
@@ -131,19 +140,31 @@ export function MobileRangeDatePicker({
   useEffect(() => {
     if (start) setDraftStart(start);
     if (end) setDraftEnd(end);
-  }, [start, end]);
+    setDraftPresent(endIsPresent);
+  }, [start, end, endIsPresent]);
 
   const display = useMemo(() => {
+    if (start && endIsPresent) return `${start.format(format)} ~ ${presentLabel}`;
     if (start && end) return `${start.format(format)} ~ ${end.format(format)}`;
     if (start) return `${start.format(format)} ~ ${placeholder[1]}`;
+    if (endIsPresent) return `${placeholder[0]} ~ ${presentLabel}`;
     if (end) return `${placeholder[0]} ~ ${end.format(format)}`;
     return `${placeholder[0]} ~ ${placeholder[1]}`;
-  }, [end, format, placeholder, start]);
+  }, [end, endIsPresent, format, placeholder, presentLabel, start]);
 
   const empty = display === `${placeholder[0]} ~ ${placeholder[1]}`;
 
   const commit = () => {
-    onChange?.([draftStart, draftEnd]);
+    onChange?.(
+      [draftStart, draftPresent ? null : draftEnd],
+      { endIsPresent: draftPresent },
+    );
+    setSheetOpen(false);
+  };
+
+  const pickPresentEnd = () => {
+    setDraftPresent(true);
+    onChange?.([draftStart, null], { endIsPresent: true });
     setSheetOpen(false);
   };
 
@@ -181,12 +202,22 @@ export function MobileRangeDatePicker({
         </button>
         <button
           type='button'
-          className='flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[color:var(--adm-color-text)]'
-          onClick={() => setPick('end')}
+          className='flex w-full items-center justify-between border-b border-[color:var(--adm-color-border)] px-4 py-3 text-left text-sm text-[color:var(--adm-color-text)]'
+          onClick={() => {
+            setDraftPresent(false);
+            setPick('end');
+          }}
         >
           <span className='text-[color:var(--adm-color-text-secondary)]'>{tm('periodEnd')}</span>
-          <span>{draftEnd.format(format)}</span>
+          <span>{draftPresent ? presentLabel : draftEnd.format(format)}</span>
         </button>
+        <div className='border-b border-[color:var(--adm-color-border)] px-4 py-3'>
+          <PresentEndAction
+            label={presentLabel}
+            active={draftPresent}
+            onClick={pickPresentEnd}
+          />
+        </div>
         <div className='flex gap-3 border-t border-[color:var(--adm-color-border)] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]'>
           <button
             type='button'
@@ -223,6 +254,7 @@ export function MobileRangeDatePicker({
         onClose={() => setPick(null)}
         onConfirm={(v) => {
           setDraftEnd(dayjs(v));
+          setDraftPresent(false);
           setPick(null);
         }}
       />

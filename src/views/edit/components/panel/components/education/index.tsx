@@ -2,6 +2,7 @@
 import FormItem from '@/components/formItem';
 import ResponsiveSelect from '@/components/responsiveSelect';
 import { ResponsiveRangeDatePicker } from '@/components/responsiveDatePicker';
+import { resumeRangeEndDateString } from '@/utils/resumeDateDisplay';
 import { polishDescription } from '@/api/polishDescription';
 import { intentPostsFromResumeConfig } from '@/utils/intentPosts';
 import { useModuleHandle } from '@/hooks/module';
@@ -186,9 +187,15 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
     } else if (key === 'degree' || key === 'tags') {
       module.options.items[index][key] = e;
     } else if (key === 'date') {
-      const dateArr = Array.isArray(e) ? e : [undefined, undefined];
-      module.options.items[index].startDate = dateArr[0]?.format('YYYY-MM') ?? '';
-      module.options.items[index].endDate = dateArr[1]?.format('YYYY-MM') ?? '';
+      const payload = e as {
+        dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null;
+        endIsPresent: boolean;
+      };
+      module.options.items[index].startDate = payload.dates?.[0]?.format('YYYY-MM') ?? '';
+      module.options.items[index].endDate = resumeRangeEndDateString(
+        payload.dates?.[1],
+        payload.endIsPresent,
+      );
     } else if (key === 'city') {
       module.options.items[index][key] = Array.isArray(e) ? e : [];
     }
@@ -428,13 +435,13 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         <div data-panel-item-id={pid(index, 'date')}>
                           <ResponsiveRangeDatePicker
                             style={{ width: '100%' }}
-                            value={[
-                              item.startDate ? dayjs(item.startDate) : undefined,
-                              item.endDate ? dayjs(item.endDate) : undefined,
-                            ]}
+                            startDate={item.startDate}
+                            endDate={item.endDate}
                             format='YYYY-MM'
                             placeholder={[te('periodPhStart'), te('periodPhEnd')]}
-                            onChange={(e) => handleChange(e, index, 'date')}
+                            onChange={(dates, meta) =>
+                              handleChange({ dates, endIsPresent: meta.endIsPresent }, index, 'date')
+                            }
                           />
                         </div>
                       </FormItem>

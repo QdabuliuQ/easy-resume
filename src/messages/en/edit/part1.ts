@@ -75,6 +75,9 @@ export default {
     periodStart: 'Start',
     periodEnd: 'End',
   },
+  datePicker: {
+    presentEnd: 'Present',
+  },
   menu: {
     importTemplate: 'Import',
     resumeTemplate: 'Templates',

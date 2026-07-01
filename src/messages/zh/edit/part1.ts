@@ -75,6 +75,9 @@ export default {
     periodStart: '开始时间',
     periodEnd: '结束时间',
   },
+  datePicker: {
+    presentEnd: '至今',
+  },
   menu: {
     importTemplate: '导入模板',
     resumeTemplate: '简历模板',

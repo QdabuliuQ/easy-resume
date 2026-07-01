@@ -11,6 +11,7 @@ import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import { Col, Empty, Form, Input, Row } from 'antd';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { ResponsiveRangeDatePicker } from '@/components/responsiveDatePicker';
+import { resumeRangeEndDateString } from '@/utils/resumeDateDisplay';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import {
@@ -152,9 +153,15 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
       const event = e as React.ChangeEvent<HTMLInputElement>;
       module.options.items[index][key] = event.target.value;
     } else if (key === 'date') {
-      const dateArr: DateValue = Array.isArray(e) ? e : [undefined, undefined];
-      module.options.items[index].startDate = dateArr[0]?.format('YYYY-MM') ?? '';
-      module.options.items[index].endDate = dateArr[1]?.format('YYYY-MM') ?? '';
+      const payload = e as {
+        dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null;
+        endIsPresent: boolean;
+      };
+      module.options.items[index].startDate = payload.dates?.[0]?.format('YYYY-MM') ?? '';
+      module.options.items[index].endDate = resumeRangeEndDateString(
+        payload.dates?.[1],
+        payload.endIsPresent,
+      );
     }
     updateModule(module);
   });
@@ -320,13 +327,13 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                         <div data-panel-item-id={pid(index, 'date')}>
                           <ResponsiveRangeDatePicker
                             style={{ width: '100%' }}
-                            value={[
-                              item.startDate ? dayjs(item.startDate) : undefined,
-                              item.endDate ? dayjs(item.endDate) : undefined,
-                            ]}
+                            startDate={item.startDate}
+                            endDate={item.endDate}
                             format='YYYY-MM'
                             placeholder={[tp('periodPhStart'), tp('periodPhEnd')]}
-                            onChange={(e) => handleChange(e, index, 'date')}
+                            onChange={(dates, meta) =>
+                              handleChange({ dates, endIsPresent: meta.endIsPresent }, index, 'date')
+                            }
                           />
                         </div>
                       </FormItem>
