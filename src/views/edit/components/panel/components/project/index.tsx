@@ -146,17 +146,17 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
   });
 
   type ChangeEvent = React.ChangeEvent<HTMLInputElement>;
-  type DateValue = [dayjs.Dayjs | undefined, dayjs.Dayjs | undefined];
-  const handleChange = useMemoizedFn((e: ChangeEvent | DateValue | null, index: number, key: string) => {
+  type RangeDatePayload = {
+    dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null;
+    endIsPresent: boolean;
+  };
+  const handleChange = useMemoizedFn((e: ChangeEvent | RangeDatePayload, index: number, key: string) => {
     if (!module) return;
     if (key === 'name' || key === 'role') {
-      const event = e as React.ChangeEvent<HTMLInputElement>;
+      const event = e as ChangeEvent;
       module.options.items[index][key] = event.target.value;
     } else if (key === 'date') {
-      const payload = e as {
-        dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null;
-        endIsPresent: boolean;
-      };
+      const payload = e as RangeDatePayload;
       module.options.items[index].startDate = payload.dates?.[0]?.format('YYYY-MM') ?? '';
       module.options.items[index].endDate = resumeRangeEndDateString(
         payload.dates?.[1],
