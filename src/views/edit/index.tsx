@@ -3,35 +3,36 @@ import { memo, useLayoutEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSearchParams } from 'next/navigation';
 import defaultResume from '@/json/resume.defaults';
-import { resumeTemplates } from '@/json/resumeTemplates';
+import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { configStore } from '@/mobx';
 import Canvas from './components/canvas';
 import Container from './components/container';
 import EditShellReveal from './components/editShellReveal';
 import Header from './components/header';
 import Menu from './components/menu/index';
+import EditTour from './components/editTour';
 
 const DEFAULT_MENU_KEY = 'resume';
+const SHELL_REVEAL_FALLBACK_MS = 3000;
 
 function Edit() {
   const searchParams = useSearchParams();
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
+  const [shellRevealReady, setShellRevealReady] = useState(false);
   useLayoutEffect(() => {
     const raw = searchParams.get('template');
     const color = searchParams.get('color');
     if (raw != null && raw !== '') {
       const n = Number.parseInt(raw, 10);
-      if (Number.isFinite(n) && n >= 1 && n <= resumeTemplates.length) {
-        const tpl = resumeTemplates[n - 1];
-        if (tpl?.config) {
-          const config = JSON.parse(JSON.stringify(tpl.config));
-          if (color && typeof config.globalStyle === 'object') {
-            config.globalStyle.color = color;
-          }
-          configStore.setConfig(config);
-          return;
+      void loadResumeTemplateByIndex(n).then((tpl) => {
+        if (!tpl?.config) return;
+        const config = JSON.parse(JSON.stringify(tpl.config));
+        if (color && typeof config.globalStyle === 'object') {
+          config.globalStyle.color = color;
         }
-      }
+        configStore.setConfig(config);
+      });
+      return;
     }
     if (!configStore.getConfig?.pages?.length) {
       const config = JSON.parse(JSON.stringify(defaultResume));
@@ -41,11 +42,16 @@ function Edit() {
       configStore.setConfig(config);
     }
   }, [searchParams]);
+  useLayoutEffect(() => {
+    if (shellRevealReady) return;
+    const timer = setTimeout(() => setShellRevealReady(true), SHELL_REVEAL_FALLBACK_MS);
+    return () => clearTimeout(timer);
+  }, [shellRevealReady]);
 
   return (
     <div className='editor-shell-bg relative flex h-screen w-screen flex-col overflow-hidden text-[var(--text-strong)]'>
       <div className='editor-shell-grid pointer-events-none absolute inset-0 opacity-60' />
-      <EditShellReveal>
+      <EditShellReveal revealReady={shellRevealReady}>
         <div className='relative z-[1] flex min-h-0 flex-1 flex-col gap-3 p-3 md:p-4'>
           <div
             data-edit-reveal='top'
@@ -75,11 +81,13 @@ function Edit() {
               <Canvas
                 onOpenGeneralSettings={() => setMenuActiveKey('general-settings')}
                 onOpenResumePanel={() => setMenuActiveKey('resume')}
+                onLayoutReady={() => setShellRevealReady(true)}
               />
             </div>
           </div>
         </div>
       </EditShellReveal>
+      <EditTour ready={shellRevealReady} />
     </div>
   );
 }

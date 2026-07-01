@@ -28,9 +28,11 @@
  */
 import { z } from 'zod';
 import crypto from 'crypto';
+import { linkAbortSignal } from '@/lib/ai/abortSignal';
 import { checkPolishRateLimit, getClientIp } from '@/lib/ai/score/routeShared';
 import { streamPolishDescription } from '@/lib/ai/polish/service';
-import type { PolishRequest } from '@/lib/ai/polish/types';
+import { MIN_POLISH_PLAIN_LENGTH, type PolishRequest } from '@/lib/ai/polish/types';
+import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
 
 /** LangChain / Puppeteer 等同理，必须在 Node 运行时执行 */
 export const runtime = 'nodejs';
@@ -118,6 +120,14 @@ export async function POST(req: Request) {
   }
   const reqData = parsed.data as PolishRequest;
 
+  const plainLen = plainTextFromRichHtml(reqData.richTextHtml).length;
+  if (plainLen < MIN_POLISH_PLAIN_LENGTH) {
+    return Response.json(
+      { error: `润色内容至少 ${MIN_POLISH_PLAIN_LENGTH} 个字` },
+      { status: 400 },
+    );
+  }
+
   const ipHash = crypto.createHash('sha256').update(getClientIp(req)).digest('hex').slice(0, 16);
   const rate = await checkPolishRateLimit(ipHash);
   if (!rate.allowed) {
@@ -128,21 +138,35 @@ export async function POST(req: Request) {
   }
 
   // ---------- 2. 建立 SSE 流，LangChain 逐 token 回调推送 ----------
+  const abortController = linkAbortSignal(req.signal);
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      const emit = (data: Record<string, unknown>) => {
+        if (abortController.signal.aborted) return;
+        try {
+          controller.enqueue(sseLine(data));
+        } catch {
+          abortController.abort();
+        }
+      };
       try {
-        const html = await streamPolishDescription(reqData, (htmlSoFar) => {
-          // 每收到一段模型输出，推送当前累积 HTML，供编辑器实时预览
-          controller.enqueue(sseLine({ html: htmlSoFar }));
-        });
-        // 流结束：推送 done 帧，html 已经过 unwrapFencedHtml + sanitizeRichTextHtml
-        controller.enqueue(sseLine({ done: true, html }));
+        const html = await streamPolishDescription(
+          reqData,
+          (htmlSoFar) => emit({ html: htmlSoFar }),
+          abortController.signal,
+        );
+        emit({ done: true, html });
       } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
+        if (abortController.signal.aborted) return;
         const msg = e instanceof Error ? e.message : String(e);
-        controller.enqueue(sseLine({ error: msg }));
+        emit({ error: msg });
       } finally {
         controller.close();
       }
+    },
+    cancel() {
+      abortController.abort();
     },
   });
 

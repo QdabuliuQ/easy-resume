@@ -1,6 +1,5 @@
 import Image from 'next/image';
-import photo3 from '@/assets/brand/photo3.webp';
-import photo3Light from '@/assets/brand/photo3_light.webp';
+import { photo3, photo3Light } from '@/lib/brandAssets';
 import { useSyncExternalStore } from 'react';
 import {
   getServerThemeSnapshot,

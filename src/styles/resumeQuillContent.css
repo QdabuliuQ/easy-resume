@@ -1,0 +1,44 @@
+/**
+ * 富文本编辑器与画布 / PDF 预览共用的 Quill 内容区排版。
+ */
+.resume-quill-embed,
+.rte-quill-sync {
+  --spacing: 0.25rem;
+}
+
+.resume-quill-embed .ql-editor li,
+.rte-quill-sync .ql-editor li {
+  margin-block: calc(var(--spacing) * 0.5);
+}
+
+.resume-quill-embed .ql-editor p,
+.rte-quill-sync .ql-editor p {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.resume-quill-embed .ql-editor ol,
+.resume-quill-embed .ql-editor ul,
+.rte-quill-sync .ql-editor ol,
+.rte-quill-sync .ql-editor ul {
+  margin: 0 !important;
+}
+
+.resume-quill-embed .ql-editor ol,
+.rte-quill-sync .ql-editor ol {
+  padding-left: 0 !important;
+}
+
+.resume-quill-embed .ql-editor ul:not(:has(> li[data-list])),
+.rte-quill-sync .ql-editor ul:not(:has(> li[data-list])) {
+  padding-left: 1.25em !important;
+  list-style-type: disc;
+}
+
+.resume-quill-embed .ql-editor ul:not(:has(> li[data-list])) > li,
+.rte-quill-sync .ql-editor ul:not(:has(> li[data-list])) > li {
+  display: list-item;
+  list-style-type: disc;
+  position: static;
+  padding-left: 0.2em;
+}

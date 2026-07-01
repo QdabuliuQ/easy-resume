@@ -24,9 +24,10 @@ const REVEAL_ORDER: Record<RevealDir, number> = {
 
 type EditShellRevealProps = {
   children: ReactNode;
+  revealReady?: boolean;
 };
 
-export default function EditShellReveal({ children }: EditShellRevealProps) {
+export default function EditShellReveal({ children, revealReady = true }: EditShellRevealProps) {
   const scopeRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useSyncExternalStore(
     (onStoreChange) => {
@@ -45,6 +46,15 @@ export default function EditShellReveal({ children }: EditShellRevealProps) {
 
       const items = gsap.utils.toArray<HTMLElement>('[data-edit-reveal]', scope);
       if (!items.length) return;
+
+      if (!revealReady) {
+        items.forEach((el) => {
+          const dir = el.dataset.editReveal as RevealDir;
+          const from = REVEAL_FROM[dir] ?? { x: 0, y: 24 };
+          gsap.set(el, { autoAlpha: 0, x: from.x, y: from.y });
+        });
+        return;
+      }
 
       if (reduceMotion) {
         gsap.set(items, { autoAlpha: 1, x: 0, y: 0 });
@@ -69,7 +79,7 @@ export default function EditShellReveal({ children }: EditShellRevealProps) {
         );
       });
     },
-    { scope: scopeRef, dependencies: [reduceMotion], revertOnUpdate: true },
+    { scope: scopeRef, dependencies: [reduceMotion, revealReady], revertOnUpdate: true },
   );
 
   return (

@@ -378,9 +378,9 @@
   --panel-scrim: color-mix(in srgb, var(--editor-shell-bg) 62%, rgb(var(--surface-fg-rgb) / 0.22));
   --panel-chart-track: rgb(var(--surface-fg-rgb) / 0.28);
   --panel-head-border: rgb(var(--surface-fg-rgb) / 0.12);
-  --panel-head-bg-start: rgb(255 255 255 / 0.94);
-  --panel-head-bg-end: rgb(255 255 255 / 0.88);
-  --panel-head-bg-base: rgb(var(--surface-fg-rgb) / 0.05);
+  --panel-head-bg-start: rgb(255 255 255 / 0.62);
+  --panel-head-bg-end: rgb(255 255 255 / 0.42);
+  --panel-head-bg-base: rgb(255 255 255 / 0.35);
   --resume-panel-bg: #ffffff;
   --panel-btn-success-bg: #52c41a;
   --panel-btn-danger-bg: #ff4d4f;
@@ -611,7 +611,6 @@ html[data-prefers-color-scheme='dark'] {
   gap: 0.75rem;
   margin-bottom: 0.875rem;
   padding: 0.75rem 0.875rem;
-  border: 1px solid var(--panel-head-border);
   border-radius: 1rem;
   background:
     linear-gradient(
@@ -620,7 +619,12 @@ html[data-prefers-color-scheme='dark'] {
       var(--panel-head-bg-end) 100%
     ),
     var(--panel-head-bg-base);
-  box-shadow: inset 0 1px 0 rgb(var(--panel-surface-rgb) / 0.04);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow:
+    inset 1px 1px 2px rgb(var(--panel-surface-rgb) / 0.06),
+    1px 1px 2px rgb(var(--panel-surface-rgb) / 0.05),
+    var(--panel-shadow-card-tight);
 }
 
 .panel-module-head-main {

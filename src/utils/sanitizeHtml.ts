@@ -24,20 +24,61 @@ export function ensureAnchorsOpenBlank(html: string): string {
   });
 }
 
+/** 将 AI 输出的 plain <ul><li> 转为 Quill 2 可渲染的无序列表 */
+export function normalizePlainHtmlListsForQuill(html: string): string {
+  if (!html?.trim() || !/<ul[\s>]/i.test(html)) return html;
+  if (typeof document !== 'undefined') {
+    const root = document.createElement('div');
+    root.innerHTML = html;
+    for (const ul of Array.from(root.querySelectorAll('ul'))) {
+      const ol = document.createElement('ol');
+      for (const li of Array.from(ul.querySelectorAll(':scope > li'))) {
+        const next = document.createElement('li');
+        if (li.hasAttribute('data-list')) {
+          next.setAttribute('data-list', li.getAttribute('data-list') ?? 'bullet');
+          next.innerHTML = li.innerHTML;
+        } else {
+          next.setAttribute('data-list', 'bullet');
+          next.innerHTML = `<span class="ql-ui" contenteditable="false"></span>${li.innerHTML}`;
+        }
+        ol.appendChild(next);
+      }
+      ul.replaceWith(ol);
+    }
+    return root.innerHTML;
+  }
+  return html.replace(/<ul\b[^>]*>([\s\S]*?)<\/ul>/gi, (_full, inner: string) => {
+    const body = inner.replace(
+      /<li\b([^>]*)>([\s\S]*?)<\/li>/gi,
+      (match, attrs: string, content: string) => {
+        if (/data-list\s*=/.test(attrs)) return match;
+        return `<li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>${content}</li>`;
+      },
+    );
+    return `<ol>${body}</ol>`;
+  });
+}
+
+export function looksLikeRichHtml(value: string): boolean {
+  return /<[^>]+>/.test(value.trim());
+}
+
 /** Quill 等富文本在 dangerouslySetInnerHTML 前必须通过此函数 */
 export function sanitizeRichTextHtml(html: string): string {
   if (!html?.trim()) return '';
+  let safe: string;
   if (typeof window === 'undefined') {
-    return ensureAnchorsOpenBlank(sanitizeRichTextOnServer(html));
+    safe = sanitizeRichTextOnServer(html);
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const DOMPurify = require('dompurify') as {
+      sanitize: (dirty: string, cfg?: { USE_PROFILES?: { html?: boolean } }) => string;
+    };
+    safe = DOMPurify.sanitize(html, {
+      USE_PROFILES: { html: true },
+    });
   }
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const DOMPurify = require('dompurify') as {
-    sanitize: (dirty: string, cfg?: { USE_PROFILES?: { html?: boolean } }) => string;
-  };
-  const safe = DOMPurify.sanitize(html, {
-    USE_PROFILES: { html: true },
-  });
-  return ensureAnchorsOpenBlank(safe);
+  return ensureAnchorsOpenBlank(normalizePlainHtmlListsForQuill(safe));
 }
 export function unwrapFencedHtml(s: string): string {
   const t = s.trim();

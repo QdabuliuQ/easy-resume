@@ -435,6 +435,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                                   },
                                 },
                                 ctx?.onStreamingHtml,
+                                ctx?.signal,
                               );
                             }}
                           />

@@ -4,9 +4,10 @@ import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useMemoizedFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
-import { memo, useMemo } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import defaultResume from '@/json/resume.defaults';
-import { resumeTemplates, type ResumeTemplateItem } from '@/json/resumeTemplates';
+import type { ResumeTemplateItem } from '@/json/resumeTemplates';
+import { loadResumeTemplates } from '@/lib/loadResumeTemplates';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import type { GlobalStyle } from '@/modules/utils/common.type';
@@ -67,9 +68,19 @@ function ResumeTemplate() {
   const message = useAppMessage();
   const tr = useTranslations('Edit.resumeTemplate');
   const { confirm, modal, mobile, contextHolder } = useResponsiveConfirm();
+  const [templates, setTemplates] = useState<ResumeTemplateItem[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    void loadResumeTemplates().then((list) => {
+      if (!cancelled) setTemplates(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const templateCards = useMemo(
     () =>
-      resumeTemplates.map((template, index) => {
+      templates.map((template, index) => {
         const pageCount = template.config.pages.length;
         const moduleCount = template.config.pages.reduce(
           (total, page) => total + page.modules.length,
@@ -83,15 +94,15 @@ function ResumeTemplate() {
           moduleCount,
         };
       }),
-    [tr]
+    [templates, tr]
   );
 
-  const applyTemplate = (tpl: (typeof resumeTemplates)[number]) => {
+  const applyTemplate = (tpl: ResumeTemplateItem) => {
     configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
     moduleActiveStore.setModuleActive('global');
     message.success(tr('appliedOk'));
   };
-  const onPick = useMemoizedFn((tpl: (typeof resumeTemplates)[number]) => {
+  const onPick = useMemoizedFn((tpl: ResumeTemplateItem) => {
     if (mobile) {
       confirm({
         title: tr('replaceTitle'),
@@ -170,6 +181,14 @@ function ResumeTemplate() {
     <>
       {contextHolder}
       <div className='relative flex h-full min-h-0 flex-col gap-3 overflow-auto px-0.5 pt-0.5 text-left'>
+        {!templateCards.length ? (
+          <div className='flex items-center justify-center gap-2 py-16 text-[13px] text-fg/58'>
+            <span
+              className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-fg/25 border-t-[color:var(--color-primary)]'
+              aria-hidden
+            />
+          </div>
+        ) : (
         <ul className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
           {templateCards.map((t) => (
             <li key={t.id} className='min-w-0'>
@@ -200,6 +219,7 @@ function ResumeTemplate() {
             </li>
           ))}
         </ul>
+        )}
       </div>
     </>
   );

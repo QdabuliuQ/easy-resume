@@ -1,23 +1,17 @@
 import { StringOutputParser } from '@langchain/core/output_parsers';
+import { consumeAsyncIterable, throwIfAborted } from '@/lib/ai/abortSignal';
 import { createChatModel } from '@/lib/ai/chatModel';
 import { getPolishPrompt } from '@/lib/ai/polish/prompts';
 import type { PolishRequest } from '@/lib/ai/polish/types';
-import { sanitizeRichTextHtml, unwrapFencedHtml } from '@/utils/sanitizeHtml';
+import { plainTextFromRichHtml, sanitizeRichTextHtml, unwrapFencedHtml } from '@/utils/sanitizeHtml';
 
 function unset(v: string | undefined): string {
   const s = String(v ?? '').trim();
   return s || '未填写';
 }
 
-function htmlToPlain(html: string): string {
-  return html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
 function buildPromptVars(req: PolishRequest): Record<string, string> {
-  const rawDescriptionPlain = htmlToPlain(req.richTextHtml);
+  const rawDescriptionPlain = plainTextFromRichHtml(req.richTextHtml);
   const intentPosts = unset(req.intentPosts);
   if (req.type === 'job') {
     const c = req.context;
@@ -59,17 +53,24 @@ function buildPromptVars(req: PolishRequest): Record<string, string> {
 export async function streamPolishDescription(
   req: PolishRequest,
   onStreamingHtml?: (htmlSoFar: string) => void,
+  signal?: AbortSignal,
 ): Promise<string> {
+  throwIfAborted(signal);
   const prompt = getPolishPrompt(req.type);
   const llm = createChatModel({ temperature: 1 });
   const chain = prompt.pipe(llm).pipe(new StringOutputParser());
   const vars = buildPromptVars(req);
+  const stream = await chain.stream(vars, { signal });
   let acc = '';
-  const stream = await chain.stream(vars);
-  for await (const chunk of stream) {
-    acc += chunk;
-    onStreamingHtml?.(acc);
-  }
+  await consumeAsyncIterable(
+    stream,
+    (chunk) => {
+      acc += chunk;
+      onStreamingHtml?.(acc);
+    },
+    signal,
+  );
+  throwIfAborted(signal);
   const html = unwrapFencedHtml(acc);
   return sanitizeRichTextHtml(html);
 }

@@ -1,5 +1,7 @@
 export type PolishType = 'job' | 'project' | 'education' | 'skill';
 
+export const MIN_POLISH_PLAIN_LENGTH = 20;
+
 export type PolishRequest =
   | {
       type: 'job';

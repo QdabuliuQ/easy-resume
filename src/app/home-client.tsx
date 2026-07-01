@@ -23,13 +23,7 @@ import {
   useSyncExternalStore,
   type KeyboardEvent,
 } from 'react';
-import bgDark from '@/assets/brand/bg_dark.svg';
-import bgLight from '@/assets/brand/bg_light.svg';
-import photo1Dark from '@/assets/brand/photo1.webp';
-import photo1Light from '@/assets/brand/photo1_light.webp';
-import photo2Dark from '@/assets/brand/photo2.webp';
-import photo2Light from '@/assets/brand/photo2_light.webp';
-import { logo } from '@/lib/brandAssets';
+import { bgDark, bgLight, logo, PHOTOS, PHOTO_SIZES } from '@/lib/brandAssets';
 import {
   getServerThemeSnapshot,
   getThemeSnapshot,
@@ -38,13 +32,6 @@ import {
 } from '@/lib/themeStore';
 import Typed from 'typed.js';
 import gsap from 'gsap';
-
-const PHOTOS = {
-  photo1Dark,
-  photo1Light,
-  photo2Dark,
-  photo2Light,
-}
 
 const HomeResumeTemplateScroll = dynamic(
   () => import('@/components/homeResumeTemplateScroll'),
@@ -284,7 +271,7 @@ export default function Home() {
     <main className='relative min-h-screen bg-[var(--editor-shell-bg)] text-[var(--text-strong)]'>
       <div className='pointer-events-none absolute inset-0 z-0 overflow-hidden'>
         <img
-          src={(appTheme === 'dark' ? bgDark : bgLight).src}
+          src={appTheme === 'dark' ? bgDark : bgLight}
           alt=''
           aria-hidden='true'
           className='fixed inset-0 w-[100vw]'
@@ -529,6 +516,8 @@ export default function Home() {
                   <Image
                       src={appTheme === 'dark' ? PHOTOS[`photo${idx + 1}Dark`] : PHOTOS[`photo${idx + 1}Light`]}
                       alt={block.title}
+                      width={PHOTO_SIZES[`photo${idx + 1}` as 'photo1' | 'photo2'].width}
+                      height={PHOTO_SIZES[`photo${idx + 1}` as 'photo1' | 'photo2'].height}
                       className='h-auto w-full rounded-xl object-cover'
                       sizes='(max-width: 1024px) 100vw, 50vw'
                       loading='lazy'

@@ -10,8 +10,8 @@ import { useAppMessage } from '@/hooks/useAppMessage';
 import { observer } from 'mobx-react';
 import { useTranslations } from 'next-intl';
 import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react';
-import { analyzeResumeOptimize, analyzeResumeScore } from '@/api/analyzeResume';
-import type { ResumeAiAnalyzeResult } from '@/lib/ai/score/types';
+import { analyzeResumeScore } from '@/api/analyzeResume';
+import type { ResumeAiScoreResult } from '@/lib/ai/score/types';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore } from '@/mobx';
 import type { ResumeModuleType } from '@/utils/createResumeModule';
@@ -22,6 +22,7 @@ import {
 } from '@/utils/moduleTypeLimits';
 
 const AiScore = lazy(() => import('../../panel/components/aiScore'));
+const AiModify = lazy(() => import('../../panel/components/aiModify'));
 const GeneralSettings = lazy(() => import('../../panel/components/generalSettings'));
 const ModuleEdit = lazy(() => import('../../panel/components/moduleEdit'));
 const PageSettings = lazy(() => import('../../panel/components/pageSettings'));
@@ -32,7 +33,7 @@ import PanelHero from '../../panel/components/panelHero';
 import { resolvePanelHeroContent } from '../../panel/components/panelHero/resolveContent';
 
 const GRADIENT_CTA_CLASS =
-  'bg-add-module-gradient relative isolate flex h-10 w-[410px] max-w-full cursor-pointer select-none items-center justify-center gap-2 overflow-hidden rounded-md text-[14px] font-bold text-white shadow-lg shadow-black/20 outline-none backdrop-blur-md backdrop-saturate-200 transition-[filter] duration-200 hover:brightness-125 hover:saturate-150 active:brightness-95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100 disabled:hover:saturate-100';
+  'bg-add-module-gradient relative isolate flex h-10 w-full max-w-full cursor-pointer select-none items-center justify-center gap-2 overflow-hidden rounded-md text-[14px] font-bold text-white shadow-lg shadow-black/20 outline-none backdrop-blur-md backdrop-saturate-200 transition-[filter] duration-200 hover:brightness-125 hover:saturate-150 active:brightness-95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100 disabled:hover:saturate-100';
 function Resume({ menuActiveKey }: ResumeProps) {
   const message = useAppMessage();
   const tr = useTranslations('Edit.resumeContainer');
@@ -53,22 +54,17 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const { addModuleByType } = useModuleHandle();
   const [addOpen, setAddOpen] = useState(false);
   const [scoreLoading, setScoreLoading] = useState(false);
-  const [optimizeLoading, setOptimizeLoading] = useState(false);
-  const [aiAnalysis, setAiAnalysis] = useState<ResumeAiAnalyzeResult | null>(null);
-  const analyzeLoading = scoreLoading || optimizeLoading;
+  const [aiScoreResult, setAiScoreResult] = useState<ResumeAiScoreResult | null>(null);
   const isAiScore = menuActiveKey === 'ai-score';
+  const isAiModify = menuActiveKey === 'ai-modify';
   const isResumeTemplate = menuActiveKey === 'resume-template';
   const isGeneralSettings = menuActiveKey === 'general-settings';
   const isPageSettings = menuActiveKey === 'page-settings';
   const isResumeEdit = menuActiveKey === 'resume';
   const panelHero = resolvePanelHeroContent(menuActiveKey, tr);
-  const onStartAnalyze = useCallback(() => {
-    if (analyzeLoading) return;
+  const buildAnalyzePayload = useCallback(() => {
     const cfgInner = configStore.getConfig;
-    if (!cfgInner?.pages?.length) {
-      message.warning(tr('noConfigWarn'));
-      return;
-    }
+    if (!cfgInner?.pages?.length) return null;
     const pagesForAnalyze = (cfgInner.pages ?? []).map((page) => {
       const modules = Array.isArray(page.modules)
         ? page.modules.map((module) => {
@@ -82,81 +78,81 @@ function Resume({ menuActiveKey }: ResumeProps) {
         : page.modules;
       return { ...page, modules };
     });
-    const analyzeSessionId =
-      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const payload = { pages: pagesForAnalyze };
-    setAiAnalysis(null);
+    return { pages: pagesForAnalyze };
+  }, []);
+  const newAnalyzeSessionId = () =>
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const onStartScoreAnalyze = useCallback(() => {
+    if (scoreLoading) return;
+    const payload = buildAnalyzePayload();
+    if (!payload) {
+      message.warning(tr('noConfigWarn'));
+      return;
+    }
     setScoreLoading(true);
-    setOptimizeLoading(true);
-    void analyzeResumeScore(payload, analyzeSessionId)
+    void analyzeResumeScore(payload, newAnalyzeSessionId())
       .then((res) => {
         const { cached, ...score } = res;
         void cached;
-        setAiAnalysis((prev) => ({
+        setAiScoreResult({
           totalScore: score.totalScore,
           dimensionEvaluate: score.dimensionEvaluate,
-          fieldOptimizeList: prev?.fieldOptimizeList ?? [],
-        }));
+        });
       })
       .catch((e) => {
         message.error(e instanceof Error ? e.message : tr('analyzeFail'));
       })
       .finally(() => setScoreLoading(false));
-    void analyzeResumeOptimize(payload, analyzeSessionId)
-      .then((res) => {
-        const { cached, ...optimize } = res;
-        void cached;
-        setAiAnalysis((prev) => ({
-          totalScore: prev?.totalScore ?? 0,
-          dimensionEvaluate: prev?.dimensionEvaluate ?? [],
-          fieldOptimizeList: optimize.fieldOptimizeList,
-        }));
-      })
-      .catch((e) => {
-        message.error(e instanceof Error ? e.message : tr('analyzeFail'));
-      })
-      .finally(() => setOptimizeLoading(false));
-  }, [analyzeLoading, message, tr]);
+  }, [buildAnalyzePayload, scoreLoading, message, tr]);
+  const panelBody = (
+    <>
+      <PanelHero {...panelHero} />
+      <div className={isAiModify ? 'min-h-0 flex-1 flex flex-col' : undefined}>
+        <Suspense
+          fallback={
+            <div className='rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.09),rgb(var(--panel-surface-rgb)/0.04))] px-4 py-10'>
+              <div className='flex items-center justify-center gap-2 text-[13px] text-fg/58'>
+                <span
+                  className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-fg/25 border-t-[color:var(--color-primary)]'
+                  aria-hidden
+                />
+                <span>{tr('loadingPanel')}</span>
+              </div>
+            </div>
+          }
+        >
+          {isAiScore ? (
+            <AiScore scoreLoading={scoreLoading} analysis={aiScoreResult} />
+          ) : isAiModify ? (
+            <AiModify />
+          ) : isResumeTemplate ? (
+            <ResumeTemplate />
+          ) : isGeneralSettings ? (
+            <GeneralSettings />
+          ) : isPageSettings ? (
+            <PageSettings />
+          ) : (
+            <ModuleEdit />
+          )}
+        </Suspense>
+      </div>
+    </>
+  );
   return (
     <div className='relative flex h-full min-h-0 flex-1 flex-col text-black [transform:translateZ(0)] bg-[var(--resume-panel-bg)]'>
-      <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-24'>
-        <div className='m-[20px]'>
-          <PanelHero {...panelHero} />
-          <Suspense
-            fallback={
-              <div className='rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.09),rgb(var(--panel-surface-rgb)/0.04))] px-4 py-10'>
-                <div className='flex items-center justify-center gap-2 text-[13px] text-fg/58'>
-                  <span
-                    className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-fg/25 border-t-[color:var(--color-primary)]'
-                    aria-hidden
-                  />
-                  <span>{tr('loadingPanel')}</span>
-                </div>
-              </div>
-            }
-          >
-            {isAiScore ? (
-              <AiScore
-                scoreLoading={scoreLoading}
-                optimizeLoading={optimizeLoading}
-                analysis={aiAnalysis}
-              />
-            ) : isResumeTemplate ? (
-              <ResumeTemplate />
-            ) : isGeneralSettings ? (
-              <GeneralSettings />
-            ) : isPageSettings ? (
-              <PageSettings />
-            ) : (
-              <ModuleEdit />
-            )}
-          </Suspense>
+      {isAiModify ? (
+        <div className='flex min-h-0 flex-1 flex-col overflow-hidden p-5'>
+          <div className='flex min-h-0 flex-1 flex-col'>{panelBody}</div>
         </div>
-      </div>
+      ) : (
+        <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-24'>
+          <div className='m-[20px]'>{panelBody}</div>
+        </div>
+      )}
       {isResumeEdit && (
-      <div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[linear-gradient(180deg,transparent,color-mix(in_srgb,var(--editor-shell-panel-strong)_88%,transparent)_46%,var(--editor-shell-bg))] px-[10px] pb-[10px] pt-8'>
+      <div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[linear-gradient(180deg,transparent,color-mix(in_srgb,var(--editor-shell-panel-strong)_88%,transparent)_46%,var(--editor-shell-bg))] px-[20px] pb-[15px] pt-8'>
         <div className='pointer-events-auto flex justify-center'>
           <Popover
             trigger='click'
@@ -240,12 +236,12 @@ function Resume({ menuActiveKey }: ResumeProps) {
           <div className='pointer-events-auto flex justify-center'>
             <button
               type='button'
-              disabled={analyzeLoading}
-              aria-busy={analyzeLoading}
-              onClick={onStartAnalyze}
+              disabled={scoreLoading}
+              aria-busy={scoreLoading}
+              onClick={onStartScoreAnalyze}
               className={`${GRADIENT_CTA_CLASS} gap-2`}
             >
-              {analyzeLoading ? (
+              {scoreLoading ? (
                 <span
                   className='relative z-[1] inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-white/30 border-t-white'
                   aria-hidden

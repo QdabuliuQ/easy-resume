@@ -126,7 +126,10 @@ function Header() {
           </>
         )}
       </div>
-      <div className='flex shrink-0 flex-wrap items-center justify-end gap-2'>
+      <div
+        className='flex shrink-0 flex-wrap items-center justify-end gap-2'
+        data-edit-tour='header-export'
+      >
         <svg
           width={0}
           height={0}

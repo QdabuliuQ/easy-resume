@@ -3,8 +3,10 @@ import { useAppMessage } from '@/hooks/useAppMessage';
 import { useMemoizedFn } from 'ahooks';
 import { useLocale, useTranslations } from 'next-intl';
 import { memo, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { sanitizeRichTextHtml, unwrapFencedHtml, plainTextFromRichHtml } from '@/utils/sanitizeHtml';
+import { plainTextFromRichHtml, sanitizeRichTextHtml, unwrapFencedHtml } from '@/utils/sanitizeHtml';
+import { MIN_POLISH_PLAIN_LENGTH } from '@/lib/ai/polish/types';
 import 'quill/dist/quill.snow.css';
+import '@/styles/resumeQuillContent.css';
 import { Magic } from '@icon-park/react';
 import styles from './index.module.css';
 
@@ -368,9 +370,8 @@ function RichTextEditor({
       return;
     }
     const richTextHtml = sanitizeRichTextHtml(q.root.innerHTML);
-    const plain = richTextHtml.replace(/<[^>]*>/g, '').trim();
-    if (!plain) {
-      message.warning(tr('needContentWarn'));
+    if (plainCount < MIN_POLISH_PLAIN_LENGTH) {
+      message.warning(tr('needContentMinLengthWarn', { min: MIN_POLISH_PLAIN_LENGTH }));
       return;
     }
     if (!onAiPolishClick) {
@@ -427,7 +428,7 @@ function RichTextEditor({
   return (
     <div className="min-w-0" data-panel-item-id={dataPanelItemId}>
       <div className="relative min-w-0">
-        <div className={styles.host} style={tipCssVars}>
+        <div className={`${styles.host} rte-quill-sync`} style={tipCssVars}>
           <div ref={hostRef} className="min-w-0" />
         </div>
         {loadingEditor ? (
@@ -439,7 +440,7 @@ function RichTextEditor({
           <button
             type="button"
             aria-busy={polishing}
-            disabled={polishing || loadingEditor || plainCount === 0}
+            disabled={polishing || loadingEditor || plainCount < MIN_POLISH_PLAIN_LENGTH}
             onClick={() => {
               if (!polishing) void runAiPolishFromParent();
             }}

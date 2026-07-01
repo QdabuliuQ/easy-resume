@@ -124,9 +124,7 @@ function focusPanelByParsedTarget(itemId: string, target: ParsedItemTarget) {
   if (moduleActiveStore.getModuleActive !== target.moduleId) {
     moduleActiveStore.setModuleActive(target.moduleId);
   }
-  setTimeout(() => {
-    focusPanelFieldByItemId(itemId);
-  }, 0);
+  requestAnimationFrame(() => focusPanelFieldByItemId(itemId));
 }
 
 function focusPanelFieldByItemId(itemId: string) {
@@ -161,7 +159,7 @@ function focusPanelFieldByItemId(itemId: string) {
     if (!holder) return false;
 
     window.setTimeout(() => {
-      holder.scrollIntoView({ behavior: 'instant', block: 'center' });
+      scrollElementIntoScrollParent(holder, 'smooth', { align: 'center' });
 
       const target =
         holder.matches('input,textarea,[contenteditable="true"]')
@@ -339,9 +337,7 @@ function ModuleOperation({
     const prev = prevActiveIdRef.current;
     const next = activeId;
     const hadModule = prev !== 'global';
-    const switching =
-      hadModule && next !== 'global' && prev !== next;
-    if (switching) scrollActiveModuleIntoView();
+    if (next !== 'global' && prev !== next) scrollActiveModuleIntoView();
     if (next === 'global') setToolbarOpacity(0);
     else if (!hadModule) {
       setToolbarOpacity(0);

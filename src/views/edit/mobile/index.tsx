@@ -5,7 +5,7 @@ import { memo, useLayoutEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSearchParams } from 'next/navigation';
 import defaultResume from '@/json/resume.defaults';
-import { resumeTemplates } from '@/json/resumeTemplates';
+import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { configStore } from '@/mobx';
 import Container from '../components/container';
 import MobileEditHeader from './header';
@@ -35,13 +35,12 @@ function MobileEdit() {
     const raw = searchParams.get('template');
     if (raw != null && raw !== '') {
       const n = Number.parseInt(raw, 10);
-      if (Number.isFinite(n) && n >= 1 && n <= resumeTemplates.length) {
-        const tpl = resumeTemplates[n - 1];
+      void loadResumeTemplateByIndex(n).then((tpl) => {
         if (tpl?.config) {
           configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
-          return;
         }
-      }
+      });
+      return;
     }
     if (!configStore.getConfig?.pages?.length) {
       configStore.setConfig(JSON.parse(JSON.stringify(defaultResume)));

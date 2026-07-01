@@ -2,15 +2,12 @@
  * 与画布 / PDF 组件导出富文本排版保持一致，
  * 避免画布 / 文本预览与 Puppeteer PDF 富文本排版漂移。
  */
+@import './resumeQuillContent.css';
+
 .resume-quill-embed {
-  --spacing: 0.25rem;
   display: block;
   width: 100%;
   box-sizing: border-box;
-}
-
-.resume-quill-embed .ql-editor li {
-  margin-block: calc(var(--spacing) * 0.5);
 }
 
 .resume-quill-embed .ql-editor {
@@ -30,15 +27,4 @@
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
-}
-
-.resume-quill-embed .ql-editor p {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.resume-quill-embed .ql-editor ol,
-.resume-quill-embed .ql-editor ul {
-  padding-left: 0 !important;
-  margin: 0 !important;
 }

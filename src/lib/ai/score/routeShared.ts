@@ -147,6 +147,35 @@ export async function checkAnalyzeRateLimit(
   return rate;
 }
 
+/** AI 修改对话：1 分钟最多 2 次、1 小时最多 20 次（按 IP）。未配置 Upstash 时跳过限流。 */
+export async function checkModifyChatRateLimit(
+  ipHash: string,
+): Promise<RateLimitDenied | { allowed: true }> {
+  const redis = getRedis();
+  if (!redis) return { allowed: true };
+  const minuteKey = `ratelimit:modify-chat:1m:${ipHash}`;
+  const hourKey = `ratelimit:modify-chat:1h:${ipHash}`;
+  const [minuteCheck, hourCheck] = await Promise.all([
+    checkRateLimit(redis, minuteKey, 2, 60),
+    checkRateLimit(redis, hourKey, 20, 3600),
+  ]);
+  if (!minuteCheck.allowed) {
+    return {
+      allowed: false,
+      resetIn: minuteCheck.resetIn,
+      message: `请求过于频繁，1 分钟内最多 2 次，请 ${minuteCheck.resetIn} 秒后重试`,
+    };
+  }
+  if (!hourCheck.allowed) {
+    return {
+      allowed: false,
+      resetIn: hourCheck.resetIn,
+      message: `已超出每小时限额（最多 20 次），请 ${hourCheck.resetIn} 秒后重试`,
+    };
+  }
+  return { allowed: true };
+}
+
 /** AI 润色：1 分钟最多 4 次（按 IP）。未配置 Upstash 时跳过限流。 */
 export async function checkPolishRateLimit(
   ipHash: string,

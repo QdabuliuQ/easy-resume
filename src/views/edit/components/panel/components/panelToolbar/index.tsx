@@ -1,27 +1,16 @@
 'use client';
-import { DeleteOutlined, DownOutlined } from '@ant-design/icons';
+import { DeleteOutlined } from '@ant-design/icons';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useMemoizedFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
 import { memo, type MouseEvent } from 'react';
 import { observer } from 'mobx-react';
 import { useModuleHandle } from '@/hooks/module';
-import { moduleActiveStore } from '@/mobx';
 
 function PanelToolbar({ moduleId }: { moduleId: string }) {
   const tp = useTranslations('Edit.panelToolbar');
   const { removeModuleFromConfig } = useModuleHandle();
   const { confirm, contextHolder } = useResponsiveConfirm();
-
-  const editOpen = moduleActiveStore.getModuleActive === moduleId;
-
-  const toggleEdit = useMemoizedFn(() => {
-    if (editOpen) {
-      moduleActiveStore.setModuleActive('global');
-    } else {
-      moduleActiveStore.setModuleActive(moduleId);
-    }
-  });
 
   const onDelete = useMemoizedFn((e: MouseEvent) => {
     e.stopPropagation();
@@ -46,19 +35,6 @@ function PanelToolbar({ moduleId }: { moduleId: string }) {
           aria-label={tp('deleteModuleAria')}
         >
           <DeleteOutlined className='text-[15px]' />
-        </button>
-        <button
-          type='button'
-          className='panel-toolbar-btn border-0 p-0'
-          onClick={toggleEdit}
-          aria-expanded={editOpen}
-          aria-label={editOpen ? tp('togglePreview') : tp('toggleEdit')}
-        >
-          <DownOutlined
-            className={`text-[15px] transition-transform duration-200 ease-in-out ${
-              editOpen ? 'rotate-180' : ''
-            }`}
-          />
         </button>
       </div>
     </>

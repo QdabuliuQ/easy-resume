@@ -1,0 +1,108 @@
+# 简历 JSON 结构与字段词典（AI 修改专用）
+# 用途：帮助模型理解各 module.type、options 字段含义，正确映射用户自然语言到 JSON 路径
+
+## 根对象 resume
+field: name | 类型: string | 含义: 简历标题/文件名，非姓名
+field: globalStyle | 类型: object | 含义: 全局排版样式，见 globalStyle 小节
+field: pages | 类型: array | 含义: 分页数组，每页含 modules 列表
+field: exportPages | 类型: number[] | 含义: 导出 PDF 时包含的页码索引，通常 [0]
+
+## 模块通用结构 modules[]
+field: type | 含义: 模块类型，决定 options 结构；禁止修改
+field: id | 含义: 模块唯一标识，与输入一致；禁止修改
+field: options | 含义: 模块业务数据，按 type 不同字段不同
+
+## 模块类型 type 说明
+module: info1 | 中文: 个人信息/基础信息 | 用户常说: 姓名、电话、邮箱、头像区、意向岗位
+module: job | 中文: 工作经历 | 用户常说: 工作经验、任职、公司、岗位、职责描述
+module: project | 中文: 项目经历 | 用户常说: 项目、项目描述、项目角色
+module: education | 中文: 教育经历 | 用户常说: 学历、学校、专业、就读时间
+module: skill | 中文: 专业技能 | 用户常说: 技能、技术栈、专业技能；注意与 info1 不同
+module: certificate | 中文: 证书/资质 | 用户可见名称=options.title
+module: other | 中文: 自定义模块 | 用户可见名称=options.title，如：个人优势、自我评价、兴趣爱好
+
+## globalStyle 字段
+field: pageSize | 含义: 纸张 A4/A3/A5/Letter
+field: fontSize | 含义: 正文字号（数字）
+field: lineHeight | 含义: 行高倍数
+field: moduleMargin | 含义: 模块间距
+field: color | 含义: 主题文字色
+field: backgroundColor | 含义: 页面背景色
+field: layout | 含义: 模块布局 default/line/rounded/leftCol/rightCol
+field: resumeFont | 含义: 字体族名称
+field: padding | 含义: 页内边距
+field: headerType | 含义: 页眉样式编号
+
+## info1.options 字段
+field: name | 含义: 姓名（显示在简历头部）
+field: phone | 含义: 手机号
+field: email | 含义: 邮箱
+field: city | 含义: 所在城市
+field: wechat | 含义: 微信号
+field: site | 含义: 个人网站/博客链接
+field: status | 含义: 求职状态，如「在职-考虑机会」
+field: intentCity | 含义: 意向工作城市
+field: intentPosts | 含义: 意向岗位/目标职位，逗号分隔；RAG 润色时作岗位参考
+field: expectedSalary | 含义: 期望薪资，常为 [下限, 上限] 字符串数组
+field: birthday | 含义: 出生日期
+field: gender | 含义: 性别
+field: position | 含义: 头像在头部的布局位置 left/right
+field: showKeys | 含义: 控制哪些字段在预览中展示
+field: avatar | 含义: 头像图片；AI 修改时通常不传、不改动
+
+## job.options 字段
+field: title | 含义: 模块标题，默认「工作经历」
+field: items | 含义: 工作经历条目数组
+field: items[].company | 含义: 公司名称
+field: items[].post | 含义: 职位名称
+field: items[].postDepartment | 含义: 部门
+field: items[].city | 含义: 工作城市
+field: items[].time | 含义: 起止时间，字符串数组 [开始, 结束]，结束可为「至今」
+field: items[].description | 含义: 工作描述，HTML 富文本，润色主要改此字段
+
+## project.options 字段
+field: title | 含义: 模块标题，默认「项目经历」
+field: items | 含义: 项目条目数组
+field: items[].projectName | 含义: 项目名称
+field: items[].role | 含义: 项目中的角色
+field: items[].time | 含义: 项目时间 [开始, 结束]
+field: items[].description | 含义: 项目描述，HTML 富文本
+
+## education.options 字段
+field: title | 含义: 模块标题
+field: items[].school | 含义: 学校名称
+field: items[].degree | 含义: 学历/学位
+field: items[].major | 含义: 专业
+field: items[].city | 含义: 所在城市
+field: items[].studyTime | 含义: 就读时间 [入学, 毕业]
+field: items[].description | 含义: 补充说明，HTML
+
+## skill.options 字段
+field: title | 含义: 模块标题，常显示「专业技能」
+field: items | 含义: 技能条目；部分模板用 items[].skillName + level
+field: items[].skillName | 含义: 技能名称或一段技能描述文本
+field: items[].level | 含义: 熟练度，如 熟练/熟悉/了解
+field: description | 含义: 整段技能 HTML 描述（无 items 时的备选结构）
+
+## certificate / other.options
+field: title | 含义: 模块在简历上的显示标题（用户可任意填写，须按 label/title 识别模块）
+field: items | 含义: 列表条目（部分模板使用）
+field: description | 含义: 整段描述正文；other 模块润色主要改此字段
+
+## 用户说法 → 字段映射示例
+mapping: 「改电话/手机」→ info1.options.phone
+mapping: 「润色个人优势/自我评价」→ type=other 且 options.title 匹配的 module，改 options.description
+mapping: 「新增/添加证书」→ certificate 模块 items 追加 1 条（name、date）
+mapping: 「润色专业技能/技能描述」→ skill 模块，非 info1
+mapping: 「第一段工作经历」→ job.options.items[0]
+mapping: 「项目描述」→ project.options.items[].description
+mapping: 「期望薪资」→ info1.options.expectedSalary
+mapping: 「意向岗位」→ info1.options.intentPosts
+
+## 修改约束（结构）
+rule: 禁止增删 pages 或 modules，禁止改 module.type/id
+rule: items 数组长度须与输入一致，除非用户明确要求增删条目
+rule: 润色 description 时采用 STAR 结构，与面板 AI 润色一致
+rule: 富文本 description 仅允许 HTML：<b>、<i>、<u>、<ul>、<li>，禁止 <ol> 及其他标签
+rule: 工作经历/项目描述用 ul+li；b 加粗关键词，i 斜体技术栈，u 下划线量化数据
+rule: 仅改与用户指令相关字段，严禁虚构经历或数据

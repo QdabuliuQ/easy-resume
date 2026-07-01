@@ -1,7 +1,8 @@
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
-import { createChatModel } from '@/lib/ai/chatModel';
+import { createChatModel, createModifyChatModel, type AppChatModel } from '@/lib/ai/chatModel';
 import { buildSceneRetriever } from '@/lib/ai/ragResume/knowledge';
+import { descriptionPolishRulesForScene } from '@/lib/ai/descriptionFormat';
 import type { OptimizeRequest, OptimizeScene } from '@/lib/ai/ragResume/types';
 import { sanitizeRichTextHtml, unwrapFencedHtml } from '@/utils/sanitizeHtml';
 
@@ -31,11 +32,10 @@ const OPTIMIZE_HUMAN = `你将收到：
 3) 从本地知识库检索出的规则片段
 
 请严格执行：
-1. 只返回优化后的HTML富文本，不返回解释。
-2. 仅允许标签：<b>、<i>、<u>、<ul>、<ol>、<li>。
-3. 可按内容需要使用<ul><li>或<ol><li>结构；若不适合列表，也可以不使用<ul>/<ol>。
-4. 语言简洁、专业，符合ATS筛选。
-5. 保留事实，不新增原文未给出的经历、数据。
+1. 只返回优化后的 HTML 富文本，不返回解释。
+2. {formatRules}
+3. 语言简洁、专业，符合 ATS 筛选。
+4. 保留事实，不新增原文未给出的经历、数据。
 
 【目标岗位】
 {postType}
@@ -52,6 +52,7 @@ const OPTIMIZE_HUMAN = `你将收到：
 export async function optimizeByScene(
   scene: OptimizeScene,
   req: OptimizeRequest,
+  opts?: { llm?: AppChatModel; useModifyChatModel?: boolean },
 ): Promise<string> {
   const rawText = normalizeRawText(req.rawText);
   if (!rawText) throw new Error('原始文本不能为空');
@@ -68,9 +69,13 @@ export async function optimizeByScene(
     ['human', OPTIMIZE_HUMAN],
   ]);
 
-  const chain = prompt
-    .pipe(createChatModel({ temperature: 0.8 }))
-    .pipe(new StringOutputParser());
+  const llm =
+    opts?.llm ??
+    (opts?.useModifyChatModel
+      ? createModifyChatModel({ temperature: 0.8 })
+      : createChatModel({ temperature: 0.8 }));
+
+  const chain = prompt.pipe(llm).pipe(new StringOutputParser());
 
   // 如果没有命中岗位专属规则，仍然会回退到全局规则，从而保证链路可用。
   const rawHtml = await chain.invoke({
@@ -78,6 +83,7 @@ export async function optimizeByScene(
     sceneLabel: SCENE_LABEL[scene],
     rawText,
     knowledgeContext: knowledgeContext || '未命中岗位规则，仅应用全局规则。',
+    formatRules: descriptionPolishRulesForScene(scene),
   });
 
   // 模型输出不可信，最后统一做一次 HTML 解围栏 + 白名单清洗，防止非法标签落入编辑器。

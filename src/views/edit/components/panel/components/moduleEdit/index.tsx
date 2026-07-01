@@ -6,49 +6,24 @@ import {
   useMemo,
   useRef,
   useState,
-  type ComponentType,
+  useSyncExternalStore,
 } from 'react';
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { observer } from 'mobx-react';
+import photo4 from '@/assets/brand/photo4.png';
+import photo4Light from '@/assets/brand/photo4_light.png';
+import {
+  getServerThemeSnapshot,
+  getThemeSnapshot,
+  subscribeAppTheme,
+} from '@/lib/themeStore';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { moduleType } from '@/modules/utils/constant';
 import { flattenModules } from '@/utils/resumePages';
+import { scrollElementIntoScrollParent } from '@/utils/scrollIntoScrollParent';
 import Global from '../global';
-import Info1 from '../info1';
-import Certificate from '../certificate';
-import Skill from '../skill';
-import Job from '../job';
-import Project from '../project';
-import Education from '../education';
-import Other from '../other';
-
-type ModulePanel = ComponentType<{ moduleId?: string }>;
-
-const panelByType: Record<string, ModulePanel> = {
-  info1: Info1,
-  certificate: Certificate,
-  skill: Skill,
-  job: Job,
-  project: Project,
-  education: Education,
-  other: Other,
-};
-
-const panelHasOwnTitle = new Set([
-  'info1',
-  'certificate',
-  'education',
-  'job',
-  'project',
-  'skill',
-  'other',
-]);
-
-/**
- * 滚入视区时与滚动容器顶部的间距。
- * 这里需要覆盖 sticky 模块导航本身的高度，否则跳转后模块顶部会被挡住。
- */
-const SCROLL_INTO_VIEW_MARGIN_TOP = 77;
+import LazyModulePanel from './lazyModulePanel';
 
 function scrollParentEl(el: HTMLElement | null): Element | null {
   let p: Element | null = el?.parentElement ?? null;
@@ -63,9 +38,15 @@ function scrollParentEl(el: HTMLElement | null): Element | null {
 }
 function ModuleEdit() {
   const tm = useTranslations('Edit.moduleEditPanel');
+  const themeSnap = useSyncExternalStore(
+    subscribeAppTheme,
+    getThemeSnapshot,
+    getServerThemeSnapshot,
+  );
+  const [, appTheme] = themeSnap.split('|') as ['dark' | 'light' | 'system', 'dark' | 'light'];
   const config = configStore.getConfig;
   const activeId = moduleActiveStore.getModuleActive;
-  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const sectionRef = useRef<HTMLElement | null>(null);
   const navStickyRef = useRef<HTMLElement | null>(null);
   const [navStuck, setNavStuck] = useState(false);
 
@@ -91,10 +72,29 @@ function ModuleEdit() {
     [modulesFlat]
   );
 
+  const activeModule = useMemo(
+    () => moduleEntries.find((mod) => mod.id === activeId) ?? null,
+    [moduleEntries, activeId],
+  );
+
   useLayoutEffect(() => {
     if (activeId === 'global' || !activeId) return;
-    const el = sectionRefs.current.get(activeId);
-    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const scrollSection = () => {
+      const el = sectionRef.current;
+      if (!el) return false;
+      scrollElementIntoScrollParent(el, 'smooth', { align: 'start' });
+      return true;
+    };
+    requestAnimationFrame(() => {
+      if (scrollSection()) return;
+      let retries = 20;
+      const tick = () => {
+        if (scrollSection() || retries <= 0) return;
+        retries -= 1;
+        window.setTimeout(tick, 80);
+      };
+      window.setTimeout(tick, 80);
+    });
   }, [activeId]);
 
   useEffect(() => {
@@ -130,6 +130,7 @@ function ModuleEdit() {
     <div className='flex flex-col gap-5'>
       <section
         ref={navStickyRef}
+        data-edit-tour='module-nav'
         className={`sticky top-[-1px] z-[1] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.11),rgb(var(--panel-surface-rgb)/0.05))] px-4 pt-3 shadow-[var(--panel-shadow-lg)] backdrop-blur-md transition-[border-radius] duration-150 ${
           navStuck ? 'rounded-b-[20px] rounded-t-none' : 'rounded-[20px]'
         }`}
@@ -141,7 +142,9 @@ function ModuleEdit() {
               <button
                 key={mod.id}
                 type='button'
-                onClick={() => moduleActiveStore.setModuleActive(mod.id)}
+                onClick={() => {
+                  moduleActiveStore.setModuleActive(selected ? 'global' : mod.id);
+                }}
                 className={`shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
                   selected
                     ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)] text-white shadow-[0_8px_18px_color-mix(in_srgb,var(--color-primary)_35%,transparent)]'
@@ -156,53 +159,27 @@ function ModuleEdit() {
         </div>
       </section>
 
-      <div className='flex flex-col gap-4'>
-        {moduleEntries.map((mod) => {
-          const Panel = panelByType[mod.type];
-          if (!Panel) {
-            return null;
-          }
-          const selected = activeId === mod.id;
-          return (
-            <section
-              key={mod.id}
-              data-panel-module-id={mod.id}
-              ref={(el) => {
-                if (el) sectionRefs.current.set(mod.id, el);
-                else sectionRefs.current.delete(mod.id);
-              }}
-              className={`rounded-[22px] border px-4 py-4 shadow-[var(--panel-shadow-card)] transition-colors ${
-                selected
-                  ? 'border-[color:color-mix(in_srgb,var(--color-primary)_62%,rgb(var(--panel-surface-rgb)/0.2))] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-primary)_18%,transparent),rgb(var(--panel-surface-rgb)/0.08))] shadow-[0_16px_42px_rgb(249_114_77_/_0.14)]'
-                  : 'border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.09),rgb(var(--panel-surface-rgb)/0.04))]'
-              }`}
-              style={{ scrollMarginTop: SCROLL_INTO_VIEW_MARGIN_TOP }}
-            >
-              <div className='mb-3 flex items-center justify-between gap-3'>
-                <div className='min-w-0'>
-                  <div className='flex items-center gap-2'>
-                    <span className='rounded-full border border-fg/[0.08] bg-[var(--panel-inset-bg)] px-2 py-0.5 text-[10px] font-medium tracking-[0.14em] text-fg/62'>
-                      {String(mod.index + 1).padStart(2, '0')}
-                    </span>
-                    <span className='truncate text-[12px] font-medium text-fg/62'>{mod.label}</span>
-                  </div>
-                </div>
-                {selected ? (
-                  <span className='shrink-0 rounded-full bg-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--color-primary)]'>
-                    {tm('currentEditing')}
-                  </span>
-                ) : null}
-              </div>
-              {!panelHasOwnTitle.has(mod.type) && (
-                <h3 className='mb-4 text-[15px] font-medium text-fg/90'>
-                  {mod.label}
-                </h3>
-              )}
-              <Panel moduleId={mod.id} />
-            </section>
-          );
-        })}
-      </div>
+      {activeModule ? (
+        <section
+          key={activeModule.id}
+          ref={sectionRef}
+          data-panel-module-id={activeModule.id}
+        >
+          <LazyModulePanel type={activeModule.type} moduleId={activeModule.id} />
+        </section>
+      ) : (
+        <div className='overflow-hidden rounded-[20px]'>
+          <Image
+            src={appTheme === 'dark' ? photo4 : photo4Light}
+            alt={tm('selectModuleHint')}
+            width={1915}
+            height={821}
+            className='h-auto w-full'
+            sizes='(max-width: 768px) 100vw, 410px'
+            priority
+          />
+        </div>
+      )}
     </div>
   );
 }

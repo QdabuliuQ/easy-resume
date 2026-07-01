@@ -5,6 +5,7 @@ export function resolvePanelHeroContent(
   tr: (key: string) => string,
 ): Pick<PanelHeroProps, 'eyebrow' | 'title' | 'description' | 'chip'> {
   const isAiScore = menuActiveKey === 'ai-score';
+  const isAiModify = menuActiveKey === 'ai-modify';
   const isResumeTemplate = menuActiveKey === 'resume-template';
   const isGeneralSettings = menuActiveKey === 'general-settings';
   const isPageSettings = menuActiveKey === 'page-settings';
@@ -12,39 +13,47 @@ export function resolvePanelHeroContent(
   return {
     eyebrow: isAiScore
       ? 'AI SCORE'
-      : isResumeTemplate
-        ? 'TEMPLATES'
-        : isGeneralSettings
-          ? 'GLOBAL'
-          : isPageSettings
-            ? 'PAGE'
-            : 'CONFIG',
+      : isAiModify
+        ? 'AI WRITE'
+        : isResumeTemplate
+          ? 'TEMPLATES'
+          : isGeneralSettings
+            ? 'GLOBAL'
+            : isPageSettings
+              ? 'PAGE'
+              : 'CONFIG',
     title: isAiScore
       ? tr('panelTitleAi')
-      : isResumeTemplate
-        ? tr('panelTitleTemplate')
-        : isGeneralSettings
-          ? tr('panelTitleGeneral')
-          : isPageSettings
-            ? tr('panelTitlePageSettings')
-            : tr('panelTitleDefault'),
+      : isAiModify
+        ? tr('panelTitleAiModify')
+        : isResumeTemplate
+          ? tr('panelTitleTemplate')
+          : isGeneralSettings
+            ? tr('panelTitleGeneral')
+            : isPageSettings
+              ? tr('panelTitlePageSettings')
+              : tr('panelTitleDefault'),
     description: isAiScore
       ? tr('panelDescAi')
-      : isResumeTemplate
-        ? tr('panelDescTemplate')
-        : isGeneralSettings
-          ? tr('panelDescGeneral')
-          : isPageSettings
-            ? tr('panelDescPageSettings')
-            : tr('panelDescDefault'),
+      : isAiModify
+        ? tr('panelDescAiModify')
+        : isResumeTemplate
+          ? tr('panelDescTemplate')
+          : isGeneralSettings
+            ? tr('panelDescGeneral')
+            : isPageSettings
+              ? tr('panelDescPageSettings')
+              : tr('panelDescDefault'),
     chip: isAiScore
       ? tr('chipAi')
-      : isResumeTemplate
-        ? tr('chipTemplate')
-        : isGeneralSettings
-          ? tr('chipGeneral')
-          : isPageSettings
-            ? tr('chipPageSettings')
-            : tr('chipEdit'),
+      : isAiModify
+        ? tr('chipAiModify')
+        : isResumeTemplate
+          ? tr('chipTemplate')
+          : isGeneralSettings
+            ? tr('chipGeneral')
+            : isPageSettings
+              ? tr('chipPageSettings')
+              : tr('chipEdit'),
   };
 }

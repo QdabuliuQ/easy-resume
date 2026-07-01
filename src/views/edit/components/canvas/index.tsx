@@ -55,10 +55,10 @@ import ResumeImportOverlay from './resumeImportOverlay';
 /** 容器内左右留白，用于判断是否需缩小画布（缩放时两侧至少各 40） */
 const CANVAS_SIDE_PAD = 70;
 const PREVIEW_EXIT_MS = 200;
-const RENDER_DEBOUNCE_MS = 180;
+const RENDER_DEBOUNCE_MS = 100;
 const PAGE_FIT_EPSILON_PX = 0.5;
 const MEASURE_HEIGHT_EPSILON_PX = 0.1;
-const MEASURE_FRAME_DELAY = 10;
+const MEASURE_FRAME_DELAY = 2;
 
 interface ResumeModule {
   type: string;
@@ -159,12 +159,14 @@ function buildModuleNode(
 type CanvasProps = {
   onOpenGeneralSettings?: () => void;
   onOpenResumePanel?: () => void;
+  onLayoutReady?: () => void;
   mode?: 'edit' | 'preview';
 };
 
 function Canvas({
   onOpenGeneralSettings,
   onOpenResumePanel,
+  onLayoutReady,
   mode = 'edit',
 }: CanvasProps) {
   const isEditMode = mode === 'edit';
@@ -174,6 +176,9 @@ function Canvas({
   const router = useRouter();
   const canvasStageRef = useRef<HTMLDivElement>(null);
   const renderDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const layoutReadySentRef = useRef(false);
+  const onLayoutReadyRef = useRef(onLayoutReady);
+  onLayoutReadyRef.current = onLayoutReady;
   const moduleMeasureEls = useRef<Record<string, HTMLDivElement | null>>({});
   const moduleHeights = useRef<Record<string, number>>({});
   const [pages, setPages] = useState<Array<React.ReactNode>>([]);
@@ -358,6 +363,10 @@ function Canvas({
 
     setPages(nextPages);
     configStore.setExportPages(layoutPages.map((page) => ({ modules: page.exportModules })));
+    if (!layoutReadySentRef.current && nextPages.length > 0) {
+      layoutReadySentRef.current = true;
+      onLayoutReadyRef.current?.();
+    }
   });
 
   const syncMeasuredHeights = useMemoizedFn(() => {

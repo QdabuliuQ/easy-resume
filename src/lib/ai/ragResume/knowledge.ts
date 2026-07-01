@@ -1,13 +1,14 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Embeddings } from '@langchain/core/embeddings';
-import { pipeline } from '@xenova/transformers';
+import { env as transformersEnv, pipeline } from '@xenova/transformers';
 import { matchRole, normalizeRoleKey, toRoleLabel } from '@/lib/ai/ragResume/roles';
 import type { OptimizeScene, RagKnowledgeDoc } from '@/lib/ai/ragResume/types';
+import { descriptionPolishRulesForScene } from '@/lib/ai/descriptionFormat';
 
-// 本地 RAG 知识库根目录。这里存放的是可被检索的规则文本，而不是模型参数。
 const RAG_ROOT = path.join(process.cwd(), 'src', 'rag-resume-knowledge');
 const GLOBAL_RULE_FILE = 'global-rules.txt';
+export const SCHEMA_GLOSSARY_FILE = 'schema-field-glossary.txt';
 
 // 不同润色场景各自绑定一组知识文件：
 // - dir: 该场景的规则目录
@@ -48,10 +49,27 @@ let extractorPromise: Promise<
   (text: string, opts: { pooling: 'mean'; normalize: boolean }) => Promise<{ data: number[] }>
 > | null = null;
 
+let transformersInited = false;
+let embeddingUnavailable = false;
+
+function initTransformersEnv() {
+  if (transformersInited) return;
+  transformersInited = true;
+  transformersEnv.cacheDir = path.join(process.cwd(), '.cache', 'transformers');
+  if (process.env.TRANSFORMERS_OFFLINE === '1') {
+    transformersEnv.allowRemoteModels = false;
+  }
+}
+
 async function getExtractor() {
+  if (embeddingUnavailable) throw new Error('embedding unavailable');
+  initTransformersEnv();
   if (!extractorPromise) {
-    // 使用轻量本地 embedding 模型，避免额外依赖远端向量服务。
-    extractorPromise = pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2') as Promise<
+    extractorPromise = pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2').catch((e) => {
+      embeddingUnavailable = true;
+      extractorPromise = null;
+      throw e;
+    }) as Promise<
       (text: string, opts: { pooling: 'mean'; normalize: boolean }) => Promise<{ data: number[] }>
     >;
   }
@@ -65,9 +83,16 @@ class TransformersJSEmbeddings extends Embeddings {
   }
 
   private async embedOne(text: string): Promise<number[]> {
-    const extractor = await getExtractor();
-    const output = await extractor(text, { pooling: 'mean', normalize: true });
-    return Array.from(output.data ?? []);
+    if (embeddingUnavailable) return [];
+    try {
+      const extractor = await getExtractor();
+      const output = await extractor(text, { pooling: 'mean', normalize: true });
+      return Array.from(output.data ?? []);
+    } catch (e) {
+      embeddingUnavailable = true;
+      console.warn('[rag] embedding model unavailable, fallback to static chunks:', e);
+      return [];
+    }
   }
 
   async embedDocuments(texts: string[]): Promise<number[][]> {
@@ -201,9 +226,23 @@ export async function buildSceneRetriever(scene: OptimizeScene, postType: string
   return {
     matchedRole: matched,
     async retrieve(rawText: string) {
-      // 查询向量由“岗位 + 原始文本”组成：岗位词控制召回范围，原始文本提供具体语义。
       const query = `${postType}\n${rawText}`.trim();
+      const hasVectors = vectorStore.some((item) => item.vector.length > 0);
+      if (!hasVectors) {
+        return vectorStore
+          .slice(0, 5)
+          .map((item) => item.content.trim())
+          .filter(Boolean)
+          .join('\n\n');
+      }
       const queryVector = await getEmbeddings().embedQuery(query);
+      if (!queryVector.length) {
+        return vectorStore
+          .slice(0, 5)
+          .map((item) => item.content.trim())
+          .filter(Boolean)
+          .join('\n\n');
+      }
 
       const scored = vectorStore
         .map((item) => ({
@@ -238,4 +277,106 @@ function cosineSimilarity(a: number[], b: number[]): number {
   }
   if (!normA || !normB) return 0;
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+async function buildIndexedChunks(texts: string[], chunkSize = 700, overlap = 120): Promise<IndexedChunk[]> {
+  const chunks = texts.flatMap((text) => chunkText(text, chunkSize, overlap));
+  if (!chunks.length) return [];
+  const vectors = await getEmbeddings().embedDocuments(chunks);
+  return chunks.map((content, idx) => ({ content, vector: vectors[idx] || [] }));
+}
+
+async function retrieveTopK(store: IndexedChunk[], query: string, topK = 5): Promise<string> {
+  if (!store.length) return '';
+  const hasVectors = store.some((item) => item.vector.length > 0);
+  if (!hasVectors) {
+    return store
+      .slice(0, Math.max(1, topK))
+      .map((item) => item.content.trim())
+      .filter(Boolean)
+      .join('\n\n');
+  }
+  const queryVector = await getEmbeddings().embedQuery(query);
+  if (!queryVector.length) {
+    return store
+      .slice(0, Math.max(1, topK))
+      .map((item) => item.content.trim())
+      .filter(Boolean)
+      .join('\n\n');
+  }
+  return store
+    .map((item) => ({
+      content: item.content,
+      score: cosineSimilarity(queryVector, item.vector),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, Math.max(1, topK))
+    .map((d) => d.content.trim())
+    .filter(Boolean)
+    .join('\n\n');
+}
+
+const schemaGlossaryCache = new Map<string, Promise<IndexedChunk[]>>();
+
+export async function buildSchemaGlossaryRetriever() {
+  const cacheKey = 'schema:glossary';
+  if (!schemaGlossaryCache.has(cacheKey)) {
+    schemaGlossaryCache.set(
+      cacheKey,
+      (async () => {
+        const glossaryPath = path.join(RAG_ROOT, SCHEMA_GLOSSARY_FILE);
+        const text = await readFile(glossaryPath, 'utf-8');
+        return buildIndexedChunks([text], 650, 100);
+      })(),
+    );
+  }
+  const vectorStore = await schemaGlossaryCache.get(cacheKey)!;
+  return {
+    async retrieve(query: string, topK = 4) {
+      return retrieveTopK(vectorStore, query, topK);
+    },
+  };
+}
+
+export async function retrieveModifyChatKnowledge(opts: {
+  userMessage: string;
+  postType?: string;
+  scene?: OptimizeScene | null;
+  moduleContext?: string;
+  includeSchema?: boolean;
+  schemaTopK?: number;
+}): Promise<string> {
+  const parts: string[] = [];
+  const queryBase = [opts.postType, opts.userMessage, opts.moduleContext?.slice(0, 1500)]
+    .filter(Boolean)
+    .join('\n')
+    .trim();
+
+  if (opts.includeSchema !== false) {
+    try {
+      const schemaRetriever = await buildSchemaGlossaryRetriever();
+      const schemaCtx = await schemaRetriever.retrieve(queryBase, opts.schemaTopK ?? 4);
+      if (schemaCtx) parts.push(`【JSON 字段与模块说明】\n${schemaCtx}`);
+    } catch {
+      /* glossary optional */
+    }
+  }
+
+  if (opts.scene) {
+    try {
+      const sceneRetriever = await buildSceneRetriever(opts.scene, opts.postType ?? '未指定岗位');
+      const sceneCtx = await sceneRetriever.retrieve(
+        opts.moduleContext?.slice(0, 2000) ?? opts.userMessage,
+      );
+      if (sceneCtx) parts.push(`【润色规则】\n${sceneCtx}`);
+      parts.push(`【描述格式（STAR + 富文本）】\n${descriptionPolishRulesForScene(opts.scene)}`);
+    } catch {
+      parts.push('【润色规则】未命中岗位规则，仅应用全局规则。');
+      parts.push(`【描述格式（STAR + 富文本）】\n${descriptionPolishRulesForScene(opts.scene)}`);
+    }
+  } else if (/优化|润色|改写|描述|STAR/i.test(opts.userMessage)) {
+    parts.push(`【描述格式（STAR + 富文本）】\n${descriptionPolishRulesForScene(null)}`);
+  }
+
+  return parts.join('\n\n') || '（无额外知识库上下文）';
 }

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: FAVICON_HREF, type: 'image/x-icon' }],
     shortcut: FAVICON_HREF,
-    apple: logo.src,
+    apple: logo,
   },
 };
 

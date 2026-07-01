@@ -51,28 +51,41 @@ function animateScrollTop(
   requestAnimationFrame(step);
 }
 
+export type ScrollIntoParentOptions = {
+  align?: 'start' | 'center' | 'nearest';
+  marginTop?: number;
+};
+
 /**
- * 在滚动容器内把目标元素滚进可视区（类似 block: 'nearest'）。
+ * 在滚动容器内把目标元素滚进可视区。
  */
 export function scrollElementIntoScrollParent(
   el: HTMLElement,
-  behavior: ScrollBehavior = 'smooth'
+  behavior: ScrollBehavior = 'smooth',
+  opts?: ScrollIntoParentOptions,
 ) {
+  const align = opts?.align ?? 'nearest';
+  const marginTop = opts?.marginTop ?? 0;
   const sp = findVerticalScrollParent(el);
   if (!sp) {
-    el.scrollIntoView({ behavior, block: 'nearest', inline: 'nearest' });
+    const block = align === 'center' ? 'center' : align === 'start' ? 'start' : 'nearest';
+    el.scrollIntoView({ behavior, block, inline: 'nearest' });
     return;
   }
 
   const spRect = sp.getBoundingClientRect();
   const elRect = el.getBoundingClientRect();
-  const posTop = sp.scrollTop + elRect.top - spRect.top;
-  const posBottom = posTop + elRect.height;
+  const posTop = sp.scrollTop + elRect.top - spRect.top - marginTop;
+  const posBottom = posTop + elRect.height + marginTop;
   const viewTop = sp.scrollTop;
   const viewBottom = viewTop + sp.clientHeight;
 
   let next = sp.scrollTop;
-  if (posTop < viewTop) {
+  if (align === 'center') {
+    next = posTop - (sp.clientHeight - elRect.height) / 2;
+  } else if (align === 'start') {
+    next = posTop;
+  } else if (posTop < viewTop) {
     next = posTop;
   } else if (posBottom > viewBottom) {
     next = posBottom - sp.clientHeight;
