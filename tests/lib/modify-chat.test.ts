@@ -23,7 +23,7 @@ import {
   resolveTargetsByDisplayName,
 } from '@/lib/ai/modifyChat/resumeSummary';
 import { inferAddModuleType, inferModifyScopeHeuristic } from '@/lib/ai/modifyChat/scopeRouter';
-import { RESUME_JSON_SCHEMA_PROMPT } from '@/lib/ai/modifyChat/resumeSchema';
+import { RESUME_JSON_SCHEMA_PROMPT, type ResumeConfig } from '@/lib/ai/modifyChat/resumeSchema';
 import { SCHEMA_GLOSSARY_FILE } from '@/lib/ai/ragResume/knowledge';
 import { stripResumeAvatarForAi } from '@/lib/stripResumeAvatarForAi';
 

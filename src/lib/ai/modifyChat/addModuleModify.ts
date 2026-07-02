@@ -15,7 +15,7 @@ import { PARTIAL_MODIFY_HUMAN, PARTIAL_MODIFY_SYSTEM } from './prompt';
 import { extractPostType, locateModule } from './resumeSummary';
 import type { AddableResumeModuleType } from '@/lib/ai/modifyChat/resumeSchema';
 import { createEmptyResumeModule } from '@/utils/createResumeModule';
-import { isResumeModuleTypeAtLimit } from '@/utils/moduleTypeLimits';
+import { isResumeModuleTypeAtLimit, type ResumeModuleCountConfig } from '@/utils/moduleTypeLimits';
 
 const MODULE_TYPE_LABELS: Record<string, string> = {
   certificate: '证书',
@@ -33,7 +33,7 @@ export async function modifyAddModule(
   signal?: AbortSignal,
 ): Promise<{ message: string; resume: unknown }> {
   throwIfAborted(signal);
-  if (isResumeModuleTypeAtLimit(resume, moduleType)) {
+  if (isResumeModuleTypeAtLimit(resume as ResumeModuleCountConfig, moduleType)) {
     const label = MODULE_TYPE_LABELS[moduleType] ?? moduleType;
     throw new Error(`简历中「${label}」模块已达上限`);
   }

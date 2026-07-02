@@ -57,11 +57,12 @@ export function resumeModuleItemLimitMessage(t: ResumeModuleItemType): string {
   return `${label}模块内最多 ${RESUME_MODULE_ITEM_MAX_COUNT[t]} 条`;
 }
 
+export type ResumeModuleCountConfig = {
+  pages?: Array<{ modules?: Array<{ type: string }> }>;
+} | null | undefined;
+
 export function countResumeModulesByType(
-  config: {
-    pages?: Array<{ modules?: Array<{ type: string }> }>;
-  } | null
-  | undefined,
+  config: ResumeModuleCountConfig,
   type: ResumeModuleType
 ): number {
   if (!config?.pages?.length) return 0;
@@ -75,20 +76,19 @@ export function countResumeModulesByType(
 }
 
 export function isResumeModuleTypeAtLimit(
-  config: Parameters<typeof countResumeModulesByType>[0],
+  config: ResumeModuleCountConfig,
   type: ResumeModuleType
 ): boolean {
   return countResumeModulesByType(config, type) >= RESUME_MODULE_MAX_COUNT[type];
 }
 
 /** AI/导入后校验：info1 全简历最多 1 个；原文有 info1 时不可删光 */
-export function validateInfo1ModuleChange(
-  original: Parameters<typeof countResumeModulesByType>[0],
-  modified: Parameters<typeof countResumeModulesByType>[0],
-): string | null {
-  const orig = countResumeModulesByType(original, 'info1');
-  const mod = countResumeModulesByType(modified, 'info1');
-  if (mod > 1) return '个人信息模块只能有 1 个';
-  if (orig >= 1 && mod === 0) return '个人信息模块不可删除';
+export function validateInfo1ModuleChange(original: unknown, modified: unknown): string | null {
+  const orig = original as ResumeModuleCountConfig;
+  const mod = modified as ResumeModuleCountConfig;
+  const origCount = countResumeModulesByType(orig, 'info1');
+  const modCount = countResumeModulesByType(mod, 'info1');
+  if (modCount > 1) return '个人信息模块只能有 1 个';
+  if (origCount >= 1 && modCount === 0) return '个人信息模块不可删除';
   return null;
 }
