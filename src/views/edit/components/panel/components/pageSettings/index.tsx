@@ -26,9 +26,12 @@ import {
 
 const PAGE_SECTION_SHELL =
   'overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),rgb(var(--panel-surface-rgb)/0.03)] p-4 shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04),var(--panel-shadow-md)]';
-const FONT_SIZE_OPTIONS = Array.from({ length: 9 }, (_, i) => {
-  const n = 10 + i;
-  return { label: `${n}px`, value: n };
+const FONT_SIZE_OPTIONS = Array.from({ length: 17 }, (_, i) => {
+  const n = 10 + i * 0.5;
+  return {
+    label: Number.isInteger(n) ? `${n}px` : `${n.toFixed(1)}px`,
+    value: n,
+  };
 });
 const LINE_HEIGHT_OPTIONS = Array.from({ length: 21 }, (_, i) => {
   const value = Math.round((1 + i * 0.1) * 10) / 10;

@@ -3,7 +3,7 @@ import { DatePicker } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MobileDatePicker, MobileRangeDatePicker } from '@/components/mobileDatePicker';
 import PresentEndAction from '@/components/responsiveDatePicker/presentEndAction';
 import { isResumePresentEndDate } from '@/utils/resumeDateDisplay';
@@ -150,11 +150,26 @@ function DesktopRangeDatePicker({
   onChange?: RangeProps['onChange'];
 }) {
   const [open, setOpen] = useState(false);
+  const rangeDraftRef = useRef<[Dayjs | null, Dayjs | null]>([start ?? null, end ?? null]);
   const pickerValue: [Dayjs | null, Dayjs | null] | null =
     start || end || endIsPresent ? [start ?? null, endIsPresent ? null : (end ?? null)] : null;
 
+  useEffect(() => {
+    rangeDraftRef.current = [start ?? null, endIsPresent ? null : (end ?? null)];
+  }, [start, end, endIsPresent]);
+
+  const syncRangeDraft = (dates: [Dayjs | null, Dayjs | null] | null) => {
+    if (dates) rangeDraftRef.current = dates;
+  };
+
+  const toRangeTuple = (
+    dates: [Dayjs | null, Dayjs | null] | null,
+  ): [Dayjs | null, Dayjs | null] | null =>
+    dates ? [dates[0] ?? null, dates[1] ?? null] : null;
+
   const pickPresentEnd = () => {
-    onChange?.([start ?? null, null], { endIsPresent: true });
+    const [draftStart] = rangeDraftRef.current;
+    onChange?.([draftStart ?? start ?? null, null], { endIsPresent: true });
     setOpen(false);
   };
 
@@ -170,11 +185,13 @@ function DesktopRangeDatePicker({
       placeholder={placeholders}
       disabled={disabled}
       format={format}
+      onCalendarChange={(dates) => {
+        syncRangeDraft(toRangeTuple(dates));
+      }}
       onChange={(dates) => {
-        onChange?.(
-          dates ? [dates[0] ?? null, dates[1] ?? null] : null,
-          { endIsPresent: false },
-        );
+        const next = toRangeTuple(dates);
+        syncRangeDraft(next);
+        onChange?.(next, { endIsPresent: false });
       }}
       renderExtraFooter={() => (
         <div className='flex justify-center border-t border-fg/[0.08] bg-[linear-gradient(180deg,transparent,rgb(var(--panel-surface-rgb)/0.05))] px-3 py-2.5'>
