@@ -63,6 +63,36 @@ export function looksLikeRichHtml(value: string): boolean {
   return /<[^>]+>/.test(value.trim());
 }
 
+function stripForeignRichTextStyles(html: string): string {
+  if (!html?.trim()) return html;
+  if (typeof document === 'undefined') {
+    return html
+      .replace(/\sclass="[^"]*\bql-bg-[^"\s]*[^"]*"/gi, (m) => {
+        const next = m
+          .slice(8, -1)
+          .split(/\s+/)
+          .filter((c) => !c.startsWith('ql-bg-'))
+          .join(' ');
+        return next ? ` class="${next}"` : '';
+      })
+      .replace(/\bbackground(?:-color|-image)?\s*:[^;"']*;?/gi, '');
+  }
+  const root = document.createElement('div');
+  root.innerHTML = html;
+  for (const el of Array.from(root.querySelectorAll<HTMLElement>('[style]'))) {
+    el.style.removeProperty('background');
+    el.style.removeProperty('background-color');
+    el.style.removeProperty('background-image');
+    if (!el.getAttribute('style')?.trim()) el.removeAttribute('style');
+  }
+  for (const el of Array.from(root.querySelectorAll('[class*="ql-bg-"]'))) {
+    for (const cls of Array.from(el.classList)) {
+      if (cls.startsWith('ql-bg-')) el.classList.remove(cls);
+    }
+  }
+  return root.innerHTML;
+}
+
 /** Quill 等富文本在 dangerouslySetInnerHTML 前必须通过此函数 */
 export function sanitizeRichTextHtml(html: string): string {
   if (!html?.trim()) return '';
@@ -78,7 +108,9 @@ export function sanitizeRichTextHtml(html: string): string {
       USE_PROFILES: { html: true },
     });
   }
-  return ensureAnchorsOpenBlank(normalizePlainHtmlListsForQuill(safe));
+  return stripForeignRichTextStyles(
+    ensureAnchorsOpenBlank(normalizePlainHtmlListsForQuill(safe)),
+  );
 }
 export function unwrapFencedHtml(s: string): string {
   const t = s.trim();

@@ -20,6 +20,7 @@ import {
   clearAiModifyChatMessages,
   loadAiModifyChatMessages,
   saveAiModifyChatMessages,
+  subscribeAiModifyChatReset,
   toStoredAiModifyChatMessages,
   type StoredAiModifyChatItem,
 } from '@/lib/aiModifyChatSessionStorage';
@@ -553,6 +554,7 @@ function AiModify() {
     }
   }, [input, loading, messageApi, scrollEnd, ta, upsertAssistant, cleanupStreamingAssistant]);
   useEffect(() => () => abortRef.current?.abort(), []);
+  useEffect(() => subscribeAiModifyChatReset(resetChat), [resetChat]);
   useEffect(() => {
     const tick = () => scrollEnd();
     requestAnimationFrame(() => requestAnimationFrame(tick));

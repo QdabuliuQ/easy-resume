@@ -8,6 +8,7 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import defaultResume from '@/json/resume.defaults';
 import type { ResumeTemplateItem } from '@/json/resumeTemplates';
 import { loadResumeTemplates } from '@/lib/loadResumeTemplates';
+import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import type { GlobalStyle } from '@/modules/utils/common.type';
@@ -100,6 +101,7 @@ function ResumeTemplate() {
   const applyTemplate = (tpl: ResumeTemplateItem) => {
     configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
     moduleActiveStore.setModuleActive('global');
+    resetAiModifyChatSession();
     message.success(tr('appliedOk'));
   };
   const onPick = useMemoizedFn((tpl: ResumeTemplateItem) => {

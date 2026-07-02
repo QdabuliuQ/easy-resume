@@ -4,6 +4,7 @@ import { observer } from 'mobx-react';
 import { useSearchParams } from 'next/navigation';
 import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
+import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { configStore } from '@/mobx';
 import Canvas from './components/canvas';
 import Container from './components/container';
@@ -31,6 +32,7 @@ function Edit() {
           config.globalStyle.color = color;
         }
         configStore.setConfig(config);
+        resetAiModifyChatSession();
       });
       return;
     }

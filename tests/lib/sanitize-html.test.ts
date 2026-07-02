@@ -22,4 +22,13 @@ describe('sanitizeRichTextHtml', () => {
     const out = sanitizeRichTextHtml('<ul><li>条目一</li></ul>');
     expect(out).toContain('data-list="bullet"');
   });
+
+  it('strips pasted background styles', () => {
+    const out = sanitizeRichTextHtml(
+      '<p><span style="background-color: yellow; color: red">文本</span></p>',
+    );
+    expect(out).not.toMatch(/background/i);
+    expect(out).toContain('color: red');
+    expect(out).toContain('文本');
+  });
 });

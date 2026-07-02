@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 import { useSearchParams } from 'next/navigation';
 import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
+import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { configStore } from '@/mobx';
 import Container from '../components/container';
 import MobileEditHeader from './header';
@@ -38,6 +39,7 @@ function MobileEdit() {
       void loadResumeTemplateByIndex(n).then((tpl) => {
         if (tpl?.config) {
           configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
+          resetAiModifyChatSession();
         }
       });
       return;

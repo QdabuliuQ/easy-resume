@@ -128,10 +128,9 @@ function pastePlainTextAtSelection(
   q.scrollSelectionIntoView();
 }
 
-function bindPlainTextPaste(q: QuillType) {
+function bindPlainTextPaste(q: QuillType): () => void {
   const clipboard = q.getModule('clipboard');
-  if (!clipboard) return;
-  clipboard.onCapturePaste = (e: ClipboardEvent) => {
+  const onPaste = (e: ClipboardEvent) => {
     if (e.defaultPrevented || !q.isEnabled()) return;
     e.preventDefault();
     e.stopPropagation();
@@ -140,13 +139,16 @@ function bindPlainTextPaste(q: QuillType) {
     const html = e.clipboardData?.getData('text/html') ?? '';
     let text = e.clipboardData?.getData('text/plain') ?? '';
     if (!text && html) text = plainTextFromRichHtml(html);
-    if (!text) {
+    if (!text && clipboard) {
       const urlList = e.clipboardData?.getData('text/uri-list');
       if (urlList) text = clipboard.normalizeURIList(urlList);
     }
     if (!text) return;
     pastePlainTextAtSelection(q, range, text);
   };
+  // Quill 构造时已 bind onCapturePaste，改属性无效；capture 阶段先于其 bubble 监听
+  q.root.addEventListener('paste', onPaste, true);
+  return () => q.root.removeEventListener('paste', onPaste, true);
 }
 
 function RichTextEditor({
@@ -201,6 +203,7 @@ function RichTextEditor({
     el.innerHTML = '';
     setLoadingEditor(true);
     let disposed = false;
+    let unbindPlainPaste: (() => void) | undefined;
 
     void (async () => {
       const QuillCtor = await loadQuillCtor();
@@ -217,7 +220,7 @@ function RichTextEditor({
         },
       });
       quillRef.current = q;
-      bindPlainTextPaste(q);
+      unbindPlainPaste = bindPlainTextPaste(q);
       const tb = el.previousElementSibling;
       if (tb?.classList.contains('ql-toolbar')) localizeQuillSnowToolbar(tb, tr);
       const tipInput = el.querySelector('.ql-tooltip input[type="text"]');
@@ -271,6 +274,7 @@ function RichTextEditor({
 
     return () => {
       disposed = true;
+      unbindPlainPaste?.();
       quillRef.current = null;
       let prev = el.previousElementSibling;
       while (prev?.classList.contains('ql-toolbar')) {

@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { importResumeFromFile } from '@/api/importResumeFromFile';
 import { configStore, resumeImportStore } from '@/mobx';
 import { flushResumeBackupImmediate } from '@/lib/resumeConfigBackup';
+import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import {
   applyImportedPagesToConfig,
   clearImportedPagesInConfig,
@@ -81,6 +82,7 @@ export function useResumeImport() {
     preservedAvatarRef.current = findInfo1Avatar(current.pages);
     const clearedBase = clearImportedPagesInConfig(current);
     clearedBaseRef.current = clearedBase;
+    resetAiModifyChatSession();
     configStore.setConfig(clearedBase);
     resumeImportStore.setActive(true, t('importResumeParsing'));
     let rafId: number | null = null;

@@ -6,6 +6,7 @@ import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { configStore } from '@/mobx';
 import { flushResumeBackupImmediate } from '@/lib/resumeConfigBackup';
+import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import {
   getResumeImportValidationError,
   normalizeResumeImportPayload,
@@ -96,6 +97,7 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
       return;
     }
     configStore.setConfig(normalized);
+    resetAiModifyChatSession();
     message.success(t('importOk'));
     flushResumeBackupImmediate(configStore.getConfig);
   };

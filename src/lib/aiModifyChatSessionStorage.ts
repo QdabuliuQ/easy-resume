@@ -49,6 +49,22 @@ export function clearAiModifyChatMessages(): void {
   saveAiModifyChatMessages([]);
 }
 
+const RESET_EVENT = 'easy-resume-ai-modify-chat-reset';
+
+/** 整份简历被替换时调用：清 sessionStorage 并通知已挂载的 AiModify 面板 */
+export function resetAiModifyChatSession(): void {
+  clearAiModifyChatMessages();
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(RESET_EVENT));
+  }
+}
+
+export function subscribeAiModifyChatReset(onReset: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener(RESET_EVENT, onReset);
+  return () => window.removeEventListener(RESET_EVENT, onReset);
+}
+
 export function saveAiModifyChatMessages(messages: StoredAiModifyChatItem[]): void {
   if (!canUseSessionStorage()) return;
   try {

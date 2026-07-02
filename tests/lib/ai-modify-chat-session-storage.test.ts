@@ -3,7 +3,9 @@ import {
   AI_MODIFY_CHAT_STORAGE_KEY,
   clearAiModifyChatMessages,
   loadAiModifyChatMessages,
+  resetAiModifyChatSession,
   saveAiModifyChatMessages,
+  subscribeAiModifyChatReset,
   toStoredAiModifyChatMessages,
 } from '@/lib/aiModifyChatSessionStorage';
 
@@ -42,5 +44,17 @@ describe('aiModifyChatSessionStorage', () => {
     clearAiModifyChatMessages();
     expect(loadAiModifyChatMessages()).toEqual([]);
     expect(sessionStorage.getItem(AI_MODIFY_CHAT_STORAGE_KEY)).toBeNull();
+  });
+
+  it('resetAiModifyChatSession clears storage and notifies subscribers', () => {
+    saveAiModifyChatMessages([{ role: 'user', content: 'old' }]);
+    let notified = 0;
+    const unsub = subscribeAiModifyChatReset(() => {
+      notified += 1;
+    });
+    resetAiModifyChatSession();
+    unsub();
+    expect(loadAiModifyChatMessages()).toEqual([]);
+    expect(notified).toBe(1);
   });
 });

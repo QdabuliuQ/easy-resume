@@ -6,6 +6,7 @@ import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useTranslations } from 'next-intl';
 import { memo, useEffect, useMemo } from 'react';
 import { resumeTemplates } from '@/json/resumeTemplates';
+import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { configStore, moduleActiveStore } from '@/mobx';
 import {
   TemplateFirstPagePreview,
@@ -37,6 +38,7 @@ function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
   const applyTemplate = (tpl: (typeof resumeTemplates)[number]) => {
     configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
     moduleActiveStore.setModuleActive('global');
+    resetAiModifyChatSession();
     message.success(tr('appliedOk'));
     onClose();
   };
