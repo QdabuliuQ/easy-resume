@@ -31,4 +31,9 @@ describe('sanitizeRichTextHtml', () => {
     expect(out).toContain('color: red');
     expect(out).toContain('文本');
   });
+
+  it('preserves multiple spaces in html', () => {
+    const out = sanitizeRichTextHtml('<p>hello  world</p>');
+    expect(out).toMatch(/hello {2}world/);
+  });
 });

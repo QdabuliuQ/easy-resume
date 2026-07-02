@@ -21,7 +21,7 @@
   color: inherit;
   font-size: inherit;
   line-height: inherit;
-  white-space: normal;
+  white-space: pre-wrap;
   word-wrap: break-word;
   word-break: break-word;
   width: 100% !important;

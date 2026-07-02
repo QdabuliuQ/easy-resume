@@ -6,6 +6,11 @@
   --spacing: 0.25rem;
 }
 
+.resume-quill-embed .ql-editor,
+.rte-quill-sync .ql-editor {
+  white-space: pre-wrap;
+}
+
 .resume-quill-embed .ql-editor li,
 .rte-quill-sync .ql-editor li {
   margin-block: calc(var(--spacing) * 0.5);
