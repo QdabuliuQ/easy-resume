@@ -1,108 +1,136 @@
-# 简历 JSON 结构与字段词典（AI 修改专用）
-# 用途：帮助模型理解各 module.type、options 字段含义，正确映射用户自然语言到 JSON 路径
+# 简历 JSON 字段词典（AI 修改 / 导入专用）
+# 与编辑面板、resume.json 存储结构一致；禁止使用过时的 time[]、studyTime[]、postDepartment、projectName 字段名
 
 ## 根对象 resume
-field: name | 类型: string | 含义: 简历标题/文件名，非姓名
-field: globalStyle | 类型: object | 含义: 全局排版样式，见 globalStyle 小节
-field: pages | 类型: array | 含义: 分页数组，每页含 modules 列表
-field: exportPages | 类型: number[] | 含义: 导出 PDF 时包含的页码索引，通常 [0]
+field: name | 类型: string | 含义: 简历文件名/标题，非用户姓名
+field: globalStyle | 类型: object | 含义: 全局排版，见 globalStyle 节
+field: pages | 类型: array | 含义: 分页；每页含 modules 数组，至少 1 页
+field: exportPages | 类型: number[] | 可选 | 含义: 导出 PDF 的页码索引，常 [0]
 
-## 模块通用结构 modules[]
-field: type | 含义: 模块类型，决定 options 结构；禁止修改
-field: id | 含义: 模块唯一标识，与输入一致；禁止修改
-field: options | 含义: 模块业务数据，按 type 不同字段不同
+## 模块通用 modules[]
+field: type | 类型: enum | 取值: info1|certificate|education|job|project|skill|other | 含义: 模块类型，决定 options 结构；禁止修改
+field: id | 类型: string | 含义: 模块唯一 id，与输入 JSON 一致；禁止修改
+field: options | 类型: object | 含义: 模块业务数据
 
-## 模块类型 type 说明
-module: info1 | 中文: 个人信息/基础信息 | 用户常说: 姓名、电话、邮箱、头像区、意向岗位
-module: job | 中文: 工作经历 | 用户常说: 工作经验、任职、公司、岗位、职责描述
-module: project | 中文: 项目经历 | 用户常说: 项目、项目描述、项目角色
-module: education | 中文: 教育经历 | 用户常说: 学历、学校、专业、就读时间
-module: skill | 中文: 专业技能 | 用户常说: 技能、技术栈、专业技能；注意与 info1 不同
-module: certificate | 中文: 证书/资质 | 用户可见名称=options.title
-module: other | 中文: 自定义模块 | 用户可见名称=options.title，如：个人优势、自我评价、兴趣爱好
+## 模块类型速查
+module: info1 | 中文: 个人信息/基础信息 | 约束: 全简历有且只能 1 个；不可对话新增或删除
+module: job | 中文: 工作经历 | 用户常说: 工作经验、任职、公司
+module: project | 中文: 项目经历 | 用户常说: 项目、项目描述
+module: education | 中文: 教育经历 | 用户常说: 学历、学校、专业
+module: skill | 中文: 专业技能 | 用户常说: 技能、技术栈；与 info1 不同
+module: certificate | 中文: 证书/资质 | 用户可见名=options.title
+module: other | 中文: 自定义模块 | 用户可见名=options.title，如个人优势、自我评价
 
-## globalStyle 字段
-field: pageSize | 含义: 纸张 A4/A3/A5/Letter
-field: fontSize | 含义: 正文字号（数字）
-field: lineHeight | 含义: 行高倍数
-field: moduleMargin | 含义: 模块间距
-field: color | 含义: 主题文字色
-field: backgroundColor | 含义: 页面背景色
-field: layout | 含义: 模块布局 default/line/rounded/leftCol/rightCol
-field: resumeFont | 含义: 字体族名称
-field: padding | 含义: 页内边距
-field: headerType | 含义: 页眉样式编号
+## globalStyle
+field: pageSize | 类型: enum | 取值: A4|A3|A5|Letter
+field: fontSize | 类型: number | 含义: 正文字号 px，如 13 或 12.5
+field: lineHeight | 类型: number | 含义: 行高倍数，如 1.3
+field: moduleMargin | 类型: number | 含义: 模块垂直间距 px
+field: padding | 类型: number | 可选 | 含义: 页内边距 px
+field: color | 类型: string | 含义: 主题文字色，如 #333333
+field: backgroundColor | 类型: string | 含义: 页面背景色
+field: headerType | 类型: number | 可选 | 含义: 模块标题样式编号 1–11
+field: resumeFont | 类型: enum | 可选 | 取值: system|noto-sans-sc|noto-serif-sc
+field: layout | 类型: enum | 可选 | 取值: default|line|rounded|leftCol|rightCol | 含义: 页面版式
 
-## info1.options 字段
-field: name | 含义: 姓名（显示在简历头部）
-field: phone | 含义: 手机号
-field: email | 含义: 邮箱
-field: city | 含义: 所在城市
-field: wechat | 含义: 微信号
-field: site | 含义: 个人网站/博客链接
-field: status | 含义: 求职状态，如「在职-考虑机会」
-field: intentCity | 含义: 意向工作城市
-field: intentPosts | 含义: 意向岗位/目标职位，逗号分隔；RAG 润色时作岗位参考
-field: expectedSalary | 含义: 期望薪资，常为 [下限, 上限] 字符串数组
-field: birthday | 含义: 出生日期
-field: gender | 含义: 性别
-field: position | 含义: 头像在头部的布局位置 left/right
-field: showKeys | 含义: 控制哪些字段在预览中展示
-field: avatar | 含义: 头像图片；AI 修改时通常不传、不改动
+## info1.options
+field: name | 类型: string | 含义: 姓名（简历头部展示）
+field: phone | 类型: string | 含义: 手机号
+field: email | 类型: string | 含义: 邮箱
+field: wechat | 类型: string | 含义: 微信号
+field: site | 类型: string | 含义: 个人网站/博客 URL
+field: city | 类型: string | 含义: 所在城市；省/市级联，如 广东/深圳 或展示 广东 - 深圳
+field: status | 类型: enum | 取值: 在职|离职|在校 | 含义: 求职/在职状态
+field: intentCity | 类型: string | 含义: 意向工作城市，可多城市展示串
+field: intentPosts | 类型: string | 含义: 意向岗位，逗号分隔；润色时作岗位参考
+field: birthday | 类型: string | 格式: YYYY-MM-DD | 含义: 出生日期
+field: gender | 类型: enum | 取值: 男|女
+field: stature | 类型: string|null | 含义: 身高
+field: weight | 类型: string|null | 含义: 体重
+field: ethnic | 类型: enum|null | 取值: 汉族|蒙古族|回族|藏族|维吾尔族|苗族|彝族|壮族|布依族|朝鲜族|满族|侗族|瑶族|白族|土家族|哈尼族|哈萨克族|傣族|黎族|傈僳族|佤族|畲族|高山族|拉祜族|水族|东乡族|纳西族|景颇族|柯尔克孜族|土族|达斡尔族|仫佬族|羌族|布朗族|撒拉族|毛南族|仡佬族|锡伯族|阿昌族|普米族|塔吉克族|怒族|乌孜别克族|俄罗斯族|鄂温克族|德昂族|保安族|裕固族|京族|塔塔尔族|独龙族|鄂伦春族|赫哲族|门巴族|珞巴族|基诺族
+field: origin | 类型: string|null | 含义: 籍贯，格式同 city
+field: maritalStatus | 类型: enum|null | 取值: 未婚|已婚
+field: politicalStatus | 类型: enum|null | 取值: 中共党员|中共预备党员|共青团员|群众
+field: expectedSalary | 类型: string[2] | 含义: 期望薪资 [下限, 上限]，如 ["18k","28k"]
+field: position | 类型: enum | 取值: left|right|center | 含义: 头像在头部布局位置
+field: showTitle | 类型: boolean | 可选 | 含义: 是否在预览显示字段标签
+field: showKeys | 类型: string[] | 可选 | 含义: 控制预览展示哪些字段 key
+field: layout | 类型: string[][] | 含义: 字段排版矩阵，子元素为 info1 字段 key 名
+field: avatar | 类型: string | 含义: 头像 data URL 或引用；AI 修改时不传、不改动
 
-## job.options 字段
-field: title | 含义: 模块标题，默认「工作经历」
-field: items | 含义: 工作经历条目数组
-field: items[].company | 含义: 公司名称
-field: items[].post | 含义: 职位名称
-field: items[].postDepartment | 含义: 部门
-field: items[].city | 含义: 工作城市
-field: items[].time | 含义: 起止时间，字符串数组 [开始, 结束]，结束可为「至今」
-field: items[].description | 含义: 工作描述，HTML 富文本，润色主要改此字段
+## job.options
+field: title | 类型: string | 含义: 模块标题，默认「工作经历」
+field: items | 类型: array<object> | 含义: 工作经历条目列表
+field: items[].id | 类型: string | 可选 | 含义: 条目 id，新增可省略由系统生成
+field: items[].company | 类型: string | 含义: 公司名称
+field: items[].post | 类型: string | 含义: 职位名称（禁用 postDepartment 单字段）
+field: items[].department | 类型: string | 含义: 部门
+field: items[].city | 类型: string|string[] | 含义: 工作城市
+field: items[].startDate | 类型: string | 格式: YYYY-MM | 含义: 开始时间
+field: items[].endDate | 类型: string | 格式: YYYY-MM 或「至今」 | 含义: 结束时间
+field: items[].description | 类型: html | 含义: 工作描述富文本，润色主要改此字段
 
-## project.options 字段
-field: title | 含义: 模块标题，默认「项目经历」
-field: items | 含义: 项目条目数组
-field: items[].projectName | 含义: 项目名称
-field: items[].role | 含义: 项目中的角色
-field: items[].time | 含义: 项目时间 [开始, 结束]
-field: items[].description | 含义: 项目描述，HTML 富文本
+## project.options
+field: title | 类型: string | 含义: 模块标题，默认「项目经历」
+field: items | 类型: array<object>
+field: items[].id | 类型: string | 可选
+field: items[].name | 类型: string | 含义: 项目名称（禁用 projectName 字段名）
+field: items[].role | 类型: string | 含义: 项目中担任角色
+field: items[].startDate | 类型: string | 格式: YYYY-MM
+field: items[].endDate | 类型: string | 格式: YYYY-MM 或「至今」
+field: items[].description | 类型: html | 含义: 项目描述
 
-## education.options 字段
-field: title | 含义: 模块标题
-field: items[].school | 含义: 学校名称
-field: items[].degree | 含义: 学历/学位
-field: items[].major | 含义: 专业
-field: items[].city | 含义: 所在城市
-field: items[].studyTime | 含义: 就读时间 [入学, 毕业]
-field: items[].description | 含义: 补充说明，HTML
+## education.options
+field: title | 类型: string | 含义: 模块标题，默认「教育经历」
+field: items | 类型: array<object>
+field: items[].id | 类型: string | 可选
+field: items[].school | 类型: string | 含义: 学校名称
+field: items[].degree | 类型: enum | 取值: 中专|高中|专科|本科|硕士|博士|MBA
+field: items[].major | 类型: string | 含义: 专业
+field: items[].academy | 类型: string | 含义: 学院/院系
+field: items[].city | 类型: string|string[] | 含义: 学校所在城市
+field: items[].tags | 类型: string[] | 含义: 学校标签，取值 985|211|双一流|海外QS前100，可 []
+field: items[].startDate | 类型: string | 格式: YYYY-MM | 含义: 入学时间（禁用 studyTime 字段名）
+field: items[].endDate | 类型: string | 格式: YYYY-MM 或「至今」 | 含义: 毕业时间
+field: items[].description | 类型: html | 含义: 在校经历/主修课程等补充
 
-## skill.options 字段
-field: title | 含义: 模块标题，常显示「专业技能」
-field: items | 含义: 技能条目；部分模板用 items[].skillName + level
-field: items[].skillName | 含义: 技能名称或一段技能描述文本
-field: items[].level | 含义: 熟练度，如 熟练/熟悉/了解
-field: description | 含义: 整段技能 HTML 描述（无 items 时的备选结构）
+## skill.options
+field: title | 类型: string | 含义: 模块标题，常「专业技能」
+field: description | 类型: html | 含义: 技能描述正文（本应用主用 description，非 items）
 
-## certificate / other.options
-field: title | 含义: 模块在简历上的显示标题（用户可任意填写，须按 label/title 识别模块）
-field: items | 含义: 列表条目（部分模板使用）
-field: description | 含义: 整段描述正文；other 模块润色主要改此字段
+## other.options
+field: title | 类型: string | 含义: 模块显示标题，如「个人优势」「自我评价」
+field: description | 类型: html | 含义: 正文，润色主要改此字段
 
-## 用户说法 → 字段映射示例
+## certificate.options
+field: title | 类型: string | 含义: 模块标题，如「证书」
+field: items | 类型: array<object>
+field: items[].id | 类型: string | 可选
+field: items[].name | 类型: string | 含义: 证书名称
+field: items[].date | 类型: string | 格式: YYYY-MM-DD | 含义: 获证日期
+
+## 富文本 html 约束
+rule: description 仅允许标签 <b> <i> <u> <ul> <li>
+rule: 禁止 <ol> <script> <style> <iframe> 及 on* 事件
+rule: 工作经历/项目描述优先 ul+li 列表；b 加粗关键词，i 技术栈，u 量化数据
+
+## 结构修改约束
+rule: 禁止增删 pages；禁止修改 module.type 与 module.id
+rule: info1 全简历有且只能 1 个；不可对话新增或删除 info1
+rule: 可对话新增模块类型 certificate|job|project|education|skill|other（简历尚无该 type）
+rule: 已有模块时「新增/添加一条」→ 对应 items 末尾追加；删除条目可删至 0 条
+rule: job/project/education 时间必须用 startDate+endDate，禁止 time[]、studyTime[]
+rule: 仅改与用户指令相关字段，严禁虚构经历或数据
+
+## 用户说法 → 字段映射
 mapping: 「改电话/手机」→ info1.options.phone
-mapping: 「润色个人优势/自我评价」→ type=other 且 options.title 匹配的 module，改 options.description
-mapping: 「新增/添加证书」→ certificate 模块 items 追加 1 条（name、date）
-mapping: 「润色专业技能/技能描述」→ skill 模块，非 info1
+mapping: 「改邮箱」→ info1.options.email
+mapping: 「期望薪资」→ info1.options.expectedSalary（两元素数组）
+mapping: 「意向岗位」→ info1.options.intentPosts
+mapping: 「润色个人优势/自我评价」→ type=other 且 title 匹配的 module.options.description
+mapping: 「润色专业技能」→ type=skill 的 options.description，非 info1
 mapping: 「第一段工作经历」→ job.options.items[0]
 mapping: 「项目描述」→ project.options.items[].description
-mapping: 「期望薪资」→ info1.options.expectedSalary
-mapping: 「意向岗位」→ info1.options.intentPosts
-
-## 修改约束（结构）
-rule: 禁止增删 pages 或 modules，禁止改 module.type/id
-rule: items 数组长度须与输入一致，除非用户明确要求增删条目
-rule: 润色 description 时采用 STAR 结构，与面板 AI 润色一致
-rule: 富文本 description 仅允许 HTML：<b>、<i>、<u>、<ul>、<li>，禁止 <ol> 及其他标签
-rule: 工作经历/项目描述用 ul+li；b 加粗关键词，i 斜体技术栈，u 下划线量化数据
-rule: 仅改与用户指令相关字段，严禁虚构经历或数据
+mapping: 「新增证书模块」且简历无 certificate → add_module moduleType=certificate
+mapping: 「新增一条证书」且已有 certificate 模块 → certificate.items 追加 name+date
+mapping: 「公司/职位/部门」→ items[].company / post / department

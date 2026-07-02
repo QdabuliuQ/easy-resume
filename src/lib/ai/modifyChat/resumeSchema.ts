@@ -1,8 +1,19 @@
 import { z } from 'zod';
+import { RESUME_JSON_SCHEMA_PROMPT } from '@/lib/ai/resumeFieldSchema';
 import { RESUME_PAGE_SIZES } from '@/lib/resumePageSize';
 
 export const RESUME_MODULE_TYPES = [
   'info1',
+  'certificate',
+  'education',
+  'job',
+  'project',
+  'skill',
+  'other',
+] as const;
+
+/** AI 对话可新增的模块类型（不含 info1：有且只能有一个，不可对话新增） */
+export const ADDABLE_RESUME_MODULE_TYPES = [
   'certificate',
   'education',
   'job',
@@ -65,8 +76,9 @@ export const modifyScopeTargetSchema = z.object({
 });
 
 export const scopeOutputSchema = z.object({
-  scope: z.enum(['partial', 'global', 'ambiguous']),
+  scope: z.enum(['partial', 'global', 'ambiguous', 'add_module']),
   targets: z.array(modifyScopeTargetSchema).default([]),
+  moduleType: z.enum(ADDABLE_RESUME_MODULE_TYPES).optional(),
   scene: z.enum(['work', 'project', 'skill']).nullable().optional(),
   action: z.enum(['polish', 'edit', 'add', 'remove', 'auto']).optional(),
   clarifyMessage: z.string().optional(),
@@ -82,27 +94,7 @@ export type ResumeModifyOutput = z.infer<typeof resumeModifyOutputSchema>;
 export type IntentOutput = z.infer<typeof intentOutputSchema>;
 export type ModifyScopeTarget = z.infer<typeof modifyScopeTargetSchema>;
 export type ScopeOutput = z.infer<typeof scopeOutputSchema>;
+export type AddableResumeModuleType = (typeof ADDABLE_RESUME_MODULE_TYPES)[number];
 export type PartialModifyOutput = z.infer<typeof partialModifyOutputSchema>;
 
-export const RESUME_JSON_SCHEMA_PROMPT = `
-简历根对象 resume：
-- name: string — 简历标题
-- globalStyle: object — pageSize(A4|A3|A5|Letter), fontSize(number), lineHeight(number), moduleMargin(number), color(string), backgroundColor(string), padding?(number), headerType?(number), resumeFont?(string), layout?(default|line|rounded|leftCol|rightCol)
-- pages: array — 至少 1 页
-- exportPages?: number[] | null
-
-每页 pages[i]：
-- modules: array — 至少 1 个模块
-
-每个模块 modules[j]：
-- type: info1 | certificate | education | job | project | skill | other
-- id: string — 须与输入一致；用户要求删除模块时可从 pages 中移除，每页至少保留 1 个模块
-- options: object — 模块数据；按 type 常见字段：
-  - info1.options: name, phone, email, city, status, intentCity, intentPosts, wechat, birthday, gender, site, expectedSalary, showKeys, position...（不含 avatar）
-  - job.options: title, items[] — items[].company, postDepartment, city, time[], description(HTML)
-  - project.options: title, items[] — items[].projectName, role, time[], description(HTML)
-  - education.options: title, items[] — school, degree, major, city, studyTime[], description(HTML)
-  - skill.options: title, items[] — skillName, level
-  - certificate.options: title, items[]
-  - other.options: title, items[]
-`.trim();
+export { RESUME_JSON_SCHEMA_PROMPT };

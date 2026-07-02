@@ -1,4 +1,5 @@
 import { retrieveModifyChatKnowledge } from '@/lib/ai/ragResume/knowledge';
+import { modifyAddModule } from './addModuleModify';
 import { finalizeModifiedResume } from './merge';
 import { modifyPartialScope } from './partialModify';
 import { applyRagScopeModify, scopeTargetsForRag } from './ragApply';
@@ -19,6 +20,12 @@ export async function executeScopedModify(
   let result: { message: string; resume: unknown } | null = null;
   if (ragTargets.length && scope.action !== 'edit') {
     result = await applyRagScopeModify(resume, postType, ragTargets);
+  }
+  if (!result && scope.scope === 'add_module') {
+    if (!scope.moduleType) {
+      throw new Error('无法确定要新增的模块类型');
+    }
+    result = await modifyAddModule(resume, scope.moduleType, lastUserMessage, signal);
   }
   if (!result && scope.scope === 'partial' && scope.targets.length) {
     result = await modifyPartialScope(resume, scope, lastUserMessage, signal);

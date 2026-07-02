@@ -10,6 +10,8 @@ const MODULE_LABELS: Record<string, string> = {
   other: '其他',
 };
 
+export { MODULE_LABELS };
+
 export type ModuleSummaryEntry = {
   pageIndex: number;
   moduleIndex: number;

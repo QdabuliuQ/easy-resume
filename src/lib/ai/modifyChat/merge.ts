@@ -1,5 +1,6 @@
 import { sanitizeResumeHtmlFields } from './sanitizeResume';
 import type { ResumeConfig } from './resumeSchema';
+import { validateInfo1ModuleChange } from '@/utils/moduleTypeLimits';
 
 type ModuleLike = { type?: string; id?: string; options?: Record<string, unknown> };
 type PageLike = { modules?: ModuleLike[] };
@@ -44,11 +45,13 @@ export function validateResumeStructureMatch(original: unknown, modified: Resume
       if (o.type !== m.type) return `pages[${pi}].modules[${mi}].type 须为 ${o.type}`;
     }
   }
-  return null;
+  return validateInfo1ModuleChange(original, modified);
 }
 
 /** 以 AI resume 为底，补全原文顶层字段并保留 avatar */
 export function finalizeModifiedResume(original: unknown, modified: ResumeConfig): ResumeConfig {
+  const info1Err = validateInfo1ModuleChange(original, modified);
+  if (info1Err) throw new Error(info1Err);
   const next = JSON.parse(JSON.stringify(modified)) as ResumeConfig;
   if (!original || typeof original !== 'object' || Array.isArray(original)) {
     return sanitizeResumeHtmlFields(next);

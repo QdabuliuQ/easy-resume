@@ -24,6 +24,38 @@ export function isWholeModuleRemoveIntent(
   return /删除.{0,8}模块|去掉.{0,8}模块|移除.{0,8}模块|删掉整个|删除整个|整个.{0,4}删/.test(message.trim());
 }
 
+export function appendModuleToResume(resume: unknown, module: ModuleLike): ResumeConfig {
+  const next = cloneResumeConfig(resume);
+  const page = next.pages?.[0];
+  if (!page?.modules) throw new Error('简历结构无效');
+  page.modules.push(JSON.parse(JSON.stringify(module)));
+  return next;
+}
+
+export function initModuleItemsRule(moduleType: string): string {
+  if (moduleType === 'skill' || moduleType === 'other') {
+    return '4. 用户要求新建模块：按指令填充 options.title 与 description(HTML)；无 items。';
+  }
+  return `4. 用户要求新建 ${moduleType} 模块：按指令填充 options 与 items，可一次写入用户列出的全部条目；字段名须与 schema 一致（job/project/education 用 startDate+endDate，禁止 time/studyTime）；certificate 每条 name+date(YYYY-MM-DD)；条目 id 可省略。`;
+}
+
+export function validateInitModule(original: ModuleLike, modified: ModuleLike): string | null {
+  if (original.id !== modified.id) return `module.id 须为 ${original.id}`;
+  if (original.type !== modified.type) return `module.type 须为 ${original.type}`;
+  if (isListItemModuleType(original.type)) {
+    const modItems = modified.options?.items;
+    if (!Array.isArray(modItems) || modItems.length === 0) return 'items 至少 1 条';
+    const max = getResumeModuleItemMaxCount(original.type);
+    if (max != null && modItems.length > max) return `items 最多 ${max} 条`;
+    return null;
+  }
+  if (original.type === 'skill' || original.type === 'other') {
+    const desc = modified.options?.description;
+    if (typeof desc !== 'string' || !desc.trim()) return 'description 不能为空';
+  }
+  return null;
+}
+
 export function mergeModuleIntoResume(
   resume: unknown,
   pageIndex: number,
@@ -49,6 +81,7 @@ export function removeModuleFromResume(
   const page = next.pages[pageIndex];
   if (!page?.modules?.length) throw new Error('模块位置无效');
   if (moduleIndex < 0 || moduleIndex >= page.modules.length) throw new Error('模块位置无效');
+  if (page.modules[moduleIndex]?.type === 'info1') throw new Error('个人信息模块不可删除');
   page.modules.splice(moduleIndex, 1);
   if (page.modules.length === 0) throw new Error('每页至少保留一个模块');
   return next;
@@ -56,7 +89,7 @@ export function removeModuleFromResume(
 
 export function partialItemsRule(scope: ScopeOutput): string {
   if (scope.action === 'add') {
-    return '4. 用户要求新增条目：在 items 数组末尾追加恰好 1 条，原有条目及其 id 须原样保留；certificate 新条含 name、date(YYYY-MM-DD)；job/project/education 新条字段结构须与同模块已有条目一致；id 可省略。';
+    return '4. 用户要求新增条目：在 items 数组末尾追加恰好 1 条，原有条目及其 id 须原样保留；certificate 新条含 name、date(YYYY-MM-DD)；job 含 company/post/department/city/startDate/endDate；project 含 name/role/startDate/endDate；education 含 school/degree/major 等；id 可省略。';
   }
   if (scope.action === 'remove') {
     return '4. 用户要求删除条目：从 items 移除指定条目（可删一条或多条，可删至 0 条）；保留条目的 id 须与原 JSON 一致。';

@@ -10,10 +10,11 @@ import * as intentRouter from '@/lib/ai/modifyChat/intentRouter';
 import { classifyModifyIntent } from '@/lib/ai/modifyChat/intentRouter';
 import { OFF_TOPIC_REPLY, streamModifyChatPipeline } from '@/lib/ai/modifyChat/service';
 import { finalizeModifiedResume, validateResumeStructureMatch } from '@/lib/ai/modifyChat/merge';
+import { validateInfo1ModuleChange } from '@/utils/moduleTypeLimits';
 import { getModifyChatBodySizeError } from '@/lib/ai/modifyChat/limits';
 import { PROMPT_INJECTION_GUARD } from '@/lib/ai/modifyChat/prompt';
 import { sanitizeResumeHtmlFields } from '@/lib/ai/modifyChat/sanitizeResume';
-import { mergeModuleIntoResume, removeModuleFromResume, validatePartialModule } from '@/lib/ai/modifyChat/partialPatch';
+import { appendModuleToResume, mergeModuleIntoResume, removeModuleFromResume, validateInitModule, validatePartialModule } from '@/lib/ai/modifyChat/partialPatch';
 import { resumePatchDoneEnvelope, textOnlyDoneEnvelope } from '@/lib/ai/modifyChat/protocol';
 import {
   buildResumeModuleSummary,
@@ -21,22 +22,36 @@ import {
   locateModule,
   resolveTargetsByDisplayName,
 } from '@/lib/ai/modifyChat/resumeSummary';
-import { inferModifyScopeHeuristic } from '@/lib/ai/modifyChat/scopeRouter';
-import type { ResumeConfig } from '@/lib/ai/modifyChat/resumeSchema';
+import { inferAddModuleType, inferModifyScopeHeuristic } from '@/lib/ai/modifyChat/scopeRouter';
+import { RESUME_JSON_SCHEMA_PROMPT } from '@/lib/ai/modifyChat/resumeSchema';
 import { SCHEMA_GLOSSARY_FILE } from '@/lib/ai/ragResume/knowledge';
 import { stripResumeAvatarForAi } from '@/lib/stripResumeAvatarForAi';
 
+describe('resume field schema prompt', () => {
+  it('uses canonical startDate/endDate and forbids legacy field names', () => {
+    expect(RESUME_JSON_SCHEMA_PROMPT).toContain('startDate');
+    expect(RESUME_JSON_SCHEMA_PROMPT).toContain('endDate');
+    expect(RESUME_JSON_SCHEMA_PROMPT).toContain('name: string — 项目名称');
+    expect(RESUME_JSON_SCHEMA_PROMPT).toContain('中专|高中|专科|本科|硕士|博士|MBA');
+    expect(RESUME_JSON_SCHEMA_PROMPT).toContain('禁止 time[]、studyTime[]');
+  });
+});
+
 describe('schema-field-glossary', () => {
-  it('glossary file exists and documents skill vs info1', async () => {
+  it('glossary documents canonical field types and forbids legacy names', async () => {
     const text = await readFile(
       path.join(process.cwd(), 'src/rag-resume-knowledge', SCHEMA_GLOSSARY_FILE),
       'utf-8',
     );
     expect(text).toContain('module: skill');
     expect(text).toContain('module: info1');
-    expect(text).toContain('intentPosts');
-    expect(text).toContain('润色专业技能');
-    expect(text).toContain('个人优势');
+    expect(text).toContain('items[].startDate');
+    expect(text).toContain('items[].post');
+    expect(text).toContain('items[].name');
+    expect(text).toContain('禁止 time[]');
+    expect(text).toContain('add_module');
+    expect(text).toContain('禁用 postDepartment');
+    expect(text).toContain('禁用 studyTime');
   });
 });
 
@@ -167,6 +182,30 @@ describe('modifyChat scope', () => {
     expect(scope?.scope).toBe('ambiguous');
   });
 
+  it('inferModifyScopeHeuristic resolves add certificate module when missing', () => {
+    const summary = buildResumeModuleSummary({
+      pages: [
+        {
+          modules: [
+            { type: 'info1', id: '1', options: { name: '张三' } },
+            { type: 'skill', id: '2', options: { title: '专业技能', description: '' } },
+            { type: 'other', id: '3', options: { title: '个人优势', description: '' } },
+            { type: 'job', id: '4', options: { title: '工作经历', items: [] } },
+            { type: 'project', id: '5', options: { title: '项目经历', items: [] } },
+            { type: 'education', id: '6', options: { title: '教育经历', items: [] } },
+          ],
+        },
+      ],
+    });
+    const scope = inferModifyScopeHeuristic(
+      '新增一个证书模块，证书有大学英语四级和大学英语六级',
+      summary,
+    );
+    expect(scope?.scope).toBe('add_module');
+    expect(scope?.moduleType).toBe('certificate');
+    expect(scope?.action).toBe('add');
+  });
+
   it('inferModifyScopeHeuristic resolves add certificate', () => {
     const summary = buildResumeModuleSummary({
       pages: [
@@ -188,6 +227,54 @@ describe('modifyChat scope', () => {
     expect(scope?.scope).toBe('partial');
     expect(scope?.targets[0]?.moduleId).toBe('cert-1');
     expect(scope?.action).toBe('add');
+  });
+
+  it('validateInitModule allows multiple certificate items on new module', () => {
+    const original = {
+      type: 'certificate',
+      id: 'cert-new',
+      options: { title: '证书', items: [] },
+    };
+    const modified = {
+      ...original,
+      options: {
+        title: '证书',
+        items: [
+          { name: '大学英语四级', date: '2020-06-01' },
+          { name: '大学英语六级', date: '2021-06-01' },
+        ],
+      },
+    };
+    expect(validateInitModule(original, modified)).toBeNull();
+  });
+
+  it('appendModuleToResume adds module to first page', () => {
+    const resume = {
+      name: 't',
+      globalStyle: {
+        pageSize: 'A4',
+        fontSize: 13,
+        lineHeight: 1.3,
+        moduleMargin: 15,
+        color: '#000',
+        backgroundColor: '#fff',
+      },
+      pages: [{ modules: [{ type: 'info1', id: '1', options: {} }] }],
+    };
+    const next = appendModuleToResume(resume, {
+      type: 'certificate',
+      id: 'cert-1',
+      options: { title: '证书', items: [] },
+    });
+    expect(next.pages[0]!.modules).toHaveLength(2);
+    expect(next.pages[0]!.modules[1]?.type).toBe('certificate');
+  });
+
+  it('inferAddModuleType returns null when certificate module exists', () => {
+    const summary = buildResumeModuleSummary({
+      pages: [{ modules: [{ type: 'certificate', id: 'c1', options: { title: '证书', items: [] } }] }],
+    });
+    expect(inferAddModuleType('新增一个证书模块', summary)).toBeNull();
   });
 
   it('validatePartialModule allows add one certificate item', () => {
@@ -256,6 +343,47 @@ describe('modifyChat scope', () => {
       },
     };
     expect(validatePartialModule(original, modified, { action: 'remove' })).toBeNull();
+  });
+
+  it('inferAddModuleType returns null for info1', () => {
+    const summary = buildResumeModuleSummary({
+      pages: [{ modules: [{ type: 'job', id: '1', options: { title: '工作', items: [] } }] }],
+    });
+    expect(inferAddModuleType('新增个人信息模块', summary)).toBeNull();
+    expect(inferAddModuleType('新增一个基础信息模块', summary)).toBeNull();
+  });
+
+  it('validateInfo1ModuleChange rejects duplicate or removed info1', () => {
+    const original = {
+      pages: [{ modules: [{ type: 'info1', id: '1', options: {} }, { type: 'job', id: '2', options: {} }] }],
+    };
+    const dup = {
+      pages: [{
+        modules: [
+          { type: 'info1', id: '1', options: {} },
+          { type: 'info1', id: '2', options: {} },
+        ],
+      }],
+    };
+    const removed = { pages: [{ modules: [{ type: 'job', id: '2', options: {} }] }] };
+    expect(validateInfo1ModuleChange(original, dup)).toBe('个人信息模块只能有 1 个');
+    expect(validateInfo1ModuleChange(original, removed)).toBe('个人信息模块不可删除');
+  });
+
+  it('removeModuleFromResume blocks info1', () => {
+    const resume = {
+      name: 't',
+      globalStyle: {
+        pageSize: 'A4',
+        fontSize: 13,
+        lineHeight: 1.3,
+        moduleMargin: 15,
+        color: '#000',
+        backgroundColor: '#fff',
+      },
+      pages: [{ modules: [{ type: 'info1', id: '1', options: {} }, { type: 'job', id: '2', options: {} }] }],
+    };
+    expect(() => removeModuleFromResume(resume, 0, 0)).toThrow('个人信息模块不可删除');
   });
 
   it('removeModuleFromResume removes module from page', () => {

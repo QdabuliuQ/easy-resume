@@ -80,3 +80,15 @@ export function isResumeModuleTypeAtLimit(
 ): boolean {
   return countResumeModulesByType(config, type) >= RESUME_MODULE_MAX_COUNT[type];
 }
+
+/** AI/导入后校验：info1 全简历最多 1 个；原文有 info1 时不可删光 */
+export function validateInfo1ModuleChange(
+  original: Parameters<typeof countResumeModulesByType>[0],
+  modified: Parameters<typeof countResumeModulesByType>[0],
+): string | null {
+  const orig = countResumeModulesByType(original, 'info1');
+  const mod = countResumeModulesByType(modified, 'info1');
+  if (mod > 1) return '个人信息模块只能有 1 个';
+  if (orig >= 1 && mod === 0) return '个人信息模块不可删除';
+  return null;
+}

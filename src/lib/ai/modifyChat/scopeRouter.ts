@@ -11,6 +11,7 @@ import {
   buildResumeModuleSummary,
   formatModuleSummaryForPrompt,
   locateModule,
+  MODULE_LABELS,
   resolveTargetsByDisplayName,
   type ModuleSummaryEntry,
 } from './resumeSummary';
@@ -40,12 +41,38 @@ const MODULE_TYPE_HINTS: { re: RegExp; type: string }[] = [
   { re: /证书/, type: 'certificate' },
 ];
 
+const ADD_MODULE_RE = /新增|添加|增加|补充|加一个/;
+
+export function inferAddModuleType(
+  message: string,
+  summary: ModuleSummaryEntry[],
+): string | null {
+  const text = message.trim();
+  if (!text || !ADD_MODULE_RE.test(text)) return null;
+  const typeHint = MODULE_TYPE_HINTS.find((h) => h.re.test(text))?.type;
+  if (!typeHint || typeHint === 'info1') return null;
+  if (summary.some((s) => s.type === typeHint)) return null;
+  const label = MODULE_LABELS[typeHint];
+  if (label && text.includes(label)) return typeHint;
+  return typeHint;
+}
+
 export function inferModifyScopeHeuristic(
   message: string,
   summary: ModuleSummaryEntry[],
 ): ScopeOutput | null {
   const text = message.trim();
   if (!text || !summary.length) return null;
+  const addModuleType = inferAddModuleType(text, summary);
+  if (addModuleType) {
+    return {
+      scope: 'add_module',
+      targets: [],
+      moduleType: addModuleType as ScopeOutput['moduleType'],
+      scene: null,
+      action: 'add',
+    };
+  }
   const polish = POLISH_RE.test(text);
   const titleHits = resolveTargetsByDisplayName(text, summary);
   let targets: ModifyScopeTarget[] = titleHits.length === 1 ? [{ moduleId: titleHits[0]!.moduleId }] : [];
@@ -152,6 +179,13 @@ export async function resolveModifyScope(
       { signal },
     );
     const parsed = parseScopeOutput(raw);
+    if (parsed.scope === 'add_module' && !parsed.moduleType) {
+      return {
+        scope: 'ambiguous',
+        targets: [],
+        clarifyMessage: '请说明要新增哪种模块，例如证书、工作经历、项目经历。',
+      };
+    }
     if (parsed.scope === 'partial' && parsed.targets.length) {
       for (const t of parsed.targets) {
         if (!locateModule(resume, t.moduleId)) {
