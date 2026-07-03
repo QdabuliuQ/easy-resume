@@ -448,9 +448,9 @@ function RichTextEditor({
             onClick={() => {
               if (!polishing) void runAiPolishFromParent();
             }}
-            style={{ top: Math.max(0, (toolbarHeight - 26) / 2) }}
+            style={{ top: Math.max(0, (toolbarHeight - 26) / 2 + 1.5) }}
             className={
-              'bg-gradient-primary absolute right-2 z-[4] inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-2.5 text-[11px] font-medium text-white shadow-sm ' +
+              'bg-gradient-primary absolute right-3 z-[4] inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-2.5 text-[11px] font-medium text-white shadow-sm ' +
               'outline-none transition-[filter,opacity] hover:brightness-110 disabled:pointer-events-none disabled:opacity-65'
             }
           >

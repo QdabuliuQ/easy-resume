@@ -37,7 +37,7 @@
   border-bottom-style: solid;
   border-bottom-color: var(--rte-chrome-line) !important;
   background-color: var(--rte-toolbar-bg);
-  min-height: 39px;
+  min-height: 42px;
   padding: 6px 96px 6px 8px;
 }
 
