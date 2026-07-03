@@ -16,6 +16,25 @@
   margin-block: calc(var(--spacing) * 0.5);
 }
 
+/* 静态 embed / 润色预览：Quill 列表项勿用 absolute .ql-ui，否则 li 间距异常 */
+.resume-quill-embed .ql-editor li[data-list] {
+  display: block;
+  margin-block: 0;
+  padding-left: 0;
+}
+
+.resume-quill-embed .ql-editor li[data-list] > .ql-ui {
+  position: static;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.resume-quill-embed .ql-editor li[data-list] > .ql-ui::before {
+  margin-left: 0;
+  margin-right: 0.3em;
+  width: auto;
+}
+
 .resume-quill-embed .ql-editor p,
 .rte-quill-sync .ql-editor p {
   margin: 0 !important;

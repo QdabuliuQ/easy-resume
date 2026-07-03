@@ -7,7 +7,8 @@ import { plainTextFromRichHtml, sanitizeRichTextHtml, unwrapFencedHtml } from '@
 import { MIN_POLISH_PLAIN_LENGTH } from '@/lib/ai/polish/types';
 import 'quill/dist/quill.snow.css';
 import '@/styles/resumeQuillContent.css';
-import { Magic } from '@icon-park/react';
+import { Robot, RotatingForward } from '@icon-park/react';
+import aiIcon from '@/assets/AI.svg';
 import styles from './index.module.css';
 
 type QuillType = any;
@@ -52,6 +53,67 @@ export type AiPolishStreamContext = {
 
 function isAbortError(e: unknown): boolean {
   return e instanceof DOMException && e.name === 'AbortError';
+}
+
+function mergeRichHtml(base: string, addition: string): string {
+  const b = sanitizeRichTextHtml(base);
+  const a = sanitizeRichTextHtml(addition);
+  if (!b) return a;
+  if (!a) return b;
+  return `${b}<p><br></p>${a}`;
+}
+
+function QuillHtmlPreview({ html, className = '' }: { html: string; className?: string }) {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const quillRef = useRef<QuillType | null>(null);
+
+  useEffect(() => {
+    const el = hostRef.current;
+    if (!el) return;
+    let disposed = false;
+
+    void (async () => {
+      const QuillCtor = await loadQuillCtor();
+      if (disposed) return;
+      if (!quillRef.current) {
+        quillRef.current = new QuillCtor(el, {
+          theme: 'snow',
+          readOnly: true,
+          modules: { toolbar: false },
+        });
+      }
+      const q = quillRef.current;
+      const sanitized = sanitizeRichTextHtml(html);
+      if (!sanitized) {
+        q.setText('');
+        return;
+      }
+      try {
+        const delta = q.clipboard.convert({ html: sanitized });
+        q.setContents(delta, 'silent');
+      } catch {
+        q.root.innerHTML = sanitized;
+      }
+    })();
+
+    return () => {
+      disposed = true;
+    };
+  }, [html]);
+
+  useEffect(() => {
+    const el = hostRef.current;
+    return () => {
+      quillRef.current = null;
+      if (el) el.innerHTML = '';
+    };
+  }, []);
+
+  return (
+    <div className={`resume-quill-embed min-w-0 ${className}`.trim()}>
+      <div ref={hostRef} className="min-w-0" />
+    </div>
+  );
 }
 export const DEFAULT_QUILL_TOOLBAR_ROWS = [
   [
@@ -175,12 +237,12 @@ function RichTextEditor({
   const quillRef = useRef<QuillType | null>(null);
   const onHtmlChangeRef = useRef(onHtmlChange);
   const lastAppliedHtmlRef = useRef('');
-  const pendingStreamHtmlRef = useRef<string | null>(null);
+  const pendingPolishHtmlRef = useRef('');
   const streamRafRef = useRef<number | null>(null);
-  const lastStreamCommitAtRef = useRef(0);
   const polishAbortRef = useRef<AbortController | null>(null);
   onHtmlChangeRef.current = onHtmlChange;
   const [polishing, setPolishing] = useState(false);
+  const [polishResultHtml, setPolishResultHtml] = useState('');
   const [plainCount, setPlainCount] = useState(0);
   const [loadingEditor, setLoadingEditor] = useState(true);
   const [toolbarHeight, setToolbarHeight] = useState(39);
@@ -288,12 +350,6 @@ function RichTextEditor({
   }, [instanceKey, maxPlainLength, locale]);
 
   useEffect(() => {
-    const q = quillRef.current;
-    if (!q) return;
-    q.enable(!polishing);
-  }, [polishing]);
-
-  useEffect(() => {
     return () => {
       polishAbortRef.current?.abort();
       if (streamRafRef.current != null) {
@@ -341,29 +397,37 @@ function RichTextEditor({
     applyHtmlToQuill(q, incoming, { commit: false });
   }, [html, applyHtmlToQuill]);
 
-  const flushStreamingHtml = useMemoizedFn((q: QuillType) => {
-    streamRafRef.current = null;
-    const pending = pendingStreamHtmlRef.current;
-    if (pending == null) return;
-    pendingStreamHtmlRef.current = null;
-    const now = Date.now();
-    const shouldCommit = now - lastStreamCommitAtRef.current >= 300;
-    applyHtmlToQuill(q, pending, { commit: shouldCommit });
-    if (shouldCommit) {
-      lastStreamCommitAtRef.current = now;
-    }
-  });
-
-  const enqueueStreamingHtml = useMemoizedFn((q: QuillType, htmlSoFar: string) => {
-    pendingStreamHtmlRef.current = htmlSoFar;
+  const enqueuePolishPreviewHtml = useMemoizedFn((htmlSoFar: string) => {
+    pendingPolishHtmlRef.current = sanitizeRichTextHtml(unwrapFencedHtml(htmlSoFar));
     if (streamRafRef.current != null) return;
     streamRafRef.current = requestAnimationFrame(() => {
-      flushStreamingHtml(q);
+      streamRafRef.current = null;
+      setPolishResultHtml(pendingPolishHtmlRef.current);
     });
+  });
+
+  const clearPolishPanel = useMemoizedFn(() => {
+    setPolishResultHtml('');
+    pendingPolishHtmlRef.current = '';
   });
 
   const cancelAiPolish = useMemoizedFn(() => {
     polishAbortRef.current?.abort();
+  });
+
+  const applyPolishReplace = useMemoizedFn(() => {
+    const q = quillRef.current;
+    if (!q || !polishResultHtml) return;
+    applyHtmlToQuill(q, polishResultHtml, { commit: true });
+    clearPolishPanel();
+  });
+
+  const applyPolishAppend = useMemoizedFn(() => {
+    const q = quillRef.current;
+    if (!q || !polishResultHtml) return;
+    const merged = mergeRichHtml(q.root.innerHTML, polishResultHtml);
+    applyHtmlToQuill(q, merged, { commit: true });
+    clearPolishPanel();
   });
 
   const runAiPolishFromParent = useMemoizedFn(async () => {
@@ -385,37 +449,35 @@ function RichTextEditor({
     polishAbortRef.current?.abort();
     const abortController = new AbortController();
     polishAbortRef.current = abortController;
+    pendingPolishHtmlRef.current = '';
+    setPolishResultHtml('');
     setPolishing(true);
-    q.enable(false);
-    lastStreamCommitAtRef.current = 0;
     try {
       const polished = await onAiPolishClick(richTextHtml, {
         signal: abortController.signal,
-        onStreamingHtml: (htmlSoFar) => {
-          enqueueStreamingHtml(q, unwrapFencedHtml(htmlSoFar));
-        },
+        onStreamingHtml: enqueuePolishPreviewHtml,
       });
       if (streamRafRef.current != null) {
         cancelAnimationFrame(streamRafRef.current);
         streamRafRef.current = null;
       }
-      pendingStreamHtmlRef.current = null;
-      applyHtmlToQuill(q, polished, { commit: true });
-      message.success(tr('polishOk'));
+      const finalHtml = sanitizeRichTextHtml(unwrapFencedHtml(polished));
+      pendingPolishHtmlRef.current = finalHtml;
+      setPolishResultHtml(finalHtml);
     } catch (e) {
       if (streamRafRef.current != null) {
         cancelAnimationFrame(streamRafRef.current);
         streamRafRef.current = null;
       }
       if (isAbortError(e)) {
-        const partialHtml =
-          pendingStreamHtmlRef.current ??
-          sanitizeRichTextHtml(q.root.innerHTML);
-        pendingStreamHtmlRef.current = null;
-        applyHtmlToQuill(q, partialHtml, { commit: true, force: true });
+        if (pendingPolishHtmlRef.current) {
+          setPolishResultHtml(pendingPolishHtmlRef.current);
+        } else {
+          clearPolishPanel();
+        }
         return;
       }
-      pendingStreamHtmlRef.current = null;
+      clearPolishPanel();
       const errText =
         e instanceof Error && e.message?.trim()
           ? e.message.trim()
@@ -428,6 +490,8 @@ function RichTextEditor({
       setPolishing(false);
     }
   });
+
+  const showPolishPanel = polishing || !!polishResultHtml;
 
   return (
     <div className="min-w-0" data-panel-item-id={dataPanelItemId}>
@@ -450,40 +514,20 @@ function RichTextEditor({
             }}
             style={{ top: Math.max(0, (toolbarHeight - 26) / 2 + 1.5) }}
             className={
-              'bg-gradient-primary absolute right-3 z-[4] inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-2.5 text-[11px] font-medium text-white shadow-sm ' +
-              'outline-none transition-[filter,opacity] hover:brightness-110 disabled:pointer-events-none disabled:opacity-65'
+              `${styles.aiPolishBtn} absolute right-3 z-[4] inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-4 text-[11px] font-medium text-white ` +
+              'outline-none transition-[filter,opacity] disabled:pointer-events-none disabled:opacity-65'
             }
           >
             {polishing ? (
               <span
-                className="inline-block size-3.5 shrink-0 animate-spin rounded-full border-2 border-white/35 border-t-white"
+                className="inline-block size-3 shrink-0 animate-spin rounded-full border-2 border-white/35 border-t-white"
                 aria-hidden
               />
             ) : (
-              <Magic theme="outline" size="13" fill="#fff" />
+              <img src={aiIcon.src} alt="" className="size-2.5 shrink-0" aria-hidden />
             )}
-            <span className='leading-[12px]'>{tr('aiPolish')}</span>
+            <span className="leading-none font-bold text-[12px]">{tr('aiPolish')}</span>
           </button>
-        ) : null}
-        {polishing ? (
-          <div
-            className="absolute inset-0 z-[5] flex flex-col items-center justify-center gap-3 rounded-md bg-neutral-900/55 text-[13px] font-medium text-white/95"
-            role="status"
-            aria-live="polite"
-          >
-            <span
-              className="inline-block size-7 shrink-0 animate-spin rounded-full border-2 border-white/30 border-t-white"
-              aria-hidden
-            />
-            <span>{tr('aiGenerating')}</span>
-            <button
-              type="button"
-              onClick={cancelAiPolish}
-              className="inline-flex h-8 cursor-pointer select-none items-center rounded-md border border-white/25 bg-white/10 px-4 text-[12px] font-medium text-white/95 outline-none transition-[background-color,border-color] hover:border-white/40 hover:bg-white/16"
-            >
-              {tr('aiCancel')}
-            </button>
-          </div>
         ) : null}
       </div>
       <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-neutral-400">
@@ -491,6 +535,79 @@ function RichTextEditor({
           {plainCount}/{maxPlainLength}
         </span>
       </div>
+      {showPolishPanel ? (
+        <div
+          className={`${styles.polishPanel} mt-2 rounded-lg px-3 py-2.5`}
+          role="region"
+          aria-live="polite"
+          aria-label={tr('aiPolish')}
+        >
+          <div className="mb-2 flex items-center justify-between gap-2">
+            {polishing ? (
+              <div className={`flex min-w-0 flex-1 items-center gap-1.5 text-[13px] font-medium ${styles.polishAccentText}`}>
+                <span
+                  className={`inline-block size-3.5 shrink-0 animate-spin rounded-full border-2 ${styles.polishSpinner}`}
+                  aria-hidden
+                />
+                <span>{tr('aiGenerating')}</span>
+              </div>
+            ) : (
+              <div className={`flex min-w-0 items-center gap-1.5 text-[13px] font-medium ${styles.polishAccentText}`}>
+                <Robot theme="filled" size="16" fill="#7b66ff" />
+                <span>{tr('polishSuccess')}</span>
+              </div>
+            )}
+            {polishing ? (
+              <button
+                type="button"
+                onClick={cancelAiPolish}
+                className={`inline-flex h-6 shrink-0 cursor-pointer select-none items-center rounded-md bg-white/70 px-2.5 text-[12px] font-medium outline-none transition-[background-color,border-color] hover:bg-white ${styles.polishCancelBtn}`}
+              >
+                {tr('aiCancel')}
+              </button>
+            ) : null}
+          </div>
+          {polishResultHtml ? (
+            <div className={`${styles.polishPreview} mb-2 max-h-[240px] overflow-y-auto rounded-md bg-white px-3 py-2`}>
+              <QuillHtmlPreview html={polishResultHtml} />
+            </div>
+          ) : null}
+          {!polishing && polishResultHtml ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                <button
+                  type="button"
+                  disabled={polishing}
+                  onClick={() => {
+                    if (!polishing) void runAiPolishFromParent();
+                  }}
+                  className={`inline-flex cursor-pointer select-none items-center gap-1 border-0 bg-transparent p-0 text-[12px] font-medium outline-none transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 ${styles.polishRepolishBtn}`}
+                >
+                  <RotatingForward theme="outline" size="14" fill="#7b66ff" />
+                  {tr('polishRepolish')}
+                </button>
+                <span className="text-[11px] text-neutral-400">{tr('polishDisclaimer')}</span>
+              </div>
+              <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={applyPolishAppend}
+                  className={`inline-flex h-7 cursor-pointer select-none items-center rounded-md px-3 text-[11px] font-medium outline-none transition-[background-color,border-color] ${styles.polishAppendBtn}`}
+                >
+                  {tr('polishAppend')}
+                </button>
+                <button
+                  type="button"
+                  onClick={applyPolishReplace}
+                  className={`${styles.polishReplaceBtn} inline-flex h-7 cursor-pointer select-none items-center rounded-md px-3 text-[11px] font-medium text-white outline-none transition-[filter]`}
+                >
+                  {tr('polishReplace')}
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

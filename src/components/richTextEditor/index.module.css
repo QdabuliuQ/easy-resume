@@ -38,7 +38,7 @@
   border-bottom-color: var(--rte-chrome-line) !important;
   background-color: var(--rte-toolbar-bg);
   min-height: 42px;
-  padding: 6px 96px 6px 8px;
+  padding: 6px 100px 6px 8px;
 }
 
 .host :global(.ql-toolbar button) {
@@ -148,4 +148,111 @@
 
 .host :global(.ql-snow .ql-tooltip a.ql-remove::before) {
   content: var(--rte-q-tip-remove, 'Remove') !important;
+}
+
+.polishPanel {
+  --polish-from: #7b66ff;
+  --polish-to: #5cd7ff;
+  --polish-text: #6b5cff;
+  background: linear-gradient(180deg, #f3efff 0%, #edf3ff 100%);
+}
+
+.aiPolishBtn {
+  --polish-from: #7b66ff;
+  --polish-to: #5cd7ff;
+  background: linear-gradient(90deg, var(--polish-from) 0%, var(--polish-to) 100%);
+  box-shadow: 0 2px 10px rgb(123 102 255 / 0.28);
+}
+
+.aiPolishBtn:hover {
+  filter: brightness(1.06);
+}
+
+.aiPolishBtn:active {
+  filter: brightness(0.96);
+}
+
+.polishAccentText {
+  color: var(--polish-text);
+}
+
+.polishReplaceBtn {
+  --polish-from: #7b66ff;
+  --polish-to: #5cd7ff;
+  background: linear-gradient(90deg, var(--polish-from) 0%, var(--polish-to) 100%);
+  box-shadow: 0 2px 10px rgb(123 102 255 / 0.24);
+}
+
+.polishReplaceBtn:hover {
+  filter: brightness(1.06);
+}
+
+.polishReplaceBtn:active {
+  filter: brightness(0.96);
+}
+
+.polishAppendBtn {
+  border: 1px solid rgb(123 102 255 / 0.28);
+  background: rgb(123 102 255 / 0.08);
+  color: var(--polish-text);
+}
+
+.polishAppendBtn:hover {
+  border-color: rgb(123 102 255 / 0.42);
+  background: rgb(123 102 255 / 0.14);
+}
+
+.polishRepolishBtn {
+  color: var(--polish-text);
+}
+
+.polishCancelBtn {
+  border: 1px solid rgb(123 102 255 / 0.22);
+  color: var(--polish-text);
+}
+
+.polishCancelBtn:hover {
+  border-color: rgb(123 102 255 / 0.38);
+}
+
+.polishSpinner {
+  border-color: rgb(123 102 255 / 0.25);
+  border-top-color: var(--polish-from);
+}
+
+.polishPreview {
+  min-height: 0;
+}
+
+.polishPreview :global(.ql-container.ql-snow) {
+  border: 0 !important;
+}
+
+.polishPreview :global(.ql-editor) {
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding: 0 !important;
+  font-size: 13px !important;
+  line-height: 1.42 !important;
+  color: #333 !important;
+}
+
+.polishPreview :global(.ql-editor li[data-list]) {
+  display: block;
+  margin-block: 0 !important;
+  padding-left: 0 !important;
+}
+
+.polishPreview :global(.ql-editor li[data-list] > .ql-ui) {
+  position: static !important;
+  display: inline-block !important;
+  vertical-align: top;
+}
+
+.polishPreview :global(.ql-editor li[data-list] > .ql-ui::before) {
+  margin-left: 0 !important;
+  margin-right: 0.3em;
+  width: auto !important;
 }

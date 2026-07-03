@@ -257,6 +257,11 @@ export default {
     offlineNeedNetworkBackupJson:
       'You are offline. AI polish requires a network connection. You can export the JSON config first as a backup.',
     polishOk: 'Polish applied',
+    polishSuccess: 'Content polished',
+    polishDisclaimer: 'AI-generated content—for reference only',
+    polishRepolish: 'Polish again',
+    polishAppend: 'Append below',
+    polishReplace: 'Replace with this',
     polishFail: 'Polish failed—try again later',
     aiGenerating: 'Generating…',
     aiCancel: 'Cancel',
