@@ -1,5 +1,6 @@
 'use client';
-import { useMemo, useRef } from 'react';
+import { uiHints } from '@/lib/uiHintStorage';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import MenuItemIcon from './menuItemIcon';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
@@ -67,6 +68,21 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
   );
   const { confirm, contextHolder } = useResponsiveConfirm();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [hintAiModify, setHintAiModify] = useState(false);
+  const [hintAiScore, setHintAiScore] = useState(false);
+  useEffect(() => {
+    setHintAiModify(!uiHints.aiModifyMenu.isDismissed());
+    setHintAiScore(!uiHints.aiScoreMenu.isDismissed());
+  }, []);
+  const dismissMenuHint = (key: string) => {
+    if (key === 'ai-modify') {
+      uiHints.aiModifyMenu.dismiss();
+      setHintAiModify(false);
+    } else if (key === 'ai-score') {
+      uiHints.aiScoreMenu.dismiss();
+      setHintAiScore(false);
+    }
+  };
   const pickImportFile = () => fileRef.current?.click();
   const confirmThenPickImport = () => {
     confirm({
@@ -106,6 +122,11 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
     const selected = !isActionImport && activeKey === item.key;
     const accent = selected || isActionImport;
     const tileCls = isActionImport ? TILE_IMPORT : selected ? TILE_SELECTED : TILE_DEFAULT;
+    const showHint =
+      !isActionImport &&
+      !selected &&
+      ((item.key === 'ai-modify' && hintAiModify) || (item.key === 'ai-score' && hintAiScore));
+    const hintCls = showHint ? ' ui-hint-shimmer' : '';
     return (
       <div
         key={item.key}
@@ -120,16 +141,22 @@ export default function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
         aria-label={item.label}
         onClick={() => {
           if (item.key === 'import-template') confirmThenPickImport();
-          else onActiveKeyChange(item.key);
+          else {
+            dismissMenuHint(item.key);
+            onActiveKeyChange(item.key);
+          }
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             if (item.key === 'import-template') confirmThenPickImport();
-            else onActiveKeyChange(item.key);
+            else {
+              dismissMenuHint(item.key);
+              onActiveKeyChange(item.key);
+            }
           }
         }}
-        className={`${menuTileClass} ${tileCls}`}
+        className={`${menuTileClass} ${tileCls}${hintCls}`}
         style={{ width: MENU_TILE_SIZE_PX, height: MENU_TILE_SIZE_PX }}
       >
         <MenuItemIcon menuKey={item.key} selected={accent} />

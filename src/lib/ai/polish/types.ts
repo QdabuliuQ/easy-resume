@@ -1,4 +1,4 @@
-export type PolishType = 'job' | 'project' | 'education' | 'skill';
+export type PolishType = 'job' | 'project' | 'education' | 'skill' | 'other';
 
 export const MIN_POLISH_PLAIN_LENGTH = 20;
 
@@ -41,4 +41,12 @@ export type PolishRequest =
       type: 'skill';
       richTextHtml: string;
       intentPosts: string;
+    }
+  | {
+      type: 'other';
+      richTextHtml: string;
+      intentPosts: string;
+      context: {
+        moduleTitle: string;
+      };
     };

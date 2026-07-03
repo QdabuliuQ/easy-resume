@@ -1,4 +1,5 @@
 .host {
+  position: relative;
   min-width: 0;
   overflow: visible;
   border-radius: 6px;
@@ -154,12 +155,60 @@
   --polish-from: #7b66ff;
   --polish-to: #5cd7ff;
   --polish-text: #6b5cff;
-  background: linear-gradient(180deg, #f3efff 0%, #edf3ff 100%);
+  --polish-panel-bg: linear-gradient(180deg, #f3efff 0%, #edf3ff 100%);
+  --polish-preview-bg: #ffffff;
+  --polish-preview-fg: #333333;
+  --polish-cancel-bg: rgb(255 255 255 / 0.7);
+  --polish-cancel-bg-hover: #ffffff;
+  --polish-append-border: rgb(123 102 255 / 0.28);
+  --polish-append-bg: rgb(123 102 255 / 0.08);
+  --polish-append-border-hover: rgb(123 102 255 / 0.42);
+  --polish-append-bg-hover: rgb(123 102 255 / 0.14);
+  --polish-cancel-border: rgb(123 102 255 / 0.22);
+  --polish-cancel-border-hover: rgb(123 102 255 / 0.38);
+  --polish-spinner-track: rgb(123 102 255 / 0.25);
+  background: var(--polish-panel-bg);
+}
+
+:global([data-theme='dark']) .polishPanel {
+  --polish-from: #9b8cff;
+  --polish-to: #7ae0ff;
+  --polish-text: #c4b8ff;
+  --polish-panel-bg: linear-gradient(
+    180deg,
+    rgb(123 102 255 / 0.18) 0%,
+    rgb(92 215 255 / 0.1) 100%
+  );
+  --polish-preview-bg: rgb(var(--surface-fg-rgb) / 0.06);
+  --polish-preview-fg: var(--text-strong);
+  --polish-cancel-bg: rgb(var(--surface-fg-rgb) / 0.08);
+  --polish-cancel-bg-hover: rgb(var(--surface-fg-rgb) / 0.12);
+  --polish-append-border: rgb(155 140 255 / 0.34);
+  --polish-append-bg: rgb(123 102 255 / 0.14);
+  --polish-append-border-hover: rgb(155 140 255 / 0.48);
+  --polish-append-bg-hover: rgb(123 102 255 / 0.22);
+  --polish-cancel-border: rgb(155 140 255 / 0.28);
+  --polish-cancel-border-hover: rgb(155 140 255 / 0.42);
+  --polish-spinner-track: rgb(155 140 255 / 0.28);
+  border: 1px solid rgb(var(--surface-fg-rgb) / 0.08);
+}
+
+:global([data-theme='dark']) .polishPreviewBox {
+  border: 1px solid rgb(var(--surface-fg-rgb) / 0.08);
+}
+
+:global([data-theme='dark']) .aiPolishBtn {
+  --polish-from: #9b8cff;
+  --polish-to: #7ae0ff;
+  box-shadow: 0 2px 12px rgb(123 102 255 / 0.32);
 }
 
 .aiPolishBtn {
   --polish-from: #7b66ff;
   --polish-to: #5cd7ff;
+  position: absolute;
+  right: 12px;
+  z-index: 4;
   background: linear-gradient(90deg, var(--polish-from) 0%, var(--polish-to) 100%);
   box-shadow: 0 2px 10px rgb(123 102 255 / 0.28);
 }
@@ -172,13 +221,53 @@
   filter: brightness(0.96);
 }
 
+.aiPolishBtnHint {
+  overflow: hidden;
+}
+
+.aiPolishBtnHint::after {
+  content: '';
+  position: absolute;
+  inset: -20% -45%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    108deg,
+    transparent 36%,
+    rgb(255 255 255 / 0.08) 43%,
+    rgb(255 255 255 / 0.62) 50%,
+    rgb(255 255 255 / 0.14) 57%,
+    transparent 64%
+  );
+  transform: translateX(-135%) skewX(-14deg);
+  animation: aiPolishShimmerSweep 3s ease-in-out infinite;
+}
+
+@keyframes aiPolishShimmerSweep {
+  0%,
+  18% {
+    transform: translateX(-135%) skewX(-14deg);
+  }
+  52% {
+    transform: translateX(135%) skewX(-14deg);
+  }
+  100% {
+    transform: translateX(135%) skewX(-14deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aiPolishBtnHint::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 .polishAccentText {
   color: var(--polish-text);
 }
 
 .polishReplaceBtn {
-  --polish-from: #7b66ff;
-  --polish-to: #5cd7ff;
   background: linear-gradient(90deg, var(--polish-from) 0%, var(--polish-to) 100%);
   box-shadow: 0 2px 10px rgb(123 102 255 / 0.24);
 }
@@ -192,14 +281,14 @@
 }
 
 .polishAppendBtn {
-  border: 1px solid rgb(123 102 255 / 0.28);
-  background: rgb(123 102 255 / 0.08);
+  border: 1px solid var(--polish-append-border);
+  background: var(--polish-append-bg);
   color: var(--polish-text);
 }
 
 .polishAppendBtn:hover {
-  border-color: rgb(123 102 255 / 0.42);
-  background: rgb(123 102 255 / 0.14);
+  border-color: var(--polish-append-border-hover);
+  background: var(--polish-append-bg-hover);
 }
 
 .polishRepolishBtn {
@@ -207,17 +296,27 @@
 }
 
 .polishCancelBtn {
-  border: 1px solid rgb(123 102 255 / 0.22);
+  border: 1px solid var(--polish-cancel-border);
+  background: var(--polish-cancel-bg);
   color: var(--polish-text);
 }
 
 .polishCancelBtn:hover {
-  border-color: rgb(123 102 255 / 0.38);
+  border-color: var(--polish-cancel-border-hover);
+  background: var(--polish-cancel-bg-hover);
 }
 
 .polishSpinner {
-  border-color: rgb(123 102 255 / 0.25);
+  border-color: var(--polish-spinner-track);
   border-top-color: var(--polish-from);
+}
+
+.polishPreviewBox {
+  background: var(--polish-preview-bg);
+}
+
+.polishDisclaimer {
+  color: var(--text-soft);
 }
 
 .polishPreview {
@@ -236,7 +335,7 @@
   padding: 0 !important;
   font-size: 13px !important;
   line-height: 1.42 !important;
-  color: #333 !important;
+  color: var(--polish-preview-fg) !important;
 }
 
 .polishPreview :global(.ql-editor li[data-list]) {

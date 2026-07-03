@@ -96,6 +96,41 @@
   animation: canvas-preview-content-exit 0.18s ease both;
 }
 
+@keyframes ui-hint-shimmer-sweep {
+  0%,
+  18% {
+    transform: translateX(-135%) skewX(-14deg);
+  }
+  52% {
+    transform: translateX(135%) skewX(-14deg);
+  }
+  100% {
+    transform: translateX(135%) skewX(-14deg);
+  }
+}
+
+.ui-hint-shimmer {
+  overflow: hidden;
+}
+
+.ui-hint-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: -8% -40%;
+  z-index: 3;
+  pointer-events: none;
+  transform: translateX(-135%) skewX(-14deg);
+  animation: ui-hint-shimmer-sweep 3s ease-in-out infinite;
+  background: linear-gradient(
+    108deg,
+    transparent 36%,
+    color-mix(in srgb, var(--color-primary-gradient-start) 24%, transparent) 43%,
+    rgb(255 255 255 / 0.68) 50%,
+    color-mix(in srgb, var(--color-primary) 42%, transparent) 57%,
+    transparent 64%
+  );
+}
+
 @media (prefers-reduced-motion: reduce) {
   .info1-panel-animate {
     animation: none;
@@ -106,6 +141,11 @@
   .canvas-preview-overlay-exit-animate,
   .canvas-preview-content-exit-animate {
     animation: none;
+  }
+
+  .ui-hint-shimmer::after {
+    animation: none;
+    opacity: 0;
   }
 }
 

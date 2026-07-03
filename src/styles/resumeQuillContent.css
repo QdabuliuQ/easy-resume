@@ -16,23 +16,40 @@
   margin-block: calc(var(--spacing) * 0.5);
 }
 
-/* 静态 embed / 润色预览：Quill 列表项勿用 absolute .ql-ui，否则 li 间距异常 */
-.resume-quill-embed .ql-editor li[data-list] {
+/* 静态 embed / 润色预览 / 编辑器：Quill 列表项勿用 absolute .ql-ui，否则 li 间距异常 */
+.resume-quill-embed .ql-editor li[data-list],
+.rte-quill-sync .ql-editor li[data-list] {
   display: block;
-  margin-block: 0;
-  padding-left: 0;
+  margin-block: 0 !important;
+  padding-left: 0 !important;
+  position: static !important;
+  white-space: normal;
+  line-height: inherit;
 }
 
-.resume-quill-embed .ql-editor li[data-list] > .ql-ui {
-  position: static;
-  display: inline-block;
-  vertical-align: top;
+.resume-quill-embed .ql-editor ol:has(> li[data-list]),
+.rte-quill-sync .ql-editor ol:has(> li[data-list]) {
+  padding-left: 0 !important;
+  margin: 0 !important;
 }
 
-.resume-quill-embed .ql-editor li[data-list] > .ql-ui::before {
-  margin-left: 0;
-  margin-right: 0.3em;
-  width: auto;
+.resume-quill-embed .ql-editor li[data-list] > .ql-ui,
+.rte-quill-sync .ql-editor li[data-list] > .ql-ui {
+  position: static !important;
+  display: inline !important;
+  vertical-align: baseline;
+  width: auto !important;
+  height: auto;
+  line-height: inherit;
+}
+
+.resume-quill-embed .ql-editor li[data-list] > .ql-ui::before,
+.rte-quill-sync .ql-editor li[data-list] > .ql-ui::before {
+  display: inline !important;
+  margin-left: 0 !important;
+  margin-right: 0.3em !important;
+  width: auto !important;
+  white-space: normal;
 }
 
 .resume-quill-embed .ql-editor p,

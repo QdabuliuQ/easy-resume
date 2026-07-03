@@ -15,7 +15,7 @@ describe('descriptionFormat', () => {
   it('includes STAR rules per scene', () => {
     expect(descriptionPolishRulesForScene('work')).toContain('STAR');
     expect(descriptionPolishRulesForScene('project')).toContain('项目背景');
-    expect(descriptionPolishRulesForScene('skill')).toContain('<ul><li>');
+    expect(descriptionPolishRulesForScene('skill')).toContain('核心技能');
   });
 
   it('modify chat rules cover module description fields', () => {

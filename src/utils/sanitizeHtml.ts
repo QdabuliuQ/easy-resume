@@ -24,38 +24,119 @@ export function ensureAnchorsOpenBlank(html: string): string {
   });
 }
 
-/** 将 AI 输出的 plain <ul><li> 转为 Quill 2 可渲染的无序列表 */
+/** 将 AI / 外部 HTML 的 plain ul/ol/li 转为 Quill 2 列表格式 */
 export function normalizePlainHtmlListsForQuill(html: string): string {
-  if (!html?.trim() || !/<ul[\s>]/i.test(html)) return html;
+  if (!html?.trim() || !/<(?:ul|ol)[\s>]/i.test(html)) return html;
   if (typeof document !== 'undefined') {
     const root = document.createElement('div');
     root.innerHTML = html;
     for (const ul of Array.from(root.querySelectorAll('ul'))) {
       const ol = document.createElement('ol');
       for (const li of Array.from(ul.querySelectorAll(':scope > li'))) {
-        const next = document.createElement('li');
-        if (li.hasAttribute('data-list')) {
-          next.setAttribute('data-list', li.getAttribute('data-list') ?? 'bullet');
-          next.innerHTML = li.innerHTML;
-        } else {
-          next.setAttribute('data-list', 'bullet');
-          next.innerHTML = `<span class="ql-ui" contenteditable="false"></span>${li.innerHTML}`;
-        }
-        ol.appendChild(next);
+        ol.appendChild(toQuillListItem(li, 'bullet'));
       }
       ul.replaceWith(ol);
     }
+    for (const ol of Array.from(root.querySelectorAll('ol'))) {
+      const items = Array.from(ol.querySelectorAll(':scope > li'));
+      if (items.length === 0 || items.some((li) => li.hasAttribute('data-list'))) {
+        for (const li of items) cleanupQuillListItem(li);
+        continue;
+      }
+      const nextOl = document.createElement('ol');
+      for (const li of items) {
+        nextOl.appendChild(toQuillListItem(li, 'bullet'));
+      }
+      ol.replaceWith(nextOl);
+    }
+    mergeSiblingOls(root);
     return root.innerHTML;
   }
-  return html.replace(/<ul\b[^>]*>([\s\S]*?)<\/ul>/gi, (_full, inner: string) => {
-    const body = inner.replace(
-      /<li\b([^>]*)>([\s\S]*?)<\/li>/gi,
-      (match, attrs: string, content: string) => {
-        if (/data-list\s*=/.test(attrs)) return match;
-        return `<li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>${content}</li>`;
-      },
-    );
+  let out = html.replace(/<ul\b[^>]*>([\s\S]*?)<\/ul>/gi, (_full, inner: string) => {
+    const body = normalizeListItemHtml(inner, 'bullet');
     return `<ol>${body}</ol>`;
+  });
+  out = out.replace(/<ol\b[^>]*>([\s\S]*?)<\/ol>/gi, (full, inner: string) => {
+    if (/data-list\s*=/.test(inner)) return full;
+    return `<ol>${normalizeListItemHtml(inner, 'bullet')}</ol>`;
+  });
+  return out;
+}
+
+function trimListItemBody(li: Element): string {
+  let out = '';
+  for (const node of Array.from(li.childNodes)) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      out += node.textContent ?? '';
+      continue;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) continue;
+    const el = node as Element;
+    if (el.classList.contains('ql-ui')) continue;
+    out += el.outerHTML;
+  }
+  return out.trim();
+}
+
+function cleanupQuillListItem(li: Element): void {
+  flattenLiParagraphs(li);
+  const ui = li.querySelector(':scope > .ql-ui');
+  if (ui?.nextSibling?.nodeType === Node.TEXT_NODE) {
+    const t = ui.nextSibling.textContent ?? '';
+    ui.nextSibling.textContent = t.replace(/^\s+/, '');
+  }
+  while (li.firstChild && li.firstChild !== ui && li.firstChild.nodeType === Node.TEXT_NODE && !li.firstChild.textContent?.trim()) {
+    li.firstChild.remove();
+  }
+}
+
+function mergeSiblingOls(container: Element): void {
+  let prev: HTMLOListElement | null = null;
+  for (const child of Array.from(container.children)) {
+    if (child.tagName === 'OL' && child.querySelector(':scope > li[data-list]')) {
+      const ol = child as HTMLOListElement;
+      if (prev) {
+        while (ol.firstChild) prev.appendChild(ol.firstChild);
+        ol.remove();
+        continue;
+      }
+      prev = ol;
+      continue;
+    }
+    prev = null;
+    mergeSiblingOls(child);
+  }
+}
+
+function flattenLiParagraphs(li: Element): void {
+  for (const p of Array.from(li.querySelectorAll(':scope > p'))) {
+    while (p.firstChild) li.insertBefore(p.firstChild, p);
+    p.remove();
+  }
+}
+
+function toQuillListItem(li: Element, listType: 'bullet' | 'ordered'): HTMLLIElement {
+  flattenLiParagraphs(li);
+  const next = document.createElement('li');
+  if (li.hasAttribute('data-list')) {
+    next.setAttribute('data-list', li.getAttribute('data-list') ?? listType);
+    next.innerHTML = li.innerHTML;
+    cleanupQuillListItem(next);
+    return next;
+  }
+  next.setAttribute('data-list', listType);
+  const body = trimListItemBody(li);
+  next.innerHTML = `<span class="ql-ui" contenteditable="false"></span>${body}`;
+  return next;
+}
+
+function normalizeListItemHtml(inner: string, listType: 'bullet' | 'ordered'): string {
+  return inner.replace(/<li\b([^>]*)>([\s\S]*?)<\/li>/gi, (match, attrs: string, content: string) => {
+    if (/data-list\s*=/.test(attrs)) {
+      return match.replace(/(<span class="ql-ui"[^>]*><\/span>)\s+/i, '$1');
+    }
+    const body = content.replace(/<p\b[^>]*>([\s\S]*?)<\/p>/gi, '$1').replace(/\s+/g, ' ').trim();
+    return `<li data-list="${listType}"><span class="ql-ui" contenteditable="false"></span>${body}</li>`;
   });
 }
 

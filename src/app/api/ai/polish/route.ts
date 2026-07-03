@@ -68,6 +68,10 @@ const contextEducationSchema = z.object({
   studyTime: z.string().optional().default(''),
 });
 
+const contextOtherSchema = z.object({
+  moduleTitle: z.string().optional().default(''),
+});
+
 const polishRequestSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('job'),
@@ -91,6 +95,12 @@ const polishRequestSchema = z.discriminatedUnion('type', [
     type: z.literal('skill'),
     richTextHtml: z.string(),
     intentPosts: z.string().optional().default(''),
+  }),
+  z.object({
+    type: z.literal('other'),
+    richTextHtml: z.string(),
+    intentPosts: z.string().optional().default(''),
+    context: contextOtherSchema,
   }),
 ]);
 

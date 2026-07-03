@@ -47,6 +47,13 @@ function buildPromptVars(req: PolishRequest): Record<string, string> {
       intentPosts,
     };
   }
+  if (req.type === 'other') {
+    return {
+      moduleTitle: unset(req.context.moduleTitle),
+      rawDescriptionPlain,
+      intentPosts,
+    };
+  }
   return { rawDescriptionPlain, intentPosts };
 }
 

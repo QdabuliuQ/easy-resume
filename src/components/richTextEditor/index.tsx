@@ -9,6 +9,7 @@ import 'quill/dist/quill.snow.css';
 import '@/styles/resumeQuillContent.css';
 import { Robot, RotatingForward } from '@icon-park/react';
 import aiIcon from '@/assets/AI.svg';
+import { uiHints } from '@/lib/uiHintStorage';
 import styles from './index.module.css';
 
 type QuillType = any;
@@ -246,6 +247,10 @@ function RichTextEditor({
   const [plainCount, setPlainCount] = useState(0);
   const [loadingEditor, setLoadingEditor] = useState(true);
   const [toolbarHeight, setToolbarHeight] = useState(39);
+  const [showAiPolishHint, setShowAiPolishHint] = useState(false);
+  useEffect(() => {
+    setShowAiPolishHint(!uiHints.aiPolishBtn.isDismissed());
+  }, []);
 
   const tipCssVars = useMemo(() => {
     const q = JSON.stringify;
@@ -498,36 +503,40 @@ function RichTextEditor({
       <div className="relative min-w-0">
         <div className={`${styles.host} rte-quill-sync`} style={tipCssVars}>
           <div ref={hostRef} className="min-w-0" />
+          {onAiPolishClick && !loadingEditor ? (
+            <button
+              type="button"
+              aria-busy={polishing}
+              disabled={polishing || plainCount < MIN_POLISH_PLAIN_LENGTH}
+              onClick={() => {
+                if (showAiPolishHint) {
+                  uiHints.aiPolishBtn.dismiss();
+                  setShowAiPolishHint(false);
+                }
+                if (!polishing) void runAiPolishFromParent();
+              }}
+              style={{ top: Math.max(0, (toolbarHeight - 26) / 2 + 1.5) }}
+              className={
+                `${styles.aiPolishBtn}${showAiPolishHint && !polishing ? ` ${styles.aiPolishBtnHint}` : ''} inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-4 text-[11px] font-medium text-white ` +
+                'outline-none transition-[filter,opacity] disabled:pointer-events-none disabled:opacity-65'
+              }
+            >
+              {polishing ? (
+                <span
+                  className="inline-block size-3 shrink-0 animate-spin rounded-full border-2 border-white/35 border-t-white"
+                  aria-hidden
+                />
+              ) : (
+                <img src={aiIcon.src} alt="" className="size-2.5 shrink-0" aria-hidden />
+              )}
+              <span className="leading-none font-bold text-[12px]">{tr('aiPolish')}</span>
+            </button>
+          ) : null}
         </div>
         {loadingEditor ? (
           <div className="pointer-events-none absolute inset-0 z-[3] flex items-center justify-center rounded-md bg-neutral-900/12 text-[12px] text-fg/70">
             <span className="inline-block size-4 animate-spin rounded-full border-2 border-fg/25 border-t-[color:var(--color-primary)]" />
           </div>
-        ) : null}
-        {onAiPolishClick ? (
-          <button
-            type="button"
-            aria-busy={polishing}
-            disabled={polishing || loadingEditor || plainCount < MIN_POLISH_PLAIN_LENGTH}
-            onClick={() => {
-              if (!polishing) void runAiPolishFromParent();
-            }}
-            style={{ top: Math.max(0, (toolbarHeight - 26) / 2 + 1.5) }}
-            className={
-              `${styles.aiPolishBtn} absolute right-3 z-[4] inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-4 text-[11px] font-medium text-white ` +
-              'outline-none transition-[filter,opacity] disabled:pointer-events-none disabled:opacity-65'
-            }
-          >
-            {polishing ? (
-              <span
-                className="inline-block size-3 shrink-0 animate-spin rounded-full border-2 border-white/35 border-t-white"
-                aria-hidden
-              />
-            ) : (
-              <img src={aiIcon.src} alt="" className="size-2.5 shrink-0" aria-hidden />
-            )}
-            <span className="leading-none font-bold text-[12px]">{tr('aiPolish')}</span>
-          </button>
         ) : null}
       </div>
       <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-neutral-400">
@@ -553,7 +562,7 @@ function RichTextEditor({
               </div>
             ) : (
               <div className={`flex min-w-0 items-center gap-1.5 text-[13px] font-medium ${styles.polishAccentText}`}>
-                <Robot theme="filled" size="16" fill="#7b66ff" />
+                <Robot theme="filled" size="16" fill="currentColor" />
                 <span>{tr('polishSuccess')}</span>
               </div>
             )}
@@ -561,14 +570,14 @@ function RichTextEditor({
               <button
                 type="button"
                 onClick={cancelAiPolish}
-                className={`inline-flex h-6 shrink-0 cursor-pointer select-none items-center rounded-md bg-white/70 px-2.5 text-[12px] font-medium outline-none transition-[background-color,border-color] hover:bg-white ${styles.polishCancelBtn}`}
+                className={`inline-flex h-6 shrink-0 cursor-pointer select-none items-center rounded-md px-2.5 text-[12px] font-medium outline-none transition-[background-color,border-color] ${styles.polishCancelBtn}`}
               >
                 {tr('aiCancel')}
               </button>
             ) : null}
           </div>
           {polishResultHtml ? (
-            <div className={`${styles.polishPreview} mb-2 max-h-[240px] overflow-y-auto rounded-md bg-white px-3 py-2`}>
+            <div className={`${styles.polishPreview} ${styles.polishPreviewBox} mb-2 max-h-[240px] overflow-y-auto rounded-md px-3 py-2`}>
               <QuillHtmlPreview html={polishResultHtml} />
             </div>
           ) : null}
@@ -583,10 +592,10 @@ function RichTextEditor({
                   }}
                   className={`inline-flex cursor-pointer select-none items-center gap-1 border-0 bg-transparent p-0 text-[12px] font-medium outline-none transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 ${styles.polishRepolishBtn}`}
                 >
-                  <RotatingForward theme="outline" size="14" fill="#7b66ff" />
+                  <RotatingForward theme="outline" size="14" fill="currentColor" />
                   {tr('polishRepolish')}
                 </button>
-                <span className="text-[11px] text-neutral-400">{tr('polishDisclaimer')}</span>
+                <span className={`text-[11px] ${styles.polishDisclaimer}`}>{tr('polishDisclaimer')}</span>
               </div>
               <div className="flex flex-wrap justify-end gap-2">
                 <button

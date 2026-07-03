@@ -164,69 +164,69 @@ function ModifyDiffBubble({
               const itemPending = !resolved && !isApplied && !isCancelled;
               return (
                 <li key={d.id} className='rounded-xl border border-fg/[0.08] bg-surface/[0.04] px-3 py-2.5'>
-                  <div className='mb-2.5 flex min-w-0 flex-wrap items-center gap-1.5'>
-                    <DiffKindBadge kind={d.kind} ta={ta} />
-                    <span className='min-w-0 text-[11px] font-medium text-fg/72'>{d.label}</span>
-                  </div>
-                  {d.kind === 'add' ? (
-                    <DiffTimeline
-                      rows={[{
-                        kind: 'plus',
-                        label: ta('diffNew'),
-                        labelCls: 'text-[color:var(--color-primary)]/80',
-                        body: <DiffValueBox value={d.newValue} display={d.newDisplay} variant='new' />,
-                      }]}
-                    />
-                  ) : d.kind === 'remove' ? (
-                    <DiffTimeline
-                      rows={[{
-                        kind: 'minus',
-                        label: ta('diffOld'),
-                        labelCls: 'text-rose-600/75 dark:text-rose-300/75',
-                        body: <DiffValueBox value={d.oldValue} display={d.oldDisplay} variant='remove' />,
-                      }]}
-                    />
-                  ) : (
-                    <DiffTimeline
-                      rows={[
-                        {
-                          kind: 'minus',
-                          label: ta('diffOld'),
-                          labelCls: 'text-fg/45',
-                          body: <DiffValueBox value={d.oldValue} display={d.oldDisplay} variant='old' />,
-                        },
-                        {
+                    <div className='mb-2.5 flex min-w-0 flex-wrap items-center gap-1.5'>
+                      <DiffKindBadge kind={d.kind} ta={ta} />
+                      <span className='min-w-0 text-[11px] font-medium text-fg/72'>{d.label}</span>
+                    </div>
+                    {d.kind === 'add' ? (
+                      <DiffTimeline
+                        rows={[{
                           kind: 'plus',
                           label: ta('diffNew'),
                           labelCls: 'text-[color:var(--color-primary)]/80',
                           body: <DiffValueBox value={d.newValue} display={d.newDisplay} variant='new' />,
-                        },
-                      ]}
-                    />
-                  )}
-                  {itemPending ? (
-                    <div className='mt-3 flex flex-wrap gap-2'>
-                      <button
-                        type='button'
-                        onClick={() => onApplyOne(d.id)}
-                        className='cursor-pointer rounded-lg bg-gradient-primary px-3 py-1.5 text-[12px] font-medium text-white outline-none transition-[filter] hover:brightness-110 active:brightness-95'
-                      >
-                        {ta('diffApplyOne')}
-                      </button>
-                      <button
-                        type='button'
-                        onClick={() => onCancelOne(d.id)}
-                        className='cursor-pointer rounded-lg border border-fg/[0.12] bg-surface/[0.05] px-3 py-1.5 text-[12px] font-medium text-fg/78 outline-none transition-colors hover:border-fg/[0.2] hover:bg-surface/[0.1]'
-                      >
-                        {ta('diffCancelOne')}
-                      </button>
-                    </div>
-                  ) : isApplied ? (
-                    <p className='mt-2.5 text-[11px] font-medium text-[color:var(--color-primary)]'>{ta('diffItemApplied')}</p>
-                  ) : isCancelled ? (
-                    <p className='mt-2.5 text-[11px] text-fg/48'>{ta('diffItemCancelled')}</p>
-                  ) : null}
-                </li>
+                        }]}
+                      />
+                    ) : d.kind === 'remove' ? (
+                      <DiffTimeline
+                        rows={[{
+                          kind: 'minus',
+                          label: ta('diffOld'),
+                          labelCls: 'text-rose-600/75 dark:text-rose-300/75',
+                          body: <DiffValueBox value={d.oldValue} display={d.oldDisplay} variant='remove' />,
+                        }]}
+                      />
+                    ) : (
+                      <DiffTimeline
+                        rows={[
+                          {
+                            kind: 'minus',
+                            label: ta('diffOld'),
+                            labelCls: 'text-fg/45',
+                            body: <DiffValueBox value={d.oldValue} display={d.oldDisplay} variant='old' />,
+                          },
+                          {
+                            kind: 'plus',
+                            label: ta('diffNew'),
+                            labelCls: 'text-[color:var(--color-primary)]/80',
+                            body: <DiffValueBox value={d.newValue} display={d.newDisplay} variant='new' />,
+                          },
+                        ]}
+                      />
+                    )}
+                    {itemPending ? (
+                      <div className='mt-3 flex flex-wrap gap-2'>
+                        <button
+                          type='button'
+                          onClick={() => onApplyOne(d.id)}
+                          className='cursor-pointer rounded-lg bg-gradient-primary px-3 py-1.5 text-[12px] font-medium text-white outline-none transition-[filter] hover:brightness-110 active:brightness-95'
+                        >
+                          {ta('diffApplyOne')}
+                        </button>
+                        <button
+                          type='button'
+                          onClick={() => onCancelOne(d.id)}
+                          className='cursor-pointer rounded-lg border border-fg/[0.12] bg-surface/[0.05] px-3 py-1.5 text-[12px] font-medium text-fg/78 outline-none transition-colors hover:border-fg/[0.2] hover:bg-surface/[0.1]'
+                        >
+                          {ta('diffCancelOne')}
+                        </button>
+                      </div>
+                    ) : isApplied ? (
+                      <p className='mt-2.5 text-[11px] font-medium text-[color:var(--color-primary)]'>{ta('diffItemApplied')}</p>
+                    ) : isCancelled ? (
+                      <p className='mt-2.5 text-[11px] text-fg/48'>{ta('diffItemCancelled')}</p>
+                    ) : null}
+                  </li>
               );
             })}
           </ul>

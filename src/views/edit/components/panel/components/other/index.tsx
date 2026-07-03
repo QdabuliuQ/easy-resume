@@ -1,9 +1,11 @@
 'use client';
+import { polishDescription } from '@/api/polishDescription';
 import RichTextEditor from '@/components/richTextEditor/lazy';
 import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { OtherProps } from '@/modules/other';
+import { intentPostsFromResumeConfig } from '@/utils/intentPosts';
 import { More } from '@icon-park/react';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import { observer } from 'mobx-react';
@@ -54,6 +56,7 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
   });
   const rawHtml = module?.options.description ?? '';
   const previewText = plainTextFromRichHtml(rawHtml);
+  const intentPostsForPolish = intentPostsFromResumeConfig(configStore.getConfig);
   return (
     <div className='[&_.ant-form-item]:!mb-2.5'>
       <div className='panel-module-head'>
@@ -105,6 +108,18 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
             dataPanelItemId={`${moduleActive}_description`}
             onHtmlChange={updateDescription}
             placeholder={to('placeholder')}
+            onAiPolishClick={(richTextHtml, ctx) =>
+              polishDescription(
+                {
+                  type: 'other',
+                  richTextHtml,
+                  intentPosts: intentPostsForPolish,
+                  context: { moduleTitle: module.options.title ?? '' },
+                },
+                ctx?.onStreamingHtml,
+                ctx?.signal,
+              )
+            }
           />
         </div>
       ) : null}
