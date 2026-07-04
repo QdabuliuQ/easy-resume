@@ -515,7 +515,7 @@ function RichTextEditor({
                 }
                 if (!polishing) void runAiPolishFromParent();
               }}
-              style={{ top: Math.max(0, (toolbarHeight - 26) / 2 + 1.5) }}
+              style={{ top: Math.max(0, (toolbarHeight - 26) / 2 + 1) }}
               className={
                 `${styles.aiPolishBtn}${showAiPolishHint && !polishing ? ` ${styles.aiPolishBtnHint}` : ''} inline-flex h-[26px] cursor-pointer select-none items-center gap-1 rounded-md px-4 text-[11px] font-medium text-white ` +
                 'outline-none transition-[filter,opacity] disabled:pointer-events-none disabled:opacity-65'

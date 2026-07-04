@@ -7,6 +7,8 @@
 }
 
 .host :global(.ql-toolbar.ql-snow) {
+  display: flex;
+  align-items: center;
   border-color: var(--rte-chrome-line) !important;
   border-bottom-color: var(--rte-chrome-line) !important;
 }
