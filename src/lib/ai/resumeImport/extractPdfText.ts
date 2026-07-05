@@ -6,7 +6,7 @@ export const MIN_USABLE_PDF_EMBEDDED_TEXT_LEN = 50;
 export function isPdfEmbeddedTextUsable(text: string): boolean {
   const t = text.replace(/\s+/g, ' ').trim();
   if (t.length < MIN_USABLE_PDF_EMBEDDED_TEXT_LEN) return false;
-  const meaningful = (t.match(/[\p{L}\p{N}]/gu) ?? []).length;
+  const meaningful = (t.match(/[a-zA-Z0-9\u4e00-\u9fff]/g) ?? []).length;
   return meaningful >= MIN_USABLE_PDF_EMBEDDED_TEXT_LEN * 0.4;
 }
 

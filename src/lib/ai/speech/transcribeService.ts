@@ -31,7 +31,7 @@ function daemonScript(): string {
 }
 
 function rejectAllPending(message: string) {
-  for (const [, p] of pending) p.reject(new Error(message));
+  pending.forEach((p) => p.reject(new Error(message)));
   pending.clear();
 }
 
