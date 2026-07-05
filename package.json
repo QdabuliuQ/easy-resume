@@ -49,6 +49,7 @@
     "react-image-crop": "^11.0.10",
     "react-virtuoso": "^4.18.10",
     "typed.js": "^3.0.0",
+    "unpdf": "^1.6.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {

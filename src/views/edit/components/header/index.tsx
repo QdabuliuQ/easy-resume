@@ -7,11 +7,10 @@ import { observer } from 'mobx-react';
 import { Button, Input } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
 import { FilePdf, DownPicture, FileCode } from '@icon-park/react';
-import { configStore, resumeImportStore } from '@/mobx';
+import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 import { logo } from '@/lib/brandAssets';
 import { useResumeExport } from '@/views/edit/hooks/useResumeExport';
-import ResumeImportButton from './resumeImportButton';
 function Header() {
   const t = useTranslations('Edit.header');
   const {
@@ -26,7 +25,7 @@ function Header() {
   const [draft, setDraft] = useState('');
   const ignoreNextBlur = useRef(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
-  const actionsDisabled = exporting || resumeImportStore.loading;
+  const actionsDisabled = exporting;
   const exportGradId = `hdr-eg${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const exportChipOuter =
     'group rounded-2xl bg-gradient-primary p-px shadow-[0_2px_12px_rgb(0_0_0/0.18)] transition-[filter] duration-200 hover:brightness-110 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100';
@@ -146,7 +145,6 @@ function Header() {
             </linearGradient>
           </defs>
         </svg>
-        <ResumeImportButton disabled={actionsDisabled} exportGradId={exportGradId} />
         <button
           type='button'
           disabled={actionsDisabled}

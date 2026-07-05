@@ -87,6 +87,18 @@ function TimelineDot({ kind }: { kind: 'minus' | 'plus' }) {
 
 const ROW_GAP_PX = 12;
 const RAIL_INDENT_PX = DOT_SIZE_PX + 10;
+const itemActionRowClass = 'mt-3 flex min-h-7 flex-wrap items-center gap-2';
+const itemActionBtnPrimaryClass =
+  'inline-flex h-7 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-gradient-primary px-3 text-[12px] font-medium leading-none text-white outline-none transition-[filter] hover:brightness-110 active:brightness-95';
+const itemActionBtnSecondaryClass =
+  'inline-flex h-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-fg/[0.12] bg-surface/[0.05] px-3 text-[12px] font-medium leading-none text-fg/78 outline-none transition-colors hover:border-fg/[0.2] hover:bg-surface/[0.1]';
+const itemStatusRowClass = 'mt-3 flex h-7 items-center';
+const itemStatusAppliedClass = 'text-[12px] font-medium leading-none text-[color:var(--color-primary)]';
+const itemStatusCancelledClass = 'text-[12px] leading-none text-fg/48';
+const batchActionBtnClass =
+  'flex h-8 w-full cursor-pointer items-center justify-center rounded-xl bg-gradient-primary text-[12px] font-semibold leading-none text-white outline-none shadow-[var(--panel-shadow-primary-glow)] transition-[filter] hover:brightness-110 active:brightness-95';
+const batchStatusRowClass = 'flex h-8 items-center';
+const batchStatusClass = 'text-[12px] leading-none text-fg/52';
 
 function DiffTimeline({
   rows,
@@ -205,26 +217,22 @@ function ModifyDiffBubble({
                       />
                     )}
                     {itemPending ? (
-                      <div className='mt-3 flex flex-wrap gap-2'>
-                        <button
-                          type='button'
-                          onClick={() => onApplyOne(d.id)}
-                          className='cursor-pointer rounded-lg bg-gradient-primary px-3 py-1.5 text-[12px] font-medium text-white outline-none transition-[filter] hover:brightness-110 active:brightness-95'
-                        >
+                      <div className={itemActionRowClass}>
+                        <button type='button' onClick={() => onApplyOne(d.id)} className={itemActionBtnPrimaryClass}>
                           {ta('diffApplyOne')}
                         </button>
-                        <button
-                          type='button'
-                          onClick={() => onCancelOne(d.id)}
-                          className='cursor-pointer rounded-lg border border-fg/[0.12] bg-surface/[0.05] px-3 py-1.5 text-[12px] font-medium text-fg/78 outline-none transition-colors hover:border-fg/[0.2] hover:bg-surface/[0.1]'
-                        >
+                        <button type='button' onClick={() => onCancelOne(d.id)} className={itemActionBtnSecondaryClass}>
                           {ta('diffCancelOne')}
                         </button>
                       </div>
                     ) : isApplied ? (
-                      <p className='mt-2.5 text-[11px] font-medium text-[color:var(--color-primary)]'>{ta('diffItemApplied')}</p>
+                      <div className={itemStatusRowClass}>
+                        <p className={itemStatusAppliedClass}>{ta('diffItemApplied')}</p>
+                      </div>
                     ) : isCancelled ? (
-                      <p className='mt-2.5 text-[11px] text-fg/48'>{ta('diffItemCancelled')}</p>
+                      <div className={itemStatusRowClass}>
+                        <p className={itemStatusCancelledClass}>{ta('diffItemCancelled')}</p>
+                      </div>
                     ) : null}
                   </li>
               );
@@ -242,18 +250,16 @@ function ModifyDiffBubble({
                 <BulbOutlined className='mt-0.5 shrink-0 text-[color:var(--color-primary)]' />
                 {ta('diffHighlightHint')}
               </p>
-              <button
-                type='button'
-                onClick={onApplyBatch}
-                className='w-full cursor-pointer rounded-xl bg-gradient-primary py-2.5 text-[13px] font-semibold text-white outline-none shadow-[var(--panel-shadow-primary-glow)] transition-[filter] hover:brightness-110 active:brightness-95'
-              >
+              <button type='button' onClick={onApplyBatch} className={batchActionBtnClass}>
                 {ta('diffApplyBatch', { n: pendingIds.length })}
               </button>
             </>
           ) : resolved ? (
-            <p className='text-[11px] text-fg/52'>
-              {resolved === 'applied' ? ta('diffAppliedHint') : ta('diffCancelledHint')}
-            </p>
+            <div className={batchStatusRowClass}>
+              <p className={batchStatusClass}>
+                {resolved === 'applied' ? ta('diffAppliedHint') : ta('diffCancelledHint')}
+              </p>
+            </div>
           ) : null}
         </>
       ) : content.trim() ? null : (

@@ -31,6 +31,7 @@
 .rte-quill-sync .ql-editor ol:has(> li[data-list]) {
   padding-left: 0 !important;
   margin: 0 !important;
+  white-space: normal;
 }
 
 .resume-quill-embed .ql-editor li[data-list] > .ql-ui,

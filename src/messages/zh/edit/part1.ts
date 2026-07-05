@@ -41,7 +41,7 @@ export default {
     importResumeOk: '简历内容已填入',
     importResumeFail: '简历识别失败，请稍后重试',
     importResumeFileEmpty: '文件为空',
-    importResumeFileUnsupported: '不支持的文件类型，请上传 PDF 或 JPG/PNG/WebP',
+    importResumeFileUnsupported: '不支持的文件类型，请上传 PDF 或 JPG/PNG',
     importResumeFileTooLargePdf: 'PDF 过大，最大 10MB',
     importResumeFileTooLargeImage: '图片过大，最大 5MB',
     importResumeParsing: '正在识别简历…',

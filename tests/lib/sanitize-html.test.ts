@@ -39,6 +39,15 @@ describe('normalizePlainHtmlListsForQuill', () => {
     expect(out).not.toMatch(/ql-ui"><\/span>\s*\n/);
     expect(out).toContain('<b>前端</b>');
   });
+
+  it('strips whitespace between Quill list items from LLM output', () => {
+    const raw =
+      '<ol>\n<li data-list="bullet"><span class="ql-ui"></span><b>A</b></li>\n<li data-list="bullet"><span class="ql-ui"></span><b>B</b></li>\n</ol>';
+    const out = normalizePlainHtmlListsForQuill(raw);
+    expect(out).not.toMatch(/<\/li>\s+<li/);
+    expect(out).toContain('<b>A</b>');
+    expect(out).toContain('<b>B</b>');
+  });
 });
 
 describe('sanitizeRichTextHtml', () => {

@@ -50,6 +50,7 @@ export function normalizePlainHtmlListsForQuill(html: string): string {
       ol.replaceWith(nextOl);
     }
     mergeSiblingOls(root);
+    stripListInterItemWhitespace(root);
     return root.innerHTML;
   }
   let out = html.replace(/<ul\b[^>]*>([\s\S]*?)<\/ul>/gi, (_full, inner: string) => {
@@ -57,10 +58,12 @@ export function normalizePlainHtmlListsForQuill(html: string): string {
     return `<ol>${body}</ol>`;
   });
   out = out.replace(/<ol\b[^>]*>([\s\S]*?)<\/ol>/gi, (full, inner: string) => {
-    if (/data-list\s*=/.test(inner)) return full;
+    if (/data-list\s*=/.test(inner)) {
+      return `<ol>${collapseListInterItemWhitespace(inner)}</ol>`;
+    }
     return `<ol>${normalizeListItemHtml(inner, 'bullet')}</ol>`;
   });
-  return out;
+  return collapseListInterItemWhitespace(out);
 }
 
 function trimListItemBody(li: Element): string {
@@ -88,6 +91,18 @@ function cleanupQuillListItem(li: Element): void {
   while (li.firstChild && li.firstChild !== ui && li.firstChild.nodeType === Node.TEXT_NODE && !li.firstChild.textContent?.trim()) {
     li.firstChild.remove();
   }
+}
+
+function stripListInterItemWhitespace(container: Element): void {
+  for (const list of Array.from(container.querySelectorAll('ol, ul'))) {
+    for (const node of Array.from(list.childNodes)) {
+      if (node.nodeType === Node.TEXT_NODE && !node.textContent?.trim()) node.remove();
+    }
+  }
+}
+
+function collapseListInterItemWhitespace(html: string): string {
+  return html.replace(/(<\/li>)\s+(?=<li\b)/gi, '$1');
 }
 
 function mergeSiblingOls(container: Element): void {

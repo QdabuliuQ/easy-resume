@@ -122,6 +122,7 @@ export function useResumeImport() {
       flushResumeBackupImmediate(configStore.getConfig);
     } catch (err) {
       if (rafId != null) cancelAnimationFrame(rafId);
+      configStore.setConfig(JSON.parse(JSON.stringify(current)));
       message.error(err instanceof Error ? err.message : t('importResumeFail'));
     } finally {
       clearedBaseRef.current = null;

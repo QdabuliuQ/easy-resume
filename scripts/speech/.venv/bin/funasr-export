@@ -1,0 +1,6 @@
+#!/Users/zhengjihao/easy-resume/scripts/speech/.venv/bin/python3
+import sys
+from funasr.bin.export import main_hydra
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(main_hydra())

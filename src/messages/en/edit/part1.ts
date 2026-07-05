@@ -41,7 +41,7 @@ export default {
     importResumeOk: 'Resume content applied',
     importResumeFail: 'Parse failed—try again later',
     importResumeFileEmpty: 'File is empty',
-    importResumeFileUnsupported: 'Unsupported file type. Use PDF or JPG/PNG/WebP.',
+    importResumeFileUnsupported: 'Unsupported file type. Use PDF or JPG/PNG.',
     importResumeFileTooLargePdf: 'PDF too large (max 10MB)',
     importResumeFileTooLargeImage: 'Image too large (max 5MB)',
     importResumeParsing: 'Parsing resume…',

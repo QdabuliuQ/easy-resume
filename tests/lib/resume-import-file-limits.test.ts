@@ -43,4 +43,14 @@ describe('validateResumeImportFile', () => {
       }).ok,
     ).toBe(false);
   });
+
+  it('WebP 拒绝', () => {
+    expect(
+      validateResumeImportFile({
+        size: 1024,
+        type: 'image/webp',
+        name: 'a.webp',
+      }),
+    ).toEqual({ ok: false, code: 'unsupported' });
+  });
 });

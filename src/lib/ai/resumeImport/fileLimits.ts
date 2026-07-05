@@ -2,7 +2,7 @@ export const RESUME_IMPORT_MAX_PDF_BYTES = 10 * 1024 * 1024;
 export const RESUME_IMPORT_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 const PDF_MIMES = new Set(['application/pdf']);
-const IMAGE_MIMES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
+const IMAGE_MIMES = new Set(['image/jpeg', 'image/jpg', 'image/png']);
 
 export type ResumeImportFileKind = 'pdf' | 'image';
 
@@ -12,7 +12,7 @@ export function resolveResumeImportFileKind(mimeType: string, fileName?: string)
   if (IMAGE_MIMES.has(mime)) return 'image';
   const ext = fileName?.split('.').pop()?.toLowerCase();
   if (ext === 'pdf') return 'pdf';
-  if (ext === 'jpg' || ext === 'jpeg' || ext === 'png' || ext === 'webp') return 'image';
+  if (ext === 'jpg' || ext === 'jpeg' || ext === 'png') return 'image';
   return null;
 }
 
@@ -44,7 +44,7 @@ export function validateResumeImportFile(file: {
 
 export function resumeImportFileValidationMessage(v: Exclude<ResumeImportFileValidation, { ok: true }>): string {
   if (v.code === 'empty') return '文件为空';
-  if (v.code === 'unsupported') return '不支持的文件类型，请上传 PDF 或 JPG/PNG/WebP 图片';
+  if (v.code === 'unsupported') return '不支持的文件类型，请上传 PDF 或 JPG/PNG 图片';
   if (v.kind === 'pdf') return `文件过大，PDF 最大 ${formatResumeImportMaxSizeMb('pdf')}MB`;
   return `文件过大，图片最大 ${formatResumeImportMaxSizeMb('image')}MB`;
 }

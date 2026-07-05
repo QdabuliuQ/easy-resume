@@ -1,6 +1,6 @@
 'use client';
 import { App } from 'antd';
-import { Briefcase, Copy, DeleteOne, Down, EditOne, Right, Star, User } from '@icon-park/react';
+import { Briefcase, Copy, DeleteOne, Down, EditOne, Microphone, Right, Star, User } from '@icon-park/react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { memo, useCallback, useEffect, useRef, useState, useSyncExternalStore, type ComponentType } from 'react';
@@ -25,6 +25,7 @@ import {
   type StoredAiModifyChatItem,
 } from '@/lib/aiModifyChatSessionStorage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
+import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { configStore } from '@/mobx';
 import ModifyDiffBubble from './modifyDiffBubble';
 import { RichHtmlOrText, looksLikeRichHtml } from '@/components/resumeQuillHtml';
@@ -39,13 +40,17 @@ type ChatItem = StoredAiModifyChatItem & {
 const panelShellClass =
   'flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),rgb(var(--panel-surface-rgb)/0.03)] shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04),var(--panel-shadow-md)]';
 const sendBtnClass =
-  'relative isolate shrink-0 cursor-pointer self-end overflow-hidden rounded-xl bg-gradient-primary px-4 py-2.5 text-[13px] font-medium text-white shadow-[var(--panel-shadow-primary-glow)] outline-none transition-[filter,opacity] duration-200 hover:brightness-110 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100';
+  'relative isolate inline-flex h-10 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-gradient-primary px-4 text-[13px] font-medium text-white shadow-[var(--panel-shadow-primary-glow)] outline-none transition-[filter,opacity] duration-200 hover:brightness-110 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100';
 const stopBtnClass =
-  'relative isolate shrink-0 cursor-pointer self-end overflow-hidden rounded-xl border border-fg/[0.14] bg-surface/[0.08] px-4 py-2.5 text-[13px] font-medium text-fg/88 outline-none transition-[border-color,background-color] duration-200 hover:border-fg/[0.22] hover:bg-surface/[0.12] active:bg-surface/[0.06]';
+  'relative isolate inline-flex h-10 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-fg/[0.14] bg-surface/[0.08] px-4 text-[13px] font-medium text-fg/88 outline-none transition-[border-color,background-color] duration-200 hover:border-fg/[0.22] hover:bg-surface/[0.12] active:bg-surface/[0.06]';
 const clearChatBtnClass =
   'inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-fg/48 outline-none transition-[color,background-color] duration-200 hover:bg-surface/[0.06] hover:text-fg/72 disabled:cursor-not-allowed disabled:opacity-45';
 const scrollBottomBtnClass =
   'absolute bottom-3 right-3 z-10 flex size-9 cursor-pointer items-center justify-center rounded-full border border-fg/[0.12] bg-[var(--panel-inset-bg)] text-fg/72 shadow-[var(--panel-shadow-md)] outline-none transition-[transform,border-color,color,box-shadow] duration-200 hover:border-[color-mix(in_srgb,var(--color-primary)_32%,transparent)] hover:text-[var(--color-primary)] hover:shadow-[var(--panel-shadow-hover-btn)] active:scale-95';
+const voiceBtnClass =
+  'inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-fg/[0.1] bg-surface/[0.04] text-fg/58 outline-none transition-[border-color,background-color,color,box-shadow] duration-200 hover:border-fg/[0.18] hover:bg-surface/[0.08] hover:text-fg/78 disabled:cursor-not-allowed disabled:opacity-45';
+const voiceBtnActiveClass =
+  'border-[color-mix(in_srgb,var(--color-primary)_45%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-[var(--color-primary)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_10%,transparent)]';
 const userActionBtnClass =
   'inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-fg/42 outline-none transition-[color,background-color] duration-200 hover:bg-surface/[0.08] hover:text-fg/72 disabled:cursor-not-allowed disabled:opacity-45';
 
@@ -480,6 +485,20 @@ function AiModify() {
       el.setSelectionRange(text.length, text.length);
     });
   }, []);
+  const appendVoiceText = useCallback((text: string) => {
+    setInput((prev) => (prev.trim() ? `${prev.trimEnd()} ${text}` : text));
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    });
+  }, []);
+  const { phase: voicePhase, toggle: toggleVoice } = useVoiceInput({
+    disabled: loading,
+    onText: appendVoiceText,
+    onError: (msg) => messageApi.error(msg),
+  });
   const send = useCallback(async (overrideText?: string) => {
     const text = (overrideText ?? input).trim();
     if (!text || loading) return;
@@ -679,25 +698,61 @@ function AiModify() {
         )}
       </div>
       <div className='shrink-0 border-t border-fg/[0.06] bg-[var(--panel-inset-bg)] p-3'>
-        <div className='flex gap-2'>
-          <textarea
-            ref={inputRef}
-            value={input}
-            rows={2}
-            disabled={loading}
-            placeholder={ta('placeholder')}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (!loading) void send();
-              }
-            }}
-            className='min-h-[48px] flex-1 resize-none rounded-xl border border-fg/[0.08] bg-surface/[0.04] px-3 py-2.5 text-[13px] leading-relaxed text-fg/90 outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-fg/42 hover:border-fg/[0.14] hover:bg-surface/[0.06] focus:border-[color-mix(in_srgb,var(--color-primary)_45%,transparent)] focus:bg-surface/[0.08] focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_12%,transparent)] disabled:opacity-60 disabled:hover:border-fg/[0.08] disabled:hover:bg-surface/[0.04]'
-          />
+        <div className='flex items-end gap-2'>
+          <div className='relative flex-1' style={{height: '70px'}}>
+            <textarea
+              ref={inputRef}
+              value={input}
+              disabled={loading || voicePhase !== 'idle'}
+              placeholder={ta('placeholder')}
+              aria-busy={voicePhase === 'transcribing'}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (!loading && voicePhase === 'idle') void send();
+                }
+              }}
+              className='absolute inset-0 box-border h-full w-full resize-none rounded-xl border border-fg/[0.08] bg-surface/[0.04] px-3 py-2.5 text-[13px] leading-relaxed text-fg/90 outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-fg/42 hover:border-fg/[0.14] hover:bg-surface/[0.06] focus:border-[color-mix(in_srgb,var(--color-primary)_45%,transparent)] focus:bg-surface/[0.08] focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_12%,transparent)] disabled:opacity-60 disabled:hover:border-fg/[0.08] disabled:hover:bg-surface/[0.04]'
+            />
+            {voicePhase === 'transcribing' ? (
+              <div
+                className='pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-[var(--panel-inset-bg)]/85'
+                aria-hidden
+              >
+                <span className='inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]' />
+              </div>
+            ) : null}
+          </div>
           <button
             type='button'
-            disabled={!loading && !input.trim()}
+            disabled={loading || voicePhase === 'transcribing'}
+            onClick={() => toggleVoice()}
+            aria-label={
+              voicePhase === 'recording'
+                ? ta('voiceStop')
+                : voicePhase === 'transcribing'
+                  ? ta('voiceTranscribing')
+                  : ta('voiceStart')
+            }
+            aria-pressed={voicePhase === 'recording'}
+            aria-busy={voicePhase === 'transcribing'}
+            className={`${voiceBtnClass}${voicePhase === 'recording' ? ` ${voiceBtnActiveClass}` : ''}${voicePhase === 'transcribing' ? ' opacity-70' : ''}`}
+          >
+            {voicePhase === 'transcribing' ? (
+              <span className='inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]' />
+            ) : (
+              <Microphone
+                theme='outline'
+                size={18}
+                fill={voicePhase === 'recording' ? 'var(--color-primary)' : 'currentColor'}
+                className={voicePhase === 'recording' ? 'animate-pulse' : undefined}
+              />
+            )}
+          </button>
+          <button
+            type='button'
+            disabled={(!loading && !input.trim()) || voicePhase !== 'idle'}
             onClick={() => (loading ? cancel() : void send())}
             className={loading ? stopBtnClass : sendBtnClass}
             aria-busy={loading}

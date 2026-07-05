@@ -100,7 +100,6 @@ export async function baiduOcrImage(buffer: Buffer, log?: ResumeImportLogger): P
     textLen: text.length,
     wordsResultNum: data.words_result_num ?? 0,
   });
-  log?.step('ocr_result', { text });
   return text;
 }
 
@@ -122,7 +121,6 @@ export async function baiduOcrPdf(buffer: Buffer, log?: ResumeImportLogger): Pro
 
   const text = pageTexts.filter(Boolean).join('\n\n');
   log?.step('baidu_ocr_pdf_done', { textLen: text.length, totalPages });
-  log?.step('ocr_result', { text });
   return text;
 }
 

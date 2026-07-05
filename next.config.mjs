@@ -14,6 +14,7 @@ const nextConfig = {
       '@puppeteer/browsers',
       '@xenova/transformers',
       'onnxruntime-node',
+      'unpdf',
     ],
   },
   images: {

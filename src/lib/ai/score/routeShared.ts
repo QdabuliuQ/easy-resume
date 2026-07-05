@@ -193,6 +193,23 @@ export async function checkPolishRateLimit(
   return { allowed: true };
 }
 
+/** 语音识别：1 分钟最多 6 次（按 IP）。未配置 Upstash 时跳过限流。 */
+export async function checkSpeechRateLimit(
+  ipHash: string,
+): Promise<RateLimitDenied | { allowed: true }> {
+  const redis = getRedis();
+  if (!redis) return { allowed: true };
+  const minuteCheck = await checkRateLimit(redis, `ratelimit:speech:1m:${ipHash}`, 6, 60);
+  if (!minuteCheck.allowed) {
+    return {
+      allowed: false,
+      resetIn: minuteCheck.resetIn,
+      message: `请求过于频繁，1 分钟内最多 6 次，请 ${minuteCheck.resetIn} 秒后重试`,
+    };
+  }
+  return { allowed: true };
+}
+
 /** 简历文件识别：1 分钟最多 2 次（按 IP）。未配置 Upstash 时跳过限流。 */
 export async function checkResumeImportRateLimit(
   ipHash: string,
