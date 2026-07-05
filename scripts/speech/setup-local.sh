@@ -9,42 +9,46 @@ strip_speech_env() {
   local f="$ROOT/.env.local"
   [[ -f "$f" ]] || return
   sed -i '/^SPEECH_PYTHON=/d;/^SPEECH_MODEL_DIR=/d;/^SPEECH_DAEMON_SCRIPT=/d' "$f"
-  echo "[speech] 已清理 .env.local 中的 SPEECH_* 配置"
 }
 
-uninstall_speech() {
-  echo "[speech] 卸载 SenseVoice 语音识别..."
-  if [[ -d "$VENV" ]]; then
-    rm -rf "$VENV"
-    echo "[speech] 已删除 $VENV"
-  fi
-  if [[ -L "$MODEL_LINK" || -e "$MODEL_LINK" ]]; then
-    rm -f "$MODEL_LINK"
-    echo "[speech] 已删除 $MODEL_LINK"
-  fi
-  if [[ -d "$MODEL_CACHE" ]]; then
-    rm -rf "$MODEL_CACHE"
-    echo "[speech] 已删除模型缓存 $MODEL_CACHE"
-  fi
+uninstall_legacy_local() {
+  echo "[speech] 清理旧版本地 SenseVoice 安装..."
+  [[ -d "$VENV" ]] && rm -rf "$VENV" && echo "[speech] 已删除 $VENV"
+  [[ -L "$MODEL_LINK" || -e "$MODEL_LINK" ]] && rm -f "$MODEL_LINK" && echo "[speech] 已删除 $MODEL_LINK"
+  [[ -d "$MODEL_CACHE" ]] && rm -rf "$MODEL_CACHE" && echo "[speech] 已删除 $MODEL_CACHE"
   strip_speech_env
-  if command -v pip3 >/dev/null 2>&1; then
-    pip3 cache purge >/dev/null 2>&1 || true
-  fi
-  echo "[speech] 卸载完成"
 }
 
 usage() {
-  echo "用法: bash scripts/speech/setup-local.sh uninstall"
-  echo "  删除 venv、SenseVoiceSmall 模型缓存、.env.local 中的 SPEECH_*"
-  echo "当前项目已禁用语音输入，无需 install。"
+  echo "语音输入已改为百度短语音识别 API，服务器仅需 ffmpeg。"
+  echo ""
+  echo "用法:"
+  echo "  bash scripts/speech/setup-local.sh check     # 检查 ffmpeg"
+  echo "  bash scripts/speech/setup-local.sh uninstall # 删除旧版本地模型/venv"
 }
 
-case "${1:-uninstall}" in
+check_deps() {
+  if command -v ffmpeg >/dev/null 2>&1; then
+    echo "[speech] ffmpeg 已安装: $(ffmpeg -version | head -1)"
+  else
+    echo "[speech] 缺少 ffmpeg，请执行: sudo apt install -y ffmpeg" >&2
+    exit 1
+  fi
+  echo "[speech] 请在百度智能云开通「短语音识别」并配置 API Key"
+  echo "[speech] 环境变量: BAIDU_SPEECH_API_KEY / BAIDU_SPEECH_SECRET_KEY"
+  echo "[speech] 或与 OCR 共用: BAIDU_OCR_API_KEY / BAIDU_OCR_SECRET_KEY"
+}
+
+case "${1:-check}" in
+  check)
+    check_deps
+    ;;
   uninstall|remove|clean)
-    uninstall_speech
+    uninstall_legacy_local
+    check_deps
     ;;
   install)
-    echo "[speech] 语音输入已暂时禁用，不再支持 install。" >&2
+    echo "[speech] 已改用百度 API，无需 install。执行 check 或 uninstall。" >&2
     exit 1
     ;;
   -h|--help|help)
