@@ -36,4 +36,5 @@ public/fonts/*
 .agents
 .codegraph
 .cache
+scripts/speech/.venv
 *.traineddata

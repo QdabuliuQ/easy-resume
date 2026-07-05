@@ -2,64 +2,57 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 VENV="$ROOT/scripts/speech/.venv"
+MODEL_LINK="$ROOT/models/SenseVoiceSmall"
+MODEL_CACHE="${MODELSCOPE_CACHE:-$HOME/.cache/modelscope}/hub/models/iic/SenseVoiceSmall"
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "[speech] 未找到 python3，请先安装：sudo apt install -y python3 python3-venv python3-pip" >&2
-  exit 1
-fi
-
-if ! python3 -c 'import venv' 2>/dev/null; then
-  echo "[speech] 缺少 python3-venv，请执行：sudo apt install -y python3-venv" >&2
-  exit 1
-fi
-
-resolve_venv_python() {
-  if [[ -x "$VENV/bin/python3" ]]; then
-    echo "$VENV/bin/python3"
-    return
-  fi
-  if [[ -x "$VENV/bin/python" ]]; then
-    echo "$VENV/bin/python"
-    return
-  fi
-  echo "[speech] venv 创建失败，未找到 $VENV/bin/python3" >&2
-  exit 1
+strip_speech_env() {
+  local f="$ROOT/.env.local"
+  [[ -f "$f" ]] || return
+  sed -i '/^SPEECH_PYTHON=/d;/^SPEECH_MODEL_DIR=/d;/^SPEECH_DAEMON_SCRIPT=/d' "$f"
+  echo "[speech] 已清理 .env.local 中的 SPEECH_* 配置"
 }
 
-echo "[speech] create venv..."
-if [[ -d "$VENV" ]]; then
-  echo "[speech] 移除旧 venv（勿从 Mac 拷贝 .venv 到 Linux）..."
-  rm -rf "$VENV"
-fi
-python3 -m venv "$VENV"
-PY="$(resolve_venv_python)"
+uninstall_speech() {
+  echo "[speech] 卸载 SenseVoice 语音识别..."
+  if [[ -d "$VENV" ]]; then
+    rm -rf "$VENV"
+    echo "[speech] 已删除 $VENV"
+  fi
+  if [[ -L "$MODEL_LINK" || -e "$MODEL_LINK" ]]; then
+    rm -f "$MODEL_LINK"
+    echo "[speech] 已删除 $MODEL_LINK"
+  fi
+  if [[ -d "$MODEL_CACHE" ]]; then
+    rm -rf "$MODEL_CACHE"
+    echo "[speech] 已删除模型缓存 $MODEL_CACHE"
+  fi
+  strip_speech_env
+  if command -v pip3 >/dev/null 2>&1; then
+    pip3 cache purge >/dev/null 2>&1 || true
+  fi
+  echo "[speech] 卸载完成"
+}
 
-echo "[speech] pip install..."
-"$PY" -m pip install -U pip
-"$PY" -m pip install -r "$ROOT/scripts/speech/requirements.txt"
+usage() {
+  echo "用法: bash scripts/speech/setup-local.sh uninstall"
+  echo "  删除 venv、SenseVoiceSmall 模型缓存、.env.local 中的 SPEECH_*"
+  echo "当前项目已禁用语音输入，无需 install。"
+}
 
-echo "[speech] download model from ModelScope..."
-MODEL_DIR="$("$PY" -c "from modelscope.hub.snapshot_download import snapshot_download; print(snapshot_download('iic/SenseVoiceSmall', revision='master'))")"
-mkdir -p "$ROOT/models"
-ln -sfn "$MODEL_DIR" "$ROOT/models/SenseVoiceSmall"
-
-ENV_FILE="$ROOT/.env.local"
-touch "$ENV_FILE"
-if grep -q '^SPEECH_PYTHON=' "$ENV_FILE"; then
-  sed -i "s|^SPEECH_PYTHON=.*|SPEECH_PYTHON=$PY|" "$ENV_FILE"
-else
-  echo "SPEECH_PYTHON=$PY" >> "$ENV_FILE"
-fi
-if grep -q '^SPEECH_MODEL_DIR=' "$ENV_FILE"; then
-  sed -i "s|^SPEECH_MODEL_DIR=.*|SPEECH_MODEL_DIR=$MODEL_DIR|" "$ENV_FILE"
-else
-  echo "SPEECH_MODEL_DIR=$MODEL_DIR" >> "$ENV_FILE"
-fi
-
-echo "[speech] export onnx (first run only, ~1 min)..."
-"$PY" -c "from funasr_onnx import SenseVoiceSmall; SenseVoiceSmall('$MODEL_DIR', batch_size=1, quantize=True); print('onnx ok')"
-
-echo "[speech] done"
-echo "  SPEECH_PYTHON=$PY"
-echo "  SPEECH_MODEL_DIR=$MODEL_DIR"
-echo "Run: npm run dev"
+case "${1:-uninstall}" in
+  uninstall|remove|clean)
+    uninstall_speech
+    ;;
+  install)
+    echo "[speech] 语音输入已暂时禁用，不再支持 install。" >&2
+    exit 1
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    echo "[speech] 未知参数: $1" >&2
+    usage
+    exit 1
+    ;;
+esac

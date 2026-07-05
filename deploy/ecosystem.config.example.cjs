@@ -6,6 +6,8 @@ module.exports = {
       cwd: '/root/easy-resume',
       script: 'npm',
       args: 'start',
+      instances: 1,
+      exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
         PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser',
