@@ -3,6 +3,7 @@ import type {
   ResumeAiOptimizeResponse,
   ResumeAiScoreResponse,
 } from '@/lib/ai/score/types';
+import { secureJsonPost } from '@/api/secureJsonPost';
 
 type ApiSuccess<T> = { success: true; data: T };
 type ApiError = { success: false; error: string; retryAfter?: number };
@@ -19,11 +20,7 @@ async function postAnalyze<T>(
   pages: unknown[],
   analyzeSessionId: string,
 ): Promise<T> {
-  const res = await fetch(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pages, analyzeSessionId }),
-  });
+  const res = await secureJsonPost(path, { pages, analyzeSessionId });
   const data = (await res.json().catch(() => null)) as ApiSuccess<T> | ApiError | null;
   if (!res.ok || !data || data.success !== true) {
     const msg =

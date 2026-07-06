@@ -1,4 +1,5 @@
 import type { PolishRequest } from '@/lib/ai/polish/types';
+import { secureJsonPost } from '@/api/secureJsonPost';
 
 function processSseLine(
   line: string,
@@ -59,12 +60,7 @@ export async function polishDescription(
   onStreamingHtml?: (htmlSoFar: string) => void,
   signal?: AbortSignal,
 ): Promise<string> {
-  const res = await fetch('/api/ai/polish', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(req),
-    signal,
-  });
+  const res = await secureJsonPost('/api/ai/polish', req, { signal });
   const ct = res.headers.get('content-type') || '';
   if (!res.ok) {
     if (ct.includes('application/json')) {

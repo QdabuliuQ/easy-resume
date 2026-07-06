@@ -17,6 +17,7 @@ export const photo4 = cdn('photo4.png');
 export const photo4Light = cdn('photo4_light.png');
 export const photo5 = cdn('photo5.png');
 export const photo5Light = cdn('photo5_light.png');
+export const photo6 = cdn('photo6.png');
 
 export const PHOTOS = {
   photo1Dark,

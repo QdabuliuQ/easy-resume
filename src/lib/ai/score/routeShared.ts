@@ -1,6 +1,7 @@
 import { Redis } from '@upstash/redis';
 import { type NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { decryptAiPayloadJson } from '@/lib/ai/payloadCrypto';
 
 export const CACHE_TTL_SEC = 300;
 const ANALYZE_SESSION_TTL_SEC = 120;
@@ -54,6 +55,15 @@ export function parseAnalyzeBody(body: AnalyzeRequestBody): NextResponse<ApiErro
     return err('缺少 pages 字段或内容为空', 400);
   }
   return null;
+}
+
+export function parseEncryptedRequestBody(raw: unknown): NextResponse<ApiError> | unknown {
+  try {
+    return decryptAiPayloadJson(raw);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : '加密载荷解密失败';
+    return err(message, 400);
+  }
 }
 
 async function checkRateLimit(

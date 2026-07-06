@@ -11,6 +11,7 @@ import {
 } from '@/lib/ai/score/prompt';
 import { resumeAiOptimizeResultSchema, resumeAiScoreResultSchema } from '@/lib/ai/score/schema';
 import type { ResumeAiFieldOptimize, ResumeAiOptimizeResult, ResumeAiScoreResult } from '@/lib/ai/score/types';
+import { stripResumeForAiAnalyze } from '@/lib/stripResumeForAiAnalyze';
 
 const scorePrompt = ChatPromptTemplate.fromMessages([
   ['system', RESUME_AI_SCORE_SYSTEM],
@@ -97,16 +98,17 @@ async function invokeAiParsed<T>(
 }
 
 export async function analyzeResumeScore(resumeJson: unknown): Promise<ResumeAiScoreResult> {
+  const sanitized = stripResumeForAiAnalyze(resumeJson);
   let analyzePrompt = RESUME_AI_SCORE_PROMPT;
   try {
-    const rulesContext = await retrieveScoreRulesContext(resumeJson, 6);
+    const rulesContext = await retrieveScoreRulesContext(sanitized, 6);
     if (rulesContext.trim()) {
       analyzePrompt = `${RESUME_AI_SCORE_PROMPT}\n\n### 五、评分规则知识库上下文（优先依据本节规则）\n${rulesContext}`;
     }
   } catch {
     // Ignore retrieval failures and fallback to base score prompt.
   }
-  return invokeAiParsed(scorePrompt, analyzePrompt, resumeJson, parseResumeAiScoreResult);
+  return invokeAiParsed(scorePrompt, analyzePrompt, sanitized, parseResumeAiScoreResult);
 }
 
 export async function analyzeResumeOptimize(resumeJson: unknown): Promise<ResumeAiOptimizeResult> {

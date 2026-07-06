@@ -1,10 +1,6 @@
 'use client';
 
-function removeAvatar<T extends Record<string, unknown>>(options: T): Omit<T, 'avatar'> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { avatar, ...rest } = options || {};
-  return rest as Omit<T, 'avatar'>;
-}
+import { stripResumeForAiAnalyze } from '@/lib/stripResumeForAiAnalyze';
 import { Popover, Tooltip } from 'antd';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { observer } from 'mobx-react';
@@ -65,20 +61,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const buildAnalyzePayload = useCallback(() => {
     const cfgInner = configStore.getConfig;
     if (!cfgInner?.pages?.length) return null;
-    const pagesForAnalyze = (cfgInner.pages ?? []).map((page) => {
-      const modules = Array.isArray(page.modules)
-        ? page.modules.map((module) => {
-            if (String(module?.type ?? '') !== 'info1') return module;
-            const options =
-              module?.options && typeof module.options === 'object'
-                ? removeAvatar(module.options as Record<string, unknown>)
-                : module?.options;
-            return { ...module, options };
-          })
-        : page.modules;
-      return { ...page, modules };
-    });
-    return { pages: pagesForAnalyze };
+    return stripResumeForAiAnalyze({ pages: cfgInner.pages ?? [] });
   }, []);
   const newAnalyzeSessionId = () =>
     typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -108,8 +91,8 @@ function Resume({ menuActiveKey }: ResumeProps) {
   }, [buildAnalyzePayload, scoreLoading, message, tr]);
   const panelBody = (
     <>
-      <PanelHero {...panelHero} />
-      <div className={isAiModify ? 'min-h-0 flex-1 flex flex-col' : undefined}>
+      {!isAiScore ? <PanelHero {...panelHero} /> : null}
+      <div className={isAiModify || isAiScore ? 'min-h-0 flex-1 flex flex-col' : undefined}>
         <Suspense
           fallback={
             <div className='rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.09),rgb(var(--panel-surface-rgb)/0.04))] px-4 py-10'>
@@ -124,7 +107,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
           }
         >
           {isAiScore ? (
-            <AiScore scoreLoading={scoreLoading} analysis={aiScoreResult} />
+            <AiScore scoreLoading={scoreLoading} analysis={aiScoreResult} onAnalyze={onStartScoreAnalyze} />
           ) : isAiModify ? (
             <AiModify />
           ) : isResumeTemplate ? (
@@ -142,12 +125,12 @@ function Resume({ menuActiveKey }: ResumeProps) {
   );
   return (
     <div className='relative flex h-full min-h-0 flex-1 flex-col text-black [transform:translateZ(0)] bg-[var(--resume-panel-bg)]'>
-      {isAiModify ? (
+      {isAiModify || isAiScore ? (
         <div className='flex min-h-0 flex-1 flex-col overflow-hidden p-5'>
           <div className='flex min-h-0 flex-1 flex-col'>{panelBody}</div>
         </div>
       ) : (
-        <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-24'>
+        <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-4'>
           <div className='m-[20px]'>{panelBody}</div>
         </div>
       )}
@@ -230,27 +213,6 @@ function Resume({ menuActiveKey }: ResumeProps) {
           </Popover>
         </div>
       </div>
-      )}
-      {isAiScore && (
-        <div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[linear-gradient(180deg,transparent,color-mix(in_srgb,var(--editor-shell-panel-strong)_88%,transparent)_46%,var(--editor-shell-bg))] px-[10px] pb-[10px] pt-8'>
-          <div className='pointer-events-auto flex justify-center'>
-            <button
-              type='button'
-              disabled={scoreLoading}
-              aria-busy={scoreLoading}
-              onClick={onStartScoreAnalyze}
-              className={`${GRADIENT_CTA_CLASS} gap-2`}
-            >
-              {scoreLoading ? (
-                <span
-                  className='relative z-[1] inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-white/30 border-t-white'
-                  aria-hidden
-                />
-              ) : null}
-              <span className='relative z-[1] drop-shadow-sm'>{tr('startAnalyze')}</span>
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );

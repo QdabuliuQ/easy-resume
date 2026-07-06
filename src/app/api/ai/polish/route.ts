@@ -29,7 +29,7 @@
 import { z } from 'zod';
 import crypto from 'crypto';
 import { linkAbortSignal } from '@/lib/ai/abortSignal';
-import { checkPolishRateLimit, getClientIp } from '@/lib/ai/score/routeShared';
+import { checkPolishRateLimit, getClientIp, parseEncryptedRequestBody } from '@/lib/ai/score/routeShared';
 import { streamPolishDescription } from '@/lib/ai/polish/service';
 import { MIN_POLISH_PLAIN_LENGTH, type PolishRequest } from '@/lib/ai/polish/types';
 import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
@@ -118,12 +118,18 @@ function sseLine(data: unknown): Uint8Array {
 // ---------------------------------------------------------------------------
 export async function POST(req: Request) {
   // ---------- 1. 解析并校验请求体 ----------
-  let body: unknown;
+  let raw: unknown;
   try {
-    body = await req.json();
+    raw = await req.json();
   } catch {
     return Response.json({ error: '请求体必须是合法 JSON' }, { status: 400 });
   }
+  const decrypted = parseEncryptedRequestBody(raw);
+  if (decrypted instanceof Response) {
+    const errBody = (await decrypted.json().catch(() => null)) as { error?: string } | null;
+    return Response.json({ error: errBody?.error || '请求体无效' }, { status: decrypted.status });
+  }
+  const body = decrypted;
   const parsed = polishRequestSchema.safeParse(body);
   if (!parsed.success) {
     return Response.json({ error: '参数无效' }, { status: 400 });

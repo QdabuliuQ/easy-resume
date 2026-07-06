@@ -9,7 +9,7 @@ import {
 import { errorEnvelope, extractResumePatch, type ModifyChatProtocolEnvelope } from '@/lib/ai/modifyChat/protocol';
 import { sanitizeResumeHtmlFields } from '@/lib/ai/modifyChat/sanitizeResume';
 import { streamModifyChatPipeline } from '@/lib/ai/modifyChat/service';
-import { checkModifyChatRateLimit, getClientIp } from '@/lib/ai/score/routeShared';
+import { checkModifyChatRateLimit, getClientIp, parseEncryptedRequestBody } from '@/lib/ai/score/routeShared';
 import { getResumeImportValidationError } from '@/lib/validateResumeImportJson';
 
 export const runtime = 'nodejs';
@@ -43,12 +43,18 @@ export async function POST(req: Request) {
       );
     }
   }
-  let body: unknown;
+  let raw: unknown;
   try {
-    body = await req.json();
+    raw = await req.json();
   } catch {
     return Response.json({ error: '请求体必须是合法 JSON' }, { status: 400 });
   }
+  const decrypted = parseEncryptedRequestBody(raw);
+  if (decrypted instanceof Response) {
+    const errBody = (await decrypted.json().catch(() => null)) as { error?: string } | null;
+    return Response.json({ error: errBody?.error || '请求体无效' }, { status: 400 });
+  }
+  const body = decrypted;
   const bodySizeErr = getModifyChatBodySizeError(body);
   if (bodySizeErr) {
     return Response.json({ error: bodySizeErr }, { status: 413 });

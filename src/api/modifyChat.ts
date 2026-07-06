@@ -1,4 +1,5 @@
 import { buildModifyChatResult } from '@/lib/ai/modifyChat/result';
+import { secureJsonPost } from '@/api/secureJsonPost';
 import {
   extractResumePatch,
   extractTextFromData,
@@ -132,16 +133,15 @@ export async function modifyChat(
     else signal.addEventListener('abort', onParentAbort, { once: true });
   }
   try {
-    const res = await fetch('/api/ai/modify-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const res = await secureJsonPost(
+      '/api/ai/modify-chat',
+      {
         message: last.content.trim(),
         history: messages.slice(0, -1),
         resume,
-      }),
-      signal: ac.signal,
-    });
+      },
+      { signal: ac.signal },
+    );
     const ct = res.headers.get('content-type') || '';
     if (!res.ok) {
       if (ct.includes('application/json')) {

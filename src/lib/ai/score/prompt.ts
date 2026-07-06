@@ -1,3 +1,21 @@
+const RESUME_JSON_STRUCTURE_FOR_SCORE = `### 一、简历JSON结构说明
+顶层是 pages 数组，代表多个简历页面；
+每个 page 包含 modules 数组，为当前页面下的简历模块；
+每个模块固定字段：type（模块类型）、id（模块ID，写入 moduleId）、options；
+模块类型映射：
+certificate = 证书模块
+skill = 专业技能模块
+job = 工作经历模块
+project = 项目经历模块
+education = 教育经历模块
+other = 其他自定义模块（富文本）
+
+多条目模块（job / project / education / certificate）结构：
+options.items 为数组，每条经历/项目/证书/教育为独立对象；
+每条 item 必有唯一字符串字段 id（UUID），写入 moduleItemId；
+moduleId 只能是父模块的 id（如工作经历模块 id="4"），绝不能把 item.id 当成 moduleId；
+moduleType 必须与父模块 type 一致（如 id="5" 且 type="project" 时 moduleType 只能是 project，不能写成 job）。`;
+
 const RESUME_JSON_STRUCTURE = `### 一、简历JSON结构说明
 顶层是 pages 数组，代表多个简历页面；
 每个 page 包含 modules 数组，为当前页面下的简历模块；
@@ -29,7 +47,7 @@ other 白名单：description
 
 export const RESUME_AI_SCORE_PROMPT = `你是资深HR资深面试官，专门做前端简历智能评分。
 
-${RESUME_JSON_STRUCTURE}
+${RESUME_JSON_STRUCTURE_FOR_SCORE}
 
 ### 三、评分规则
 1. 基于传入的完整简历 pages 整体结构，给出简历整体综合评分，分值范围 0-100 整数；

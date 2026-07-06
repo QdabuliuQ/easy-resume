@@ -12,6 +12,7 @@ import {
   hashResumeContent,
   ok,
   parseAnalyzeBody,
+  parseEncryptedRequestBody,
   setCachedJson,
   type AnalyzeRequestBody,
 } from '@/lib/ai/score/routeShared';
@@ -22,12 +23,15 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    let body: AnalyzeRequestBody = {};
+    let raw: unknown;
     try {
-      body = (await req.json()) as AnalyzeRequestBody;
+      raw = await req.json();
     } catch {
       return err('请求体必须是合法 JSON', 400);
     }
+    const decrypted = parseEncryptedRequestBody(raw);
+    if (decrypted instanceof Response) return decrypted;
+    const body = decrypted as AnalyzeRequestBody;
     const invalid = parseAnalyzeBody(body);
     if (invalid) return invalid;
     const ipHash = crypto.createHash('sha256').update(getClientIp(req)).digest('hex').slice(0, 16);
