@@ -21,7 +21,9 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
 }
 
 function b64(buf: Uint8Array): string {
-  return btoa(String.fromCharCode(...buf));
+  let binary = '';
+  for (let i = 0; i < buf.length; i++) binary += String.fromCharCode(buf[i]);
+  return btoa(binary);
 }
 
 function getPublicKeyPem(): string | null {
