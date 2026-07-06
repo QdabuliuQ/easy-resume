@@ -130,8 +130,8 @@ function Resume({ menuActiveKey }: ResumeProps) {
           <div className='flex min-h-0 flex-1 flex-col'>{panelBody}</div>
         </div>
       ) : (
-        <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-4'>
-          <div className='m-[20px]'>{panelBody}</div>
+        <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-12'>
+          <div className='m-[20px] mb-[30px]'>{panelBody}</div>
         </div>
       )}
       {isResumeEdit && (
