@@ -3,6 +3,7 @@ import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { createModifyChatModel } from '@/lib/ai/chatModel';
 import { throwIfAborted } from '@/lib/ai/abortSignal';
 import { INTENT_ROUTER_HUMAN, INTENT_ROUTER_SYSTEM } from './prompt';
+import { classifyIntentByRules } from './intentRules';
 import { formatZodError, parseIntentOutput } from './parse';
 import { formatModifyHistory } from './shared';
 import type { ModifyChatIntent, ModifyChatMessage } from './types';
@@ -12,7 +13,7 @@ const intentPrompt = ChatPromptTemplate.fromMessages([
   ['human', INTENT_ROUTER_HUMAN],
 ]);
 
-/** 意图分类仅由后端 LLM 判定，不做前端/规则短路 */
+/** 意图分类：规则层预判 → LLM 兜底 */
 export async function classifyModifyIntent(
   messages: ModifyChatMessage[],
   lastUserMessage: string,
@@ -20,6 +21,8 @@ export async function classifyModifyIntent(
 ): Promise<ModifyChatIntent> {
   throwIfAborted(signal);
   if (!lastUserMessage.trim()) return 'chat';
+  const ruled = classifyIntentByRules(lastUserMessage);
+  if (ruled) return ruled;
   const chain = intentPrompt
     .pipe(createModifyChatModel({ temperature: 0, jsonMode: true }))
     .pipe(new StringOutputParser());

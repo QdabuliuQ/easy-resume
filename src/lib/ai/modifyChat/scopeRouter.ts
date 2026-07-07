@@ -4,7 +4,8 @@ import { createModifyChatModel } from '@/lib/ai/chatModel';
 import { throwIfAborted } from '@/lib/ai/abortSignal';
 import { retrieveModifyChatKnowledge } from '@/lib/ai/ragResume/knowledge';
 import type { ModifyChatMessage } from './types';
-import { formatModifyHistory, POLISH_RE } from './shared';
+import { formatModifyHistory } from './shared';
+import { hasUnnegatedPolishAction } from './intentRules';
 import { SCOPE_ROUTER_HUMAN, SCOPE_ROUTER_SYSTEM } from './prompt';
 import { formatZodError, parseScopeOutput } from './parse';
 import {
@@ -73,7 +74,7 @@ export function inferModifyScopeHeuristic(
       action: 'add',
     };
   }
-  const polish = POLISH_RE.test(text);
+  const polish = hasUnnegatedPolishAction(text);
   const titleHits = resolveTargetsByDisplayName(text, summary);
   let targets: ModifyScopeTarget[] = titleHits.length === 1 ? [{ moduleId: titleHits[0]!.moduleId }] : [];
   const typeHint = !targets.length
@@ -221,5 +222,5 @@ export function isRagEligible(scope: ScopeOutput, moduleType: string, userMessag
   if (!scene) return false;
   if (scope.action === 'edit' || scope.action === 'add' || scope.action === 'remove') return false;
   if (scope.action === 'polish') return true;
-  return POLISH_RE.test(userMessage);
+  return hasUnnegatedPolishAction(userMessage);
 }

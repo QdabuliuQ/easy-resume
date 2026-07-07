@@ -226,13 +226,17 @@ function ChatMessageRow({
   const isUser = m.role === 'user';
   const userText = isUser ? userMessagePlainText(m.content) : '';
   return (
-    <div className={`pb-3${index === 0 ? ' pt-3' : ''} ${isUser ? 'flex justify-end' : ''} px-3`}>
-      <div className={isUser ? 'flex max-w-[88%] flex-col items-end' : 'w-full'}>
+    <div className={`pb-3${index === 0 ? ' pt-3' : ''} ${isUser ? 'flex justify-end' : 'flex justify-start'} px-3`}>
+      <div className={isUser ? 'flex max-w-[88%] flex-col items-end' : 'flex w-fit max-w-[92%] flex-col items-start'}>
         <div
           className={`rounded-2xl px-3.5 py-2.5 ${
             isUser
               ? 'w-fit whitespace-pre-wrap break-words bg-gradient-primary text-[13px] leading-[1.55] text-white shadow-[var(--panel-shadow-primary-glow)]'
-              : `mr-auto max-w-[92%] border border-fg/[0.07] bg-[var(--panel-inset-bg)] text-fg/84${m.pendingModify || m.isStreaming ? ' w-full' : ' w-fit'}${m.isStreaming ? ' min-h-[52px] min-w-[200px]' : ''}`
+              : `border border-fg/[0.07] bg-[var(--panel-inset-bg)] text-fg/84${
+                  m.pendingModify
+                    ? ' w-full'
+                    : ' inline-flex max-w-full flex-col items-start w-fit'
+                }${m.isStreaming && !m.content.trim() ? ' min-h-[52px] min-w-[200px]' : ''}`
           }`}
         >
         {m.role === 'assistant' && m.pendingModify ? (
@@ -251,33 +255,36 @@ function ChatMessageRow({
             onCancelOne={(id) => onCancelOne(index, id)}
             onApplyBatch={() => onApplyBatch(index)}
           />
-        ) : (
-          <div className='flex flex-col'>
+        ) : m.isStreaming && index === messageCount - 1 ? (
+          <div className='flex w-fit min-w-[200px] flex-col items-start'>
             {m.content.trim() ? (
               <RichHtmlOrText
                 value={m.content}
+                shrink
                 plainClassName='whitespace-pre-wrap break-words text-[13px] leading-[1.55]'
               />
-            ) : m.isStreaming ? (
+            ) : (
               <TypingDots />
-            ) : null}
-            {m.isStreaming && index === messageCount - 1 ? (
-              <>
-                <StreamStatusLine
-                  status={activeStatus}
-                  progressBytes={progressBytes}
-                  elapsedSec={elapsedSec}
-                  ta={ta}
-                />
-                {(m.content.trim() || activeStatus === 'generating_resume' || activeStatus === 'parsing' || activeStatus === 'resolving_scope')
-                && activeStatus !== 'streaming'
-                && activeStatus !== 'classifying' ? (
-                  <DiffSkeleton />
-                ) : null}
-              </>
+            )}
+            <StreamStatusLine
+              status={activeStatus}
+              progressBytes={progressBytes}
+              elapsedSec={elapsedSec}
+              ta={ta}
+            />
+            {(m.content.trim() || activeStatus === 'generating_resume' || activeStatus === 'parsing' || activeStatus === 'resolving_scope')
+            && activeStatus !== 'streaming'
+            && activeStatus !== 'classifying' ? (
+              <DiffSkeleton />
             ) : null}
           </div>
-        )}
+        ) : m.content.trim() ? (
+          <RichHtmlOrText
+            value={m.content}
+            shrink
+            plainClassName='inline-block whitespace-pre-wrap break-words text-[13px] leading-[1.55]'
+          />
+        ) : null}
         </div>
         {isUser && userText ? (
           <div className='mt-1 flex items-center gap-0.5'>

@@ -7,6 +7,7 @@ import { linkAbortSignal, throwIfAborted } from '@/lib/ai/abortSignal';
 import { buildModifyChatMessages } from '@/lib/ai/modifyChat/shared';
 import { buildModifyChatResult } from '@/lib/ai/modifyChat/result';
 import * as intentRouter from '@/lib/ai/modifyChat/intentRouter';
+import { classifyIntentByRules } from '@/lib/ai/modifyChat/intentRules';
 import { classifyModifyIntent } from '@/lib/ai/modifyChat/intentRouter';
 import { OFF_TOPIC_REPLY, streamModifyChatPipeline } from '@/lib/ai/modifyChat/service';
 import { finalizeModifiedResume, validateResumeStructureMatch } from '@/lib/ai/modifyChat/merge';
@@ -441,6 +442,30 @@ describe('modifyChat intent', () => {
 
   it('classifyModifyIntent returns chat for empty message without LLM', async () => {
     const intent = await classifyModifyIntent([], '');
+    expect(intent).toBe('chat');
+  });
+
+  it('classifyIntentByRules negated polish consult → chat', () => {
+    expect(classifyIntentByRules('不用帮我润色，我就想问问这个岗位怎么样')).toBe('chat');
+    expect(classifyIntentByRules('别优化了，今天天气怎么样')).toBe('chat');
+  });
+
+  it('classifyIntentByRules partial negation with positive edit → modify_resume', () => {
+    expect(classifyIntentByRules('不要改我的格式，只改错别字')).toBe('modify_resume');
+    expect(classifyIntentByRules('不用润色，把第二段工作经历的日期改对')).toBe('modify_resume');
+  });
+
+  it('classifyIntentByRules clear modify → modify_resume', () => {
+    expect(classifyIntentByRules('帮我润色一下')).toBe('modify_resume');
+    expect(classifyIntentByRules('优化第一段工作经历')).toBe('modify_resume');
+  });
+
+  it('classifyIntentByRules no action keywords → null', () => {
+    expect(classifyIntentByRules('给我讲个笑话')).toBe(null);
+  });
+
+  it('classifyModifyIntent uses rules without LLM for negated polish', async () => {
+    const intent = await classifyModifyIntent([], '不用帮我润色，我就想问问这个岗位怎么样');
     expect(intent).toBe('chat');
   });
 });
