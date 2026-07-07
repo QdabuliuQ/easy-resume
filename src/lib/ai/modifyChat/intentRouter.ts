@@ -1,6 +1,6 @@
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
-import { createModifyChatModel } from '@/lib/ai/chatModel';
+import { createChatModel } from '@/lib/ai/chatModel';
 import { throwIfAborted } from '@/lib/ai/abortSignal';
 import { INTENT_ROUTER_HUMAN, INTENT_ROUTER_SYSTEM } from './prompt';
 import { classifyIntentByRules } from './intentRules';
@@ -24,7 +24,7 @@ export async function classifyModifyIntent(
   const ruled = classifyIntentByRules(lastUserMessage);
   if (ruled) return ruled;
   const chain = intentPrompt
-    .pipe(createModifyChatModel({ temperature: 0, jsonMode: true }))
+    .pipe(createChatModel({ temperature: 0, jsonMode: true }))
     .pipe(new StringOutputParser());
   const raw = await chain.invoke(
     {
