@@ -27,8 +27,10 @@ export function resumeFontStack(id: unknown): string {
   return `${PRIMARY[fid]}, ${fb}`;
 }
 
+export type ResumeExportFontId = Exclude<ResumeFontId, 'system'>;
+
 /** 组件导出 / Puppeteer：system 在 headless 下无中文字形，回落到 Noto */
-export function resumeFontForExport(id: unknown): ResumeFontId {
+export function resumeFontForExport(id: unknown): ResumeExportFontId {
   const fid = normResumeFont(id);
   return fid === 'system' ? 'noto-sans-sc' : fid;
 }
@@ -41,7 +43,7 @@ export function resumeExportFontStack(id: unknown): string {
   return resumeFontStack(fid);
 }
 
-function fontFaceBlocks(basePath: string, font: Exclude<ResumeFontId, 'system'>): string {
+function fontFaceBlocks(basePath: string, font: ResumeExportFontId): string {
   const u = (file: string) =>
     `url('${basePath}/fonts/${file}') format('truetype')`;
   if (font === 'noto-sans-sc') {
@@ -108,10 +110,6 @@ export async function preloadResumeFontsForSnap(
   font: ResumeFontId,
 ): Promise<void> {
   const fid = resumeFontForExport(font);
-  if (fid === 'system') {
-    await waitResumeFontsLoaded(font);
-    return;
-  }
   const family = resumePrimaryFontFamily(fid);
   const entries = resumeSnapLocalFonts(origin, fid);
   await Promise.all(
