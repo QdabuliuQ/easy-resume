@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import { getExportSession } from '@/lib/exportSessionStore';
 import type { ExportResumeMode } from '@/lib/exportPrintOrigin';
-import ResumePrintExportShell from '@/views/export/resumePrintExportShell';
+import ResumePrintExportClient from '@/views/export/resumePrintExportClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +25,7 @@ export default async function ExportResumePage({
   const session = token ? getExportSession(token) : null;
   if (!token) {
     return (
-      <ResumePrintExportShell
+      <ResumePrintExportClient
         initialError='missing token'
         assetOrigin={origin}
         exportMode={exportMode}
@@ -34,7 +34,7 @@ export default async function ExportResumePage({
   }
   if (!session) {
     return (
-      <ResumePrintExportShell
+      <ResumePrintExportClient
         initialError='会话无效或已过期'
         assetOrigin={origin}
         exportMode={exportMode}
@@ -42,7 +42,7 @@ export default async function ExportResumePage({
     );
   }
   return (
-    <ResumePrintExportShell
+    <ResumePrintExportClient
       initialConfig={session.config}
       assetOrigin={origin}
       exportMode={exportMode}

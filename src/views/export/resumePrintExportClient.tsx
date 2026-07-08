@@ -1,6 +1,5 @@
 'use client';
 import { useLocale } from 'next-intl';
-import { useEffect, useState } from 'react';
 import ResumePrintView from './resumePrintView';
 
 type Props = {
@@ -10,19 +9,6 @@ type Props = {
   exportMode?: 'pdf' | 'image';
 };
 
-function scheduleExportReady(mark: () => void) {
-  const t = window.setTimeout(mark, 800);
-  void document.fonts.ready.then(() => {
-    window.setTimeout(mark, 200);
-  });
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      window.setTimeout(mark, 400);
-    });
-  });
-  return () => window.clearTimeout(t);
-}
-
 export default function ResumePrintExportClient({
   initialConfig = null,
   initialError = null,
@@ -30,23 +16,10 @@ export default function ResumePrintExportClient({
   exportMode = 'pdf',
 }: Props) {
   const locale = useLocale();
-  const [config] = useState<unknown | null>(initialConfig ?? null);
-  const [err] = useState<string | null>(initialError ?? null);
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    if (!config || err) return;
-    let cancelled = false;
-    const mark = () => {
-      if (!cancelled) setReady(true);
-    };
-    const clear = scheduleExportReady(mark);
-    const fallback = window.setTimeout(mark, 6_000);
-    return () => {
-      cancelled = true;
-      clear();
-      window.clearTimeout(fallback);
-    };
-  }, [config, err]);
+  const err = initialError ?? null;
+  const config = initialConfig ?? null;
+  const ready = Boolean(config) && !err;
+
   if (err) {
     return (
       <p className='p-4 text-sm text-red-600' data-export-error>

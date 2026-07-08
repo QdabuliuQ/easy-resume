@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
-import { configStore } from '@/mobx';
+import { configStore, editHistoryStore } from '@/mobx';
 import Container from '../components/container';
 import MobileEditHeader from './header';
 import MobileMainTabs from './mainTabs';
@@ -38,14 +38,16 @@ function MobileEdit() {
       const n = Number.parseInt(raw, 10);
       void loadResumeTemplateByIndex(n).then((tpl) => {
         if (tpl?.config) {
-          configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
+          editHistoryStore.clear();
+          configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)), { source: 'reset' });
           resetAiModifyChatSession();
         }
       });
       return;
     }
     if (!configStore.getConfig?.pages?.length) {
-      configStore.setConfig(JSON.parse(JSON.stringify(defaultResume)));
+      editHistoryStore.clear();
+      configStore.setConfig(JSON.parse(JSON.stringify(defaultResume)), { source: 'reset' });
     }
   }, [searchParams]);
 

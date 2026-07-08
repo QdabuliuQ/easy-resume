@@ -4,7 +4,7 @@ import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useTranslations } from 'next-intl';
 import { importResumeFromFile } from '@/api/importResumeFromFile';
-import { configStore, resumeImportStore } from '@/mobx';
+import { configStore, editHistoryStore, resumeImportStore } from '@/mobx';
 import { flushResumeBackupImmediate } from '@/lib/resumeConfigBackup';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import {
@@ -55,7 +55,7 @@ export function useResumeImport() {
     if (!base) return;
     let merged = applyImportedPagesToConfig(base, incomingPages);
     merged = patchInfo1Avatar(merged, preservedAvatarRef.current);
-    configStore.setConfig(merged);
+    configStore.setConfig(merged, { source: 'reset' });
   };
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,7 +83,9 @@ export function useResumeImport() {
     const clearedBase = clearImportedPagesInConfig(current);
     clearedBaseRef.current = clearedBase;
     resetAiModifyChatSession();
-    configStore.setConfig(clearedBase);
+    editHistoryStore.clear();
+    editHistoryStore.pause();
+    configStore.setConfig(clearedBase, { source: 'reset' });
     resumeImportStore.setActive(true, t('importResumeParsing'));
     let rafId: number | null = null;
     let pendingPages: IncomingResumePageDraft[] | null = null;
@@ -122,12 +124,13 @@ export function useResumeImport() {
       flushResumeBackupImmediate(configStore.getConfig);
     } catch (err) {
       if (rafId != null) cancelAnimationFrame(rafId);
-      configStore.setConfig(JSON.parse(JSON.stringify(current)));
+      configStore.setConfig(JSON.parse(JSON.stringify(current)), { source: 'reset' });
       message.error(err instanceof Error ? err.message : t('importResumeFail'));
     } finally {
       clearedBaseRef.current = null;
       preservedAvatarRef.current = undefined;
       resumeImportStore.setActive(false);
+      editHistoryStore.resume();
     }
   };
 

@@ -36,10 +36,10 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
 
   const { run } = useDebounceFn(
     (mod: SkillProps) => {
-      const config = configStore.getConfig;
-      if (!config) return;
       const res = getModuleIndex(moduleActive);
       if (!res) return;
+      const config = JSON.parse(JSON.stringify(configStore.getConfig));
+      if (!config) return;
       config.pages[res.page].modules[res.module] = JSON.parse(
         JSON.stringify(mod)
       );

@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { memo, useEffect, useMemo } from 'react';
 import { resumeTemplates } from '@/json/resumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
-import { configStore, moduleActiveStore } from '@/mobx';
+import { configStore, editHistoryStore, moduleActiveStore } from '@/mobx';
 import {
   TemplateFirstPagePreview,
   TEMPLATE_CARD_PREVIEW_SCALE,
@@ -36,7 +36,8 @@ function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
   }, []);
 
   const applyTemplate = (tpl: (typeof resumeTemplates)[number]) => {
-    configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
+    editHistoryStore.clear();
+    configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)), { source: 'reset' });
     moduleActiveStore.setModuleActive('global');
     resetAiModifyChatSession();
     message.success(tr('appliedOk'));

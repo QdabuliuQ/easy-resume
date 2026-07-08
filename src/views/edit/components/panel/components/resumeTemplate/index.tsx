@@ -14,7 +14,7 @@ import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { Page } from '@/modules';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
-import { configStore, moduleActiveStore } from '@/mobx';
+import { configStore, editHistoryStore, moduleActiveStore } from '@/mobx';
 import { renderResumePageModules } from '@/views/edit/components/canvas/renderResumePageModules';
 import ResumeFontCdn from '@/views/edit/components/canvas/resumeFontCdn';
 
@@ -99,7 +99,8 @@ function ResumeTemplate() {
   );
 
   const applyTemplate = (tpl: ResumeTemplateItem) => {
-    configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)));
+    editHistoryStore.clear();
+    configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)), { source: 'reset' });
     moduleActiveStore.setModuleActive('global');
     resetAiModifyChatSession();
     message.success(tr('appliedOk'));

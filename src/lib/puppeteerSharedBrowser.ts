@@ -105,7 +105,16 @@ export async function getSharedBrowser(trace?: PdfExportTrace): Promise<Browser>
 export async function warmupSharedBrowser(): Promise<void> {
   console.info('[pdf-export] warmup browser start');
   try {
-    await getSharedBrowser();
+    const browser = await getSharedBrowser();
+    const page = await browser.newPage();
+    try {
+      await page.goto('about:blank', {
+        waitUntil: 'domcontentloaded',
+        timeout: 15_000,
+      });
+    } finally {
+      await page.close().catch(() => {});
+    }
     console.info('[pdf-export] warmup browser ok');
   } catch (e) {
     console.error('[pdf-export] warmup browser failed', e instanceof Error ? e.message : e);

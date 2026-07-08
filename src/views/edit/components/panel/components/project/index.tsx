@@ -68,10 +68,10 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
 
   const { run } = useDebounceFn(
     (module: ProjectProps) => {
-      const config = configStore.getConfig;
-      if (!config) return;
       const res = getModuleIndex(moduleActive);
       if (!res) return;
+      const config = JSON.parse(JSON.stringify(configStore.getConfig));
+      if (!config) return;
       const _module = JSON.parse(JSON.stringify(module));
       config.pages[res.page].modules[res.module] = _module;
       configStore.setConfig({

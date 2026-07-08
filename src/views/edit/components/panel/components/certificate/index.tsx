@@ -46,11 +46,11 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
 
   const { run } = useDebounceFn(
     (mod: CertificateProps) => {
-      const config = configStore.getConfig;
-      if (!config) return;
       const res = getModuleIndex(moduleActive);
       if (!res) return;
-      config.pages[res.page].modules[res.module] = mod;
+      const config = JSON.parse(JSON.stringify(configStore.getConfig));
+      if (!config) return;
+      config.pages[res.page].modules[res.module] = JSON.parse(JSON.stringify(mod));
       configStore.setConfig({
         ...config,
         pages: [...config.pages],

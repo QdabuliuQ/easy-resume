@@ -58,6 +58,10 @@ export default {
     backHome: 'Back to home',
     logoAlt: 'EasyResume logo',
     avatarAlt: '{name} photo',
+    undo: 'Undo',
+    redo: 'Redo',
+    undoAria: 'Undo last change',
+    redoAria: 'Redo',
     editNameAria: 'Edit name',
   },
   mobile: {

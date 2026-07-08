@@ -463,7 +463,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
 
       {editOpen && option ? (
         <div
-          key='edit'
+          key={`edit-${configStore.historyRevision}`}
           className='panel-module-edit info1-panel-animate text-fg/95'
         >
           <p className='mb-3 rounded-md border border-[color:color-mix(in_srgb,var(--color-primary)_52%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)] px-3 py-2.5 text-[11px] font-medium leading-relaxed text-[color:var(--color-primary)] shadow-[inset_0_1px_0_0_color-mix(in_srgb,var(--color-primary)_28%,transparent)]'>
@@ -536,7 +536,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                     {item.controllerType === 'input' ? (
                       <Input
                         maxLength={30}
-                        defaultValue={option[item.key]}
+                        value={option[item.key] == null ? '' : String(option[item.key])}
                         data-panel-item-id={pid(item.key)}
                         placeholder={`${ti('enterPrefix')}${ti(`fields.${item.key}` as never)}`}
                         onChange={(e) => inputHandler(item.key, e.target.value)}
@@ -572,7 +572,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                       <div className='w-full flex items-center justify-between'>
                         <Input
                           maxLength={30}
-                          defaultValue={salaryValue[0]}
+                          value={salaryValue[0]}
                           data-panel-item-id={pid('expectedSalary_0')}
                           style={{ width: '43%' }}
                           placeholder={ti('salaryPh')}
@@ -581,7 +581,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                         -
                         <Input
                           maxLength={30}
-                          defaultValue={salaryValue[1]}
+                          value={salaryValue[1]}
                           data-panel-item-id={pid('expectedSalary_1')}
                           style={{ width: '43%' }}
                           placeholder={ti('salaryPh')}

@@ -5,14 +5,16 @@ import { useTranslations } from 'next-intl';
 import { memo, useId, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { Button, Input } from 'antd';
-import { EditOutlined } from '@ant-design/icons';
+import { EditOutlined, RedoOutlined, UndoOutlined } from '@ant-design/icons';
 import { FilePdf, DownPicture, FileCode } from '@icon-park/react';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 import { logo } from '@/lib/brandAssets';
 import { useResumeExport } from '@/views/edit/hooks/useResumeExport';
+import { useEditHistory } from '@/views/edit/hooks/useEditHistory';
 function Header() {
   const t = useTranslations('Edit.header');
+  const { canUndo, canRedo, undo, redo } = useEditHistory();
   const {
     exportPdf,
     exportImage,
@@ -33,6 +35,8 @@ function Header() {
     'flex min-h-9 items-center justify-center gap-1 rounded-[15px] bg-[var(--float-btn-bg)] px-3 py-2 transition-colors group-hover:bg-[var(--float-btn-bg-hover)]';
   const exportIconSlot =
     'inline-flex size-5 shrink-0 items-center justify-center';
+  const historyBtnCls =
+    'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-fg/[0.1] bg-surface/[0.04] text-fg/55 transition-colors enabled:cursor-pointer enabled:hover:border-fg/[0.16] enabled:hover:bg-surface/[0.08] enabled:hover:text-fg/88 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-fg/[0.1] disabled:hover:bg-surface/[0.04] disabled:hover:text-fg/55';
   const commit = () => {
     const trimmed = draft.trim();
     const base =
@@ -60,7 +64,7 @@ function Header() {
     commit();
   };
   return (
-    <div className='flex h-full items-center justify-between gap-4 px-4 md:px-5'>
+    <div className='relative flex h-full items-center justify-between gap-4 px-4 md:px-5'>
       <div className='flex min-h-0 min-w-0 flex-1 items-center gap-2'>
         <Link
           href='/'
@@ -124,6 +128,28 @@ function Header() {
             />
           </>
         )}
+      </div>
+      <div className='pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5'>
+        <button
+          type='button'
+          disabled={!canUndo || actionsDisabled}
+          onClick={undo}
+          aria-label={t('undoAria')}
+          title={t('undo')}
+          className={`pointer-events-auto ${historyBtnCls}`}
+        >
+          <UndoOutlined className='text-[15px]' />
+        </button>
+        <button
+          type='button'
+          disabled={!canRedo || actionsDisabled}
+          onClick={redo}
+          aria-label={t('redoAria')}
+          title={t('redo')}
+          className={`pointer-events-auto ${historyBtnCls}`}
+        >
+          <RedoOutlined className='text-[15px]' />
+        </button>
       </div>
       <div
         className='flex shrink-0 flex-wrap items-center justify-end gap-2'

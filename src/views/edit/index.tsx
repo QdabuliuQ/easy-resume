@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
-import { configStore } from '@/mobx';
+import { configStore, editHistoryStore } from '@/mobx';
 import Canvas from './components/canvas';
 import Container from './components/container';
 import EditShellReveal from './components/editShellReveal';
@@ -31,7 +31,8 @@ function Edit() {
         if (color && typeof config.globalStyle === 'object') {
           config.globalStyle.color = color;
         }
-        configStore.setConfig(config);
+        editHistoryStore.clear();
+        configStore.setConfig(config, { source: 'reset' });
         resetAiModifyChatSession();
       });
       return;
@@ -41,7 +42,8 @@ function Edit() {
       if (color && typeof config.globalStyle === 'object') {
         config.globalStyle.color = color;
       }
-      configStore.setConfig(config);
+      editHistoryStore.clear();
+      configStore.setConfig(config, { source: 'reset' });
     }
   }, [searchParams]);
   useLayoutEffect(() => {

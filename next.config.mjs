@@ -8,6 +8,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   experimental: {
+    instrumentationHook: true,
     serverComponentsExternalPackages: [
       'puppeteer',
       'puppeteer-core',
@@ -16,6 +17,12 @@ const nextConfig = {
       'onnxruntime-node',
       'unpdf',
     ],
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = [...(config.externals ?? []), 'puppeteer', 'puppeteer-core'];
+    }
+    return config;
   },
   images: {
     remotePatterns: [

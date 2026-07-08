@@ -86,10 +86,10 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
 
   const { run } = useDebounceFn(
     (mod: EducationProps) => {
-      const config = configStore.getConfig;
-      if (!config) return;
       const res = getModuleIndex(moduleActive);
       if (!res) return;
+      const config = JSON.parse(JSON.stringify(configStore.getConfig));
+      if (!config) return;
       const _module = JSON.parse(JSON.stringify(mod));
       _module.options.items = _module.options.items.map((item: any) => ({
         ...item,

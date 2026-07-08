@@ -411,7 +411,7 @@ function Canvas({
     const hasModules = flattenModules(currentConfig).length > 0;
     if (hasModules) return;
     console.warn('[Canvas] detected empty modules, request config normalize');
-    configStore.setConfig(currentConfig);
+    configStore.setConfig(currentConfig, { source: 'reset' });
   }, [currentConfig]);
 
   useLayoutEffect(() => {

@@ -58,6 +58,10 @@ export default {
     backHome: '返回首页',
     logoAlt: '青松简历 标志',
     avatarAlt: '{name} 头像',
+    undo: '撤回',
+    redo: '反撤回',
+    undoAria: '撤回上一步',
+    redoAria: '反撤回',
     editNameAria: '编辑姓名',
   },
   mobile: {

@@ -434,7 +434,7 @@ function AiModify() {
       const pm = item?.pendingModify;
       if (!pm || pm.resolved) return;
       const next = applyResumeDiffs(configStore.getConfig, pm.proposedResume, pm.diffs, [id]);
-      configStore.setConfig(next);
+      configStore.setConfig(next, { immediate: true });
       flushResumeBackupImmediate(configStore.getConfig);
       finalizePendingIfDone(index, { appliedIds: [...(pm.appliedIds ?? []), id] });
       messageApi.success(ta('appliedOk'));
@@ -460,7 +460,7 @@ function AiModify() {
       const pendingIds = pm.diffs.map((d) => d.id).filter((id) => !applied.has(id) && !cancelled.has(id));
       if (!pendingIds.length) return;
       const next = applyResumeDiffs(configStore.getConfig, pm.proposedResume, pm.diffs, pendingIds);
-      configStore.setConfig(next);
+      configStore.setConfig(next, { immediate: true });
       flushResumeBackupImmediate(configStore.getConfig);
       resolvePending(index, {
         appliedIds: [...(pm.appliedIds ?? []), ...pendingIds],

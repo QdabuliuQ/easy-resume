@@ -3,6 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const launchMock = vi.fn();
 const closeMock = vi.fn();
 const onceMock = vi.fn();
+const pageCloseMock = vi.fn();
+const pageGotoMock = vi.fn();
+const newPageMock = vi.fn();
 
 vi.mock('puppeteer', () => ({
   default: {
@@ -19,11 +22,20 @@ describe('puppeteerSharedBrowser singleton', () => {
     launchMock.mockReset();
     closeMock.mockReset();
     onceMock.mockReset();
+    pageCloseMock.mockReset();
+    pageGotoMock.mockReset();
+    newPageMock.mockReset();
+    pageCloseMock.mockResolvedValue(undefined);
+    pageGotoMock.mockResolvedValue(undefined);
+    newPageMock.mockResolvedValue({
+      goto: pageGotoMock,
+      close: pageCloseMock,
+    });
     launchMock.mockResolvedValue({
       connected: true,
       close: closeMock.mockResolvedValue(undefined),
       once: onceMock,
-      newPage: vi.fn(),
+      newPage: newPageMock,
     });
   });
 
@@ -45,6 +57,12 @@ describe('puppeteerSharedBrowser singleton', () => {
     await mod.warmupSharedBrowser();
     await mod.getSharedBrowser();
     expect(launchMock).toHaveBeenCalledTimes(1);
+    expect(newPageMock).toHaveBeenCalledTimes(1);
+    expect(pageGotoMock).toHaveBeenCalledWith('about:blank', {
+      waitUntil: 'domcontentloaded',
+      timeout: 15_000,
+    });
+    expect(pageCloseMock).toHaveBeenCalledTimes(1);
     await mod.resetSharedBrowser();
   });
 });

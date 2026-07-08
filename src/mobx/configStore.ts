@@ -4,10 +4,21 @@ import { resolveResumeAvatarRefsDeep } from '@/lib/resumeAvatarRef';
 import { scheduleResumeConfigBackup } from '@/lib/resumeConfigBackup';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import type { GlobalStyle } from '@/modules/utils/common.type';
+import editHistoryStore from '@/mobx/editHistoryStore';
+
+export type ConfigWriteSource = 'user' | 'undo' | 'redo' | 'reset';
+
+export type ConfigWriteMeta = {
+  source?: ConfigWriteSource;
+  /** 离散操作立即入栈，不走 debounce */
+  immediate?: boolean;
+};
 
 export default class ConfigStore {
   config: any = null;
   exportPages: any[] | null = null;
+  /** undo/redo 后递增，驱动面板非受控字段 remount */
+  historyRevision = 0;
 
   constructor() {
     makeAutoObservable(this);
@@ -21,7 +32,25 @@ export default class ConfigStore {
     );
   }
 
-  setConfig(value: any) {
+  get canUndo() {
+    return editHistoryStore.canUndo;
+  }
+
+  get canRedo() {
+    return editHistoryStore.canRedo;
+  }
+
+  private shouldRecordHistory(meta?: ConfigWriteMeta) {
+    return (meta?.source ?? 'user') === 'user' && !editHistoryStore.paused;
+  }
+
+  private recordHistoryBefore(before: unknown, meta?: ConfigWriteMeta) {
+    if (!this.shouldRecordHistory(meta) || before == null) return;
+    if (meta?.immediate) editHistoryStore.recordBefore(before);
+    else editHistoryStore.scheduleRecordBefore(before);
+  }
+
+  private applyConfig(value: any) {
     if (!value || typeof value !== 'object') {
       this.config = value;
       return;
@@ -47,16 +76,42 @@ export default class ConfigStore {
     if (typeof window !== 'undefined') scheduleResumeConfigBackup(v);
   }
 
+  setConfig(value: any, meta?: ConfigWriteMeta) {
+    const before =
+      this.config == null ? null : JSON.parse(JSON.stringify(this.config));
+    this.applyConfig(value);
+    this.recordHistoryBefore(before, meta);
+  }
+
+  undo() {
+    const snapshot = editHistoryStore.popUndo(this.config);
+    if (snapshot == null) return false;
+    this.applyConfig(snapshot);
+    this.historyRevision += 1;
+    return true;
+  }
+
+  redo() {
+    const snapshot = editHistoryStore.popRedo(this.config);
+    if (snapshot == null) return false;
+    this.applyConfig(snapshot);
+    this.historyRevision += 1;
+    return true;
+  }
+
   setExportPages(value: any[] | null) {
     this.exportPages = value ? JSON.parse(JSON.stringify(value)) : null;
   }
 
-  setConfigOption(id: string, option: any) {
+  setConfigOption(id: string, option: any, meta?: ConfigWriteMeta) {
+    if (!this.config?.pages) return;
+    const before = JSON.parse(JSON.stringify(this.config));
     for (const page of this.config.pages) {
       for (const module of page.modules) {
         if (module.id === id) {
           module.options = option;
           this.config = JSON.parse(JSON.stringify(this.config));
+          this.recordHistoryBefore(before, meta);
           if (typeof window !== 'undefined') scheduleResumeConfigBackup(this.config);
           return;
         }

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { EditOutlined } from '@ant-design/icons';
+import { EditOutlined, RedoOutlined, UndoOutlined } from '@ant-design/icons';
 import { observer } from 'mobx-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { memo, useRef, useState } from 'react';
@@ -11,9 +11,11 @@ import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 import { localePath } from '@/lib/device';
 import { logo } from '@/lib/brandAssets';
+import { useEditHistory } from '@/views/edit/hooks/useEditHistory';
 
 function MobileEditHeader() {
   const t = useTranslations('Edit.header');
+  const { canUndo, canRedo, undo, redo } = useEditHistory();
   const locale = useLocale();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -30,7 +32,7 @@ function MobileEditHeader() {
     });
   };
   return (
-    <header className='shrink-0 border-b border-fg/10 px-4 pb-3 pt-3'>
+    <header className='relative shrink-0 border-b border-fg/10 px-4 pb-3 pt-3'>
       <div className='flex items-center gap-3'>
         <Link href={localePath(locale)} className='relative flex h-10 w-10 shrink-0'>
           <Image src={logo} alt={t('logoAlt')} fill sizes='40px' className='rounded-full object-contain' />
@@ -66,6 +68,26 @@ function MobileEditHeader() {
             </div>
           )}
         </div>
+      </div>
+      <div className='pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1'>
+        <Button
+          type='text'
+          size='small'
+          icon={<UndoOutlined />}
+          aria-label={t('undoAria')}
+          disabled={!canUndo}
+          onClick={undo}
+          className='pointer-events-auto !h-8 !w-8 !min-w-8 !p-0 enabled:cursor-pointer disabled:!cursor-not-allowed'
+        />
+        <Button
+          type='text'
+          size='small'
+          icon={<RedoOutlined />}
+          aria-label={t('redoAria')}
+          disabled={!canRedo}
+          onClick={redo}
+          className='pointer-events-auto !h-8 !w-8 !min-w-8 !p-0 enabled:cursor-pointer disabled:!cursor-not-allowed'
+        />
       </div>
     </header>
   );

@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 import MenuItemIcon from './menuItemIcon';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useAppMessage } from '@/hooks/useAppMessage';
-import { configStore, resumeImportStore } from '@/mobx';
+import { configStore, editHistoryStore, resumeImportStore } from '@/mobx';
 import { flushResumeBackupImmediate } from '@/lib/resumeConfigBackup';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { useResumeImport } from '@/views/edit/hooks/useResumeImport';
@@ -122,7 +122,8 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
       message.error(t('templateError'));
       return;
     }
-    configStore.setConfig(normalized);
+    editHistoryStore.clear();
+    configStore.setConfig(normalized, { source: 'reset' });
     resetAiModifyChatSession();
     message.success(t('importOk'));
     flushResumeBackupImmediate(configStore.getConfig);

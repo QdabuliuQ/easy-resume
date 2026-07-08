@@ -68,8 +68,9 @@ export function useModuleHandle() {
   });
 
   const removeModuleFromConfig = useMemoizedFn((id: string) => {
-    const config = configStore.getConfig;
-    if (!id || !config) return;
+    const source = configStore.getConfig;
+    if (!id || !source) return;
+    const config = JSON.parse(JSON.stringify(source));
     for (let i = 0; i < config.pages.length; i++) {
       for (let j = 0; j < config.pages[i].modules.length; j++) {
         if (config.pages[i].modules[j].id === id) {
@@ -78,7 +79,7 @@ export function useModuleHandle() {
           configStore.setConfig({
             ...config,
             pages: [...config.pages],
-          });
+          }, { immediate: true });
           return;
         }
       }
@@ -97,7 +98,7 @@ export function useModuleHandle() {
     configStore.setConfig({
       ...config,
       pages: [first, ...rest],
-    });
+    }, { immediate: true });
   });
 
   const addModuleByType = useMemoizedFn((type: ResumeModuleType) => {
@@ -113,7 +114,7 @@ export function useModuleHandle() {
     if (!config.pages?.length) {
       const next = JSON.parse(JSON.stringify(config));
       next.pages = [{ modules: [mod] }];
-      configStore.setConfig(next);
+      configStore.setConfig(next, { immediate: true });
       moduleActiveStore.setModuleActive(mod.id);
       return;
     }
@@ -121,7 +122,7 @@ export function useModuleHandle() {
     if (type === 'info1') next.pages[0].modules.unshift(mod);
     else next.pages[0].modules.push(mod);
     next.pages[0].modules = pinInfo1ModulesFirst(next.pages[0].modules);
-    configStore.setConfig(next);
+    configStore.setConfig(next, { immediate: true });
     moduleActiveStore.setModuleActive(mod.id);
   });
 
@@ -133,7 +134,7 @@ export function useModuleHandle() {
       for (const mod of page.modules) {
         if (mod.id === id) {
           mod.options = { ...(mod.options ?? {}), title };
-          configStore.setConfig(next);
+          configStore.setConfig(next, { immediate: true });
           return;
         }
       }
