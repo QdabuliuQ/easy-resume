@@ -6,6 +6,7 @@ const READY_SEL = '[data-export-ready="true"]';
 const ERR_SEL = '[data-export-error]';
 const NAV_TIMEOUT_MS = 60_000;
 const READY_TIMEOUT_MS = 45_000;
+const BLOCKED_FONT_HOST_RE = /fonts\.googleapis\.com|fonts\.gstatic\.com/i;
 
 export async function gotoExportResumeAndWait(
   page: Page,
@@ -14,6 +15,14 @@ export async function gotoExportResumeAndWait(
 ) {
   trace?.log('page.goto start', { url, navTimeoutMs: NAV_TIMEOUT_MS });
   await page.setJavaScriptEnabled(true);
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    if (BLOCKED_FONT_HOST_RE.test(req.url())) {
+      req.abort();
+      return;
+    }
+    req.continue();
+  });
   const response = await page.goto(url, {
     waitUntil: 'domcontentloaded',
     timeout: NAV_TIMEOUT_MS,

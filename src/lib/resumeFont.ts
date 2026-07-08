@@ -56,6 +56,13 @@ function fontFaceBlocks(basePath: string, font: Exclude<ResumeFontId, 'system'>)
   ].join('');
 }
 
+/** Puppeteer / PDF 导出：仅本地 public/fonts */
+export function resumeExportFontFacesCss(origin: string, font: unknown): string {
+  const fid = resumeFontForExport(font);
+  const base = origin.replace(/\/$/, '');
+  return fontFaceBlocks(base, fid);
+}
+
 /** 本地 @font-face；system 不注入；字体在 public/fonts/ */
 export function resumeLocalFontFacesCss(font: ResumeFontId = 'noto-sans-sc'): string {
   if (font === 'system') return '';

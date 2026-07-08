@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   normResumeFont,
+  resumeExportFontFacesCss,
   resumeExportFontStack,
   resumeFontForExport,
   resumeFontStack,
@@ -43,9 +44,15 @@ describe('resumeFont', () => {
     expect(resumePrimaryFontFamily('noto-serif-sc')).toBe('Noto Serif SC');
   });
 
-  it('resumePdfFontLinkTags includes google fonts link', () => {
+  it('resumePdfFontLinkTags uses local fonts only', () => {
     const html = resumePdfFontLinkTags('noto-sans-sc', { assetOrigin: 'https://x.com' });
-    expect(html).toContain('fonts.googleapis.com');
+    expect(html).not.toContain('fonts.googleapis.com');
     expect(html).toContain('NotoSansSC-Regular.ttf');
+    expect(html).toContain('https://x.com/fonts/NotoSansSC-Regular.ttf');
+  });
+
+  it('resumeExportFontFacesCss maps system to noto-sans-sc', () => {
+    const css = resumeExportFontFacesCss('https://x.com', 'system');
+    expect(css).toContain('NotoSansSC-Regular.ttf');
   });
 });

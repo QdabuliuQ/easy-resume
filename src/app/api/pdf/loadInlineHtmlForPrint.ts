@@ -1,12 +1,21 @@
 import type { Page } from 'puppeteer';
 
-const FONT_READY_MS = 6_000;
+const FONT_READY_MS = 2_000;
 
 async function waitFontsReady(page: Page) {
   await page.evaluate(
     (ms) =>
       Promise.race([
-        document.fonts.ready,
+        (async () => {
+          const families = ['Noto Sans SC', 'Noto Serif SC'];
+          await Promise.all(
+            families.flatMap((family) => [
+              document.fonts.load(`400 16px "${family}"`),
+              document.fonts.load(`700 16px "${family}"`),
+            ]),
+          );
+          await document.fonts.ready;
+        })(),
         new Promise<void>((r) => setTimeout(r, ms)),
       ]),
     FONT_READY_MS,
@@ -34,13 +43,5 @@ export async function loadInlineHtmlForPrint(page: Page, html: string) {
 }
 
 export async function settleFontsOrTimeout(page: Page) {
-  await page.setJavaScriptEnabled(true);
-  await page.evaluate(
-    (ms) =>
-      Promise.race([
-        document.fonts.ready,
-        new Promise<void>((r) => setTimeout(r, ms)),
-      ]),
-    FONT_READY_MS,
-  );
+  await waitFontsReady(page);
 }
