@@ -25,6 +25,7 @@ import {
 } from '@/lib/ai/modifyChat/resumeSummary';
 import { inferAddModuleType, inferModifyScopeHeuristic } from '@/lib/ai/modifyChat/scopeRouter';
 import { RESUME_JSON_SCHEMA_PROMPT, type ResumeConfig } from '@/lib/ai/modifyChat/resumeSchema';
+import type { ModifyChatResult } from '@/lib/ai/modifyChat/types';
 import { SCHEMA_GLOSSARY_FILE } from '@/lib/ai/ragResume/knowledge';
 import { stripResumeAvatarForAi } from '@/lib/stripResumeAvatarForAi';
 
@@ -511,16 +512,17 @@ describe('buildModifyChatMessages', () => {
 describe('modifyChat pipeline off-topic', () => {
   it('returns fixed hint without resume modify', async () => {
     vi.spyOn(intentRouter, 'classifyModifyIntent').mockResolvedValue('chat');
-    let result: Awaited<ReturnType<typeof buildModifyChatResult>> | null = null;
+    let result: ModifyChatResult | null = null;
     await streamModifyChatPipeline(buildModifyChatMessages('给我讲个笑话'), undefined, (evt) => {
       if (evt.error || evt.code !== 0) throw new Error(evt.error ?? evt.message);
       if (evt.done) result = buildModifyChatResult(evt);
     });
     if (!result) throw new Error('模型返回为空');
-    expect(result.intent).toBe('chat');
-    expect(result.content).toBe(OFF_TOPIC_REPLY);
-    expect(result.data[0]).toEqual({ type: 'text', content: OFF_TOPIC_REPLY });
-    expect(result.resume).toBeUndefined();
+    const out = result as ModifyChatResult;
+    expect(out.intent).toBe('chat');
+    expect(out.content).toBe(OFF_TOPIC_REPLY);
+    expect(out.data[0]).toEqual({ type: 'text', content: OFF_TOPIC_REPLY });
+    expect(out.resume).toBeUndefined();
   });
 });
 
@@ -657,11 +659,13 @@ describe('modifyChat security', () => {
       ],
     };
     const out = sanitizeResumeHtmlFields(resume);
-    expect(out.pages[0].modules[0].options.description).not.toContain('<script');
-    expect(out.pages[0].modules[0].options.description).toContain('<p>ok</p>');
-    expect(out.pages[0].modules[1].options.items[0].description).not.toContain('<script');
-    expect(out.pages[0].modules[1].options.items[0].description).toContain('<p>x</p>');
-    expect(out.pages[0].modules[0].options.title).toBe('优势');
+    const skill = out.pages[0]!.modules[0]!;
+    const job = out.pages[0]!.modules[1]!;
+    expect(skill.options!.description).not.toContain('<script');
+    expect(skill.options!.description).toContain('<p>ok</p>');
+    expect((job.options!.items as Record<string, unknown>[])[0]!.description).not.toContain('<script');
+    expect((job.options!.items as Record<string, unknown>[])[0]!.description).toContain('<p>x</p>');
+    expect(skill.options!.title).toBe('优势');
   });
 
   it('getModifyChatBodySizeError returns error when too large', () => {

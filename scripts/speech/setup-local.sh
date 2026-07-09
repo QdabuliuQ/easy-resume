@@ -2,8 +2,8 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 VENV="$ROOT/scripts/speech/.venv"
-MODEL_LINK="$ROOT/models/SenseVoiceSmall"
 MODEL_CACHE="${MODELSCOPE_CACHE:-$HOME/.cache/modelscope}/hub/models/iic/SenseVoiceSmall"
+LEGACY_MODEL_LINK="$ROOT/models/SenseVoiceSmall"
 
 strip_speech_env() {
   local f="$ROOT/.env.local"
@@ -14,7 +14,7 @@ strip_speech_env() {
 uninstall_legacy_local() {
   echo "[speech] 清理旧版本地 SenseVoice 安装..."
   [[ -d "$VENV" ]] && rm -rf "$VENV" && echo "[speech] 已删除 $VENV"
-  [[ -L "$MODEL_LINK" || -e "$MODEL_LINK" ]] && rm -f "$MODEL_LINK" && echo "[speech] 已删除 $MODEL_LINK"
+  [[ -L "$LEGACY_MODEL_LINK" || -e "$LEGACY_MODEL_LINK" ]] && rm -f "$LEGACY_MODEL_LINK" && echo "[speech] 已删除 $LEGACY_MODEL_LINK"
   [[ -d "$MODEL_CACHE" ]] && rm -rf "$MODEL_CACHE" && echo "[speech] 已删除 $MODEL_CACHE"
   strip_speech_env
 }

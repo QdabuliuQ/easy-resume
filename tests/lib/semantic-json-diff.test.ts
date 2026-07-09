@@ -26,7 +26,8 @@ const base = {
 describe('semanticJsonDiff', () => {
   it('matches list items by id not index', () => {
     const proposed = JSON.parse(JSON.stringify(base)) as typeof base;
-    proposed.pages[0].modules[1].options.items.push({
+    const jobModule = proposed.pages[0]!.modules[1]!;
+    (jobModule.options.items as Record<string, unknown>[]).push({
       id: 'j2',
       company: 'B公司',
       description: '<p>B</p>',

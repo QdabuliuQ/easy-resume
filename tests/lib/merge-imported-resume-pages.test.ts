@@ -7,6 +7,9 @@ import {
   mergeImportedResumePages,
 } from '@/lib/mergeImportedResumePages';
 
+type TestModule = { type: string; id?: string; options?: Record<string, unknown> };
+type TestPage = { modules: TestModule[] };
+
 describe('mergeImportedResumePages', () => {
   it('buildInfo1Layout 仅包含有值字段', () => {
     expect(
@@ -20,9 +23,9 @@ describe('mergeImportedResumePages', () => {
 
   it('合并保留 module.id 与 avatar', () => {
     const current = JSON.parse(JSON.stringify(defaultResume));
-    const info1 = current.pages[0].modules.find((m: { type: string }) => m.type === 'info1');
+    const info1 = current.pages[0].modules.find((m: { type: string }) => m.type === 'info1') as TestModule;
     const oldId = info1.id;
-    const oldAvatar = info1.options.avatar;
+    const oldAvatar = info1.options?.avatar;
 
     const incoming = {
       pages: [
@@ -42,13 +45,13 @@ describe('mergeImportedResumePages', () => {
       ],
     };
 
-    const merged = mergeImportedResumePages(current.pages, incoming.pages);
-    const nextInfo1 = merged[0].modules.find((m) => m.type === 'info1');
-    expect(nextInfo1?.id).toBe(oldId);
-    expect(nextInfo1?.options.avatar).toBe(oldAvatar);
-    expect(nextInfo1?.options.name).toBe('李四');
-    expect(nextInfo1?.options.phone).toBe('13900000000');
-    expect(nextInfo1?.options.layout).toEqual([['phone']]);
+    const merged = mergeImportedResumePages(current.pages, incoming.pages) as TestPage[];
+    const nextInfo1 = merged[0]!.modules.find((m) => m.type === 'info1')!;
+    expect(nextInfo1.id).toBe(oldId);
+    expect(nextInfo1.options!.avatar).toBe(oldAvatar);
+    expect(nextInfo1.options!.name).toBe('李四');
+    expect(nextInfo1.options!.phone).toBe('13900000000');
+    expect(nextInfo1.options!.layout).toEqual([['phone']]);
   });
 
   it('job items 补 id', () => {
@@ -68,11 +71,12 @@ describe('mergeImportedResumePages', () => {
         },
       ],
     };
-    const merged = mergeImportedResumePages(current.pages, incoming.pages);
-    const job = merged[0].modules.find((m) => m.type === 'job');
-    expect(job?.options.items).toHaveLength(1);
-    expect(typeof job?.options.items[0].id).toBe('string');
-    expect(job?.options.items[0].company).toBe('新公司');
+    const merged = mergeImportedResumePages(current.pages, incoming.pages) as TestPage[];
+    const job = merged[0]!.modules.find((m) => m.type === 'job')!;
+    const items = job.options!.items as Record<string, unknown>[];
+    expect(items).toHaveLength(1);
+    expect(typeof items[0]!.id).toBe('string');
+    expect(items[0]!.company).toBe('新公司');
   });
 
   it('applyImportedPagesToConfig 更新 name', () => {
@@ -87,10 +91,10 @@ describe('mergeImportedResumePages', () => {
 
   it('clearImportedPagesInConfig 清空 modules', () => {
     const current = JSON.parse(JSON.stringify(defaultResume));
-    const info1 = current.pages[0].modules.find((m: { type: string }) => m.type === 'info1');
-    info1.options.name = '待清空';
-    const job = current.pages[0].modules.find((m: { type: string }) => m.type === 'job');
-    job.options.items = [{ id: 'x', company: '旧公司' }];
+    const info1 = current.pages[0].modules.find((m: { type: string }) => m.type === 'info1') as TestModule;
+    info1.options!.name = '待清空';
+    const job = current.pages[0].modules.find((m: { type: string }) => m.type === 'job') as TestModule;
+    job.options!.items = [{ id: 'x', company: '旧公司' }];
 
     const cleared = clearImportedPagesInConfig(current);
     expect(cleared.name).toBe('');
@@ -110,8 +114,8 @@ describe('mergeImportedResumePages', () => {
         },
       ],
     };
-    const merged = mergeImportedResumePages(current.pages, incoming.pages);
-    expect(merged[0].modules).toHaveLength(2);
-    expect(merged[0].modules.find((m) => m.type === 'info1')?.options.name).toBe('张三');
+    const merged = mergeImportedResumePages(current.pages, incoming.pages) as TestPage[];
+    expect(merged[0]!.modules).toHaveLength(2);
+    expect(merged[0]!.modules.find((m) => m.type === 'info1')!.options!.name).toBe('张三');
   });
 });

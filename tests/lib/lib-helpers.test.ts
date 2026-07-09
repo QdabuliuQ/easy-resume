@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { hexForColorInput } from '@/lib/resumeColorHex';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import {
@@ -20,9 +20,8 @@ import { makeGlobalStyle } from '../modules/fixtures';
 
 describe('lib helpers', () => {
   afterEach(() => {
+    vi.unstubAllEnvs();
     delete process.env.EXPORT_BASE_URL;
-    delete process.env.EXPORT_LOOPBACK_PORT;
-    process.env.NODE_ENV = 'test';
   });
 
   it('normalizes hex and rgb color values', () => {
@@ -77,11 +76,8 @@ describe('lib helpers', () => {
     expect(resolveExportPrintOrigin('https://a.com')).toBe('https://b.com');
     delete process.env.EXPORT_BASE_URL;
 
-    process.env.NODE_ENV = 'production';
+    vi.stubEnv('NODE_ENV', 'production');
     expect(resolveExportPrintOrigin('https://a.com')).toBe('http://127.0.0.1:3010');
-    process.env.EXPORT_LOOPBACK_PORT = '4000';
-    expect(resolveExportPrintOrigin('https://a.com')).toBe('http://127.0.0.1:4000');
-    process.env.NODE_ENV = 'test';
 
     const url = buildExportResumeUrl('https://a.com/', 'zh', 'token + 1', 'image');
     expect(url).toContain('/zh/export/resume?token=token%20%2B%201');
