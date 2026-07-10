@@ -149,7 +149,7 @@ function ModuleEdit() {
                 type='button'
                 data-module-nav-id={mod.id}
                 onClick={() => {
-                  moduleActiveStore.setModuleActive(selected ? 'global' : mod.id);
+                  moduleActiveStore.setModuleActive(mod.id);
                 }}
                 className={`shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
                   selected

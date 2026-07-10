@@ -101,6 +101,7 @@ function EditTour({ ready }: EditTourProps) {
       onFinish={close}
       steps={steps}
       gap={{ radius: 10 }}
+      mask={false}
     />
   );
 }
