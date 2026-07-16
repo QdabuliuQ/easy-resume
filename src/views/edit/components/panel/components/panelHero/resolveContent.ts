@@ -9,6 +9,7 @@ export function resolvePanelHeroContent(
   const isResumeTemplate = menuActiveKey === 'resume-template';
   const isGeneralSettings = menuActiveKey === 'general-settings';
   const isPageSettings = menuActiveKey === 'page-settings';
+  const isMyResumes = menuActiveKey === 'my-resumes';
 
   return {
     eyebrow: isAiScore
@@ -17,43 +18,51 @@ export function resolvePanelHeroContent(
         ? 'AI WRITE'
         : isResumeTemplate
           ? 'TEMPLATES'
-          : isGeneralSettings
-            ? 'GLOBAL'
-            : isPageSettings
-              ? 'PAGE'
-              : 'CONFIG',
+          : isMyResumes
+            ? 'MY RESUMES'
+            : isGeneralSettings
+              ? 'GLOBAL'
+              : isPageSettings
+                ? 'PAGE'
+                : 'CONFIG',
     title: isAiScore
       ? tr('panelTitleAi')
       : isAiModify
         ? tr('panelTitleAiModify')
         : isResumeTemplate
           ? tr('panelTitleTemplate')
-          : isGeneralSettings
-            ? tr('panelTitleGeneral')
-            : isPageSettings
-              ? tr('panelTitlePageSettings')
-              : tr('panelTitleDefault'),
+          : isMyResumes
+            ? tr('panelTitleMyResumes')
+            : isGeneralSettings
+              ? tr('panelTitleGeneral')
+              : isPageSettings
+                ? tr('panelTitlePageSettings')
+                : tr('panelTitleDefault'),
     description: isAiScore
       ? tr('panelDescAi')
       : isAiModify
         ? tr('panelDescAiModify')
         : isResumeTemplate
           ? tr('panelDescTemplate')
-          : isGeneralSettings
-            ? tr('panelDescGeneral')
-            : isPageSettings
-              ? tr('panelDescPageSettings')
-              : tr('panelDescDefault'),
+          : isMyResumes
+            ? tr('panelDescMyResumes')
+            : isGeneralSettings
+              ? tr('panelDescGeneral')
+              : isPageSettings
+                ? tr('panelDescPageSettings')
+                : tr('panelDescDefault'),
     chip: isAiScore
       ? tr('chipAi')
       : isAiModify
         ? tr('chipAiModify')
         : isResumeTemplate
           ? tr('chipTemplate')
-          : isGeneralSettings
-            ? tr('chipGeneral')
-            : isPageSettings
-              ? tr('chipPageSettings')
-              : tr('chipEdit'),
+          : isMyResumes
+            ? tr('chipMyResumes')
+            : isGeneralSettings
+              ? tr('chipGeneral')
+              : isPageSettings
+                ? tr('chipPageSettings')
+                : tr('chipEdit'),
   };
 }

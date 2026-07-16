@@ -24,12 +24,25 @@ const nextConfig = {
     }
     return config;
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/github/callback',
+        destination: '/api/github/callback/github',
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'img.qdabuliuq.cn',
         pathname: '/easy-resume/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+        pathname: '/**',
       },
     ],
     formats: ['image/avif', 'image/webp'],

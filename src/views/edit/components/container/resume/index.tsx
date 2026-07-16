@@ -21,6 +21,7 @@ const AiScore = lazy(() => import('../../panel/components/aiScore'));
 const AiModify = lazy(() => import('../../panel/components/aiModify'));
 const GeneralSettings = lazy(() => import('../../panel/components/generalSettings'));
 const ModuleEdit = lazy(() => import('../../panel/components/moduleEdit'));
+const MyResumes = lazy(() => import('../../panel/components/myResumes'));
 const PageSettings = lazy(() => import('../../panel/components/pageSettings'));
 const ResumeTemplate = lazy(() => import('../../panel/components/resumeTemplate'));
 
@@ -56,6 +57,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const isResumeTemplate = menuActiveKey === 'resume-template';
   const isGeneralSettings = menuActiveKey === 'general-settings';
   const isPageSettings = menuActiveKey === 'page-settings';
+  const isMyResumes = menuActiveKey === 'my-resumes';
   const isResumeEdit = menuActiveKey === 'resume';
   const panelHero = resolvePanelHeroContent(menuActiveKey, tr);
   const buildAnalyzePayload = useCallback(() => {
@@ -112,6 +114,8 @@ function Resume({ menuActiveKey }: ResumeProps) {
             <AiModify />
           ) : isResumeTemplate ? (
             <ResumeTemplate />
+          ) : isMyResumes ? (
+            <MyResumes />
           ) : isGeneralSettings ? (
             <GeneralSettings />
           ) : isPageSettings ? (

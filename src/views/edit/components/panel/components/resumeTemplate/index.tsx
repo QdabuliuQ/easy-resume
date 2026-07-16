@@ -23,26 +23,30 @@ export const TEMPLATE_CARD_PREVIEW_SCALE = 0.2;
 
 export const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
   template,
+  config: configProp,
   scale,
 }: {
-  template: ResumeTemplateItem;
+  template?: ResumeTemplateItem;
+  config?: ResumeTemplateItem['config'];
   scale: number;
 }) {
+  const config = configProp ?? template?.config;
   const gs = useMemo(
-    () => mergeGlobalStylePaper(defaultResume.globalStyle as GlobalStyle, template.config.globalStyle),
-    [template]
+    () => mergeGlobalStylePaper(defaultResume.globalStyle as GlobalStyle, config?.globalStyle ?? {}),
+    [config]
   );
   const { width: pwStr, height: phStr } = globalStylePageDimensions(gs);
   const pw = cssLengthToApproxPx(pwStr);
   const ph = cssLengthToApproxPx(phStr);
   const modules = useMemo(() => {
-    const page = template.config.pages?.[0];
+    const page = config?.pages?.[0];
     return page?.modules ?? [];
-  }, [template]);
+  }, [config]);
   const { main, sideSlot } = useMemo(
     () => renderResumePageModules(modules as unknown[], gs, { isFirstPage: true }),
     [modules, gs],
   );
+  if (!config) return null;
   return (
     <div
       className='relative isolate shrink-0 overflow-hidden rounded-md bg-white text-left text-[#333] leading-normal font-normal shadow-sm ring-1 ring-black/6'

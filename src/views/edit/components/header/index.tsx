@@ -4,16 +4,25 @@ import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { memo, useId, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
+import { useSession } from 'next-auth/react';
 import { Button, Input } from 'antd';
-import { EditOutlined, RedoOutlined, UndoOutlined } from '@ant-design/icons';
-import { FilePdf, DownPicture, FileCode } from '@icon-park/react';
-import { configStore } from '@/mobx';
+import {
+  EditOutlined,
+  RedoOutlined,
+  UndoOutlined,
+} from '@ant-design/icons';
+import { FilePdf, DownPicture, FileCode, Save } from '@icon-park/react';
+import GithubAuthButton from '@/components/auth/GithubAuthButton';
+import { useAppMessage } from '@/hooks/useAppMessage';
+import { cloudResumeStore, configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 import { logo } from '@/lib/brandAssets';
 import { useResumeExport } from '@/views/edit/hooks/useResumeExport';
 import { useEditHistory } from '@/views/edit/hooks/useEditHistory';
 function Header() {
   const t = useTranslations('Edit.header');
+  const message = useAppMessage();
+  const { status } = useSession();
   const { canUndo, canRedo, undo, redo } = useEditHistory();
   const {
     exportPdf,
@@ -28,6 +37,8 @@ function Header() {
   const ignoreNextBlur = useRef(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
   const actionsDisabled = exporting;
+  const showSave = cloudResumeStore.showSaveButton;
+  const saving = cloudResumeStore.saving;
   const exportGradId = `hdr-eg${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const exportChipOuter =
     'group rounded-2xl bg-gradient-primary p-px shadow-[0_2px_12px_rgb(0_0_0/0.18)] transition-[filter] duration-200 hover:brightness-110 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100';
@@ -62,6 +73,15 @@ function Header() {
   const onBlur = () => {
     if (ignoreNextBlur.current) return;
     commit();
+  };
+  const onSave = async () => {
+    if (status !== 'authenticated') {
+      message.warning(t('saveNeedLogin'));
+      return;
+    }
+    const result = await cloudResumeStore.save();
+    if (result.ok) message.success(t('saveOk'));
+    else message.error(result.error || t('saveFail'));
   };
   return (
     <div className='relative flex h-full items-center justify-between gap-4 px-4 md:px-5'>
@@ -126,6 +146,11 @@ function Header() {
               className='cursor-pointer !text-fg/45 hover:!text-[var(--text-strong)] !p-0 !h-7 !w-7 !min-w-7 inline-flex shrink-0 items-center justify-center'
               onClick={startEdit}
             />
+            {!showSave && (
+              <span className='hidden text-[11px] text-fg/40 sm:inline'>
+                {saving ? t('saving') : t('autosaved')}
+              </span>
+            )}
           </>
         )}
       </div>
@@ -155,6 +180,7 @@ function Header() {
         className='flex shrink-0 flex-wrap items-center justify-end gap-2'
         data-edit-tour='header-export'
       >
+        <GithubAuthButton variant='compact' />
         <svg
           width={0}
           height={0}
@@ -171,6 +197,31 @@ function Header() {
             </linearGradient>
           </defs>
         </svg>
+        {showSave ? (
+          <button
+            type='button'
+            disabled={actionsDisabled || saving}
+            onClick={() => void onSave()}
+            className={`cursor-pointer ${exportChipOuter}`}
+          >
+            <span className={exportChipInner}>
+              <span className={exportIconSlot} aria-hidden>
+                {saving ? (
+                  <span className='inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]' />
+                ) : (
+                  <Save
+                    theme='outline'
+                    size={20}
+                    fill={`url(#${exportGradId})`}
+                  />
+                )}
+              </span>
+              <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent whitespace-nowrap'>
+                {saving ? t('saving') : t('save')}
+              </span>
+            </span>
+          </button>
+        ) : null}
         <button
           type='button'
           disabled={actionsDisabled}

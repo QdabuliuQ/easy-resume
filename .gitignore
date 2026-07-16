@@ -38,3 +38,8 @@ public/fonts/*
 .cache
 scripts/speech/.venv
 *.traineddata
+
+# Cloudflare Workers API
+cf-api/.dev.vars
+cf-api/.wrangler/
+cf-api/node_modules/

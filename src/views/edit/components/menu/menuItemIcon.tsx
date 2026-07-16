@@ -1,5 +1,6 @@
 import {
   AppstoreOutlined,
+  FileTextOutlined,
   ProfileOutlined,
   SettingOutlined,
   SlidersOutlined,
@@ -30,6 +31,7 @@ export default function MenuItemIcon({ menuKey, selected }: MenuItemIconProps) {
       />
     );
   }
+  if (menuKey === 'my-resumes') return <FileTextOutlined className={antIconCls} />;
   if (menuKey === 'resume') return <ProfileOutlined className={antIconCls} />;
   if (menuKey === 'resume-template') return <AppstoreOutlined className={antIconCls} />;
   if (menuKey === 'general-settings') return <SettingOutlined className={antIconCls} />;

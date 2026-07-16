@@ -13,6 +13,7 @@ const PANEL_MENU_KEYS = [
   RESUME_TEMPLATE_MENU_KEY,
   'page-settings',
   GENERAL_SETTINGS_MENU_KEY,
+  'my-resumes',
 ] as const;
 
 type ContainerProps = {

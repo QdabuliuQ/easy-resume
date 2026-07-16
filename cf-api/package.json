@@ -1,0 +1,17 @@
+{
+  "name": "easy-resume-api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "青松简历 Cloudflare Workers + D1 API（无运行时依赖）",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev --local --port 3000",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create easy-resume --location apac",
+    "db:init:local": "wrangler d1 execute easy-resume --local --file=./schema.sql",
+    "db:init:remote": "wrangler d1 execute easy-resume --remote --file=./schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

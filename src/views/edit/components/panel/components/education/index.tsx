@@ -286,7 +286,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
       {editOpen && module ? (
         <div
           key='edit'
-          className='panel-module-edit info1-panel-animate text-fg/95'
+          className='info1-panel-animate text-fg/95'
         >
           <AddGradientButton onClick={handleAdd} disabled={educationItemsFull}>
             {te('add')}

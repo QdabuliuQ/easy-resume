@@ -2,6 +2,7 @@ export default {
   brandName: '青松简历',
   navHome: '首页',
   navGh: '在 GitHub 打开源码',
+  navGhShort: '源码',
   themeToLight: '切换为浅色',
   themeToDark: '切换为深色',
   themeToSystem: '切换为跟随系统',

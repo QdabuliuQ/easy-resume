@@ -6,13 +6,20 @@ import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import editHistoryStore from '@/mobx/editHistoryStore';
 
-export type ConfigWriteSource = 'user' | 'undo' | 'redo' | 'reset';
+export type ConfigWriteSource = 'user' | 'undo' | 'redo' | 'reset' | 'hydrate';
 
 export type ConfigWriteMeta = {
   source?: ConfigWriteSource;
   /** 离散操作立即入栈，不走 debounce */
   immediate?: boolean;
 };
+
+function notifyCloudResume(source?: ConfigWriteSource) {
+  if (typeof window === 'undefined') return;
+  void import('@/mobx/cloudResumeStore').then(({ cloudResumeStore }) => {
+    cloudResumeStore.onConfigWrite(source);
+  });
+}
 
 export default class ConfigStore {
   config: any = null;
@@ -81,6 +88,7 @@ export default class ConfigStore {
       this.config == null ? null : JSON.parse(JSON.stringify(this.config));
     this.applyConfig(value);
     this.recordHistoryBefore(before, meta);
+    notifyCloudResume(meta?.source ?? 'user');
   }
 
   undo() {
@@ -88,6 +96,7 @@ export default class ConfigStore {
     if (snapshot == null) return false;
     this.applyConfig(snapshot);
     this.historyRevision += 1;
+    notifyCloudResume('undo');
     return true;
   }
 
@@ -96,6 +105,7 @@ export default class ConfigStore {
     if (snapshot == null) return false;
     this.applyConfig(snapshot);
     this.historyRevision += 1;
+    notifyCloudResume('redo');
     return true;
   }
 
@@ -113,6 +123,7 @@ export default class ConfigStore {
           this.config = JSON.parse(JSON.stringify(this.config));
           this.recordHistoryBefore(before, meta);
           if (typeof window !== 'undefined') scheduleResumeConfigBackup(this.config);
+          notifyCloudResume(meta?.source ?? 'user');
           return;
         }
       }
@@ -137,3 +148,6 @@ export default class ConfigStore {
     return this.exportPages;
   }
 }
+
+const configStore = new ConfigStore();
+export { configStore };

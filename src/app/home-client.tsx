@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
+import GithubAuthButton from '@/components/auth/GithubAuthButton';
 import HeroPreviewCompare from '@/components/heroPreviewCompare';
 import HomeRevealScope from '@/components/homeRevealScope';
 import {
@@ -315,6 +316,17 @@ export default function Home() {
               </span>
             </span>
             <div className='flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2.5'>
+              <span
+                role='button'
+                tabIndex={0}
+                aria-label={t('navGh')}
+                onClick={openGh}
+                onKeyDown={navKey(openGh)}
+                className={`hidden h-9 cursor-pointer items-center gap-1.5 rounded-full border border-fg/14 bg-fg/[0.05] px-3 text-xs font-medium text-fg/65 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/[0.09] hover:text-fg/88 sm:inline-flex ${focusRing}`}
+              >
+                <GithubOutlined className='text-[14px]' />
+                {t('navGhShort')}
+              </span>
               <Popover
                 arrow={false}
                 trigger='click'
@@ -370,27 +382,6 @@ export default function Home() {
                   </span>
                 </button>
               </Popover>
-              <span
-                role='button'
-                tabIndex={0}
-                aria-label={t('navGh')}
-                onClick={openGh}
-                onKeyDown={navKey(openGh)}
-                className={`inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-fg/14 bg-fg/[0.05] text-fg/68 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/[0.09] hover:text-fg/88 sm:hidden ${focusRing}`}
-              >
-                <GithubOutlined className='text-[15px]' />
-              </span>
-              <span
-                role='button'
-                tabIndex={0}
-                aria-label={t('navGh')}
-                onClick={openGh}
-                onKeyDown={navKey(openGh)}
-                className={`hidden h-9 cursor-pointer items-center gap-1.5 rounded-full border border-fg/14 bg-fg/[0.05] px-3 text-xs font-medium text-fg/65 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/[0.09] hover:text-fg/88 sm:inline-flex ${focusRing}`}
-              >
-                <GithubOutlined className='text-[14px]' />
-                GitHub
-              </span>
               <button
                 type='button'
                 onPointerDown={(e) => {
@@ -414,15 +405,7 @@ export default function Home() {
                   <MoonOutlined className='text-[15px]' />
                 )}
               </button>
-              <span
-                role='button'
-                tabIndex={0}
-                onClick={pushPath('/edit')}
-                onKeyDown={navKey(pushPath('/edit'))}
-                className={`inline-flex h-9 shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-full border border-fg/14 bg-fg/[0.07] px-3 text-xs font-medium text-fg/58 transition-[transform,background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:bg-fg/11 hover:text-fg/78 motion-reduce:hover:translate-y-0 active:translate-y-0 sm:px-4 sm:text-sm ${focusRing}`}
-              >
-                {t('navStart')}
-              </span>
+              <GithubAuthButton />
             </div>
           </div>
       </header>

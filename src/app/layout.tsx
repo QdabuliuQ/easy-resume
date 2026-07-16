@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import '../index.css';
 import { AntdProvider } from './providers';
+import { AuthSessionProvider } from '@/components/auth/AuthSessionProvider';
 import {
   BYTEGOOFY_PUSH_SCRIPT_SRC,
   SITE_DESCRIPTION_DEFAULT,
@@ -49,7 +50,9 @@ export default function RootLayout({
         <Script id='ttzz' src={BYTEGOOFY_PUSH_SCRIPT_SRC} strategy='beforeInteractive' />
       </head>
       <body className='min-h-screen overflow-x-clip bg-background antialiased'>
-        <AntdProvider>{children}</AntdProvider>
+        <AuthSessionProvider>
+          <AntdProvider>{children}</AntdProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

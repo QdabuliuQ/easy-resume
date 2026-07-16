@@ -1,6 +1,7 @@
 'use client';
 import { uiHints } from '@/lib/uiHintStorage';
 import { useMemo, useRef, useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { observer } from 'mobx-react';
 import MenuItemIcon from './menuItemIcon';
@@ -55,20 +56,29 @@ type MenuProps = {
 export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
   const message = useAppMessage();
   const t = useTranslations('Edit.menu');
+  const { status, data: session } = useSession();
+  const signedIn = status === 'authenticated' && Boolean(session?.user);
   const importResumeMenu = useMemo(() => ({ label: t('importResume'), key: 'import-resume' as const }), [t]);
   const importMenu = useMemo(() => ({ label: t('importTemplate'), key: 'import-template' as const }), [t]);
-  const panelMenuItems = useMemo(
-    () =>
-      [
-        { label: t('resumeTemplate'), key: 'resume-template' as const },
-        { label: t('resume'), key: 'resume' as const },
-        { label: t('aiScore'), key: 'ai-score' as const },
-        { label: t('aiModify'), key: 'ai-modify' as const },
-        { label: t('pageSettings'), key: 'page-settings' as const },
-        { label: t('generalSettings'), key: 'general-settings' as const },
-      ] as const,
-    [t],
-  );
+  const panelMenuItems = useMemo(() => {
+    const items: { label: string; key: string }[] = [
+      { label: t('resumeTemplate'), key: 'resume-template' },
+      { label: t('resume'), key: 'resume' },
+      { label: t('aiScore'), key: 'ai-score' },
+      { label: t('aiModify'), key: 'ai-modify' },
+      { label: t('pageSettings'), key: 'page-settings' },
+      { label: t('generalSettings'), key: 'general-settings' },
+    ];
+    if (signedIn) {
+      items.splice(1, 0, { label: t('myResumes'), key: 'my-resumes' });
+    }
+    return items;
+  }, [t, signedIn]);
+  useEffect(() => {
+    if (!signedIn && activeKey === 'my-resumes') {
+      onActiveKeyChange('resume');
+    }
+  }, [signedIn, activeKey, onActiveKeyChange]);
   const { confirm, contextHolder } = useResponsiveConfirm();
   const {
     contextHolder: resumeImportContextHolder,

@@ -6,8 +6,8 @@
   <strong>English</strong>
 </p>
 
-<p align="center">AI resume editor · Fast editing · Data security · Local storage backup · AI-assisted</p>
-<p align="center">Online resume editor built on Next.js 14 (App Router): visually compose modules, rich text editing, drag-and-drop layout, with PDF / PNG export via Puppeteer.</p>
+<p align="center">AI resume editor · Fast editing · GitHub cloud sync · Local backup · AI-assisted</p>
+<p align="center">Online resume editor on Next.js 14 (App Router): visual modules, rich text, drag-and-drop layout, Puppeteer PDF/PNG export, and Cloudflare D1 cloud sync.</p>
 
 <p align="center">
   <a href="https://resume.qdabuliuq.cn/"><strong>🌐 Live demo</strong></a>
@@ -32,11 +32,13 @@
 
 ## ✨ Features
 
-- Modular resume editing (profile, work experience, projects, education, skills, certifications, etc.)
+- Modular resume editing (profile, work, projects, education, skills, certifications, etc.)
 - Canvas preview with grid layout (`react-grid-layout`)
 - Quill rich text with sanitized HTML (DOMPurify)
 - Server-rendered resume HTML; PDF/PNG export APIs
-- AI-assisted polishing and optimization
+- AI-assisted polish, scoring, import, etc.
+- **GitHub sign-in** (NextAuth) + **cloud resumes** (Cloudflare Workers + D1)
+- **Admin console** (`/zh/admin`): users, resumes, preview, delete
 
 ## 🛠️ Stack
 
@@ -47,33 +49,46 @@
 | State | MobX, mobx-react |
 | Editor / layout | Quill, @dnd-kit, react-grid-layout |
 | Export | Puppeteer |
+| Auth | Auth.js / next-auth (GitHub OAuth) |
+| Cloud data | Cloudflare Workers + D1 (`cf-api/`) |
 | Tooling | ESLint 9, Prettier, Husky, Commitlint |
 
 ## 💻 Requirements
 
 - **Node.js** ≥ 18.17 (see `package.json` `engines`)
-- **PDF/PNG**: Chromium must be available in production; default executable `/usr/bin/chromium-browser`, or set via environment variables (see table below)
+- **PDF/PNG**: Chromium in production (`PUPPETEER_EXECUTABLE_PATH` or default `/usr/bin/chromium-browser`)
+- **Cloud sync (optional)**: local `cf-api` via `wrangler dev --local`, or a deployed Worker URL
 
 ## 🚀 Quick start
 
 ```bash
 npm install
-# If React / Next peer dependency conflicts:
-# npm install --legacy-peer-deps
-
+cp .env.local.example .env.local
 npm run dev
 ```
 
-The dev server port is assigned by Next.js. Local URLs look like `http://localhost:3000/zh/edit` (use the port printed in the terminal).
-
-Production build and run:
+Cloud API (separate terminal):
 
 ```bash
-npm run build
-npm run start
+cd cf-api
+cp .dev.vars.example .dev.vars
+npx wrangler d1 execute easy-resume --local --file=./schema.sql   # first time
+npx wrangler dev --local --port 8787
 ```
 
-The `start` script listens on **3010**.
+In root `.env.local`:
+
+```bash
+CF_API_BASE_URL=http://127.0.0.1:8787
+ADMIN_SECRET=same-as-dev-vars
+CF_API_SECRET=same-as-dev-vars   # optional; falls back to ADMIN_SECRET
+```
+
+See [cf-api/README.md](./cf-api/README.md).
+
+```bash
+npm run build && npm run start   # port 3010
+```
 
 ## 📜 Scripts
 
@@ -81,66 +96,40 @@ The `start` script listens on **3010**.
 |---------|-------------|
 | `npm run dev` | Development |
 | `npm run build` | Production build |
-| `npm run start` | Production server (port 3010) |
+| `npm run start` | Production (port 3010) |
+| `npm run test` | Vitest |
 | `npm run lint` | ESLint |
-| `npm run lint:pritter` | Prettier format `src/` |
-| `npm run prepare` | Husky (runs after `npm install`) |
+| `npm run lint:pritter` | Prettier `src/` |
 
 ## 🔐 Environment variables
 
-Create `.env.local` at the project root (do not commit secrets). See `.env.local.example` for reference.
-
-### Local development
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `XFYUN_MAAS_API_KEY` | One of two | [iFlytek Astron Coding Plan](https://www.xfyun.cn/doc/spark/CodingPlan.html) API key (`appId:apiSecret`), default model `astron-code-latest` |
-| `CHATANYWHERE_API_KEY` | One of two | [ChatAnywhere free API](https://github.com/chatanywhere/GPT_API_free); used as fallback when XFYun fails (`deepseek-v4-flash`) |
-| `XFYUN_MAAS_BASE_URL` | No | XFYun MaaS base URL, default `https://maas-coding-api.cn-huabei-1.xf-yun.com/v2` |
-| `XFYUN_MAAS_MODEL` | No | XFYun model id, default `astron-code-latest` |
-| `PUPPETEER_EXECUTABLE_PATH` | No | Browser executable for PDF/PNG export via Puppeteer. In dev, Puppeteer’s bundled Chromium is used if unset; in production on Linux the default is `/usr/bin/chromium-browser` |
-
-`PUPPETEER_EXECUTABLE_PATH` examples:
-
-| OS | Example path |
-|----|--------------|
-| macOS (Google Chrome) | `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` |
-| Windows (Google Chrome) | `C:\Program Files\Google\Chrome\Application\chrome.exe` |
-| Linux (Chromium) | `/usr/bin/chromium-browser` or `/usr/bin/chromium` |
-
-### Deployment only
-
-Configure these on the server:
+See `.env.local.example`. Highlights:
 
 | Variable | Description |
 |----------|-------------|
-| `RESUME_PROJECT_ROOT` | Absolute project path on the server, e.g. `/root/easy-resume` (PM2 / script working directory) |
-| `NEXT_PUBLIC_SITE_URL` | Public site root URL, e.g. `https://resume.example.com`; used for PDF link resolution and site metadata. **Must be set before `npm run build`** or it won’t be embedded in the client bundle |
+| `AUTH_SECRET` / `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | NextAuth GitHub OAuth; callback `/api/github/callback` |
+| `CF_API_BASE_URL` | Worker base URL |
+| `CF_API_SECRET` | Server→CF key (`X-CF-Key`); falls back to `ADMIN_SECRET` |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` / `ADMIN_SECRET` | Admin console at `/zh/admin` |
 
-Optional (for AI score rate limiting and caching; see `.env.local.example`):
+Never ship `CF_API_SECRET` / `ADMIN_SECRET` to the browser. Worker secrets: local `.dev.vars`, production `wrangler secret put`.
 
-| Variable | Description |
-|----------|-------------|
-| `UPSTASH_REDIS_REST_URL` | [Upstash Redis](https://console.upstash.com) REST URL |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST Token |
-
-## 📂 Project layout (summary)
+## 📂 Layout
 
 ```
-src/
-  app/           # App Router: pages, layout, API routes (pdf/png/version/chat, etc.)
-  components/    # Shared components
-  views/edit/    # Editor shell (canvas, sidebar, header, etc.)
-  modules/       # Resume module renderers & types
-  mobx/          # Global state
-  lib/           # Puppeteer, fonts, API proxies, helpers
-  utils/         # Utilities
-  json/          # Default resume & template data
-public/          # Static assets (fonts, etc.)
-middleware.ts    # Next.js middleware
+src/app/          # App Router (incl. /api/github, /api/resume/cloud, /api/admin)
+src/views/admin/  # Admin shell
+cf-api/           # Cloudflare Workers + D1
+tests/            # Vitest
 ```
 
-## 🐳 Docker deployment
+## 🔒 Cloud security
+
+- Next injects `uid` from session, then calls CF with `X-CF-Key`
+- Direct CF `/api/resume/*` without key → 401
+- Admin login is rate-limited; legacy CF GitHub OAuth routes return 410
+
+## 🐳 Docker
 
 ```bash
 docker-compose up -d

@@ -1,0 +1,19 @@
+# Cloudflare Workers + D1（青松简历 API）
+name = "easy-resume-db"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+workers_dev = true
+
+# 本地：wrangler dev --local --port 8787（仅本地 SQLite，不碰云端 D1）
+# 线上：wrangler deploy
+
+[[d1_databases]]
+binding = "DB"
+database_name = "easy-resume"
+# 创建库后把真实 id 填到这里：npx wrangler d1 create easy-resume --location apac
+database_id = "4e2964ea-ac8c-4bb7-b7b2-a79859bc06ce"
+# 本地 --local 时自动用独立 SQLite，无需 preview_database_id
+
+# 线上默认变量（密钥用 wrangler secret put，勿写进本文件）
+[vars]
+FRONTEND_URL = "https://resume.qdabuliuq.cn"

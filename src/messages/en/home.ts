@@ -2,6 +2,7 @@ export default {
   brandName: 'EasyResume',
   navHome: 'Home',
   navGh: 'Open source on GitHub',
+  navGhShort: 'Source',
   themeToLight: 'Switch to light mode',
   themeToDark: 'Switch to dark mode',
   themeToSystem: 'Use system theme',
