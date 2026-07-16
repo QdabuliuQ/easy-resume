@@ -31,6 +31,11 @@
   <img src="https://img.qdabuliuq.cn/easy-resume/preview.webp" width="800" alt="青松简历项目预览">
 </p>
 
+**禁止：** Cloudflare 给主站配置 `resume.qdabuliuq.cn/api/* → Worker`（会导致登录 404）。  
+**正确：** 主站 Nginx 全部反代到本机 Next `:3010`；Worker 只用独立域名。
+
+国内若 `workers.dev` 超时，给 Worker 绑 `api.resume.qdabuliuq.cn` 这类**独立子域**，仍不要绑主站 `/api/*`。
+
 ## ✨ 功能概览
 
 - 简历模块编辑（个人信息、工作经历、项目、教育、技能、证书等）
@@ -137,13 +142,13 @@ npm run start
 | `AUTH_SECRET` | NextAuth 密钥（`openssl rand -base64 32`） |
 | `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | GitHub OAuth App；回调 `/api/github/callback` |
 | `AUTH_TRUST_HOST` | 反代下建议 `true` |
-| `CF_API_BASE_URL` | CF Worker 根地址（本地如 `http://127.0.0.1:8787`） |
+| `CF_API_BASE_URL` | **Worker 根地址**（生产例：`https://easy-resume-db.easy-resume.workers.dev`；本地：`http://127.0.0.1:8787`）。**不要**填主站域名 |
 | `CF_API_SECRET` | Next→CF 服务端密钥（Header `X-CF-Key`）；不设则回退 `ADMIN_SECRET` |
-| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | 后台账号密码（路径 `/zh/admin`） |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | 后台账号密码（路径 `/zh/admin`，走主站） |
 | `ADMIN_SECRET` | 后台 cookie 签名 + 调 CF 管理接口（`X-Admin-Key`）；需与 Worker 侧一致 |
 
-> 浏览器只访问 Next；`CF_API_SECRET` / `ADMIN_SECRET` **不要**写进前端代码。  
-> Worker 侧本地用 `cf-api/.dev.vars`，线上用 `wrangler secret put`，**不要**提交 `.dev.vars`。
+> 浏览器**只**访问主站；密钥不下发前端。  
+> Worker 密钥：本地 `cf-api/.dev.vars`，线上 `wrangler secret put`。
 
 ### 部署专用
 
@@ -174,9 +179,10 @@ tests/           # Vitest
 
 ## 🔒 安全要点（云同步）
 
-- 用户简历读写经 Next session 注入 `uid`，再带 `X-CF-Key` 调 CF
-- CF 直连 `/api/resume/*`、`/api/user/sync` 无密钥会 401
-- 后台登录有失败次数限制；CF 侧旧 GitHub OAuth 路由已停用（410）
+- **双地址隔离**：登录在主站；数据在 Worker（见上文）
+- 用户简历：Next session 注入 `uid`，再带 `X-CF-Key` 调 CF
+- CF 直连无密钥 → 401；无 `/api/admin/login`（故意没有）
+- 后台登录有失败次数限制
 
 ## 🐳 Docker 部署
 

@@ -1,7 +1,8 @@
 /**
  * 青松简历 — Cloudflare Workers + D1 后端
  * 无第三方依赖，仅 Workers 原生 fetch / crypto / D1
- * GitHub 登录由 NextAuth 处理；本 Worker 不提供 OAuth。
+ * 与主站隔离：无 /api/admin/login；浏览器勿直连本 Worker。
+ * Next 经 CF_API_BASE_URL + X-CF-Key / X-Admin-Key 调用。
  *
  * 路由：
  *   POST /api/user/sync          （X-CF-Key）
