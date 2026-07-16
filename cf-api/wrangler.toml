@@ -2,7 +2,6 @@
 name = "easy-resume-db"
 main = "src/index.js"
 compatibility_date = "2024-11-01"
-[deployments]
 workers_dev = false
 
 # 本地：wrangler dev --local --port 8787（仅本地 SQLite，不碰云端 D1）
