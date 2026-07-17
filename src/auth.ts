@@ -7,18 +7,38 @@ import { cfApiBase, cfApiHeaders, cfApiSecret } from '@/lib/cfApi';
 
 export { AUTH_BASE_PATH, GITHUB_CALLBACK_PATH };
 
-/** OAuth 回调 origin：跟当前请求走，绝不用 NEXT_PUBLIC_SITE_URL（那是站点 SEO 地址） */
+function envAuthOrigin(): string | null {
+  const raw =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.AUTH_URL ||
+    process.env.NEXTAUTH_URL;
+  if (!raw) return null;
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return null;
+  }
+}
+
+function isLoopbackHost(host: string): boolean {
+  const h = host.split(':')[0]?.toLowerCase() || '';
+  return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h === '[::1]';
+}
+
+/** OAuth 回调 origin：开发跟请求；生产反代 Host=localhost 时用 NEXT_PUBLIC_SITE_URL */
 function resolveAuthOrigin(req?: Request): string {
+  const fromEnv = envAuthOrigin();
   if (req) {
     try {
       const url = new URL(req.url);
       const xfHost = req.headers.get('x-forwarded-host')?.split(',')[0]?.trim();
       const xfProto = req.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
-      if (xfHost) {
+      const host = xfHost || req.headers.get('host') || '';
+      if (host && !isLoopbackHost(host)) {
         const proto = xfProto || url.protocol.replace(':', '') || 'https';
-        return `${proto}://${xfHost}`;
+        return `${proto}://${host}`;
       }
-      const host = req.headers.get('host');
+      if (process.env.NODE_ENV === 'production' && fromEnv) return fromEnv;
       if (host) {
         const proto = xfProto || url.protocol.replace(':', '') || 'http';
         return `${proto}://${host}`;
@@ -28,14 +48,7 @@ function resolveAuthOrigin(req?: Request): string {
       /* fall through */
     }
   }
-  const raw = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL;
-  if (raw) {
-    try {
-      return new URL(raw).origin;
-    } catch {
-      /* fall through */
-    }
-  }
+  if (process.env.NODE_ENV === 'production' && fromEnv) return fromEnv;
   return 'http://localhost:3000';
 }
 
@@ -45,6 +58,10 @@ function githubCallbackUrl(origin: string): string {
 
 function githubProvider(redirectUri: string) {
   return GitHub({
+    clientId: process.env.AUTH_GITHUB_ID,
+    clientSecret: process.env.AUTH_GITHUB_SECRET,
+    // ponytail: 关 PKCE，避免 localhost 下 pkce cookie 解析失败；仍用 state
+    checks: ['state'],
     authorization: {
       params: {
         scope: 'read:user user:email',
@@ -104,8 +121,8 @@ function authConfig(req?: Request): NextAuthConfig {
     trustHost: true,
     session: { strategy: 'jwt' },
     pages: {
-      signIn: '/',
-      error: '/',
+      signIn: '/zh',
+      error: '/zh',
     },
     callbacks: {
       async jwt({ token, profile }) {

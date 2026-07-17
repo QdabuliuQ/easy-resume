@@ -25,12 +25,7 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    return [
-      {
-        source: '/api/github/callback',
-        destination: '/api/github/callback/github',
-      },
-    ];
+    return [];
   },
   images: {
     remotePatterns: [

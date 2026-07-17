@@ -24,7 +24,7 @@ export default function GithubAuthButton({ variant = 'home' }: Props) {
     if (busy) return;
     setBusy(true);
     try {
-      await signIn('github', { callbackUrl: window.location.href });
+      await signIn('github', { redirectTo: window.location.href });
     } finally {
       setBusy(false);
     }
@@ -35,7 +35,7 @@ export default function GithubAuthButton({ variant = 'home' }: Props) {
     setBusy(true);
     setMenuOpen(false);
     try {
-      await signOut({ callbackUrl: window.location.href });
+      await signOut({ redirectTo: window.location.href });
     } finally {
       setBusy(false);
     }
