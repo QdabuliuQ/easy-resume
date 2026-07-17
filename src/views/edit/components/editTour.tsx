@@ -101,7 +101,7 @@ function EditTour({ ready }: EditTourProps) {
       onFinish={close}
       steps={steps}
       gap={{ radius: 10 }}
-      mask={{ color: 'color-mix(in srgb, var(--overlay-scrim) 72%, transparent)' }}
+      mask={{ color: 'rgba(15, 13, 18, 0.55)' }}
     />
   );
 }
