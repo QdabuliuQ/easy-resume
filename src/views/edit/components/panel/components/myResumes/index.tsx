@@ -256,7 +256,7 @@ function MyResumes() {
                       </Button>
                       <button
                         type='button'
-                        className='module-op-delete-btn'
+                        className='module-op-delete-btn !h-7 !w-7 !rounded-md'
                         aria-label={t('delete')}
                         onClick={() => askDelete(item.id)}
                       >
