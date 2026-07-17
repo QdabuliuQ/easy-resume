@@ -6,6 +6,7 @@
  *
  * 路由：
  *   POST /api/user/sync          （X-CF-Key）
+ *   POST /api/oauth/github/token （X-CF-Key；国内机房换 token 代理）
  *   GET  /api/admin/stats        （X-Admin-Key）
  *   GET  /api/admin/resumes?uid=&q=
  *   GET  /api/admin/resume?id=
@@ -497,6 +498,30 @@ function assertServiceKey(request, env) {
   return { ok: true };
 }
 
+/** POST /api/oauth/github/token — 转发到 github.com（规避国内机房对 /login/oauth 的 500） */
+async function handleGithubTokenProxy(request, env) {
+  const gate = assertServiceKey(request, env);
+  if (!gate.ok) return json(request, { error: gate.error }, gate.status);
+  const body = await request.text();
+  const upstream = await fetch('https://github.com/login/oauth/access_token', {
+    method: 'POST',
+    headers: {
+      Accept: request.headers.get('Accept') || 'application/json',
+      'Content-Type':
+        request.headers.get('Content-Type') || 'application/x-www-form-urlencoded',
+    },
+    body,
+  });
+  const text = await upstream.text();
+  return new Response(text, {
+    status: upstream.status,
+    headers: {
+      'Content-Type': upstream.headers.get('Content-Type') || 'application/json',
+      ...corsHeaders(request),
+    },
+  });
+}
+
 /**
  * GET /api/admin/stats
  * Header: X-Admin-Key: <ADMIN_SECRET>
@@ -690,6 +715,9 @@ export default {
           { error: '已停用：请使用站点 NextAuth GitHub 登录（/api/github）' },
           410,
         );
+      }
+      if (method === 'POST' && path === '/api/oauth/github/token') {
+        return handleGithubTokenProxy(request, env);
       }
       if (method === 'POST' && path === '/api/user/sync') return handleUserSync(request, env);
       if (method === 'GET' && path === '/api/admin/stats') return handleAdminStats(request, env);
