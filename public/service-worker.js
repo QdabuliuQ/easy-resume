@@ -205,22 +205,23 @@ self.addEventListener('fetch', (event) => {
     /\.(?:js|css|png|jpg|jpeg|svg|webp|ico|woff|woff2|ttf)$/i.test(url.pathname)
   ) {
     event.respondWith(
-      fetch(request)
-        .then(async (response) => {
+      (async () => {
+        const cached = await caches.match(request, { ignoreSearch: true });
+        if (cached) return cached;
+        try {
+          const response = await fetch(request);
           if (response.ok && staticCacheName) {
-            const cache = await caches.open(staticCacheName);
-            await cache.put(request, response.clone());
+            const clone = response.clone();
+            event.waitUntil(caches.open(staticCacheName).then((cache) => cache.put(request, clone)));
           }
           return response;
-        })
-        .catch(async () => {
-          const cached = await caches.match(request, { ignoreSearch: true });
-          if (cached) return cached;
+        } catch {
           if (url.pathname.startsWith('/_next/static/css/') || url.pathname.endsWith('.css')) {
             return EMPTY_CSS_RESPONSE.clone();
           }
           throw new Error(`Offline and no cache for static asset: ${url.pathname}`);
-        }),
+        }
+      })(),
     );
   }
 });
