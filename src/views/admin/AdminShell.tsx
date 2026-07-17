@@ -173,14 +173,16 @@ export default function AdminShell({
   if (!authed) return <LoginForm />;
 
   return (
-    <Layout className='min-h-screen' style={{ background: 'var(--editor-shell-bg)' }}>
+    <Layout className='h-screen overflow-hidden' style={{ background: 'var(--editor-shell-bg)' }}>
       <Sider
         breakpoint='lg'
         collapsedWidth={64}
         width={200}
+        className='!h-screen'
         style={{
           background: token.colorBgContainer,
           borderRight: `1px solid ${token.colorBorderSecondary}`,
+          overflow: 'auto',
         }}
       >
         <div className='px-4 py-4'>
@@ -215,9 +217,9 @@ export default function AdminShell({
           ]}
         />
       </Sider>
-      <Layout style={{ background: 'transparent' }}>
+      <Layout className='min-h-0' style={{ background: 'transparent' }}>
         <Header
-          className='flex items-center justify-between px-6'
+          className='flex shrink-0 items-center justify-between px-6'
           style={{
             background: token.colorBgContainer,
             borderBottom: `1px solid ${token.colorBorderSecondary}`,
@@ -239,7 +241,7 @@ export default function AdminShell({
             </Button>
           </div>
         </Header>
-        <Content className='p-6'>{children}</Content>
+        <Content className='min-h-0 flex-1 overflow-auto p-6'>{children}</Content>
       </Layout>
     </Layout>
   );

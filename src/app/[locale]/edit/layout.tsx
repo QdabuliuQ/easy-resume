@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { AntdProvider } from '@/app/providers';
+import { VersionUpdateNotifier } from '@/components/versionUpdateNotifier';
 import { buildEditMetadata } from '@/lib/pageMetadata';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
@@ -25,9 +27,10 @@ export default async function EditLayout({
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: 'Site' });
   return (
-    <>
+    <AntdProvider>
       <h1 className='sr-only'>{t('editTitle')}</h1>
+      <VersionUpdateNotifier />
       {children}
-    </>
+    </AntdProvider>
   );
 }

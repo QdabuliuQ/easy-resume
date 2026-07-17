@@ -1,5 +1,6 @@
 'use client';
 
+import { AntdProvider } from '@/app/providers';
 import AdminShell, { AdminProvider } from '@/views/admin/AdminShell';
 
 export default function AdminLayout({
@@ -10,8 +11,10 @@ export default function AdminLayout({
   params: { locale: string };
 }) {
   return (
-    <AdminProvider>
-      <AdminShell locale={params.locale}>{children}</AdminShell>
-    </AdminProvider>
+    <AntdProvider>
+      <AdminProvider>
+        <AdminShell locale={params.locale}>{children}</AdminShell>
+      </AdminProvider>
+    </AntdProvider>
   );
 }

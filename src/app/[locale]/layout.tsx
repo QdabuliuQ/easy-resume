@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { LocaleHtmlLang } from '@/components/localeHtmlLang';
-import { VersionUpdateNotifier } from '@/components/versionUpdateNotifier';
 import { getSiteOgPreviewImage } from '@/lib/brandAssets';
 import { buildBaseSiteMetadata } from '@/lib/pageMetadata';
 import { siteJsonLdGraph } from '@/lib/siteMeta';
@@ -45,7 +44,6 @@ export default async function LocaleLayout({
           ),
         }}
       />
-      <VersionUpdateNotifier />
       {children}
     </NextIntlClientProvider>
   );

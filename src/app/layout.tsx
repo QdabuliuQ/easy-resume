@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import '../index.css';
-import { AntdProvider } from './providers';
 import { AuthSessionProvider } from '@/components/auth/AuthSessionProvider';
+import { ServiceWorkerRegister } from '@/components/serviceWorkerRegister';
 import {
   BYTEGOOFY_PUSH_SCRIPT_SRC,
   SITE_DESCRIPTION_DEFAULT,
@@ -47,11 +47,12 @@ export default function RootLayout({
           key='theme-bootstrap'
           dangerouslySetInnerHTML={{ __html: themeBootstrap }}
         />
-        <Script id='ttzz' src={BYTEGOOFY_PUSH_SCRIPT_SRC} strategy='beforeInteractive' />
+        <Script id='ttzz' src={BYTEGOOFY_PUSH_SCRIPT_SRC} strategy='lazyOnload' />
       </head>
       <body className='min-h-screen overflow-x-clip bg-background antialiased'>
         <AuthSessionProvider>
-          <AntdProvider>{children}</AntdProvider>
+          <ServiceWorkerRegister />
+          {children}
         </AuthSessionProvider>
       </body>
     </html>
