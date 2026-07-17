@@ -36,9 +36,6 @@ const toolbarBadgeClass =
   'mb-0.5 flex h-6 min-w-0 items-center justify-center rounded-[10px] border border-[color:color-mix(in_srgb,var(--color-primary)_24%,var(--editor-shell-border))] bg-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--overlay-panel-bg))] px-2 text-[11px] font-semibold tracking-[0.18em] text-[color:var(--color-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]';
 const toolbarButtonClass =
   'box-border flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[14px] border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06),rgb(var(--panel-surface-rgb)/0.025))] text-[color:var(--module-op-icon)] shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04)] transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:color-mix(in_srgb,var(--color-primary)_36%,rgb(var(--panel-surface-rgb)/0.12))] hover:bg-[color:color-mix(in_srgb,var(--color-primary)_14%,rgb(var(--panel-surface-rgb)/0.03))] hover:text-[var(--color-primary)] hover:shadow-[var(--panel-shadow-hover-btn)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)] active:translate-y-0';
-const toolbarDeleteButtonClass =
-  'box-border flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[14px] border border-[color:color-mix(in_srgb,var(--panel-tone-rose)_22%,var(--float-btn-border))] bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_10%,var(--float-btn-bg))] text-[color:var(--module-op-delete-icon)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),var(--panel-shadow-icon-btn)] transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:-translate-y-px hover:border-[color:color-mix(in_srgb,var(--panel-tone-rose)_34%,var(--float-btn-border-hover))] hover:bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_18%,var(--float-btn-bg-hover))] hover:text-[color:var(--module-op-delete-icon-hover)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),var(--panel-shadow-primary-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:color-mix(in_srgb,var(--panel-tone-rose)_54%,transparent)] active:translate-y-0 active:bg-[color:color-mix(in_srgb,var(--panel-tone-rose)_24%,var(--float-btn-bg))]';
-
 function findModuleRoot(host: HTMLElement, id: string): HTMLElement | null {
   return host.querySelector(
     `[${RESUME_MODULE_ID_ATTR}="${CSS.escape(id)}"]`,
@@ -462,7 +459,7 @@ function ModuleOperation({
                     onOk: deleteHandle,
                   });
                 }}
-                className={toolbarDeleteButtonClass}
+                className='module-op-delete-btn'
                 aria-label={tm('deleteAria')}
               >
                 <DeleteOne theme='outline' size='17' fill='currentColor' />

@@ -57,6 +57,22 @@ async function deleteStaleCaches(keepStatic, keepPages) {
   );
 }
 
+/** ponytail: SW 同域并发约 6；预缓存限流，避免挤占首屏/懒加载 chunk */
+const PRE_CACHE_CONCURRENCY = 2;
+
+async function mapPool(items, limit, worker) {
+  const list = Array.from(items);
+  let i = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(limit, list.length) || 0 }, async () => {
+      while (i < list.length) {
+        const item = list[i++];
+        await worker(item);
+      }
+    }),
+  );
+}
+
 async function preCachePagesAndAssets(staticCacheName, pageCacheName) {
   const pageCache = await caches.open(pageCacheName);
   const staticCache = await caches.open(staticCacheName);
@@ -98,24 +114,21 @@ async function preCachePagesAndAssets(staticCacheName, pageCacheName) {
     }
   }
 
-  await Promise.all(
-    Array.from(allAssetUrls).map((assetUrl) =>
-      fetch(new Request(assetUrl, { cache: 'reload' }))
-        .then((response) => {
-          if (response.ok) return staticCache.put(assetUrl, response);
-          return undefined;
-        })
-        .catch(() => undefined),
-    ),
-  );
+  await mapPool(allAssetUrls, PRE_CACHE_CONCURRENCY, async (assetUrl) => {
+    try {
+      const response = await fetch(assetUrl);
+      if (response.ok) await staticCache.put(assetUrl, response);
+    } catch {
+      // skip failed asset
+    }
+  });
 }
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       cacheScope = null;
-      const scope = await ensureCacheScope();
-      await preCachePagesAndAssets(scope.static, scope.pages);
+      await ensureCacheScope();
       self.skipWaiting();
     })(),
   );
@@ -128,6 +141,8 @@ self.addEventListener('activate', (event) => {
       const scope = await ensureCacheScope();
       await deleteStaleCaches(scope.static, scope.pages);
       await self.clients.claim();
+      // 后台预缓存，不挡 activate / 首屏请求
+      void preCachePagesAndAssets(scope.static, scope.pages);
     })(),
   );
 });

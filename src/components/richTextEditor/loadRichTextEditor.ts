@@ -23,6 +23,8 @@ let editorPromise: Promise<RichTextEditorModule> | null = null;
 
 export function loadRichTextEditor(): Promise<RichTextEditorModule> {
   if (!editorPromise) {
+    // 与编辑器 chunk 并行拉 Quill，避免串行两轮网络
+    void import('quill');
     editorPromise = import('./index');
   }
   return editorPromise;

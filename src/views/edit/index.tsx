@@ -1,7 +1,8 @@
 'use client';
-import { memo, useLayoutEffect, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSearchParams } from 'next/navigation';
+import { prefetchRichTextEditor } from '@/components/richTextEditor/lazy';
 import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
@@ -20,6 +21,10 @@ function Edit() {
   const searchParams = useSearchParams();
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
   const [shellRevealReady, setShellRevealReady] = useState(false);
+  useEffect(() => {
+    const id = window.setTimeout(() => prefetchRichTextEditor(), 1200);
+    return () => clearTimeout(id);
+  }, []);
   useLayoutEffect(() => {
     const raw = searchParams.get('template');
     const color = searchParams.get('color');

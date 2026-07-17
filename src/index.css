@@ -875,6 +875,49 @@ html[data-prefers-color-scheme='dark'] {
   box-shadow: 0 16px 34px rgb(0 0 0 / 0.12);
 }
 
+/* —— 模块/简历删除按钮（ModuleOperation 与「我的简历」共用，保证明暗主题一致） —— */
+.module-op-delete-btn {
+  box-sizing: border-box;
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  appearance: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--panel-tone-rose) 22%, var(--float-btn-border));
+  background: color-mix(in srgb, var(--panel-tone-rose) 10%, var(--float-btn-bg));
+  color: var(--module-op-delete-icon);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    var(--panel-shadow-icon-btn);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.module-op-delete-btn:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--panel-tone-rose) 34%, var(--float-btn-border-hover));
+  background: color-mix(in srgb, var(--panel-tone-rose) 18%, var(--float-btn-bg-hover));
+  color: var(--module-op-delete-icon-hover);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    var(--panel-shadow-primary-glow);
+}
+.module-op-delete-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--panel-tone-rose) 54%, transparent);
+  outline-offset: 2px;
+}
+.module-op-delete-btn:active {
+  transform: translateY(0);
+  background: color-mix(in srgb, var(--panel-tone-rose) 24%, var(--float-btn-bg));
+}
+
 /* —— 画布悬浮操作按钮（GitHub / 主题切换 / 预览） —— */
 .canvas-float-btn {
   display: inline-flex;

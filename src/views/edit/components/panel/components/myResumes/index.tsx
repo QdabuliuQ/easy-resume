@@ -4,17 +4,18 @@ import {
   CheckCircleFilled,
   CloudDownloadOutlined,
   CloudOutlined,
-  DeleteOutlined,
   FileTextOutlined,
   LoadingOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
-import { App, Button, Popconfirm, Spin } from 'antd';
+import { DeleteOne } from '@icon-park/react';
+import { Button, Spin } from 'antd';
 import { observer } from 'mobx-react';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useAppMessage } from '@/hooks/useAppMessage';
+import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { cloudResumeStore } from '@/mobx';
 import type { ResumeTemplateItem } from '@/json/resumeTemplates';
 import {
@@ -35,7 +36,7 @@ type ResumeItem = {
 function MyResumes() {
   const t = useTranslations('Edit.myResumes');
   const message = useAppMessage();
-  const { modal } = App.useApp();
+  const { confirm, contextHolder } = useResponsiveConfirm();
   const { data: session, status } = useSession();
   const user = session?.user;
   const name = user?.name || user?.login || t('guest');
@@ -96,7 +97,7 @@ function MyResumes() {
       message.info(t('alreadyOpen'));
       return;
     }
-    modal.confirm({
+    confirm({
       title: t('confirmOpenTitle'),
       content: t('confirmOpenContent'),
       okText: t('confirmOpenOk'),
@@ -111,6 +112,16 @@ function MyResumes() {
     });
   };
 
+  const askDelete = (id: string) => {
+    confirm({
+      title: t('confirmDelete'),
+      okText: t('delete'),
+      cancelText: t('cancel'),
+      danger: true,
+      onOk: () => void onDelete(id),
+    });
+  };
+
   const onDelete = async (id: string) => {
     const result = await cloudResumeStore.deleteResume(id);
     if (result.ok) message.success(t('deleted'));
@@ -119,6 +130,7 @@ function MyResumes() {
 
   return (
     <div className='space-y-3'>
+      {contextHolder}
       <div className={`${panelShellClass} flex items-center gap-3`}>
         {avatar ? (
           <Image
@@ -242,20 +254,14 @@ function MyResumes() {
                       >
                         {t('load')}
                       </Button>
-                      <Popconfirm
-                        title={t('confirmDelete')}
-                        okText={t('delete')}
-                        cancelText={t('cancel')}
-                        onConfirm={() => void onDelete(item.id)}
+                      <button
+                        type='button'
+                        className='module-op-delete-btn'
+                        aria-label={t('delete')}
+                        onClick={() => askDelete(item.id)}
                       >
-                        <Button
-                          type='default'
-                          size='small'
-                          danger
-                          icon={<DeleteOutlined />}
-                          className='!h-7 !w-7 !min-w-7 shrink-0 !rounded-lg !border-[#f5a8a8] !bg-[#fde8e8] !px-0 !text-[#e85a5a] hover:!border-[#f08a8a] hover:!bg-[#fcdada] hover:!text-[#e04545]'
-                        />
-                      </Popconfirm>
+                        <DeleteOne theme='outline' size='17' fill='currentColor' />
+                      </button>
                     </div>
                   </div>
                 </li>
