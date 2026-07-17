@@ -100,6 +100,8 @@ const authConfig: NextAuthConfig = {
       clientSecret: process.env.AUTH_GITHUB_SECRET,
       // ponytail: 关 PKCE/state cookie 校验，避免反代下 cookie 丢失导致 Configuration
       checks: [],
+      // 凭证进 body；避免 Worker 漏转 Authorization 时 GitHub 回 404 Not Found
+      client: { token_endpoint_auth_method: 'client_secret_post' },
       authorization: { params: { scope: 'read:user user:email' } },
       // 国内机房对 github.com/login/oauth 返回 500；换 token 经 CF Worker
       ...(githubToken ? { token: githubToken } : {}),

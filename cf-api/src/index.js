@@ -503,13 +503,17 @@ async function handleGithubTokenProxy(request, env) {
   const gate = assertServiceKey(request, env);
   if (!gate.ok) return json(request, { error: gate.error }, gate.status);
   const body = await request.text();
+  const headers = {
+    Accept: request.headers.get('Accept') || 'application/json',
+    'Content-Type':
+      request.headers.get('Content-Type') || 'application/x-www-form-urlencoded',
+  };
+  // Auth.js 默认 client_secret_basic：凭证在 Authorization，必须原样转发
+  const authz = request.headers.get('Authorization');
+  if (authz) headers.Authorization = authz;
   const upstream = await fetch('https://github.com/login/oauth/access_token', {
     method: 'POST',
-    headers: {
-      Accept: request.headers.get('Accept') || 'application/json',
-      'Content-Type':
-        request.headers.get('Content-Type') || 'application/x-www-form-urlencoded',
-    },
+    headers,
     body,
   });
   const text = await upstream.text();
