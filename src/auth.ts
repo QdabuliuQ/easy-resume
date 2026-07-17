@@ -7,10 +7,16 @@ import { cfApiBase, cfApiHeaders, cfApiSecret } from '@/lib/cfApi';
 
 export { AUTH_BASE_PATH, GITHUB_CALLBACK_PATH };
 
+/** 生产反代 Host 常是 localhost:3010；给 Auth.js 写死公网地址 */
+if (process.env.NODE_ENV === 'production') {
+  const site = process.env.AUTH_URL || process.env.NEXT_PUBLIC_SITE_URL;
+  if (site) process.env.AUTH_URL = site;
+}
+
 function envAuthOrigin(): string | null {
   const raw =
-    process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.AUTH_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.NEXTAUTH_URL;
   if (!raw) return null;
   try {
@@ -25,9 +31,11 @@ function isLoopbackHost(host: string): boolean {
   return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h === '[::1]';
 }
 
-/** OAuth 回调 origin：开发跟请求；生产反代 Host=localhost 时用 NEXT_PUBLIC_SITE_URL */
+/** OAuth 回调 origin：生产固定公网；本地跟请求 */
 function resolveAuthOrigin(req?: Request): string {
   const fromEnv = envAuthOrigin();
+  if (process.env.NODE_ENV === 'production' && fromEnv) return fromEnv;
+
   if (req) {
     try {
       const url = new URL(req.url);
@@ -38,7 +46,6 @@ function resolveAuthOrigin(req?: Request): string {
         const proto = xfProto || url.protocol.replace(':', '') || 'https';
         return `${proto}://${host}`;
       }
-      if (process.env.NODE_ENV === 'production' && fromEnv) return fromEnv;
       if (host) {
         const proto = xfProto || url.protocol.replace(':', '') || 'http';
         return `${proto}://${host}`;
@@ -48,8 +55,7 @@ function resolveAuthOrigin(req?: Request): string {
       /* fall through */
     }
   }
-  if (process.env.NODE_ENV === 'production' && fromEnv) return fromEnv;
-  return 'http://localhost:3000';
+  return fromEnv || 'http://localhost:3000';
 }
 
 function githubCallbackUrl(origin: string): string {
