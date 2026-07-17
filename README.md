@@ -34,7 +34,7 @@
 **禁止：** Cloudflare 给主站配置 `resume.qdabuliuq.cn/api/* → Worker`（会导致登录 404）。  
 **正确：** 主站 Nginx 全部反代到本机 Next `:3010`；Worker 只用独立域名。
 
-国内若 `workers.dev` 超时，给 Worker 绑 `api.resume.qdabuliuq.cn` 这类**独立子域**，仍不要绑主站 `/api/*`。
+国内若 `workers.dev` 超时，生产用已绑的 `api.resume.qdabuliuq.cn`，仍不要绑主站 `/api/*`。
 
 ## ✨ 功能概览
 
@@ -142,7 +142,7 @@ npm run start
 | `AUTH_SECRET` | NextAuth 密钥（`openssl rand -base64 32`） |
 | `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | GitHub OAuth App；回调 `/api/github/callback` |
 | `AUTH_TRUST_HOST` | 反代下建议 `true` |
-| `CF_API_BASE_URL` | **Worker 根地址**（生产例：`https://easy-resume-db.easy-resume.workers.dev`；本地：`http://127.0.0.1:8787`）。**不要**填主站域名 |
+| `CF_API_BASE_URL` | **Worker 根地址**（生产：`https://api.resume.qdabuliuq.cn`；本地：`http://127.0.0.1:8787`）。**不要**填主站域名 |
 | `CF_API_SECRET` | Next→CF 服务端密钥（Header `X-CF-Key`）；不设则回退 `ADMIN_SECRET` |
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | 后台账号密码（路径 `/zh/admin`，走主站） |
 | `ADMIN_SECRET` | 后台 cookie 签名 + 调 CF 管理接口（`X-Admin-Key`）；需与 Worker 侧一致 |

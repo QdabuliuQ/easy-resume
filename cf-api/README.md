@@ -6,7 +6,7 @@
 
 | | 主站 Next | 本 Worker |
 |--|-----------|-----------|
-| 域名 | `https://resume.qdabuliuq.cn` | `https://easy-resume-db.easy-resume.workers.dev`（或独立子域） |
+| 域名 | `https://resume.qdabuliuq.cn` | `https://api.resume.qdabuliuq.cn`（备用 workers.dev） |
 | 登录 | `/api/admin/login`、NextAuth `/api/github` | **无登录接口** |
 | 数据 | 浏览器调 `/api/admin/stats`、`/api/resume/cloud` 等（Next 代理） | 真实 D1：`/api/admin/stats`、`/api/resume/*`、`/api/user/sync` |
 | 谁访问 | 浏览器 | **仅 Next 服务端**（`CF_API_BASE_URL` + 密钥） |
@@ -18,13 +18,13 @@
            服务端 fetch(CF_API_BASE_URL + 路径)
                 │  X-CF-Key / X-Admin-Key
                 ▼
-           easy-resume-db…workers.dev (本仓库)
+           api.resume.qdabuliuq.cn (本仓库)
 ```
 
 **禁止** Cloudflare Routes：`resume.qdabuliuq.cn/api/*` → 本 Worker（会抢走登录，返回 404）。  
 Nginx 主站只反代本机 Next；本 Worker 只用独立域名。
 
-国内访问 `workers.dev` 若超时：给 Worker 绑 `api.resume.qdabuliuq.cn`，`CF_API_BASE_URL` 改成该子域即可（仍勿绑主站 `/api/*`）。
+生产请用 `api.resume.qdabuliuq.cn`（`wrangler.toml` 已配 custom domain）；勿绑主站 `/api/*`。
 
 ## 目录
 
@@ -109,18 +109,16 @@ npx wrangler deploy
 Next 生产环境：
 
 ```bash
-CF_API_BASE_URL=https://easy-resume-db.easy-resume.workers.dev
-# 或自定义子域 https://api.resume.qdabuliuq.cn
+CF_API_BASE_URL=https://api.resume.qdabuliuq.cn
 ```
 
-`wrangler.toml` 保持 `workers_dev = true`（若继续用 workers.dev）。  
 **不要**在 Dashboard 给主站加 `/api/*` Worker 路由。
 
 ## 五、示例（直接打 Worker，需密钥）
 
 ```bash
 KEY=your-secret
-BASE=https://easy-resume-db.easy-resume.workers.dev
+BASE=https://api.resume.qdabuliuq.cn
 
 curl -s "$BASE/api/health"
 curl -s "$BASE/api/admin/stats" -H "X-Admin-Key: $KEY"

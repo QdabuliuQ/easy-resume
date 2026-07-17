@@ -9,6 +9,11 @@ workers_dev = true
 
 # 本地：npx wrangler dev --local --port 8787
 # 线上：npx wrangler deploy（可在开发机执行）
+# 国内 workers.dev 常超时 → 自定义子域；禁止绑主站 resume…/api/*
+
+[[routes]]
+pattern = "api.resume.qdabuliuq.cn"
+custom_domain = true
 
 [[d1_databases]]
 binding = "DB"
