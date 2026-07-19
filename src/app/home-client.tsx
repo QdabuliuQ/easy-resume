@@ -71,6 +71,14 @@ const IconGithub = memo(function IconGithub({ className }: { className?: string 
   );
 });
 
+const IconStar = memo(function IconStar({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox='0 0 16 16' width='1em' height='1em' fill='currentColor' aria-hidden>
+      <path d='M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z' />
+    </svg>
+  );
+});
+
 const IconGlobe = memo(function IconGlobe({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox='0 0 24 24' width='1em' height='1em' fill='none' stroke='currentColor' strokeWidth='1.75' aria-hidden>
@@ -142,7 +150,7 @@ function StaticCta({
   );
 }
 
-export default function Home() {
+export default function Home({ githubStars = null }: { githubStars?: number | null }) {
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
@@ -306,13 +314,25 @@ export default function Home() {
             <span
               role='button'
               tabIndex={0}
-              aria-label={t('navGh')}
+              aria-label={
+                githubStars != null
+                  ? `${t('navGh')} · ${githubStars.toLocaleString(locale)} stars`
+                  : t('navGh')
+              }
               onClick={openGh}
               onKeyDown={navKey(openGh)}
               className={`hidden h-9 cursor-pointer items-center gap-1.5 rounded-full border border-fg/14 bg-fg/[0.05] px-3 text-xs font-medium text-fg/65 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/[0.09] hover:text-fg/88 sm:inline-flex ${focusRing}`}
             >
               <IconGithub className='text-[14px]' />
-              {t('navGhShort')}
+              {githubStars != null ? (
+                <>
+                  {githubStars.toLocaleString(locale)}
+                  <IconStar className='text-[12px]' />
+
+                </>
+              ) : (
+                t('navGhShort')
+              )}
             </span>
             <div ref={langRef} className='relative'>
               <button

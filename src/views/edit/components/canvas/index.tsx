@@ -600,11 +600,12 @@ function Canvas({
   });
   const importLoading = resumeImportStore.loading;
   useEffect(() => {
-    if (importLoading) clearSelectableHover();
-  }, [importLoading, clearSelectableHover]);
-  const quickSelectActive = isEditMode && quickSelectEnabled && !importLoading;
+    if (importLoading || previewOpen) clearSelectableHover();
+  }, [importLoading, previewOpen, clearSelectableHover]);
+  // ponytail: 预览时卸交互；pages 只挂 overlay，避免双份 DOM
+  const quickSelectActive = isEditMode && quickSelectEnabled && !importLoading && !previewOpen;
 
-  const floatActionsEl = isEditMode ? (
+  const floatActionsEl = isEditMode && !previewOpen ? (
     <CanvasFloatActions
       backupReady={backupReady}
       quickSelectEnabled={quickSelectEnabled}
@@ -635,8 +636,9 @@ function Canvas({
       <div
         ref={canvasStageRef}
         className='relative flex w-full flex-col items-center py-[40px]'
+        aria-hidden={previewOpen || undefined}
       >
-        {isEditMode ? (
+        {previewOpen ? null : isEditMode ? (
           <ModuleOperation
             stageRef={canvasStageRef}
             onModuleActivated={onOpenResumePanel}
@@ -684,7 +686,15 @@ function Canvas({
           ))}
         </Page>
       </div>
-      <div className='relative' style={{ width: scaledW, height: scaledH }}>
+      <div
+        className='relative'
+        style={{
+          width: scaledW,
+          height: scaledH,
+          visibility: previewOpen ? 'hidden' : undefined,
+          pointerEvents: previewOpen ? 'none' : undefined,
+        }}
+      >
         <div
           style={{
             width: pw,
