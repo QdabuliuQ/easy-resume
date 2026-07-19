@@ -93,6 +93,7 @@ export default {
     importTemplate: 'Import',
     resumeTemplate: 'Templates',
     myResumes: 'My resumes',
+    needLogin: 'Sign in with GitHub to use',
     resume: 'Resume',
     pageSettings: 'Page',
     aiScore: 'AI score',

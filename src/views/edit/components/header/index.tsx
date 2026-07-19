@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { memo, useId, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSession } from 'next-auth/react';
-import { Button, Input } from 'antd';
+import { Button, Input, Tooltip } from 'antd';
 import {
   EditOutlined,
   RedoOutlined,
@@ -23,6 +23,7 @@ function Header() {
   const t = useTranslations('Edit.header');
   const message = useAppMessage();
   const { status } = useSession();
+  const signedIn = status === 'authenticated';
   const { canUndo, canRedo, undo, redo } = useEditHistory();
   const {
     exportPdf,
@@ -198,29 +199,33 @@ function Header() {
           </defs>
         </svg>
         {showSave ? (
-          <button
-            type='button'
-            disabled={actionsDisabled || saving}
-            onClick={() => void onSave()}
-            className={`cursor-pointer ${exportChipOuter}`}
-          >
-            <span className={exportChipInner}>
-              <span className={exportIconSlot} aria-hidden>
-                {saving ? (
-                  <span className='inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]' />
-                ) : (
-                  <Save
-                    theme='outline'
-                    size={20}
-                    fill={`url(#${exportGradId})`}
-                  />
-                )}
-              </span>
-              <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent whitespace-nowrap'>
-                {saving ? t('saving') : t('save')}
-              </span>
+          <Tooltip title={signedIn ? undefined : t('saveNeedLogin')}>
+            <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
+              <button
+                type='button'
+                disabled={actionsDisabled || saving || !signedIn}
+                onClick={() => void onSave()}
+                className={`${signedIn ? 'cursor-pointer' : 'pointer-events-none'} ${exportChipOuter}`}
+              >
+                <span className={exportChipInner}>
+                  <span className={exportIconSlot} aria-hidden>
+                    {saving ? (
+                      <span className='inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]' />
+                    ) : (
+                      <Save
+                        theme='outline'
+                        size={20}
+                        fill={`url(#${exportGradId})`}
+                      />
+                    )}
+                  </span>
+                  <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent whitespace-nowrap'>
+                    {saving ? t('saving') : t('save')}
+                  </span>
+                </span>
+              </button>
             </span>
-          </button>
+          </Tooltip>
         ) : null}
         <button
           type='button'

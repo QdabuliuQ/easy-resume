@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 import { useSession } from 'next-auth/react';
 import { useLocale, useTranslations } from 'next-intl';
 import { memo, useId, useRef, useState } from 'react';
-import { Button, Input } from 'antd';
+import { Button, Input, Tooltip } from 'antd';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { cloudResumeStore, configStore } from '@/mobx';
@@ -21,6 +21,7 @@ function MobileEditHeader() {
   const t = useTranslations('Edit.header');
   const message = useAppMessage();
   const { status } = useSession();
+  const signedIn = status === 'authenticated';
   const { canUndo, canRedo, undo, redo } = useEditHistory();
   const locale = useLocale();
   const [editing, setEditing] = useState(false);
@@ -95,22 +96,27 @@ function MobileEditHeader() {
           )}
         </div>
         {showSave ? (
-          <Button
-            type='default'
-            size='small'
-            loading={saving}
-            icon={
-              saving ? undefined : (
-                <SaveOne theme='outline' size={16} fill={`url(#${saveGradId})`} />
-              )
-            }
-            onClick={() => void onSave()}
-            className='!border-[color-mix(in_srgb,var(--color-primary)_35%,transparent)]'
-          >
-            <span className='bg-gradient-primary bg-clip-text font-semibold text-transparent'>
-              {saving ? t('saving') : t('save')}
+          <Tooltip title={signedIn ? undefined : t('saveNeedLogin')}>
+            <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
+              <Button
+                type='default'
+                size='small'
+                loading={saving}
+                disabled={!signedIn}
+                icon={
+                  saving ? undefined : (
+                    <SaveOne theme='outline' size={16} fill={`url(#${saveGradId})`} />
+                  )
+                }
+                onClick={() => void onSave()}
+                className='!border-[color-mix(in_srgb,var(--color-primary)_35%,transparent)]'
+              >
+                <span className='bg-gradient-primary bg-clip-text font-semibold text-transparent'>
+                  {saving ? t('saving') : t('save')}
+                </span>
+              </Button>
             </span>
-          </Button>
+          </Tooltip>
         ) : null}
         <GithubAuthButton variant='compact' />
       </div>

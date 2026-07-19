@@ -1,9 +1,10 @@
 'use client';
 import { uiHints } from '@/lib/uiHintStorage';
-import { useMemo, useRef, useState, useEffect } from 'react';
+import { useMemo, useRef, useState, useEffect, Fragment } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { observer } from 'mobx-react';
+import { Tooltip } from 'antd';
 import MenuItemIcon from './menuItemIcon';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useAppMessage } from '@/hooks/useAppMessage';
@@ -63,17 +64,15 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
   const panelMenuItems = useMemo(() => {
     const items: { label: string; key: string }[] = [
       { label: t('resumeTemplate'), key: 'resume-template' },
+      { label: t('myResumes'), key: 'my-resumes' },
       { label: t('resume'), key: 'resume' },
       { label: t('aiScore'), key: 'ai-score' },
       { label: t('aiModify'), key: 'ai-modify' },
       { label: t('pageSettings'), key: 'page-settings' },
       { label: t('generalSettings'), key: 'general-settings' },
     ];
-    if (signedIn) {
-      items.splice(1, 0, { label: t('myResumes'), key: 'my-resumes' });
-    }
     return items;
-  }, [t, signedIn]);
+  }, [t]);
   useEffect(() => {
     if (!signedIn && activeKey === 'my-resumes') {
       onActiveKeyChange('resume');
@@ -154,20 +153,22 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
       isActionImportResume && resumeImportLoading && resumeImportStore.statusText
         ? resumeImportStore.statusText
         : item.label;
-    return (
+    const loginLocked = item.key === 'my-resumes' && !signedIn;
+    const tile = (
       <div
-        key={item.key}
         data-edit-tour={
           item.key === 'resume-template' || item.key === 'ai-score' || item.key === 'ai-modify'
             ? `menu-${item.key}`
             : undefined
         }
         role='button'
-        tabIndex={0}
+        tabIndex={loginLocked ? -1 : 0}
         aria-current={selected ? 'page' : undefined}
         aria-label={label}
+        aria-disabled={loginLocked || undefined}
         aria-busy={isActionImportResume && resumeImportLoading}
         onClick={() => {
+          if (loginLocked) return;
           if (isActionImportResume) confirmThenPickResumeImport();
           else if (isActionImport) confirmThenPickImport();
           else {
@@ -176,6 +177,7 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
           }
         }}
         onKeyDown={(e) => {
+          if (loginLocked) return;
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             if (isActionImportResume) confirmThenPickResumeImport();
@@ -186,7 +188,9 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
             }
           }
         }}
-        className={`${menuTileClass} ${tileCls}${hintCls}${isActionImportResume && resumeImportLoading ? ' pointer-events-none opacity-60' : ''}`}
+        className={`${menuTileClass} ${tileCls}${hintCls}${
+          isActionImportResume && resumeImportLoading ? ' pointer-events-none opacity-60' : ''
+        }${loginLocked ? ' pointer-events-none' : ''}`}
         style={{ width: MENU_TILE_SIZE_PX, height: MENU_TILE_SIZE_PX }}
       >
         {isActionImportResume && resumeImportLoading ? (
@@ -202,6 +206,14 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
         </span>
       </div>
     );
+    if (loginLocked) {
+      return (
+        <Tooltip key={item.key} title={t('needLogin')} placement='right'>
+          <span className='inline-flex cursor-not-allowed opacity-45'>{tile}</span>
+        </Tooltip>
+      );
+    }
+    return <Fragment key={item.key}>{tile}</Fragment>;
   };
   return (
     <>

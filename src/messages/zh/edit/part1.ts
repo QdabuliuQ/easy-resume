@@ -93,6 +93,7 @@ export default {
     importTemplate: '导入模板',
     resumeTemplate: '简历模板',
     myResumes: '我的简历',
+    needLogin: '登录 GitHub 后可使用',
     resume: '简历编辑',
     pageSettings: '页面配置',
     aiScore: 'AI 评分',
