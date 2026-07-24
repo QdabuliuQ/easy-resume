@@ -1,4 +1,8 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-npm run build
+# Next 14「Collecting page data」偶发 PageNotFoundError（竞态），失败再编一次
+npm run build || {
+  echo "pre-push: build failed once, retrying…"
+  npm run build
+}
