@@ -1,0 +1,193 @@
+{
+  "id": "marketing",
+  "title": "市场营销简历模板",
+  "config": {
+    "name": "市场营销简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#383838",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 2,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "center",
+              "name": "周启明",
+              "phone": "13911223344",
+              "email": "zhouqiming_mkt@163.com",
+              "city": "广东/广州",
+              "status": "离职-随时到岗",
+              "intentCity": [
+                [
+                  "广东",
+                  "广州"
+                ],
+                [
+                  "广东",
+                  "深圳"
+                ],
+                [
+                  "北京",
+                  "朝阳"
+                ]
+              ],
+              "intentPosts": "市场营销、品牌营销、市场推广",
+              "wechat": "zhouqm_mkt",
+              "birthday": "1995-11-08",
+              "gender": "男",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "origin": "湖南/长沙",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": null,
+              "expectedSalary": [
+                "12k",
+                "20k"
+              ],
+              "avatar": "resumeAvatar:a1",
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 <b>5 年</b>市场营销经验，覆盖品牌传播、活动策划与效果投放</li><li>善于从目标人群洞察出发设计传播路径，并跟踪转化数据闭环</li><li>跨部门协作顺畅，能统筹设计、内容、渠道与销售现场落地</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "广州品牌营销有限公司",
+                  "post": "市场主管",
+                  "department": "市场部",
+                  "city": "广东 - 广州",
+                  "startDate": "2021-04",
+                  "endDate": "2025-03",
+                  "description": "<ul><li>负责品牌年度传播规划与重点节点战役，统筹线上线下触点</li><li>管理信息流与搜索投放预算，优化获客成本约 <u>25%</u></li><li>策划新品发布会与城市巡展，协调媒体与 KOL 资源</li><li>沉淀活动 SOP 与复盘模板，提升团队交付效率</li></ul>",
+                  "id": "effe5ff7-0f7c-499b-ac61-1c156f0bba9e"
+                },
+                {
+                  "company": "长沙某快消企业",
+                  "post": "市场专员",
+                  "department": "品牌中心",
+                  "city": "湖南 - 长沙",
+                  "startDate": "2018-07",
+                  "endDate": "2021-03",
+                  "description": "<ul><li>执行门店促销与导购话术培训，提升终端转化</li><li>维护公众号与社群内容排期，跟进线索到店</li><li>协助竞品监测与周报撰写</li></ul>",
+                  "id": "b1819ee7-1718-4492-9ac6-05a376bcb4b8"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "夏季新品整合营销战役",
+                  "role": "项目负责人",
+                  "startDate": "2023-05",
+                  "endDate": "2023-09",
+                  "description": "<ul><li>制定「种草—转化—复购」链路，组合短视频、直播与线下快闪</li><li>活动期相关 SKU 销量环比提升约 <u>35%</u></li><li>输出可复用的内容素材库与投放人群包</li></ul>",
+                  "id": "1c88bcef-602d-4a38-bcc0-a5b4e2670413"
+                },
+                {
+                  "name": "品牌焕新视觉与传播升级",
+                  "role": "市场侧对接",
+                  "startDate": "2022-01",
+                  "endDate": "2022-08",
+                  "description": "<ul><li>协同设计完成视觉体系升级，统一官网/包装/物料规范</li><li>组织内外部沟通会，保障渠道物料按时替换上线</li></ul>",
+                  "id": "a0d3ef4c-bba0-4945-b8e0-0d6b4704c34c"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "湖南师范大学",
+                  "degree": "本科",
+                  "major": "市场营销",
+                  "startDate": "2014-09",
+                  "endDate": "2018-06",
+                  "city": "湖南 - 长沙",
+                  "tags": [],
+                  "academy": "商学院",
+                  "description": "<ul><li>主修消费者行为、市场调研、品牌管理、整合营销传播</li><li>参与校级营销策划大赛并获得奖项</li></ul>",
+                  "id": "6dcd32a9-d4a0-466e-a75e-42c9108786ec"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟悉品牌定位、活动策划、媒介投放与效果复盘全流程</li><li>熟练使用 <b>飞书/企微</b>、投放后台与基础数据分析工具</li><li>具备文案策划、竞品分析与跨部门推进能力</li><li>了解短视频/直播运营与 KOL 合作谈判要点</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "助理营销师资格证书",
+                  "date": "2018-05-01",
+                  "id": "a8c3d72a-01cc-4b5b-ac3c-a6f23d0235ec"
+                },
+                {
+                  "name": "大学英语四级考试合格证书",
+                  "date": "2016-12-01",
+                  "id": "da4c818d-466b-40ec-a65c-3ee2886c282f"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

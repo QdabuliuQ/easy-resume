@@ -4,6 +4,7 @@ import {
   CheckCircleFilled,
   CloudDownloadOutlined,
   CloudOutlined,
+  EyeOutlined,
   FileTextOutlined,
   LoadingOutlined,
   ReloadOutlined,
@@ -17,6 +18,7 @@ import { memo, useCallback, useEffect, useState } from 'react';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { cloudResumeStore } from '@/mobx';
+import { resumePreviewStore } from '@/mobx/resumePreviewStore';
 import type { ResumeTemplateItem } from '@/json/resumeTemplates';
 import {
   TEMPLATE_CARD_PREVIEW_SCALE,
@@ -128,6 +130,17 @@ function MyResumes() {
     else message.error(result.error || t('deleteFail'));
   };
 
+  const onPreview = (item: ResumeItem) => {
+    if (!item.config) {
+      message.info(t('previewNeedConfig'));
+      return;
+    }
+    resumePreviewStore.openWithConfig(
+      item.config,
+      `${t('previewTitle')} · ${item.name || t('unnamed')}`,
+    );
+  };
+
   return (
     <div className='space-y-3'>
       {contextHolder}
@@ -211,39 +224,41 @@ function MyResumes() {
                         : 'border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.055)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),var(--panel-layer-deep)] hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--color-primary)_42%,rgb(var(--panel-surface-rgb)/0.12))]'
                     }`}
                   >
-                    <button
-                      type='button'
-                      disabled={!!openingId}
-                      onClick={() => onLoad(item.id)}
-                      className='flex w-full cursor-pointer flex-col text-left disabled:cursor-wait'
-                    >
-                      <div className='flex items-center justify-between gap-2 border-b border-fg/[0.06] bg-surface/[0.03] px-3 py-2'>
-                        <span className='inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2 py-0.5 text-[10px] font-medium text-fg/62'>
-                          {active ? (
-                            <CheckCircleFilled className='text-[10px] text-[var(--color-primary)]' />
-                          ) : null}
-                          {String(index + 1).padStart(2, '0')}
-                        </span>
-                        <span className='truncate text-[12px] font-semibold text-fg/88'>
-                          {item.name || t('unnamed')}
-                        </span>
+                    <div className='flex items-center justify-between gap-2 border-b border-fg/[0.06] bg-surface/[0.03] px-3 py-2'>
+                      <span className='inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2 py-0.5 text-[10px] font-medium text-fg/62'>
+                        {active ? (
+                          <CheckCircleFilled className='text-[10px] text-[var(--color-primary)]' />
+                        ) : null}
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span className='truncate text-[12px] font-semibold text-fg/88'>
+                        {item.name || t('unnamed')}
+                      </span>
+                    </div>
+                    <div className='flex justify-center overflow-hidden bg-[rgb(var(--surface-fg-rgb)/0.04)]'>
+                      <div className='pointer-events-none max-h-[220px] overflow-hidden'>
+                        {item.config ? (
+                          <TemplateFirstPagePreview
+                            config={item.config}
+                            scale={TEMPLATE_CARD_PREVIEW_SCALE}
+                          />
+                        ) : (
+                          <div className='flex h-[160px] w-full items-center justify-center text-[12px] text-fg/40'>
+                            {t('previewLoading')}
+                          </div>
+                        )}
                       </div>
-                      <div className='flex justify-center overflow-hidden bg-[rgb(var(--surface-fg-rgb)/0.04)]'>
-                        <div className='pointer-events-none max-h-[220px] overflow-hidden'>
-                          {item.config ? (
-                            <TemplateFirstPagePreview
-                              config={item.config}
-                              scale={TEMPLATE_CARD_PREVIEW_SCALE}
-                            />
-                          ) : (
-                            <div className='flex h-[160px] w-full items-center justify-center text-[12px] text-fg/40'>
-                              {t('previewLoading')}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </button>
+                    </div>
                     <div className='flex items-center gap-2 border-t border-fg/[0.06] px-3 py-2'>
+                      <Button
+                        type='default'
+                        size='small'
+                        icon={<EyeOutlined />}
+                        className='!h-7 min-w-0 flex-1 !rounded-md !border-fg/[0.12] !bg-surface/[0.04] !px-2 !text-[11px] !font-medium !text-fg/72'
+                        onClick={() => onPreview(item)}
+                      >
+                        {t('preview')}
+                      </Button>
                       <Button
                         type='default'
                         size='small'

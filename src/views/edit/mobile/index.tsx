@@ -9,6 +9,7 @@ import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { configStore, editHistoryStore } from '@/mobx';
 import Container from '../components/container';
+import ResumeConfigCanvasPreviewHost from '../components/resumeConfigCanvasPreviewHost';
 import MobileEditHeader from './header';
 import MobileMainTabs from './mainTabs';
 import MobileBottomNav, { type MobileBottomKey } from './bottomNav';
@@ -112,6 +113,7 @@ function MobileEdit() {
       {templateOpen ? (
         <MobileTemplateOverlay onClose={() => setTemplateOpen(false)} />
       ) : null}
+      <ResumeConfigCanvasPreviewHost />
     </div>
     </MobileEditProvider>
   );

@@ -11,12 +11,8 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { useMemoizedFn } from 'ahooks';
-import {
-  CloseOutlined,
-} from '@ant-design/icons';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { createPortal } from 'react-dom';
 import resume from '@/json/resume.defaults';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
@@ -50,11 +46,13 @@ import CanvasModuleFragment from './moduleFragment';
 import SelectableGuideLines from './selectableGuideLines';
 import { useSelectableGuideHover } from './useSelectableGuideHover';
 import CanvasFloatActions from './canvasFloatActions';
+import CanvasPreviewOverlay, {
+  useCanvasPreviewOverlayState,
+} from './canvasPreviewOverlay';
 import ResumeImportOverlay from './resumeImportOverlay';
 
 /** 容器内左右留白，用于判断是否需缩小画布（缩放时两侧至少各 40） */
 const CANVAS_SIDE_PAD = 70;
-const PREVIEW_EXIT_MS = 200;
 const RENDER_DEBOUNCE_MS = 100;
 const PAGE_FIT_EPSILON_PX = 0.5;
 const MEASURE_HEIGHT_EPSILON_PX = 0.1;
@@ -444,9 +442,8 @@ function Canvas({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewClosing, setPreviewClosing] = useState(false);
-  const previewCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { open: previewOpen, closing: previewClosing, openPreview, closePreview } =
+    useCanvasPreviewOverlayState();
   const themeSnap = useSyncExternalStore(
     subscribeAppTheme,
     getThemeSnapshot,
@@ -536,64 +533,24 @@ function Canvas({
         clearTimeout(renderDebounceTimerRef.current);
         renderDebounceTimerRef.current = null;
       }
-      if (previewCloseTimerRef.current) {
-        clearTimeout(previewCloseTimerRef.current);
-      }
     };
   }, []);
 
-  const openPreview = useMemoizedFn(() => {
-    if (previewCloseTimerRef.current) {
-      clearTimeout(previewCloseTimerRef.current);
-      previewCloseTimerRef.current = null;
-    }
-    setPreviewClosing(false);
-    setPreviewOpen(true);
-  });
-
-  const closePreview = useMemoizedFn(() => {
-    if (!previewOpen || previewClosing) return;
-    setPreviewClosing(true);
-    previewCloseTimerRef.current = setTimeout(() => {
-      setPreviewOpen(false);
-      setPreviewClosing(false);
-      previewCloseTimerRef.current = null;
-    }, PREVIEW_EXIT_MS);
-  });
-
-  const previewOverlay =
-    previewOpen && typeof document !== 'undefined'
-      ? createPortal(
-          <div
-            className={`${previewClosing ? 'canvas-preview-overlay-exit-animate' : 'canvas-preview-overlay-animate'} canvas-preview-shell fixed inset-0 z-[1400] flex min-h-0 flex-col backdrop-blur-sm`}
-          >
-            <div className='canvas-preview-toolbar flex items-center justify-between px-5 py-3.5'>
-              <span className='text-[13px] font-medium'>{tc('textPreview')}</span>
-              <button
-                type='button'
-                onClick={closePreview}
-                className='canvas-preview-close'
-                aria-label={tc('closePreview')}
-              >
-                <CloseOutlined className='text-[12px]' />
-              </button>
-            </div>
-
-            <div className='min-h-0 flex-1 overflow-auto px-5 py-5'>
-              <div
-                className={`${previewClosing ? 'canvas-preview-content-exit-animate' : 'canvas-preview-content-animate'} mx-auto flex w-fit flex-col gap-[30px]`}
-              >
-                {pages.map((page, idx) => (
-                  <div key={`text-preview-page-${idx}`} className='shrink-0'>
-                    {page}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>,
-          document.body
-        )
-      : null;
+  const previewOverlay = isEditMode ? (
+    <CanvasPreviewOverlay
+      open={previewOpen}
+      closing={previewClosing}
+      title={tc('textPreview')}
+      closeAria={tc('closePreview')}
+      onClose={closePreview}
+    >
+      {pages.map((page, idx) => (
+        <div key={`text-preview-page-${idx}`} className='shrink-0'>
+          {page}
+        </div>
+      ))}
+    </CanvasPreviewOverlay>
+  ) : null;
   const { hoverRect, updateSelectableHover, clearSelectableHover } = useSelectableGuideHover({
     containerRef,
     stageRef: canvasStageRef,

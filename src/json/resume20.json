@@ -1,0 +1,193 @@
+{
+  "id": "customer-service",
+  "title": "客服专员简历模板",
+  "config": {
+    "name": "客服专员简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#383838",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 4,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "left",
+              "name": "何雨晴",
+              "phone": "13755667788",
+              "email": "heyq_cs@163.com",
+              "city": "四川/成都",
+              "status": "在职-考虑机会",
+              "intentCity": [
+                [
+                  "四川",
+                  "成都"
+                ],
+                [
+                  "四川",
+                  "绵阳"
+                ],
+                [
+                  "重庆",
+                  "渝北"
+                ]
+              ],
+              "intentPosts": "客服专员、客户成功、在线客服",
+              "wechat": "heyq_cs",
+              "birthday": "1998-01-30",
+              "gender": "女",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "origin": "四川/南充",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": null,
+              "expectedSalary": [
+                "7k",
+                "12k"
+              ],
+              "avatar": "resumeAvatar:a3",
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 <b>3 年</b>客户服务经验，擅长情绪安抚与问题闭环</li><li>熟悉多渠道接待（在线/电话/工单），注重响应时效与满意度</li><li>能沉淀话术与知识库，帮助新人快速上手</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "成都互联网服务有限公司",
+                  "post": "客服专员",
+                  "department": "客户服务中心",
+                  "city": "四川 - 成都",
+                  "startDate": "2022-03",
+                  "endDate": "2025-05",
+                  "description": "<ul><li>日均处理在线与电话咨询，保持首次响应与解决时效达标</li><li>跟进退换货、账户与活动规则类工单至闭环</li><li>整理高频问题 FAQ，推动知识库更新</li><li>参与满意度回访，月均好评率保持较高水平</li></ul>",
+                  "id": "5f1518ae-c719-4523-8c9e-acdc300a061a"
+                },
+                {
+                  "company": "南充某电商客服外包",
+                  "post": "在线客服",
+                  "department": "客服组",
+                  "city": "四川 - 南充",
+                  "startDate": "2020-08",
+                  "endDate": "2022-02",
+                  "description": "<ul><li>负责售前咨询与售后基础问题解答</li><li>按脚本完成催付、物流查询与评价邀约</li><li>学习平台规则，降低违规风险</li></ul>",
+                  "id": "b4b0a800-b552-492f-914e-f287b0db7f9e"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "旺季客服扩容与话术优化",
+                  "role": "核心成员",
+                  "startDate": "2023-10",
+                  "endDate": "2024-02",
+                  "description": "<ul><li>参与双十一值班排班与应急预案演练</li><li>优化退换货与物流异常标准话术，缩短平均处理时长</li><li>协助培训临时支援人员，保障高峰服务质量</li></ul>",
+                  "id": "ee437015-9bc7-4421-a5dd-14518747297c"
+                },
+                {
+                  "name": "客户投诉升级路径梳理",
+                  "role": "执行对接",
+                  "startDate": "2022-06",
+                  "endDate": "2023-01",
+                  "description": "<ul><li>梳理投诉分级与升级条件，明确责任人与时限</li><li>减少重复转派，提升一次解决率</li></ul>",
+                  "id": "98a16d2b-43d4-49b9-8b60-323aa8180e70"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "四川师范大学",
+                  "degree": "大专",
+                  "major": "电子商务",
+                  "startDate": "2017-09",
+                  "endDate": "2020-06",
+                  "city": "四川 - 成都",
+                  "tags": [],
+                  "academy": "商学院",
+                  "description": "<ul><li>主修客户关系管理、网络营销、商务沟通</li><li>实习期积累电商客服实操经验</li></ul>",
+                  "id": "d9e66d15-9245-4176-8c83-dd8565f68ff7"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟练使用客服系统、工单系统与常见办公软件</li><li>具备良好的倾听、表达与冲突处理能力</li><li>熟悉电商售后常见场景与平台规则要点</li><li>打字与多任务切换效率高，抗压能力强</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "普通话水平测试二级甲等",
+                  "date": "2019-05-01",
+                  "id": "70b17eed-90df-4fd2-b83f-f0539c0d3fa8"
+                },
+                {
+                  "name": "全国计算机等级考试一级合格证书",
+                  "date": "2018-09-01",
+                  "id": "5bbdaaed-0e60-4733-84d3-b4884c924598"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

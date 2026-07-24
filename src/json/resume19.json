@@ -1,0 +1,193 @@
+{
+  "id": "mechanical",
+  "title": "机械工程师简历模板",
+  "config": {
+    "name": "机械工程师简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#3d3d3d",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 8,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "right",
+              "name": "韩立成",
+              "phone": "13699887766",
+              "email": "hanlicheng_me@163.com",
+              "city": "江苏/苏州",
+              "status": "在职",
+              "intentCity": [
+                [
+                  "江苏",
+                  "苏州"
+                ],
+                [
+                  "江苏",
+                  "无锡"
+                ],
+                [
+                  "上海",
+                  "松江"
+                ]
+              ],
+              "intentPosts": "机械工程师、结构设计、设备工程师",
+              "wechat": "hanlc_me",
+              "birthday": "1994-07-19",
+              "gender": "男",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "origin": "安徽/合肥",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": null,
+              "expectedSalary": [
+                "13k",
+                "22k"
+              ],
+              "avatar": "resumeAvatar:a2",
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 <b>6 年</b>机械结构设计经验，熟悉从需求到打样量产的闭环</li><li>擅长用 <i>SolidWorks / AutoCAD</i> 完成零件与装配设计并输出工程图</li><li>注重可制造性与成本，能与工艺、采购、供应商高效协同</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "苏州精密设备有限公司",
+                  "post": "机械工程师",
+                  "department": "研发部",
+                  "city": "江苏 - 苏州",
+                  "startDate": "2020-03",
+                  "endDate": "2025-04",
+                  "description": "<ul><li>负责非标自动化设备机架、传动与夹具结构设计</li><li>输出完整 BOM 与工程图纸，跟进打样、装配与试机问题闭环</li><li>推动关键件标准化，缩短新项目设计周期约 <u>20%</u></li><li>参与现场问题分析，优化结构强度与装配公差</li></ul>",
+                  "id": "ef9b06d9-73fc-4e94-88e2-6e8f9ed99613"
+                },
+                {
+                  "company": "合肥某制造企业",
+                  "post": "助理机械工程师",
+                  "department": "技术部",
+                  "city": "安徽 - 合肥",
+                  "startDate": "2017-07",
+                  "endDate": "2020-02",
+                  "description": "<ul><li>协助完成产品改型设计与图纸变更管理</li><li>配合工艺编制作业指导，支持小批量试产</li><li>维护图文档与版本归档</li></ul>",
+                  "id": "e69c3872-2824-4f2e-ae92-fd169edcfacb"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "自动装配线升级改造",
+                  "role": "机械设计负责人",
+                  "startDate": "2022-06",
+                  "endDate": "2024-01",
+                  "description": "<ul><li>完成工位布局、夹具与安全防护结构设计</li><li>协同电气调试，将节拍提升约 <u>15%</u></li><li>沉淀标准件库与设计检查清单</li></ul>",
+                  "id": "49e94803-d8b7-4fc0-ac2d-e6fe8fd368b6"
+                },
+                {
+                  "name": "新型治具快速换型方案",
+                  "role": "结构设计",
+                  "startDate": "2021-02",
+                  "endDate": "2022-05",
+                  "description": "<ul><li>设计快换接口与定位结构，减少换线时间</li><li>验证强度与重复定位精度，形成使用规范</li></ul>",
+                  "id": "8fde1fba-76fe-42cd-8923-704afa808365"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "合肥工业大学",
+                  "degree": "本科",
+                  "major": "机械工程",
+                  "startDate": "2013-09",
+                  "endDate": "2017-06",
+                  "city": "安徽 - 合肥",
+                  "tags": [],
+                  "academy": "机械工程学院",
+                  "description": "<ul><li>主修机械设计、理论力学、材料力学、机械制造工艺</li><li>课程设计完成减速器与简单机构综合设计</li></ul>",
+                  "id": "a3d391ba-4c89-4882-bf72-b1e8276d69bd"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟练 <i>SolidWorks / AutoCAD / Creo</i>，能独立出图与装配干涉检查</li><li>了解机加工工艺、公差配合、材料选型与成本评估</li><li>熟悉非标自动化设备结构与现场装配调试流程</li><li>具备基本的 FEA 概念与设计评审表达能力</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "计算机辅助设计（CAD）中级证书",
+                  "date": "2016-11-01",
+                  "id": "7aa09340-3259-4da9-b41f-275578c9ec92"
+                },
+                {
+                  "name": "大学英语四级考试合格证书",
+                  "date": "2015-12-01",
+                  "id": "933ee81d-bbf6-4db4-999a-aa2eaca2cc94"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

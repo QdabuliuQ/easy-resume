@@ -1,6 +1,6 @@
 'use client';
 
-import { CloseOutlined } from '@ant-design/icons';
+import { CloseOutlined, EyeOutlined } from '@ant-design/icons';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useTranslations } from 'next-intl';
@@ -8,6 +8,7 @@ import { memo, useEffect, useMemo } from 'react';
 import { resumeTemplates } from '@/json/resumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { configStore, editHistoryStore, moduleActiveStore } from '@/mobx';
+import { resumePreviewStore } from '@/mobx/resumePreviewStore';
 import {
   TemplateFirstPagePreview,
   TEMPLATE_CARD_PREVIEW_SCALE,
@@ -82,11 +83,7 @@ function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
           <ul className='grid grid-cols-2 gap-3'>
             {cards.map((t) => (
               <li key={t.id} className='min-w-0'>
-                <button
-                  type='button'
-                  onClick={() => onPick(t)}
-                  className='flex w-full flex-col overflow-hidden rounded-2xl border border-fg/10 bg-fg/[0.03] text-left'
-                >
+                <div className='flex w-full flex-col overflow-hidden rounded-2xl border border-fg/10 bg-fg/[0.03] text-left'>
                   <div className='border-b border-fg/8 px-2 py-1.5'>
                     <span className='block truncate text-[11px] font-semibold text-fg/88'>{t.title}</span>
                     <span className='text-[10px] text-fg/45'>{t.orderLabel}</span>
@@ -94,7 +91,29 @@ function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
                   <div className='flex justify-center overflow-hidden bg-[rgb(var(--surface-fg-rgb)/0.04)] py-2'>
                     <TemplateFirstPagePreview template={t} scale={TEMPLATE_CARD_PREVIEW_SCALE} />
                   </div>
-                </button>
+                  <div className='flex gap-1.5 border-t border-fg/8 p-1.5'>
+                    <button
+                      type='button'
+                      onClick={() =>
+                        resumePreviewStore.openWithConfig(
+                          t.config,
+                          `${tr('previewTitle')} · ${t.title}`,
+                        )
+                      }
+                      className='inline-flex h-7 flex-1 items-center justify-center gap-0.5 rounded-md border border-fg/12 text-[10px] font-medium text-fg/70'
+                    >
+                      <EyeOutlined className='text-[11px]' />
+                      {tr('preview')}
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => onPick(t)}
+                      className='inline-flex h-7 flex-1 items-center justify-center rounded-md border border-[color:color-mix(in_srgb,var(--color-primary)_24%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-[10px] font-medium text-[color:var(--color-primary)]'
+                    >
+                      {tr('apply')}
+                    </button>
+                  </div>
+                </div>
               </li>
             ))}
           </ul>

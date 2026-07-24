@@ -1,5 +1,5 @@
 'use client';
-import { AppstoreOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, EyeOutlined } from '@ant-design/icons';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useMemoizedFn } from 'ahooks';
@@ -15,6 +15,7 @@ import type { GlobalStyle } from '@/modules/utils/common.type';
 import { Page } from '@/modules';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { configStore, editHistoryStore, moduleActiveStore } from '@/mobx';
+import { resumePreviewStore } from '@/mobx/resumePreviewStore';
 import { renderResumePageModules } from '@/views/edit/components/canvas/renderResumePageModules';
 import ResumeFontCdn from '@/views/edit/components/canvas/resumeFontCdn';
 
@@ -199,11 +200,7 @@ function ResumeTemplate() {
         <ul className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
           {templateCards.map((t) => (
             <li key={t.id} className='min-w-0'>
-              <button
-                type='button'
-                onClick={() => onPick(t)}
-                className='group flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.055)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),var(--panel-layer-deep)] text-left shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04),var(--panel-shadow-card-tight)] transition-[transform,border-color,background-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--color-primary)_42%,rgb(var(--panel-surface-rgb)/0.12))] hover:bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.07)_0%,rgb(var(--panel-surface-rgb)/0.03)_100%),var(--panel-layer-deep)] hover:shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.05),var(--panel-shadow-hover-card)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)]'
-              >
+              <div className='group flex w-full flex-col overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.055)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),var(--panel-layer-deep)] text-left shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04),var(--panel-shadow-card-tight)] transition-[transform,border-color,background-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--color-primary)_42%,rgb(var(--panel-surface-rgb)/0.12))] hover:bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.07)_0%,rgb(var(--panel-surface-rgb)/0.03)_100%),var(--panel-layer-deep)] hover:shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.05),var(--panel-shadow-hover-card)]'>
                 <div className='flex items-center justify-between gap-2 border-b border-fg/[0.06] bg-surface/[0.03] px-3 py-2'>
                   <span className='inline-flex items-center whitespace-nowrap rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2 py-0.5 text-[10px] font-medium text-fg/62'>
                     {t.orderLabel}
@@ -217,12 +214,29 @@ function ResumeTemplate() {
                     <TemplateFirstPagePreview template={t} scale={TEMPLATE_CARD_PREVIEW_SCALE} />
                   </div>
                 </div>
-                <div className='border-t border-fg/[0.06] px-3 py-2.5'>
-                  <span className='flex justify-center items-center whitespace-nowrap rounded-lg border border-[color:color-mix(in_srgb,var(--color-primary)_24%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_12%,transparent)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--color-primary)] transition-colors group-hover:border-[color:color-mix(in_srgb,var(--color-primary)_38%,transparent)] group-hover:bg-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)]'>
+                <div className='flex items-center gap-2 border-t border-fg/[0.06] px-3 py-2'>
+                  <button
+                    type='button'
+                    onClick={() =>
+                      resumePreviewStore.openWithConfig(
+                        t.config,
+                        `${tr('previewTitle')} · ${t.title}`,
+                      )
+                    }
+                    className='inline-flex h-7 flex-1 cursor-pointer items-center justify-center gap-1 rounded-md border border-fg/[0.12] bg-surface/[0.04] px-2 text-[11px] font-medium text-fg/72 transition-colors hover:border-fg/[0.18] hover:bg-surface/[0.08] hover:text-fg/88'
+                  >
+                    <EyeOutlined className='text-[12px]' />
+                    {tr('preview')}
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => onPick(t)}
+                    className='inline-flex h-7 flex-1 cursor-pointer items-center justify-center rounded-md border border-[color:color-mix(in_srgb,var(--color-primary)_24%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_12%,transparent)] px-2 text-[11px] font-medium text-[color:var(--color-primary)] transition-colors hover:border-[color:color-mix(in_srgb,var(--color-primary)_38%,transparent)] hover:bg-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)]'
+                  >
                     {tr('apply')}
-                  </span>
+                  </button>
                 </div>
-              </button>
+              </div>
             </li>
           ))}
         </ul>

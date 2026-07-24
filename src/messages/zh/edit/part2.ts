@@ -57,8 +57,11 @@ export default {
     confirmOpenContent: '将覆盖当前编辑中的内容。若尚未保存，请先点顶栏「保存」。',
     confirmOpenOk: '加载并覆盖',
     load: '加载',
-    previewHint: '预览为首页，点击卡片加载整份云端简历',
+    preview: '预览',
+    previewTitle: '简历预览',
+    previewHint: '可点「预览」大屏查看，或「加载」覆盖当前编辑内容',
     previewLoading: '预览加载中…',
+    previewNeedConfig: '预览尚未就绪，请稍后再试',
     deleted: '已删除',
     deleteFail: '删除失败',
     loadFail: '加载列表失败',
@@ -317,7 +320,7 @@ export default {
     appliedOk: '已应用模板',
     libraryTitle: '模板库',
     templateCount: '共 {n} 套',
-    previewHint: '预览为每套模板首页，点击卡片应用整套模板',
+    previewHint: '可点「预览」大屏查看，确认后再「应用模板」',
     usageTitle: '使用说明',
     usageBody:
       '选择模板后会覆盖当前内容，适合在开始新简历或重构现有排版时使用。',
@@ -325,6 +328,8 @@ export default {
     backupBody:
       '应用模板前可先导出 JSON，避免覆盖后无法恢复原始内容。',
     apply: '应用模板',
+    preview: '预览',
+    previewTitle: '模板预览',
   },
   modulePanel: {
     editTitleAria: '编辑模块标题',

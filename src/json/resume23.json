@@ -1,0 +1,198 @@
+{
+  "id": "bank-rm",
+  "title": "银行客户经理简历模板",
+  "config": {
+    "name": "银行客户经理简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#2c3e50",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 5,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "left",
+              "name": "梁思远",
+              "phone": "13966770011",
+              "email": "liangsy_bank@163.com",
+              "city": "浙江/杭州",
+              "status": "在职",
+              "intentCity": [
+                [
+                  "浙江",
+                  "杭州"
+                ],
+                [
+                  "浙江",
+                  "宁波"
+                ],
+                [
+                  "上海",
+                  "黄浦"
+                ]
+              ],
+              "intentPosts": "银行客户经理、对公客户经理、理财经理",
+              "wechat": "liangsy_bank",
+              "birthday": "1993-12-21",
+              "gender": "男",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "origin": "浙江/温州",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": null,
+              "expectedSalary": [
+                "12k",
+                "22k"
+              ],
+              "avatar": "resumeAvatar:a2",
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 <b>7 年</b>银行零售/对公客户经营经验，注重合规与长期关系维护</li><li>善于挖掘客户需求，匹配存款、贷款与财富管理方案</li><li>具备较强的拜访推进与跨条线协同能力</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "杭州某商业银行支行",
+                  "post": "客户经理",
+                  "department": "零售金融部",
+                  "city": "浙江 - 杭州",
+                  "startDate": "2019-08",
+                  "endDate": "2025-05",
+                  "description": "<ul><li>维护个人与小微客户关系，完成存款与贷款经营目标</li><li>开展外拓拜访与网点活动获客，年新增有效客户达标</li><li>推进信用卡、理财与保险交叉销售，提升客户综合贡献</li><li>严格落实双录与合规要求，保持较好资产质量</li></ul>",
+                  "id": "6dd1be8f-1fb1-47f0-a476-5d207a7ad271"
+                },
+                {
+                  "company": "温州某城商行",
+                  "post": "客户经理助理",
+                  "department": "营业部",
+                  "city": "浙江 - 温州",
+                  "startDate": "2016-07",
+                  "endDate": "2019-07",
+                  "description": "<ul><li>协助客户开户、资料收集与贷后检查</li><li>参与厅堂服务与活动邀约，提升到店转化</li><li>学习信贷基础流程与风险识别要点</li></ul>",
+                  "id": "d4ab3a0b-2b4b-4b5a-af0b-79717221f1cd"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "小微企业批量获客专项",
+                  "role": "项目执行",
+                  "startDate": "2022-03",
+                  "endDate": "2024-06",
+                  "description": "<ul><li>对接园区与协会资源，组织沙龙与产品宣讲</li><li>形成标准化尽调清单，提高进件效率</li><li>助力支行小微贷款余额稳步增长</li></ul>",
+                  "id": "7e979fc4-0329-4a86-a277-63a90d75b264"
+                },
+                {
+                  "name": "高净值客户经营提升计划",
+                  "role": "协同推进",
+                  "startDate": "2021-01",
+                  "endDate": "2022-02",
+                  "description": "<ul><li>梳理客户资产配置现状，组织财富诊断会</li><li>协同理财经理完成方案落地与持续跟进</li></ul>",
+                  "id": "3ceab47d-918d-4a48-9e67-d774d6dc4e7c"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "浙江工商大学",
+                  "degree": "本科",
+                  "major": "金融学",
+                  "startDate": "2012-09",
+                  "endDate": "2016-06",
+                  "city": "浙江 - 杭州",
+                  "tags": [],
+                  "academy": "金融学院",
+                  "description": "<ul><li>主修商业银行经营、公司金融、投资学、风险管理</li><li>积极参加模拟银行与案例分析竞赛</li></ul>",
+                  "id": "5258c471-fc73-4858-85e2-97d05442cb33"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟悉银行零售/小微产品体系与客户经营流程</li><li>具备较强的商务拜访、需求挖掘与方案讲解能力</li><li>熟练使用行内 CRM 与办公软件，注重合规双录要求</li><li>抗压能力强，目标导向，擅长团队协作</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "银行从业资格证书",
+                  "date": "2016-10-01",
+                  "id": "9a16a256-7ad4-40c3-abe6-ebd2260b5295"
+                },
+                {
+                  "name": "基金从业资格证书",
+                  "date": "2018-05-01",
+                  "id": "51e257a0-8c3b-4b98-96b2-d8ca9e2360f3"
+                },
+                {
+                  "name": "大学英语四级考试合格证书",
+                  "date": "2014-12-01",
+                  "id": "a7f94063-3056-44b2-803d-921fbcd3e56a"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

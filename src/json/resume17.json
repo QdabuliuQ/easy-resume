@@ -1,0 +1,193 @@
+{
+  "id": "data-analyst",
+  "title": "数据分析师简历模板",
+  "config": {
+    "name": "数据分析师简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#2f4f4f",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 6,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "left",
+              "name": "林晓桐",
+              "phone": "13866778899",
+              "email": "linxiaotong_da@163.com",
+              "city": "上海/浦东",
+              "status": "在职",
+              "intentCity": [
+                [
+                  "上海",
+                  "浦东"
+                ],
+                [
+                  "上海",
+                  "徐汇"
+                ],
+                [
+                  "浙江",
+                  "杭州"
+                ]
+              ],
+              "intentPosts": "数据分析师、商业分析、BI 分析",
+              "wechat": "linxt_da",
+              "birthday": "1997-04-22",
+              "gender": "女",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "origin": "浙江/杭州",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": null,
+              "expectedSalary": [
+                "15k",
+                "25k"
+              ],
+              "avatar": "resumeAvatar:a0",
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 <b>4 年</b>数据分析经验，能从业务问题出发拆解指标口径与分析框架</li><li>擅长用 <i>SQL / Python</i> 完成取数清洗，并用可视化讲清结论与建议</li><li>习惯沉淀可复用的看板与周报模板，减少重复劳动</li><li>沟通务实，能把复杂数据结论翻译成业务可执行动作</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "上海数智科技有限公司",
+                  "post": "数据分析师",
+                  "department": "数据中心",
+                  "city": "上海 - 浦东",
+                  "startDate": "2021-06",
+                  "endDate": "2025-05",
+                  "description": "<ul><li>负责电商与会员业务核心看板建设，统一 GMV、复购、留存等指标口径</li><li>用 <i>SQL</i> 与 <i>Python</i> 完成周月报自动化，将手工报表耗时缩短约 <u>60%</u></li><li>开展活动 ROI 与用户分层分析，支撑运营策略调整</li><li>协同产品完善埋点方案，提升关键漏斗可观测性</li></ul>",
+                  "id": "c5c33e3d-8b62-44b7-9cdf-09be098d488a"
+                },
+                {
+                  "company": "杭州某互联网公司",
+                  "post": "数据分析专员",
+                  "department": "运营中心",
+                  "city": "浙江 - 杭州",
+                  "startDate": "2019-07",
+                  "endDate": "2021-05",
+                  "description": "<ul><li>支持内容与增长团队日常取数与 A/B 实验效果评估</li><li>维护 Excel / BI 报表，排查口径不一致问题</li><li>参与用户画像标签梳理与人群包输出</li></ul>",
+                  "id": "6fe7e9f8-89ca-4b85-8bc8-f82fe155c091"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "会员增长分析项目",
+                  "role": "数据分析负责人",
+                  "startDate": "2023-03",
+                  "endDate": "2024-10",
+                  "description": "<ul><li>搭建会员生命周期看板，覆盖拉新、激活、留存与召回漏斗</li><li>识别高价值人群特征，输出分层运营建议</li><li>推动实验评估标准化文档，减少口径争议</li></ul>",
+                  "id": "cce2fb98-4d59-43c2-80e9-27f985c96bee"
+                },
+                {
+                  "name": "供应链库存预警看板",
+                  "role": "数据分析",
+                  "startDate": "2022-01",
+                  "endDate": "2023-02",
+                  "description": "<ul><li>整合出入库与销量预测数据，建立滞销与缺货预警规则</li><li>用可视化突出异常 SKU，协助采购提前补货与清仓</li></ul>",
+                  "id": "714a27a8-a7d5-4618-986d-b1a7c8c0c2db"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "浙江大学",
+                  "degree": "本科",
+                  "major": "统计学",
+                  "startDate": "2015-09",
+                  "endDate": "2019-06",
+                  "city": "浙江 - 杭州",
+                  "tags": [],
+                  "academy": "数学科学学院",
+                  "description": "<ul><li>主修概率统计、回归分析、数据挖掘、数据库原理</li><li>选修机器学习导论与商务数据分析课程</li></ul>",
+                  "id": "9932a588-0569-43ab-b665-8e26352f1696"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟练 <i>SQL</i>（窗口函数、多表关联、性能意识）与 <i>Python</i>（pandas / 可视化）</li><li>熟悉 <b>Tableau / Power BI / 帆软</b> 等 BI 工具与指标管理体系</li><li>了解 A/B 实验设计、漏斗与归因分析思路</li><li>具备清晰的业务沟通与结论表达能力</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "全国计算机等级考试二级合格证书",
+                  "date": "2017-06-01",
+                  "id": "5250f9cb-0c55-4dbf-82f3-cc26d6e0182d"
+                },
+                {
+                  "name": "大学英语六级考试合格证书",
+                  "date": "2018-06-01",
+                  "id": "6ef2c382-79d2-44f6-9036-ce60020c7511"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,193 @@
+{
+  "id": "interior",
+  "title": "室内设计师简历模板",
+  "config": {
+    "name": "室内设计师简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#4a3728",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 10,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "center",
+              "name": "叶清禾",
+              "phone": "13622334455",
+              "email": "yeqh_interior@163.com",
+              "city": "广东/深圳",
+              "status": "离职-随时到岗",
+              "intentCity": [
+                [
+                  "广东",
+                  "深圳"
+                ],
+                [
+                  "广东",
+                  "广州"
+                ],
+                [
+                  "福建",
+                  "厦门"
+                ]
+              ],
+              "intentPosts": "室内设计师、家装设计师、软装设计",
+              "wechat": "yeqh_interior",
+              "birthday": "1996-08-27",
+              "gender": "女",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "origin": "福建/厦门",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": null,
+              "expectedSalary": [
+                "10k",
+                "18k"
+              ],
+              "avatar": "resumeAvatar:a3",
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 <b>5 年</b>室内设计经验，覆盖家装全案与局部改造</li><li>擅长从生活方式洞察出发做空间动线与材质搭配</li><li>能独立完成方案汇报、施工交底与现场问题跟进</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "深圳空间设计有限公司",
+                  "post": "室内设计师",
+                  "department": "设计部",
+                  "city": "广东 - 深圳",
+                  "startDate": "2020-05",
+                  "endDate": "2025-02",
+                  "description": "<ul><li>负责中小户型与改善型住宅全案设计，从量房到软装建议闭环</li><li>输出平面、立面、节点与效果图，组织客户方案汇报</li><li>与工长/供应商协同解决现场尺寸与材质差异问题</li><li>沉淀常见户型方案库，缩短前期方案周期</li></ul>",
+                  "id": "875d246f-5cbe-4086-9674-a858060f7bfa"
+                },
+                {
+                  "company": "厦门某装饰公司",
+                  "post": "助理设计师",
+                  "department": "设计组",
+                  "city": "福建 - 厦门",
+                  "startDate": "2018-07",
+                  "endDate": "2020-04",
+                  "description": "<ul><li>协助主创完成 CAD 绘图、材料表与报价对接</li><li>参与工地巡检与变更记录，跟进客户满意度</li></ul>",
+                  "id": "7de050cb-0de8-4369-b524-168c3adda2e2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "滨海改善住宅全案设计",
+                  "role": "主创设计师",
+                  "startDate": "2023-02",
+                  "endDate": "2024-06",
+                  "description": "<ul><li>围绕收纳与采光优化动线，完成现代轻奢风格落地</li><li>控制硬装预算并给出可替换材质方案</li><li>项目顺利交付，客户转介绍两套新单</li></ul>",
+                  "id": "219ef18b-667b-40fa-9b96-4cae2ab62147"
+                },
+                {
+                  "name": "老房局部改造快装方案",
+                  "role": "设计师",
+                  "startDate": "2021-08",
+                  "endDate": "2022-05",
+                  "description": "<ul><li>针对厨卫与客厅局部改造输出可施工图纸</li><li>协调工期与材料进场，减少对居住干扰</li></ul>",
+                  "id": "7a7fd9dc-e947-423a-8077-25df150154c4"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "厦门大学嘉庚学院",
+                  "degree": "本科",
+                  "major": "环境设计",
+                  "startDate": "2014-09",
+                  "endDate": "2018-06",
+                  "city": "福建 - 漳州",
+                  "tags": [],
+                  "academy": "艺术设计学院",
+                  "description": "<ul><li>主修室内设计、建筑制图、材料与构造、设计表现</li><li>毕业设计完成住宅空间全案方案与模型展示</li></ul>",
+                  "id": "4024b09b-bdc0-4c46-abcd-2a66063e7594"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟练 <i>AutoCAD / SketchUp / 3ds Max / V-Ray / Photoshop</i></li><li>熟悉家装设计流程、施工工艺与常见材料特性</li><li>具备方案表达、客户沟通与现场交底能力</li><li>了解软装搭配与灯光氛围营造基础方法</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "室内设计师资格证书",
+                  "date": "2019-06-01",
+                  "id": "3144a9d8-1552-4cb3-b9bc-20325e01384e"
+                },
+                {
+                  "name": "大学英语四级考试合格证书",
+                  "date": "2016-12-01",
+                  "id": "27a86437-8b80-492a-925d-8b242b18f606"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

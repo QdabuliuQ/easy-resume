@@ -1,0 +1,193 @@
+{
+  "id": "logistics",
+  "title": "物流专员简历模板",
+  "config": {
+    "name": "物流专员简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#383838",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 7,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "right",
+              "name": "曹俊杰",
+              "phone": "13844556677",
+              "email": "caojj_log@163.com",
+              "city": "广东/东莞",
+              "status": "在职",
+              "intentCity": [
+                [
+                  "广东",
+                  "东莞"
+                ],
+                [
+                  "广东",
+                  "深圳"
+                ],
+                [
+                  "广东",
+                  "惠州"
+                ]
+              ],
+              "intentPosts": "物流专员、仓储物流、供应链助理",
+              "wechat": "caojj_log",
+              "birthday": "1997-09-03",
+              "gender": "男",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "origin": "江西/赣州",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": null,
+              "expectedSalary": [
+                "8k",
+                "14k"
+              ],
+              "avatar": "resumeAvatar:a1",
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ]
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 <b>4 年</b>仓储物流经验，熟悉入库、拣货、发运与异常处理</li><li>注重时效与准确率，能在旺季保障出库节奏</li><li>善于用表格跟踪差异，推动供应商与承运商改进</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "东莞供应链服务有限公司",
+                  "post": "物流专员",
+                  "department": "仓储中心",
+                  "city": "广东 - 东莞",
+                  "startDate": "2021-05",
+                  "endDate": "2025-04",
+                  "description": "<ul><li>负责日常出入库单据核对、库存盘点与差异追溯</li><li>协调承运商揽收时效，处理破损与丢件索赔</li><li>优化拣货路径与波次规则，旺季出库时效提升约 <u>18%</u></li><li>维护 WMS 基础资料与库位调整记录</li></ul>",
+                  "id": "40dfc3b3-4ca8-4a6f-ab7e-0b07c5d3955c"
+                },
+                {
+                  "company": "赣州某商贸仓储",
+                  "post": "仓管员",
+                  "department": "仓储部",
+                  "city": "江西 - 赣州",
+                  "startDate": "2019-07",
+                  "endDate": "2021-04",
+                  "description": "<ul><li>完成收货上架、拣货复核与装车清点</li><li>协助月盘与报损流程，减少账实差异</li></ul>",
+                  "id": "321558d7-07c4-49c0-906e-9ee6b026bf63"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "双十一仓储保障专项",
+                  "role": "执行骨干",
+                  "startDate": "2023-10",
+                  "endDate": "2023-11",
+                  "description": "<ul><li>参与临时工培训与岗位拆分，保障高峰吞吐</li><li>建立异常件快速通道，降低客诉积压</li></ul>",
+                  "id": "ff7e339a-8f9f-46f9-9bee-4abe5e641265"
+                },
+                {
+                  "name": "库位可视化与动线优化",
+                  "role": "参与实施",
+                  "startDate": "2022-03",
+                  "endDate": "2022-09",
+                  "description": "<ul><li>按周转率调整热销品库位，缩短拣货行走距离</li><li>输出库位调整前后对比数据，支持持续优化</li></ul>",
+                  "id": "f7282214-290b-4166-b06d-870ccce4e335"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "江西财经大学",
+                  "degree": "本科",
+                  "major": "物流管理",
+                  "startDate": "2015-09",
+                  "endDate": "2019-06",
+                  "city": "江西 - 南昌",
+                  "tags": [],
+                  "academy": "工商管理学院",
+                  "description": "<ul><li>主修供应链管理、仓储管理、运输管理、运筹学</li><li>课程实践完成仓储布局案例分析</li></ul>",
+                  "id": "3f06d93c-1570-462c-b73c-0f54c9c4d2c2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟悉仓储出入库、盘点、运输调度与异常处理流程</li><li>熟练使用 <b>WMS / Excel</b> 进行库存跟踪与报表汇总</li><li>具备供应商与承运商沟通协调能力</li><li>抗压能力强，能适应旺季加班与现场突发问题处理</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "物流师资格证书（助理）",
+                  "date": "2019-05-01",
+                  "id": "20482b44-cb1d-4c48-92a8-5821ce21b11d"
+                },
+                {
+                  "name": "大学英语四级考试合格证书",
+                  "date": "2017-12-01",
+                  "id": "76b4d5f6-2f26-45a7-8096-9998df288c47"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

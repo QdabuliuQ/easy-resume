@@ -12,6 +12,7 @@ import Container from './components/container';
 import EditShellReveal from './components/editShellReveal';
 import Header from './components/header';
 import Menu from './components/menu/index';
+import ResumeConfigCanvasPreviewHost from './components/resumeConfigCanvasPreviewHost';
 import EditTour from './components/editTour';
 
 const DEFAULT_MENU_KEY = 'resume';
@@ -97,6 +98,7 @@ function Edit() {
         </div>
       </EditShellReveal>
       <EditTour ready={shellRevealReady} />
+      <ResumeConfigCanvasPreviewHost />
     </div>
   );
 }
