@@ -62,7 +62,14 @@ export default function GithubAuthButton({ variant = 'home' }: Props) {
         open={menuOpen}
         onOpenChange={setMenuOpen}
         placement='bottomRight'
-        styles={{ body: { padding: 8 } }}
+        styles={{
+          body: {
+            padding: 8,
+            background: 'var(--antd-popup-bg)',
+            border: '1px solid var(--antd-popup-border)',
+            boxShadow: 'var(--panel-shadow-md)',
+          },
+        }}
         content={
           <div className='flex min-w-[160px] flex-col gap-1'>
             <div className='px-3 py-2'>
