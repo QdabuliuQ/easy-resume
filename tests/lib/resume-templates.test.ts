@@ -15,10 +15,10 @@ function walkDescriptions(obj: unknown, out: string[]) {
 }
 
 describe('resumeTemplates', () => {
-  it('registers 24 role templates with unique ids', () => {
-    expect(resumeTemplates).toHaveLength(24);
+  it('registers 30 role templates with unique ids', () => {
+    expect(resumeTemplates).toHaveLength(30);
     const ids = resumeTemplates.map((t) => t.id);
-    expect(new Set(ids).size).toBe(24);
+    expect(new Set(ids).size).toBe(30);
     expect(ids).toEqual(
       expect.arrayContaining([
         'fe',
@@ -31,6 +31,12 @@ describe('resumeTemplates', () => {
         'logistics',
         'bank-rm',
         'interior',
+        'java-dev',
+        'new-media',
+        'project-manager',
+        'foreign-trade',
+        'financial-analyst',
+        'electrical',
       ]),
     );
   });

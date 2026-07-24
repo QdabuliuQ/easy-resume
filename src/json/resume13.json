@@ -88,8 +88,8 @@
                   "department": "运维部",
                   "city": "广东 - 深圳",
                   "startDate": "2020-03",
-                  "endDate": "2025-05",
-                  "description": "<ul><li>负责线上服务器、业务系统日常运维巡检</li><li>部署维护Web服务、数据库及中间件</li><li>做数据备份、安全加固、权限管理</li><li>处理突发故障、优化性能、搭建监控告警体系。</li></ul>",
+                  "endDate": "至今",
+                  "description": "<ul><li>负责业务系统日常发布、环境维护、监控告警和故障响应，保障生产服务稳定运行</li><li>推进容器化部署和 CI/CD 流程规范，减少手工发布步骤和配置差异</li><li>维护 Nginx、数据库、缓存和日志服务，定期巡检磁盘、CPU、内存和慢查询指标</li></ul>",
                   "id": "505d1899-34f1-4a61-b027-1e670a60e273"
                 }
               ]
@@ -106,7 +106,7 @@
                   "role": "运维负责人",
                   "startDate": "2022-02",
                   "endDate": "2023-06",
-                  "description": "<ul><li>梳理原有虚拟机部署清单与目录挂载依赖，编写 Dockerfile 与 docker-compose 分层构建减小镜像体积</li><li>引入私有镜像仓库与镜像漏洞扫描门禁</li><li>统一 Jenkins 发布流水线含蓝绿/滚动参数与健康检查探针</li><li>补充容器 CPU 内存 limit、日志落盘切割与 OOM 自动重启策略</li><li>迁移后资源利用率提升且发布耗时缩短，配套监控面板与告警阈值重新标定。</li></ul>",
+                  "description": "<ul><li>参与业务系统容器化迁移，梳理服务依赖、环境变量、镜像构建和发布回滚流程</li><li>配置资源限制、健康检查和日志采集，提升服务弹性与故障可观测性</li><li>迁移后完善发布 checklist 和应急预案，降低后续扩容与版本发布风险</li></ul>",
                   "id": "4accff60-b264-4d58-a0c8-2449aa021449"
                 },
                 {
@@ -114,7 +114,7 @@
                   "role": "运维工程师",
                   "startDate": "2024-04",
                   "endDate": "2024-06",
-                  "description": "<ul><li>制定全量 + 增量备份保留周期与异地 OSS 同步策略</li><li>季度组织一次恢复演练记录 RTO/RPO 实测数据</li><li>根据演练缺陷修订脚本与值班手册。</li></ul>",
+                  "description": "<ul><li>制定数据库异地备份与恢复演练方案，明确备份周期、校验方式和恢复时间目标</li><li>通过脚本自动校验备份文件完整性并记录结果，减少备份不可用风险</li><li>组织演练复盘，补充权限、网络和恢复步骤文档，提升灾备可执行性</li></ul>",
                   "id": "994e1871-7869-4ad1-a97a-41a7da65efc1"
                 }
               ]
@@ -125,7 +125,7 @@
             "id": "3",
             "options": {
               "title": "专业技能",
-              "description": "<ul><li>熟练 CentOS/Ubuntu 日常运维、账号sudo审计、内核参数与 chrony 时间同步</li><li>掌握 Nginx 反向代理、HTTPS 证书续期、动静分离与限连接</li><li>MySQL 主从复制与备份脚本、mysqldump + binlog 恢复演练</li><li>Redis 持久化策略与内存告警</li><li>熟悉 Docker 镜像分层与 Compose 编排、Harbor 私服拉取策略</li><li>GitLab CI/Jenkins 流水线发布与回滚</li><li>Prometheus + Grafana 或云监控搭建指标大盘</li><li>具备防火墙策略、fail2ban、漏洞补丁窗口与故障复盘文档编写习惯。</li></ul>"
+              "description": "<ul><li>熟悉 Linux 常用命令、Shell 脚本、Nginx、Docker、Kubernetes 基础运维和服务发布</li><li>掌握 Prometheus、Grafana、ELK/日志平台、告警规则和故障排查流程</li><li>熟悉 MySQL/Redis 日常维护、备份恢复、权限管理和性能指标观察</li><li>了解 CI/CD、灰度发布、回滚策略、证书域名和安全加固基础实践</li></ul>"
             }
           },
           {
@@ -152,7 +152,7 @@
             "id": "other-1",
             "options": {
               "title": "个人优势",
-              "description": "<ul><li>约 5 年运维实战经验，7×24 值班手机不离身，重大变更坚持双人复核与维护窗口公告</li><li>熟悉从 CDN—LB—应用—数据库全链路排障思路，善用链路追踪与日志聚合缩短 MTTR</li><li>做事强迫症级别备份校验，宁可多做演练也不赌运气</li><li>文档愿意写给半年后的自己看。</li></ul>"
+              "description": "<ul><li>约 5 年运维经验，熟悉 Linux、容器化部署、监控告警、数据库备份和生产问题应急</li><li>能围绕稳定性、可观测性和发布效率建设基础运维流程，减少人工操作风险</li><li>具备跨研发、测试和业务沟通能力，能快速定位故障影响范围并推动恢复与复盘</li></ul>"
             }
           },
           {
@@ -170,7 +170,7 @@
                   "city": "广东 - 广州",
                   "tags": [],
                   "academy": "信息技术学院",
-                  "description": "<ul><li>主修计算机网络、Linux系统、服务器配置、数据库原理、网络安全基础。</li></ul>",
+                  "description": "<ul><li>主修计算机网络、Linux 操作系统、数据库管理和信息安全基础课程</li><li>在校实训中完成 Web 服务部署、脚本自动化和基础网络故障排查练习</li></ul>",
                   "id": "67e74f7b-971b-4649-a672-cdb3bef3ec80"
                 }
               ]

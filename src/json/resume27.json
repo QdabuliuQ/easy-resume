@@ -1,0 +1,193 @@
+{
+  "id": "project-manager",
+  "title": "项目经理简历模板",
+  "config": {
+    "name": "项目经理简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#42526e",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 8,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "center",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": null,
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ],
+              "name": "唐亦辰",
+              "phone": "13955667788",
+              "email": "tangyc_pm@163.com",
+              "city": "上海/上海",
+              "status": "在职",
+              "intentCity": [
+                [
+                  "上海",
+                  "上海"
+                ],
+                [
+                  "江苏",
+                  "苏州"
+                ],
+                [
+                  "浙江",
+                  "杭州"
+                ]
+              ],
+              "intentPosts": "项目经理、交付项目经理、PMO",
+              "wechat": "tangyc_pm",
+              "birthday": "1992-12-21",
+              "gender": "男",
+              "origin": "安徽/合肥",
+              "expectedSalary": [
+                "25k",
+                "40k"
+              ],
+              "avatar": "resumeAvatar:a1"
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 8 年软件交付与项目管理经验，负责过政企系统、SaaS 平台和数据中台项目</li><li>熟悉范围、进度、成本、质量和风险管理，能在多干系人场景下推动目标对齐与问题闭环</li><li>具备技术理解力和客户沟通能力，能把业务诉求拆解为里程碑、资源计划和验收标准</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "上海辰星信息科技有限公司",
+                  "post": "项目经理",
+                  "department": "交付中心",
+                  "city": "上海 - 上海",
+                  "startDate": "2020-08",
+                  "endDate": "至今",
+                  "description": "<ul><li>负责政企客户 SaaS 与数据中台项目交付，制定项目计划、里程碑、资源排期和验收方案</li><li>组织需求澄清、方案评审、周会同步、风险升级和版本上线，协调产品、研发、测试与客户资源</li><li>维护项目问题清单、变更记录和交付文档，保证范围可控、过程透明、验收资料完整</li></ul>",
+                  "id": "project-manager-job-1"
+                },
+                {
+                  "company": "合肥某软件服务公司",
+                  "post": "实施顾问 / 项目助理",
+                  "department": "项目部",
+                  "city": "安徽 - 合肥",
+                  "startDate": "2016-07",
+                  "endDate": "2020-07",
+                  "description": "<ul><li>参与企业管理系统实施，负责客户培训、数据初始化、问题收集和上线支持</li><li>协助项目经理跟进计划、会议纪要、需求变更和验收材料，保障交付节点推进</li><li>积累客户沟通、系统配置和现场问题处理经验，为后续独立项目管理打下基础</li></ul>",
+                  "id": "project-manager-job-2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "政企数据中台交付项目",
+                  "role": "项目经理",
+                  "startDate": "2022-03",
+                  "endDate": "2024-06",
+                  "description": "<ul><li>负责项目从立项、需求调研、数据接入、报表开发到试运行验收的全周期管理</li><li>按业务域拆分里程碑和风险点，协调客户数据负责人、研发和测试解决接口与口径问题</li><li>建立周报、问题清单和变更审批机制，确保多部门并行工作可追踪</li></ul>",
+                  "id": "project-manager-project-1"
+                },
+                {
+                  "name": "SaaS 客户成功交付体系建设",
+                  "role": "PMO",
+                  "startDate": "2021-01",
+                  "endDate": "2022-02",
+                  "description": "<ul><li>梳理标准实施路径、培训材料、上线检查和验收模板，提升项目复制交付能力</li><li>按客户规模和复杂度分级管理交付资源，形成风险预警和升级机制</li><li>复盘历史延期项目，优化需求冻结、变更控制和客户确认节点</li></ul>",
+                  "id": "project-manager-project-2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "安徽大学",
+                  "degree": "本科",
+                  "major": "信息管理与信息系统",
+                  "startDate": "2012-09",
+                  "endDate": "2016-06",
+                  "city": "安徽 - 合肥",
+                  "tags": [],
+                  "academy": "管理学院",
+                  "description": "<ul><li>主修信息系统分析、项目管理、数据库、统计分析和管理学课程</li><li>毕业项目围绕企业信息化系统实施完成需求调研、流程梳理和方案设计</li></ul>",
+                  "id": "project-manager-edu-1"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟悉项目计划、范围管理、进度跟踪、风险控制、变更管理、验收交付和复盘流程</li><li>熟练使用 Jira、Confluence、飞书、Project、Excel、XMind 和常用项目看板工具</li><li>具备需求调研、客户汇报、会议组织、文档沉淀和跨部门协调能力</li><li>了解敏捷迭代、瀑布交付、SaaS 实施、数据项目交付和基础技术架构</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "PMP 项目管理专业人士资格认证",
+                  "date": "2021-09-01",
+                  "id": "project-manager-cert-1"
+                },
+                {
+                  "name": "信息系统项目管理师",
+                  "date": "2023-11-01",
+                  "id": "project-manager-cert-2"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -32,6 +32,12 @@ import resume21 from './resume21.json';
 import resume22 from './resume22.json';
 import resume23 from './resume23.json';
 import resume24 from './resume24.json';
+import resume25 from './resume25.json';
+import resume26 from './resume26.json';
+import resume27 from './resume27.json';
+import resume28 from './resume28.json';
+import resume29 from './resume29.json';
+import resume30 from './resume30.json';
 import { resolveResumeAvatarRefsDeep } from '@/lib/resumeAvatarRef';
 
 const rawTemplates: ResumeTemplateItem[] = [
@@ -59,6 +65,12 @@ const rawTemplates: ResumeTemplateItem[] = [
   resume22,
   resume23,
   resume24,
+  resume25,
+  resume26,
+  resume27,
+  resume28,
+  resume29,
+  resume30,
 ];
 
 export const resumeTemplates: ResumeTemplateItem[] = rawTemplates.map((t) =>

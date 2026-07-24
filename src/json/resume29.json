@@ -1,0 +1,193 @@
+{
+  "id": "financial-analyst",
+  "title": "财务分析师简历模板",
+  "config": {
+    "name": "财务分析师简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#315c72",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 9,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "center",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": null,
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ],
+              "name": "宋予安",
+              "phone": "13566778890",
+              "email": "songya_finance@163.com",
+              "city": "广东/广州",
+              "status": "在职",
+              "intentCity": [
+                [
+                  "广东",
+                  "广州"
+                ],
+                [
+                  "广东",
+                  "深圳"
+                ],
+                [
+                  "上海",
+                  "上海"
+                ]
+              ],
+              "intentPosts": "财务分析师、经营分析、FP&A",
+              "wechat": "songya_finance",
+              "birthday": "1994-09-03",
+              "gender": "男",
+              "origin": "广东/佛山",
+              "expectedSalary": [
+                "18k",
+                "30k"
+              ],
+              "avatar": "resumeAvatar:a0"
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 6 年财务分析与经营分析经验，熟悉预算编制、滚动预测、管理报表和业务复盘</li><li>能将财务数据、业务指标和经营动作结合起来，识别收入、成本、毛利和现金流变化原因</li><li>具备跨部门沟通与数据建模能力，能支持管理层决策、预算控制和经营改善项目</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "广州启明消费品有限公司",
+                  "post": "财务分析师",
+                  "department": "财务管理部",
+                  "city": "广东 - 广州",
+                  "startDate": "2021-01",
+                  "endDate": "至今",
+                  "description": "<ul><li>负责月度经营分析、预算执行跟踪和滚动预测，输出收入、毛利、费用和现金流分析</li><li>与销售、供应链和市场部门对齐业务口径，拆解渠道、品类和区域利润表现</li><li>搭建管理报表模板和异常预警规则，提升管理层查看经营指标的效率</li></ul>",
+                  "id": "financial-analyst-job-1"
+                },
+                {
+                  "company": "佛山某制造企业",
+                  "post": "成本会计 / 财务分析专员",
+                  "department": "财务部",
+                  "city": "广东 - 佛山",
+                  "startDate": "2018-07",
+                  "endDate": "2020-12",
+                  "description": "<ul><li>负责制造成本核算、费用归集和成本差异分析，支持月结与管理报表出具</li><li>参与标准成本维护和 BOM 差异核对，协助生产部门定位材料与工时异常</li><li>整理成本台账、库存周转和毛利分析资料，为报价和降本项目提供数据支持</li></ul>",
+                  "id": "financial-analyst-job-2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "年度预算与滚动预测模型搭建",
+                  "role": "财务分析负责人",
+                  "startDate": "2023-08",
+                  "endDate": "2024-03",
+                  "description": "<ul><li>按渠道、品类和费用中心拆分预算模型，统一收入、折扣、成本和费用假设</li><li>建立滚动预测模板和版本管理规则，支持管理层按月查看预算偏差与趋势</li><li>推动业务部门参与预测复盘，提升预算编制的业务可解释性</li></ul>",
+                  "id": "financial-analyst-project-1"
+                },
+                {
+                  "name": "渠道毛利改善分析",
+                  "role": "核心分析",
+                  "startDate": "2022-04",
+                  "endDate": "2022-12",
+                  "description": "<ul><li>拆解不同渠道价格、返利、物流、促销和售后成本，识别毛利下滑关键因素</li><li>与销售和供应链共同制定价格政策、促销投入和物流优化建议</li><li>上线月度追踪报表，持续观察改善动作对毛利率和库存周转的影响</li></ul>",
+                  "id": "financial-analyst-project-2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "暨南大学",
+                  "degree": "本科",
+                  "major": "财务管理",
+                  "startDate": "2014-09",
+                  "endDate": "2018-06",
+                  "city": "广东 - 广州",
+                  "tags": [],
+                  "academy": "管理学院",
+                  "description": "<ul><li>主修财务管理、管理会计、成本会计、审计学、公司金融和统计分析课程</li><li>毕业论文围绕制造企业成本控制展开，熟悉成本驱动因素与管理报表设计</li></ul>",
+                  "id": "financial-analyst-edu-1"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟悉预算编制、滚动预测、经营分析、成本分析、管理报表和现金流分析</li><li>熟练 Excel 高级函数、数据透视表、Power Query、Power BI/Tableau 和基础 SQL</li><li>掌握收入、毛利、费用、库存周转、应收账款和渠道利润等指标拆解方法</li><li>了解企业会计准则、税务基础、ERP 财务模块和跨部门预算管理流程</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "中级会计职称",
+                  "date": "2022-09-01",
+                  "id": "financial-analyst-cert-1"
+                },
+                {
+                  "name": "CMA 美国注册管理会计师",
+                  "date": "2023-05-01",
+                  "id": "financial-analyst-cert-2"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

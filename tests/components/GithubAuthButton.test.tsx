@@ -71,7 +71,8 @@ describe('GithubAuthButton', () => {
     renderBtn();
     await user.click(screen.getByLabelText('使用 GitHub 登录'));
     expect(signIn).toHaveBeenCalledWith('github', {
-      callbackUrl: window.location.href,
+      redirectTo: window.location.href,
+      redirect: true,
     });
   });
 
@@ -99,7 +100,7 @@ describe('GithubAuthButton', () => {
     renderBtn();
     await user.click(screen.getByRole('button', { name: /退出登录/ }));
     await waitFor(() => {
-      expect(signOut).toHaveBeenCalledWith({ callbackUrl: window.location.href });
+      expect(signOut).toHaveBeenCalledWith({ redirectTo: window.location.href, redirect: true });
     });
   });
 });

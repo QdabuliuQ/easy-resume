@@ -1,0 +1,193 @@
+{
+  "id": "java-dev",
+  "title": "Java开发工程师简历模板",
+  "config": {
+    "name": "Java开发工程师简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#283f5f",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 6,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "center",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": "https://github.com/shenjia-java",
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ],
+              "name": "沈嘉言",
+              "phone": "13810223345",
+              "email": "shenjia_java@163.com",
+              "city": "江苏/南京",
+              "status": "在职",
+              "intentCity": [
+                [
+                  "江苏",
+                  "南京"
+                ],
+                [
+                  "上海",
+                  "上海"
+                ],
+                [
+                  "浙江",
+                  "杭州"
+                ]
+              ],
+              "intentPosts": "Java开发工程师、后端开发工程师",
+              "wechat": "shenjia_java",
+              "birthday": "1995-10-18",
+              "gender": "男",
+              "origin": "江苏/南京",
+              "expectedSalary": [
+                "22k",
+                "35k"
+              ],
+              "avatar": "resumeAvatar:a0"
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 6 年 Java 后端开发经验，长期负责交易、会员、营销和平台中台服务，具备高并发链路设计与治理经验</li><li>熟悉 Spring Cloud 微服务、MySQL/Redis/Kafka 和分布式事务边界，重视接口稳定性、可观测性和数据一致性</li><li>能主动推动技术方案评审、压测、灰度和复盘，善于把复杂业务拆成清晰的领域模型与可维护代码</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "南京云启科技有限公司",
+                  "post": "高级 Java 开发工程师",
+                  "department": "平台研发部",
+                  "city": "江苏 - 南京",
+                  "startDate": "2021-04",
+                  "endDate": "至今",
+                  "description": "<ul><li>负责交易订单、会员权益和营销活动服务开发，参与领域模型拆分、接口契约和数据库设计</li><li>引入 Redis 缓存、Kafka 异步消息和接口限流策略，提升活动高峰期系统稳定性</li><li>完善 traceId 日志、Prometheus 指标和异常告警，支持线上问题快速定位与回滚</li></ul>",
+                  "id": "java-dev-job-1"
+                },
+                {
+                  "company": "苏州智联软件有限公司",
+                  "post": "Java 开发工程师",
+                  "department": "后端组",
+                  "city": "江苏 - 苏州",
+                  "startDate": "2018-07",
+                  "endDate": "2021-03",
+                  "description": "<ul><li>参与企业 OA、权限中心和报表系统开发，完成接口、定时任务、审批流程和基础后台功能</li><li>优化慢 SQL、分页查询和批量导入任务，减少业务高峰期接口超时问题</li><li>维护接口文档、数据库变更脚本和发布清单，保证多环境交付一致</li></ul>",
+                  "id": "java-dev-job-2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "营销活动高并发交易链路改造",
+                  "role": "后端负责人",
+                  "startDate": "2023-06",
+                  "endDate": "2024-12",
+                  "description": "<ul><li>重构活动资格校验、库存预扣、订单创建和支付回调链路，补齐幂等、补偿和异常告警机制</li><li>通过缓存预热、队列削峰、热点 key 拆分和压测调参，降低大促期间核心接口抖动</li><li>沉淀活动上线 checklist 和压测模板，提升后续营销活动交付效率</li></ul>",
+                  "id": "java-dev-project-1"
+                },
+                {
+                  "name": "会员权益中台建设",
+                  "role": "核心开发",
+                  "startDate": "2022-01",
+                  "endDate": "2023-05",
+                  "description": "<ul><li>设计权益包、等级、积分和券核销模型，支撑多个业务线复用会员能力</li><li>实现权益发放、冻结、过期和核销流水，保证财务与客服可追溯</li><li>接入监控看板和运营后台配置，降低人工处理和问题排查成本</li></ul>",
+                  "id": "java-dev-project-2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "南京邮电大学",
+                  "degree": "本科",
+                  "major": "软件工程",
+                  "startDate": "2014-09",
+                  "endDate": "2018-06",
+                  "city": "江苏 - 南京",
+                  "tags": [],
+                  "academy": "计算机学院",
+                  "description": "<ul><li>主修 Java 程序设计、数据结构、数据库系统、操作系统、计算机网络和软件工程</li><li>毕业设计完成企业权限管理系统，覆盖 RBAC 模型、接口实现和部署文档</li></ul>",
+                  "id": "java-dev-edu-1"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟练 Java、Spring Boot、Spring Cloud、MyBatis、Maven/Gradle，理解常见设计模式和分层架构</li><li>熟悉 MySQL 索引优化、事务隔离、Redis 缓存、Kafka/RabbitMQ 消息队列和分布式锁</li><li>掌握接口鉴权、限流熔断、日志追踪、Prometheus/Grafana 监控和生产问题排查</li><li>了解 Docker、Kubernetes、CI/CD、灰度发布和压测工具，具备服务治理与性能优化经验</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "软件设计师（中级）",
+                  "date": "2020-11-01",
+                  "id": "java-dev-cert-1"
+                },
+                {
+                  "name": "Oracle Certified Professional Java Programmer",
+                  "date": "2019-08-01",
+                  "id": "java-dev-cert-2"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

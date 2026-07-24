@@ -1,0 +1,193 @@
+{
+  "id": "new-media",
+  "title": "新媒体运营简历模板",
+  "config": {
+    "name": "新媒体运营简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#8b3a3a",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 2,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "center",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": null,
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ],
+              "name": "顾安然",
+              "phone": "13677889910",
+              "email": "guranran_media@163.com",
+              "city": "浙江/杭州",
+              "status": "离职-随时到岗",
+              "intentCity": [
+                [
+                  "浙江",
+                  "杭州"
+                ],
+                [
+                  "上海",
+                  "上海"
+                ],
+                [
+                  "江苏",
+                  "南京"
+                ]
+              ],
+              "intentPosts": "新媒体运营、内容运营、品牌内容策划",
+              "wechat": "guranran_media",
+              "birthday": "1997-04-09",
+              "gender": "女",
+              "origin": "浙江/宁波",
+              "expectedSalary": [
+                "12k",
+                "20k"
+              ],
+              "avatar": "resumeAvatar:a3"
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 5 年新媒体内容运营经验，覆盖公众号、小红书、抖音和社群，熟悉内容选题、增长和转化闭环</li><li>擅长围绕品牌定位和用户痛点设计栏目，能将热点、产品卖点和用户故事转化为稳定内容资产</li><li>具备数据复盘、达人沟通和活动执行能力，能用阅读、互动、收藏、进店和线索指标优化内容策略</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "杭州青柚品牌管理有限公司",
+                  "post": "新媒体运营",
+                  "department": "品牌内容部",
+                  "city": "浙江 - 杭州",
+                  "startDate": "2021-05",
+                  "endDate": "2025-12",
+                  "description": "<ul><li>负责公众号、小红书和抖音内容矩阵，制定月度选题、脚本、发布节奏和互动维护策略</li><li>围绕新品、节日和用户场景策划内容专题，协同设计、短视频和投放团队完成素材交付</li><li>复盘阅读、完播、收藏、评论和转化数据，持续优化标题、封面、首屏信息和引导路径</li></ul>",
+                  "id": "new-media-job-1"
+                },
+                {
+                  "company": "宁波某生活方式工作室",
+                  "post": "内容运营专员",
+                  "department": "运营组",
+                  "city": "浙江 - 宁波",
+                  "startDate": "2019-07",
+                  "endDate": "2021-04",
+                  "description": "<ul><li>负责公众号推文、社群日常话题和活动文案，维护用户互动与内容反馈</li><li>协助完成线下活动招募、签到、图文回顾和用户访谈资料整理</li><li>建立素材库、排期表和数据复盘模板，提高内容协作效率</li></ul>",
+                  "id": "new-media-job-2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "小红书品牌种草内容矩阵",
+                  "role": "内容策划",
+                  "startDate": "2023-03",
+                  "endDate": "2024-09",
+                  "description": "<ul><li>按人群痛点、使用场景和产品卖点拆分选题，设计测评、清单、避坑和案例类内容模板</li><li>建立达人筛选、brief、审稿和发布跟踪流程，保证内容节奏与品牌语气一致</li><li>通过收藏、评论关键词和搜索流量复盘高潜选题，沉淀长期可复用栏目</li></ul>",
+                  "id": "new-media-project-1"
+                },
+                {
+                  "name": "新品上市整合内容战役",
+                  "role": "项目执行",
+                  "startDate": "2022-06",
+                  "endDate": "2022-11",
+                  "description": "<ul><li>围绕新品上市节奏制定预热、发布、复盘三阶段内容计划，联动公众号、短视频和社群</li><li>协调产品、设计和客服统一卖点表达与问题答复，保证用户从种草到咨询的链路顺畅</li><li>活动后整理渠道表现、用户反馈和线索质量，为后续新品传播优化提供依据</li></ul>",
+                  "id": "new-media-project-2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "浙江传媒学院",
+                  "degree": "本科",
+                  "major": "广告学",
+                  "startDate": "2015-09",
+                  "endDate": "2019-06",
+                  "city": "浙江 - 杭州",
+                  "tags": [],
+                  "academy": "新闻与传播学院",
+                  "description": "<ul><li>主修广告策划、传播学、消费者行为、新媒体写作和品牌管理课程</li><li>在校期间参与校园品牌推广项目，负责内容策划、社媒发布和效果复盘</li></ul>",
+                  "id": "new-media-edu-1"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟悉公众号、小红书、抖音、视频号和社群运营规则，能制定内容排期与增长目标</li><li>具备选题策划、脚本撰写、标题封面优化、达人沟通和用户互动维护能力</li><li>能使用飞书多维表、Excel、平台后台和基础数据看板进行内容效果复盘</li><li>了解基础投放、私域转化、活动策划和品牌语气管理，能协同多角色完成内容项目</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "大学英语六级考试合格证书",
+                  "date": "2017-12-01",
+                  "id": "new-media-cert-1"
+                },
+                {
+                  "name": "普通话水平测试二级甲等",
+                  "date": "2018-05-01",
+                  "id": "new-media-cert-2"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

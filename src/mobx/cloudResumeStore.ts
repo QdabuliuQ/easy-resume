@@ -134,12 +134,13 @@ class CloudResumeStore {
   async save(opts?: { silent?: boolean }): Promise<{ ok: boolean; error?: string }> {
     const content = configStore.getConfig;
     if (!content) return { ok: false, error: '无简历内容' };
+    const silent = opts?.silent === true;
 
     this.clearTimer();
     const mySeq = ++this.seq;
     const wasNew = !this.resumeId;
     runInAction(() => {
-      this.saving = true;
+      if (!silent) this.saving = true;
       this.lastError = '';
     });
 

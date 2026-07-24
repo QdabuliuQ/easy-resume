@@ -1,0 +1,193 @@
+{
+  "id": "foreign-trade",
+  "title": "外贸业务员简历模板",
+  "config": {
+    "name": "外贸业务员简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#2f5d50",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 5,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "center",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": null,
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ],
+              "name": "林知夏",
+              "phone": "13788990012",
+              "email": "linzhixia_trade@163.com",
+              "city": "福建/厦门",
+              "status": "在职",
+              "intentCity": [
+                [
+                  "福建",
+                  "厦门"
+                ],
+                [
+                  "广东",
+                  "深圳"
+                ],
+                [
+                  "浙江",
+                  "宁波"
+                ]
+              ],
+              "intentPosts": "外贸业务员、海外销售、国际贸易专员",
+              "wechat": "linzhixia_trade",
+              "birthday": "1996-06-15",
+              "gender": "女",
+              "origin": "福建/泉州",
+              "expectedSalary": [
+                "10k",
+                "18k"
+              ],
+              "avatar": "resumeAvatar:a2"
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 5 年外贸业务经验，熟悉 B2B 客户开发、询盘跟进、报价谈判、订单履约和回款流程</li><li>英语沟通流利，能独立完成邮件、视频会议、样品确认、合同条款和售后问题沟通</li><li>具备较强客户经营意识，能通过展会、平台、LinkedIn 和老客户转介绍持续拓展商机</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "厦门海辰进出口有限公司",
+                  "post": "外贸业务员",
+                  "department": "海外销售部",
+                  "city": "福建 - 厦门",
+                  "startDate": "2020-04",
+                  "endDate": "至今",
+                  "description": "<ul><li>负责欧美及东南亚客户开发与维护，跟进询盘、报价、样品、订单、出货和回款</li><li>根据客户需求协调工厂确认规格、包装、交期和质检要求，降低订单履约风险</li><li>维护客户档案和销售漏斗，定期复盘询盘来源、成交周期和复购机会</li></ul>",
+                  "id": "foreign-trade-job-1"
+                },
+                {
+                  "company": "泉州某工贸公司",
+                  "post": "外贸助理",
+                  "department": "业务部",
+                  "city": "福建 - 泉州",
+                  "startDate": "2018-07",
+                  "endDate": "2020-03",
+                  "description": "<ul><li>协助业务经理处理英文邮件、PI/CI/PL 单据、样品寄送和客户资料维护</li><li>跟进入库、订舱、报关和发货节点，及时同步客户订单状态</li><li>整理产品资料、报价表和展会名片，为客户开发提供基础素材</li></ul>",
+                  "id": "foreign-trade-job-2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "欧洲渠道客户开发专项",
+                  "role": "业务负责人",
+                  "startDate": "2022-02",
+                  "endDate": "2023-12",
+                  "description": "<ul><li>围绕目标国家筛选进口商、批发商和品牌客户，通过平台、LinkedIn 和展会名单建立客户池</li><li>针对不同客户类型准备报价策略、样品方案和认证资料，提高回复与推进效率</li><li>持续维护重点客户复购与新品推荐节奏，形成稳定订单来源</li></ul>",
+                  "id": "foreign-trade-project-1"
+                },
+                {
+                  "name": "广交会客户转化跟进",
+                  "role": "参展业务",
+                  "startDate": "2021-10",
+                  "endDate": "2022-04",
+                  "description": "<ul><li>参展前整理产品目录、报价区间、客户问答和样品展示方案，提升现场沟通效率</li><li>展会期间记录客户需求、采购周期和决策人信息，会后分级跟进报价与样品</li><li>复盘客户转化情况，完善后续展会客户标签和跟进 SOP</li></ul>",
+                  "id": "foreign-trade-project-2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "集美大学",
+                  "degree": "本科",
+                  "major": "国际经济与贸易",
+                  "startDate": "2014-09",
+                  "endDate": "2018-06",
+                  "city": "福建 - 厦门",
+                  "tags": [],
+                  "academy": "财经学院",
+                  "description": "<ul><li>主修国际贸易实务、外贸函电、国际结算、商务英语和市场营销课程</li><li>在校期间参与外贸单证实训，熟悉报价、合同、装箱单和报关基础流程</li></ul>",
+                  "id": "foreign-trade-edu-1"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟悉外贸询盘开发、报价谈判、样品确认、合同订单、物流出货、收款和售后流程</li><li>掌握阿里国际站、Made-in-China、LinkedIn、海关数据和展会客户开发方法</li><li>能独立处理英文邮件、视频会议、产品介绍、商务谈判和基础外贸单证</li><li>了解 FOB/CIF/DDP 等贸易术语、信用证/TT 收款方式和常见出口合规要求</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "大学英语六级考试合格证书",
+                  "date": "2017-06-01",
+                  "id": "foreign-trade-cert-1"
+                },
+                {
+                  "name": "剑桥商务英语 BEC 中级",
+                  "date": "2018-03-01",
+                  "id": "foreign-trade-cert-2"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

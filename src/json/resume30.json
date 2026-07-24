@@ -1,0 +1,193 @@
+{
+  "id": "electrical",
+  "title": "电气工程师简历模板",
+  "config": {
+    "name": "电气工程师简历模板",
+    "globalStyle": {
+      "pageSize": "A4",
+      "fontSize": 13,
+      "lineHeight": 1.3,
+      "moduleMargin": 15,
+      "color": "#5b4a2f",
+      "backgroundColor": "#fff",
+      "padding": 20,
+      "headerType": 7,
+      "layout": "default"
+    },
+    "pages": [
+      {
+        "modules": [
+          {
+            "type": "info1",
+            "id": "1",
+            "options": {
+              "position": "center",
+              "stature": null,
+              "weight": null,
+              "ethnic": "汉族",
+              "maritalStatus": "未婚",
+              "politicalStatus": "群众",
+              "site": null,
+              "layout": [
+                [
+                  "phone",
+                  "email",
+                  "city"
+                ],
+                [
+                  "wechat",
+                  "site"
+                ],
+                [
+                  "status",
+                  "intentCity",
+                  "intentPosts",
+                  "expectedSalary"
+                ]
+              ],
+              "name": "邵明远",
+              "phone": "13844556677",
+              "email": "shaomy_elec@163.com",
+              "city": "山东/青岛",
+              "status": "离职-1个月内到岗",
+              "intentCity": [
+                [
+                  "山东",
+                  "青岛"
+                ],
+                [
+                  "江苏",
+                  "苏州"
+                ],
+                [
+                  "上海",
+                  "上海"
+                ]
+              ],
+              "intentPosts": "电气工程师、自动化工程师、PLC工程师",
+              "wechat": "shaomy_elec",
+              "birthday": "1993-02-26",
+              "gender": "男",
+              "origin": "山东/烟台",
+              "expectedSalary": [
+                "16k",
+                "28k"
+              ],
+              "avatar": "resumeAvatar:a1"
+            }
+          },
+          {
+            "type": "other",
+            "id": "other-1",
+            "options": {
+              "title": "个人优势",
+              "description": "<ul><li>约 7 年电气自动化经验，熟悉非标设备电气设计、PLC 编程、现场调试和故障排查</li><li>能独立完成电气原理图、元件选型、柜内布局、程序开发和设备验收资料整理</li><li>具备较强现场问题处理能力，能与机械、工艺、供应商和客户协同推进设备交付</li></ul>"
+            }
+          },
+          {
+            "type": "job",
+            "id": "4",
+            "options": {
+              "title": "工作经历",
+              "items": [
+                {
+                  "company": "青岛海川自动化设备有限公司",
+                  "post": "电气工程师",
+                  "department": "自动化事业部",
+                  "city": "山东 - 青岛",
+                  "startDate": "2020-03",
+                  "endDate": "2025-10",
+                  "description": "<ul><li>负责非标自动化设备电气方案设计、元件选型、PLC/HMI 程序开发和现场调试</li><li>完成电气原理图、I/O 点表、接线图、调试记录和验收资料，保证项目文档完整</li><li>处理传感器、伺服、气动和通讯异常，协同机械与工艺优化设备节拍和稳定性</li></ul>",
+                  "id": "electrical-job-1"
+                },
+                {
+                  "company": "烟台某装备制造公司",
+                  "post": "助理电气工程师",
+                  "department": "技术部",
+                  "city": "山东 - 烟台",
+                  "startDate": "2017-07",
+                  "endDate": "2020-02",
+                  "description": "<ul><li>协助完成设备电气图纸绘制、柜内接线检查、PLC 程序调试和客户现场安装支持</li><li>参与设备故障排查，记录问题原因、处理步骤和备件更换情况</li><li>整理标准电气元件清单和调试 checklist，提升重复项目交付效率</li></ul>",
+                  "id": "electrical-job-2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "project",
+            "id": "5",
+            "options": {
+              "title": "项目经历",
+              "items": [
+                {
+                  "name": "锂电检测设备电气控制系统",
+                  "role": "电气负责人",
+                  "startDate": "2022-05",
+                  "endDate": "2024-04",
+                  "description": "<ul><li>负责 PLC 程序、HMI 界面、伺服控制和多工位联动逻辑，满足检测节拍与安全互锁要求</li><li>联调扫码、检测仪表和 MES 通讯，保证工艺数据采集与上传稳定</li><li>现场处理节拍波动、误报警和通讯异常，完成客户验收与操作培训</li></ul>",
+                  "id": "electrical-project-1"
+                },
+                {
+                  "name": "老旧产线电控系统升级",
+                  "role": "核心执行",
+                  "startDate": "2021-02",
+                  "endDate": "2021-12",
+                  "description": "<ul><li>梳理原有产线控制逻辑和故障点，制定 PLC、触摸屏、传感器和柜内元件升级方案</li><li>分阶段完成停机改造、线路核查、程序迁移和试生产验证，降低对生产的影响</li><li>升级后补齐图纸、备件清单和维护手册，便于后续运维排障</li></ul>",
+                  "id": "electrical-project-2"
+                }
+              ]
+            }
+          },
+          {
+            "type": "education",
+            "id": "6",
+            "options": {
+              "title": "教育经历",
+              "items": [
+                {
+                  "school": "青岛科技大学",
+                  "degree": "本科",
+                  "major": "电气工程及其自动化",
+                  "startDate": "2013-09",
+                  "endDate": "2017-06",
+                  "city": "山东 - 青岛",
+                  "tags": [],
+                  "academy": "自动化与电子工程学院",
+                  "description": "<ul><li>主修电路原理、电机拖动、自动控制原理、PLC 技术、传感器与检测技术</li><li>毕业设计完成小型自动分拣系统控制方案，覆盖电气设计、程序调试和仿真验证</li></ul>",
+                  "id": "electrical-edu-1"
+                }
+              ]
+            }
+          },
+          {
+            "type": "skill",
+            "id": "3",
+            "options": {
+              "title": "专业技能",
+              "description": "<ul><li>熟悉西门子/三菱 PLC、HMI、伺服、变频器、传感器和常见工业通讯协议</li><li>熟练 EPLAN/AutoCAD Electrical 绘图，能输出电气原理图、接线图、I/O 表和 BOM</li><li>具备非标自动化设备调试、故障排查、安全互锁、节拍优化和客户现场交付经验</li><li>了解 MES 通讯、扫码追溯、仪表采集、设备验收和电气安全规范</li></ul>"
+            }
+          },
+          {
+            "type": "certificate",
+            "id": "21421412",
+            "options": {
+              "title": "证书",
+              "items": [
+                {
+                  "name": "电气工程师助理证书",
+                  "date": "2019-06-01",
+                  "id": "electrical-cert-1"
+                },
+                {
+                  "name": "低压电工作业操作证",
+                  "date": "2021-04-01",
+                  "id": "electrical-cert-2"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
