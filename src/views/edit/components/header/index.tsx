@@ -13,6 +13,7 @@ import {
 } from '@ant-design/icons';
 import { FilePdf, DownPicture, FileCode, Save } from '@icon-park/react';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
+import QqAuthButton from '@/components/auth/QqAuthButton';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { cloudResumeStore, configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
@@ -182,6 +183,7 @@ function Header() {
         data-edit-tour='header-export'
       >
         <GithubAuthButton variant='compact' />
+        <QqAuthButton variant='compact' />
         <svg
           width={0}
           height={0}

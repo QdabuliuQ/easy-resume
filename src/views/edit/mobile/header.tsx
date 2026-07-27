@@ -10,6 +10,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { memo, useId, useRef, useState } from 'react';
 import { Button, Input, Tooltip } from 'antd';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
+import QqAuthButton from '@/components/auth/QqAuthButton';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { cloudResumeStore, configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
@@ -119,6 +120,7 @@ function MobileEditHeader() {
           </Tooltip>
         ) : null}
         <GithubAuthButton variant='compact' />
+        <QqAuthButton variant='compact' />
       </div>
       <div className='pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1'>
         <Button

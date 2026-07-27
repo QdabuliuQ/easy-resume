@@ -143,7 +143,7 @@ export default function GithubAuthButton({ variant = 'home' }: Props) {
       className={`inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-fg/14 bg-fg/[0.05] px-3 text-xs font-medium text-fg/65 transition-colors hover:bg-fg/[0.09] hover:text-fg/88 disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
     >
       {busy ? <LoadingOutlined className='text-[14px]' /> : <GithubOutlined className='text-[14px]' />}
-      <span className='hidden sm:inline'>{t('signIn')}</span>
+      <span className='hidden sm:inline'>{t('signInGithubShort')}</span>
     </button>
   );
 }

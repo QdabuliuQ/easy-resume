@@ -69,7 +69,7 @@ describe('GithubAuthButton', () => {
     useSession.mockReturnValue({ data: null, status: 'unauthenticated' });
     const user = userEvent.setup();
     renderBtn();
-    await user.click(screen.getByLabelText('使用 GitHub 登录'));
+    await user.click(screen.getByLabelText('使用 Github 登录'));
     expect(signIn).toHaveBeenCalledWith('github', {
       redirectTo: window.location.href,
       redirect: true,
@@ -80,7 +80,7 @@ describe('GithubAuthButton', () => {
     useSession.mockReturnValue({ data: null, status: 'unauthenticated' });
     const user = userEvent.setup();
     renderBtn('compact');
-    await user.click(screen.getByLabelText('使用 GitHub 登录'));
+    await user.click(screen.getByLabelText('使用 Github 登录'));
     expect(signIn).toHaveBeenCalledTimes(1);
   });
 

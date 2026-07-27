@@ -5,8 +5,9 @@ import { customFetch } from 'next-auth';
 import { Agent, ProxyAgent, fetch as undiciFetch } from 'undici';
 import { AUTH_BASE_PATH, GITHUB_CALLBACK_PATH } from '@/lib/authPaths';
 import { cfApiBase, cfApiHeaders, cfApiSecret } from '@/lib/cfApi';
+import { QqProvider } from '@/lib/qqOAuthProvider';
 
-export { AUTH_BASE_PATH, GITHUB_CALLBACK_PATH };
+export { AUTH_BASE_PATH, GITHUB_CALLBACK_PATH, QQ_CALLBACK_PATH } from '@/lib/authPaths';
 
 /** 生产反代 Host 常是 localhost:3010；给 Auth.js 写死公网地址 */
 if (process.env.NODE_ENV === 'production') {
@@ -93,21 +94,27 @@ async function syncUserToCfApi(profile: {
 
 const githubToken = githubTokenEndpoint();
 
+const providers: NextAuthConfig['providers'] = [
+  GitHub({
+    clientId: process.env.AUTH_GITHUB_ID,
+    clientSecret: process.env.AUTH_GITHUB_SECRET,
+    // ponytail: 关 PKCE/state cookie 校验，避免反代下 cookie 丢失导致 Configuration
+    checks: [],
+    // 凭证进 body；避免 Worker 漏转 Authorization 时 GitHub 回 404 Not Found
+    client: { token_endpoint_auth_method: 'client_secret_post' },
+    authorization: { params: { scope: 'read:user user:email' } },
+    // 国内机房对 github.com/login/oauth 返回 500；换 token 经 CF Worker
+    ...(githubToken ? { token: githubToken } : {}),
+    [customFetch]: githubProxyFetch(),
+  }),
+  QqProvider({
+    clientId: process.env.AUTH_QQ_ID,
+    clientSecret: process.env.AUTH_QQ_SECRET,
+  }),
+];
+
 const authConfig: NextAuthConfig = {
-  providers: [
-    GitHub({
-      clientId: process.env.AUTH_GITHUB_ID,
-      clientSecret: process.env.AUTH_GITHUB_SECRET,
-      // ponytail: 关 PKCE/state cookie 校验，避免反代下 cookie 丢失导致 Configuration
-      checks: [],
-      // 凭证进 body；避免 Worker 漏转 Authorization 时 GitHub 回 404 Not Found
-      client: { token_endpoint_auth_method: 'client_secret_post' },
-      authorization: { params: { scope: 'read:user user:email' } },
-      // 国内机房对 github.com/login/oauth 返回 500；换 token 经 CF Worker
-      ...(githubToken ? { token: githubToken } : {}),
-      [customFetch]: githubProxyFetch(),
-    }),
-  ],
+  providers,
   basePath: AUTH_BASE_PATH,
   trustHost: true,
   secret: process.env.AUTH_SECRET,
@@ -122,21 +129,36 @@ const authConfig: NextAuthConfig = {
     },
   },
   callbacks: {
-    async jwt({ token, profile }) {
-      const gh = profile as
-        | {
-            id?: string | number | null;
-            login?: string;
-            avatar_url?: string;
-            image?: string | null;
-            email?: string | null;
-          }
-        | undefined;
-      if (gh && typeof gh.login === 'string') {
-        token.login = gh.login;
-      }
-      if (gh?.id != null) {
-        const uid = await syncUserToCfApi(gh);
+    async jwt({ token, profile, account, user }) {
+      if (!account || (!profile && !user)) return token;
+      const raw = (profile || user) as {
+        id?: string | number | null;
+        openid?: string;
+        login?: string;
+        nickname?: string;
+        avatar_url?: string;
+        figureurl_qq_2?: string;
+        figureurl_qq_1?: string;
+        image?: string | null;
+        email?: string | null;
+        name?: string | null;
+      };
+      const login =
+        (typeof raw.login === 'string' && raw.login) ||
+        (typeof raw.nickname === 'string' && raw.nickname) ||
+        (typeof user?.name === 'string' && user.name) ||
+        '';
+      if (login) token.login = login;
+      const rawId = raw.openid ?? raw.id ?? user?.id;
+      if (rawId != null && String(rawId)) {
+        const syncId = account.provider === 'qq' ? `qq:${rawId}` : rawId;
+        const uid = await syncUserToCfApi({
+          id: syncId,
+          login,
+          avatar_url: raw.figureurl_qq_2 || raw.figureurl_qq_1 || raw.avatar_url || user?.image || '',
+          image: user?.image,
+          email: raw.email || user?.email || '',
+        });
         if (uid) token.uid = uid;
       }
       return token;
