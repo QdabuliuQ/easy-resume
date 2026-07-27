@@ -2,15 +2,22 @@
 
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ComponentProps } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { Spin } from 'antd';
+import { ConfigProvider, Spin } from 'antd';
 import { logo } from '@/lib/brandAssets';
+
+const shareSpinTheme = { token: { colorPrimary: '#0e9c8d' } };
+const ShareSpin = (props: ComponentProps<typeof Spin>) => (
+  <ConfigProvider theme={shareSpinTheme}>
+    <Spin {...props} />
+  </ConfigProvider>
+);
 
 const ResumeImageExportPage = dynamic(
   () => import('@/views/export/resumeImageExportPage'),
-  { ssr: false, loading: () => <Spin tip='…' /> },
+  { ssr: false, loading: () => <ShareSpin tip='…' /> },
 );
 
 type Status = 'loading' | 'ok' | 'expired' | 'invalid';
@@ -27,20 +34,47 @@ function ShareResumeFrame({ config }: { config: unknown }) {
     const wrap = wrapRef.current;
     const inner = innerRef.current;
     if (!wrap || !inner) return;
-    const page = inner.querySelector('[data-resume-export-page]') as HTMLElement | null;
-    if (!page) return;
-    const sync = () => {
+
+    let ro: ResizeObserver | null = null;
+    let cancelled = false;
+    let raf = 0;
+
+    const syncFromPage = (page: HTMLElement) => {
       const w = page.offsetWidth || 794;
       const h = page.offsetHeight;
-      const avail = Math.min(wrap.clientWidth, SHARE_RESUME_MAX_W);
+      const avail = Math.min(wrap.clientWidth || SHARE_RESUME_MAX_W, SHARE_RESUME_MAX_W);
       setScale(Math.min(1, avail / w));
       setSize({ w, h });
     };
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(page);
-    ro.observe(wrap);
-    return () => ro.disconnect();
+
+    const ensureObserver = (page: HTMLElement) => {
+      if (ro) return;
+      ro = new ResizeObserver(() => syncFromPage(page));
+      ro.observe(page);
+      ro.observe(wrap);
+    };
+
+    const tryAttach = () => {
+      if (cancelled) return;
+      const page = inner.querySelector('[data-resume-export-page]') as HTMLElement | null;
+      if (!page) {
+        raf = requestAnimationFrame(tryAttach);
+        return;
+      }
+      syncFromPage(page);
+      ensureObserver(page);
+    };
+
+    tryAttach();
+    const mo = new MutationObserver(tryAttach);
+    mo.observe(inner, { childList: true, subtree: true });
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+      mo.disconnect();
+      ro?.disconnect();
+    };
   }, [config]);
 
   return (
@@ -48,7 +82,7 @@ function ShareResumeFrame({ config }: { config: unknown }) {
       <div
         className='overflow-hidden rounded-lg shadow-[0_8px_30px_rgb(0_0_0/0.08)]'
         style={{
-          width: size.w * scale,
+          width: size.h ? size.w * scale : '100%',
           height: size.h ? size.h * scale : undefined,
           colorScheme: 'light',
         }}
@@ -56,7 +90,12 @@ function ShareResumeFrame({ config }: { config: unknown }) {
         <div
           ref={innerRef}
           className='origin-top-left'
-          style={{ transform: `scale(${scale})`, width: size.w }}
+          style={{
+            transform: `scale(${scale})`,
+            width: size.w,
+            // transform 不占布局；未测到高度前先可见，避免空白
+            ...(size.h ? undefined : { minHeight: 200 }),
+          }}
         >
           <ResumeImageExportPage config={config} />
         </div>
@@ -120,7 +159,7 @@ export default function ShareResumeView({ token }: { token: string }) {
       <main className='mx-auto flex w-full flex-col items-center px-3 pb-8 pt-16 sm:px-6'>
         {status === 'loading' ? (
           <div className='flex min-h-[40vh] items-center justify-center'>
-            <Spin tip={t('loading')} size='large' />
+            <ShareSpin tip={t('loading')} size='large' />
           </div>
         ) : null}
         {status === 'expired' || status === 'invalid' ? (
@@ -134,7 +173,8 @@ export default function ShareResumeView({ token }: { token: string }) {
             <Link
               href='/'
               prefetch={false}
-              className='mt-2 text-sm font-medium text-[var(--color-primary)] hover:underline'
+              className='mt-2 text-sm font-medium hover:underline'
+              style={{ color: 'var(--color-primary)' }}
             >
               {t('backHome')}
             </Link>

@@ -35,6 +35,7 @@ export default function ShareResumeModal({ open, resumeId, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [enabled, setEnabled] = useState(false);
+  const [shared, setShared] = useState(false);
   const [expireMode, setExpireMode] = useState<'never' | 'custom'>('never');
   const [expireAt, setExpireAt] = useState<Dayjs | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -43,6 +44,16 @@ export default function ShareResumeModal({ open, resumeId, onClose }: Props) {
     if (!token || typeof window === 'undefined') return '';
     return buildShareUrl(window.location.origin, locale, token);
   }, [token, locale]);
+
+  const applyExpire = (expires_at: number | null | undefined) => {
+    if (expires_at) {
+      setExpireMode('custom');
+      setExpireAt(dayjs.unix(expires_at));
+    } else {
+      setExpireMode('never');
+      setExpireAt(null);
+    }
+  };
 
   useEffect(() => {
     if (!open || !resumeId) return;
@@ -59,15 +70,11 @@ export default function ShareResumeModal({ open, resumeId, onClose }: Props) {
           message.error(data.error || t('loadFail'));
           return;
         }
-        setEnabled(Boolean(data.enabled));
-        setToken(data.token || null);
-        if (data.expires_at) {
-          setExpireMode('custom');
-          setExpireAt(dayjs.unix(data.expires_at));
-        } else {
-          setExpireMode('never');
-          setExpireAt(null);
-        }
+        const on = Boolean(data.enabled);
+        setEnabled(on);
+        setShared(on);
+        setToken(on ? data.token || null : null);
+        applyExpire(data.expires_at);
       } catch {
         if (!cancelled) message.error(t('loadFail'));
       } finally {
@@ -79,18 +86,15 @@ export default function ShareResumeModal({ open, resumeId, onClose }: Props) {
     };
   }, [open, resumeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const persist = async (opts?: { rotate?: boolean; nextEnabled?: boolean }) => {
-    const nextEnabled = opts?.nextEnabled ?? enabled;
-    let expires_at: number | null | undefined = null;
-    if (nextEnabled) {
+  const persist = async (opts: { rotate?: boolean; nextEnabled: boolean }) => {
+    let expires_at: number | null = null;
+    if (opts.nextEnabled) {
       if (expireMode === 'custom') {
         if (!expireAt || !expireAt.isAfter(dayjs())) {
           message.error(t('expireInvalid'));
           return;
         }
         expires_at = expireAt.unix();
-      } else {
-        expires_at = null;
       }
     }
 
@@ -101,9 +105,9 @@ export default function ShareResumeModal({ open, resumeId, onClose }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: resumeId,
-          enabled: nextEnabled,
-          expires_at: nextEnabled ? expires_at : null,
-          ...(opts?.rotate ? { rotate: true } : {}),
+          enabled: opts.nextEnabled,
+          expires_at: opts.nextEnabled ? expires_at : null,
+          ...(opts.rotate ? { rotate: true } : {}),
         }),
       });
       const data = await res.json();
@@ -111,17 +115,13 @@ export default function ShareResumeModal({ open, resumeId, onClose }: Props) {
         message.error(data?.error || t('saveFail'));
         return;
       }
-      setEnabled(Boolean(data.enabled));
-      setToken(data.token || null);
-      if (data.expires_at) {
-        setExpireMode('custom');
-        setExpireAt(dayjs.unix(data.expires_at));
-      } else if (data.enabled) {
-        setExpireMode('never');
-        setExpireAt(null);
-      }
-      if (!data.enabled) message.success(t('closed'));
-      else if (opts?.rotate) message.success(t('generated'));
+      const on = Boolean(data.enabled);
+      setEnabled(on);
+      setShared(on);
+      setToken(on ? data.token || null : null);
+      if (on) applyExpire(data.expires_at);
+      if (!on) message.success(t('closed'));
+      else if (opts.rotate) message.success(t('generated'));
       else message.success(t('saved'));
     } catch {
       message.error(t('saveFail'));
@@ -131,8 +131,13 @@ export default function ShareResumeModal({ open, resumeId, onClose }: Props) {
   };
 
   const onToggle = (checked: boolean) => {
-    setEnabled(checked);
-    void persist({ nextEnabled: checked });
+    if (checked) {
+      setEnabled(true);
+      return;
+    }
+    setEnabled(false);
+    if (shared) void persist({ nextEnabled: false });
+    else setToken(null);
   };
 
   const onCopy = async () => {
@@ -173,23 +178,24 @@ export default function ShareResumeModal({ open, resumeId, onClose }: Props) {
                 <Radio.Group
                   value={expireMode}
                   onChange={(e) => setExpireMode(e.target.value)}
-                  className='flex flex-col gap-2'
                 >
                   <Radio value='never'>{t('expireNever')}</Radio>
                   <Radio value='custom'>{t('expireCustom')}</Radio>
                 </Radio.Group>
                 {expireMode === 'custom' ? (
-                  <DatePicker
-                    showTime
-                    className='mt-[6px] w-full'
-                    value={expireAt}
-                    onChange={setExpireAt}
-                    disabledDate={(d) => d && d.isBefore(dayjs().startOf('day'))}
-                    placeholder={t('expirePicker')}
-                  />
+                  <div className='mt-3'>
+                    <DatePicker
+                      showTime
+                      className='w-full'
+                      value={expireAt}
+                      onChange={setExpireAt}
+                      disabledDate={(d) => d && d.isBefore(dayjs().startOf('day'))}
+                      placeholder={t('expirePicker')}
+                    />
+                  </div>
                 ) : null}
               </div>
-              {shareUrl ? (
+              {shared && shareUrl ? (
                 <div>
                   <div className='mb-2 text-sm font-medium'>{t('linkLabel')}</div>
                   <Space.Compact className='w-full'>
