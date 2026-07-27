@@ -120,7 +120,9 @@ export default function ShareResumeModal({ open, resumeId, onClose }: Props) {
         setExpireMode('never');
         setExpireAt(null);
       }
-      message.success(data.enabled ? t('saved') : t('closed'));
+      if (!data.enabled) message.success(t('closed'));
+      else if (opts?.rotate) message.success(t('generated'));
+      else message.success(t('saved'));
     } catch {
       message.error(t('saveFail'));
     } finally {
@@ -141,16 +143,6 @@ export default function ShareResumeModal({ open, resumeId, onClose }: Props) {
     } catch {
       message.error(t('saveFail'));
     }
-  };
-
-  const onRotate = () => {
-    Modal.confirm({
-      title: t('rotate'),
-      content: t('rotateConfirm'),
-      okText: t('ok'),
-      cancelText: t('cancel'),
-      onOk: () => persist({ rotate: true, nextEnabled: true }),
-    });
   };
 
   return (
@@ -189,21 +181,13 @@ export default function ShareResumeModal({ open, resumeId, onClose }: Props) {
                 {expireMode === 'custom' ? (
                   <DatePicker
                     showTime
-                    className='mt-2 w-full'
+                    className='mt-[6px] w-full'
                     value={expireAt}
                     onChange={setExpireAt}
                     disabledDate={(d) => d && d.isBefore(dayjs().startOf('day'))}
                     placeholder={t('expirePicker')}
                   />
                 ) : null}
-                <Button
-                  type='primary'
-                  className='mt-3'
-                  loading={saving}
-                  onClick={() => void persist({ nextEnabled: true })}
-                >
-                  {t('save')}
-                </Button>
               </div>
               {shareUrl ? (
                 <div>
@@ -212,11 +196,18 @@ export default function ShareResumeModal({ open, resumeId, onClose }: Props) {
                     <Input value={shareUrl} readOnly />
                     <Button onClick={() => void onCopy()}>{t('copy')}</Button>
                   </Space.Compact>
-                  <Button type='link' className='mt-1 px-0' onClick={onRotate} disabled={saving}>
-                    {t('rotate')}
-                  </Button>
                 </div>
               ) : null}
+              <Button
+                type='primary'
+                block
+                size='large'
+                className='!mt-1 !h-11 !rounded-xl !border-none !bg-[var(--color-primary)] !font-medium !shadow-none hover:!opacity-90'
+                loading={saving}
+                onClick={() => void persist({ rotate: true, nextEnabled: true })}
+              >
+                {t('generate')}
+              </Button>
             </>
           ) : null}
         </div>
