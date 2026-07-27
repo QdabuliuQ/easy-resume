@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS resume_header (
   id TEXT PRIMARY KEY NOT NULL,
   user_id TEXT NOT NULL,
   update_at INTEGER NOT NULL,
+  share_token TEXT,
+  share_enabled INTEGER NOT NULL DEFAULT 0,
+  share_expires_at INTEGER,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -27,5 +30,6 @@ CREATE TABLE IF NOT EXISTS resume_module (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_github_id ON users(github_id);
 CREATE INDEX IF NOT EXISTS idx_resume_header_user_id ON resume_header(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_resume_header_share_token ON resume_header(share_token);
 CREATE INDEX IF NOT EXISTS idx_resume_module_resume_id ON resume_module(resume_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_resume_module_resume_type ON resume_module(resume_id, module_type);

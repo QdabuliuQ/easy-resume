@@ -11,7 +11,7 @@ import {
   RedoOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { FilePdf, DownPicture, FileCode, Save } from '@icon-park/react';
+import { FilePdf, DownPicture, FileCode, Save, Share } from '@icon-park/react';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
 import QqAuthButton from '@/components/auth/QqAuthButton';
 import { useAppMessage } from '@/hooks/useAppMessage';
@@ -20,6 +20,7 @@ import defaultResume from '@/json/resume.defaults';
 import { logo } from '@/lib/brandAssets';
 import { useResumeExport } from '@/views/edit/hooks/useResumeExport';
 import { useEditHistory } from '@/views/edit/hooks/useEditHistory';
+import ShareResumeModal from '@/views/edit/components/header/ShareResumeModal';
 function Header() {
   const t = useTranslations('Edit.header');
   const message = useAppMessage();
@@ -36,11 +37,14 @@ function Header() {
   } = useResumeExport();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  const [shareOpen, setShareOpen] = useState(false);
   const ignoreNextBlur = useRef(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
   const actionsDisabled = exporting;
   const showSave = cloudResumeStore.showSaveButton;
   const saving = cloudResumeStore.saving;
+  const resumeId = cloudResumeStore.resumeId;
+  const canShare = signedIn && Boolean(resumeId);
   const exportGradId = `hdr-eg${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const exportChipOuter =
     'group rounded-2xl bg-gradient-primary p-px shadow-[0_2px_12px_rgb(0_0_0/0.18)] transition-[filter] duration-200 hover:brightness-110 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100';
@@ -84,6 +88,17 @@ function Header() {
     const result = await cloudResumeStore.save();
     if (result.ok) message.success(t('saveOk'));
     else message.error(result.error || t('saveFail'));
+  };
+  const onShareClick = () => {
+    if (!signedIn) {
+      message.warning(t('shareNeedLogin'));
+      return;
+    }
+    if (!resumeId) {
+      message.warning(t('shareNeedSave'));
+      return;
+    }
+    setShareOpen(true);
   };
   return (
     <div className='relative flex h-full items-center justify-between gap-4 px-4 md:px-5'>
@@ -229,6 +244,34 @@ function Header() {
             </span>
           </Tooltip>
         ) : null}
+        <Tooltip
+          title={
+            !signedIn ? t('shareNeedLogin') : !resumeId ? t('shareNeedSave') : undefined
+          }
+        >
+          <span className={`inline-flex ${canShare ? '' : 'cursor-not-allowed'}`}>
+            <button
+              type='button'
+              disabled={actionsDisabled || !canShare}
+              onClick={onShareClick}
+              aria-label={t('shareAria')}
+              className={`${canShare ? 'cursor-pointer' : 'pointer-events-none'} ${exportChipOuter}`}
+            >
+              <span className={exportChipInner}>
+                <span className={exportIconSlot} aria-hidden>
+                  <Share
+                    theme='outline'
+                    size={20}
+                    fill={`url(#${exportGradId})`}
+                  />
+                </span>
+                <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent whitespace-nowrap'>
+                  {t('share')}
+                </span>
+              </span>
+            </button>
+          </span>
+        </Tooltip>
         <button
           type='button'
           disabled={actionsDisabled}
@@ -295,6 +338,13 @@ function Header() {
           </span>
         </button>
       </div>
+      {resumeId ? (
+        <ShareResumeModal
+          open={shareOpen}
+          resumeId={resumeId}
+          onClose={() => setShareOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

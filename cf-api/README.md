@@ -42,7 +42,7 @@ cf-api/
 | 表 | 字段 |
 |----|------|
 | `users` | `id` UUID PK, `github_id` UNIQUE, `username`, `avatar`, `email`, `create_at` |
-| `resume_header` | `id` UUID PK, `user_id` → users, `update_at` |
+| `resume_header` | `id` UUID PK, `user_id` → users, `update_at`, `share_token`, `share_enabled`, `share_expires_at` |
 | `resume_module` | `id` UUID PK, `resume_id` → resume_header, `module_type`, `module_json` |
 
 `module_type`：`base` / `education` / `work` / `project` / `skill`
@@ -60,6 +60,9 @@ cf-api/
 | GET | `/api/resume/get?id=&uid=` | 单份简历 |
 | POST | `/api/resume/save` | 保存 |
 | DELETE | `/api/resume/remove?id=&uid=` | 删除 |
+| GET | `/api/resume/share?id=&uid=` | 分享状态 |
+| POST | `/api/resume/share` | 开启/关闭/轮换分享（`{ uid, id, enabled, expires_at?, rotate? }`） |
+| GET | `/api/resume/public?token=` | 访客只读（仍须 `X-CF-Key`，仅 Next 调用） |
 | GET | `/api/health` | 健康检查 |
 
 **没有** `/api/admin/login`（登录在主站 Next）。
@@ -77,6 +80,10 @@ npx wrangler d1 create easy-resume --location apac
 ```bash
 npx wrangler d1 execute easy-resume --local --file=./schema.sql
 npx wrangler d1 execute easy-resume --remote --file=./schema.sql
+
+# 已有库追加分享字段：
+npx wrangler d1 execute easy-resume --local --file=./migrations/0001_share.sql
+npx wrangler d1 execute easy-resume --remote --file=./migrations/0001_share.sql
 ```
 
 ## 三、本地调试

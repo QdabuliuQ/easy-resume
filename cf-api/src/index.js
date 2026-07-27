@@ -15,6 +15,9 @@
  *   GET  /api/resume/get?id=&uid=
  *   POST /api/resume/save
  *   DELETE /api/resume/remove?id=&uid=
+ *   GET  /api/resume/share?id=&uid=
+ *   POST /api/resume/share
+ *   GET  /api/resume/public?token=
  *   OPTIONS * （CORS 预检）
  */
 
@@ -43,12 +46,13 @@ function corsHeaders(request) {
   };
 }
 
-function json(request, data, status = 200) {
+function json(request, data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       ...corsHeaders(request),
+      ...extraHeaders,
     },
   });
 }
@@ -483,6 +487,147 @@ async function handleResumeRemove(request, env) {
   return json(request, { ok: true, id });
 }
 
+function randomShareToken() {
+  const bytes = new Uint8Array(18);
+  crypto.getRandomValues(bytes);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 1) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+function shareStatusPayload(row) {
+  const enabled = Number(row.share_enabled) === 1;
+  const expiresAt = row.share_expires_at == null ? null : Number(row.share_expires_at);
+  const expired =
+    enabled && expiresAt != null && Number.isFinite(expiresAt) && expiresAt > 0 && expiresAt <= nowTs();
+  return {
+    id: row.id,
+    enabled,
+    token: enabled && row.share_token ? String(row.share_token) : null,
+    expires_at: expiresAt,
+    expired,
+  };
+}
+
+/** GET /api/resume/share?id=&uid= */
+async function handleResumeShareGet(request, env) {
+  const gate = assertServiceKey(request, env);
+  if (!gate.ok) return json(request, { error: gate.error }, gate.status);
+
+  const url = new URL(request.url);
+  const id = (url.searchParams.get('id') || '').trim();
+  const uid = (url.searchParams.get('uid') || '').trim();
+  if (!id) return json(request, { error: '缺少 id' }, 400);
+  if (!uid) return json(request, { error: '缺少 uid' }, 400);
+
+  const row = await env.DB.prepare(
+    'SELECT id, share_token, share_enabled, share_expires_at FROM resume_header WHERE id = ? AND user_id = ? LIMIT 1',
+  )
+    .bind(id, uid)
+    .first();
+  if (!row) return json(request, { error: '简历不存在或无权操作' }, 404);
+  return json(request, shareStatusPayload(row));
+}
+
+/**
+ * POST /api/resume/share
+ * body: { uid, id, enabled, expires_at?: number|null, rotate?: boolean }
+ */
+async function handleResumeSharePost(request, env) {
+  const gate = assertServiceKey(request, env);
+  if (!gate.ok) return json(request, { error: gate.error }, gate.status);
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json(request, { error: '请求体必须是 JSON' }, 400);
+  }
+
+  const uid = body?.uid != null ? String(body.uid) : '';
+  const id = body?.id != null ? String(body.id).trim() : '';
+  if (!uid) return json(request, { error: '缺少 uid' }, 400);
+  if (!id) return json(request, { error: '缺少 id' }, 400);
+
+  const row = await env.DB.prepare(
+    'SELECT id, share_token, share_enabled, share_expires_at FROM resume_header WHERE id = ? AND user_id = ? LIMIT 1',
+  )
+    .bind(id, uid)
+    .first();
+  if (!row) return json(request, { error: '简历不存在或无权操作' }, 404);
+
+  const enabled = Boolean(body.enabled);
+  if (!enabled) {
+    await env.DB.prepare(
+      'UPDATE resume_header SET share_enabled = 0, share_token = NULL, share_expires_at = NULL WHERE id = ? AND user_id = ?',
+    )
+      .bind(id, uid)
+      .run();
+    return json(request, { id, enabled: false, token: null, expires_at: null, expired: false });
+  }
+
+  let expiresAt = null;
+  if (body.expires_at !== undefined && body.expires_at !== null && body.expires_at !== '') {
+    const n = Number(body.expires_at);
+    if (!Number.isFinite(n) || n <= nowTs()) {
+      return json(request, { error: '过期时间无效' }, 400);
+    }
+    expiresAt = Math.floor(n);
+  }
+
+  const rotate = body.rotate === true || !row.share_token;
+  const token = rotate ? randomShareToken() : String(row.share_token);
+
+  await env.DB.prepare(
+    'UPDATE resume_header SET share_enabled = 1, share_token = ?, share_expires_at = ? WHERE id = ? AND user_id = ?',
+  )
+    .bind(token, expiresAt, id, uid)
+    .run();
+
+  return json(request, {
+    id,
+    enabled: true,
+    token,
+    expires_at: expiresAt,
+    expired: false,
+  });
+}
+
+/** GET /api/resume/public?token= — 访客只读；仍需 X-CF-Key（仅 Next 服务端调用） */
+async function handleResumePublicGet(request, env) {
+  const gate = assertServiceKey(request, env);
+  if (!gate.ok) return json(request, { error: gate.error }, gate.status);
+
+  const token = (new URL(request.url).searchParams.get('token') || '').trim();
+  if (!token || token.length < 16) {
+    return json(request, { error: '链接无效', code: 'not_found' }, 404);
+  }
+
+  const row = await env.DB.prepare(
+    'SELECT id, share_token, share_enabled, share_expires_at FROM resume_header WHERE share_token = ? LIMIT 1',
+  )
+    .bind(token)
+    .first();
+
+  if (!row || Number(row.share_enabled) !== 1) {
+    return json(request, { error: '链接无效或未开启分享', code: 'not_found' }, 404);
+  }
+
+  const expiresAt = row.share_expires_at == null ? null : Number(row.share_expires_at);
+  if (expiresAt != null && Number.isFinite(expiresAt) && expiresAt > 0 && expiresAt <= nowTs()) {
+    return json(request, { error: '简历链接已过期', code: 'expired' }, 410);
+  }
+
+  const content = await loadResumeContent(env, row.id);
+  return json(request, {
+    content,
+    expires_at: expiresAt,
+  }, 200, {
+    'Cache-Control': 'private, no-store',
+    'X-Robots-Tag': 'noindex, nofollow',
+  });
+}
+
 /**
  * 服务端密钥：保护 /api/resume/*、/api/user/sync
  * Header: X-CF-Key: <CF_API_SECRET || ADMIN_SECRET>
@@ -732,6 +877,9 @@ export default {
       if (method === 'GET' && path === '/api/resume/get') return handleResumeGet(request, env);
       if (method === 'POST' && path === '/api/resume/save') return handleResumeSave(request, env);
       if (method === 'DELETE' && path === '/api/resume/remove') return handleResumeRemove(request, env);
+      if (method === 'GET' && path === '/api/resume/share') return handleResumeShareGet(request, env);
+      if (method === 'POST' && path === '/api/resume/share') return handleResumeSharePost(request, env);
+      if (method === 'GET' && path === '/api/resume/public') return handleResumePublicGet(request, env);
       if (method === 'GET' && path === '/api/health') return json(request, { ok: true, ts: nowTs() });
 
       return json(request, { error: 'Not Found', path }, 404);

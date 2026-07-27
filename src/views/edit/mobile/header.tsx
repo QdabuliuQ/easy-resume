@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { EditOutlined, RedoOutlined, UndoOutlined } from '@ant-design/icons';
-import { SaveOne } from '@icon-park/react';
+import { SaveOne, Share } from '@icon-park/react';
 import { observer } from 'mobx-react';
 import { useSession } from 'next-auth/react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -17,6 +17,7 @@ import defaultResume from '@/json/resume.defaults';
 import { localePath } from '@/lib/device';
 import { logo } from '@/lib/brandAssets';
 import { useEditHistory } from '@/views/edit/hooks/useEditHistory';
+import ShareResumeModal from '@/views/edit/components/header/ShareResumeModal';
 
 function MobileEditHeader() {
   const t = useTranslations('Edit.header');
@@ -27,10 +28,13 @@ function MobileEditHeader() {
   const locale = useLocale();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  const [shareOpen, setShareOpen] = useState(false);
   const ignoreNextBlur = useRef(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
   const showSave = cloudResumeStore.showSaveButton;
   const saving = cloudResumeStore.saving;
+  const resumeId = cloudResumeStore.resumeId;
+  const canShare = signedIn && Boolean(resumeId);
   const saveGradId = `mhdr-sg${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const commit = () => {
     const trimmed = draft.trim();
@@ -50,6 +54,17 @@ function MobileEditHeader() {
     const result = await cloudResumeStore.save();
     if (result.ok) message.success(t('saveOk'));
     else message.error(result.error || t('saveFail'));
+  };
+  const onShareClick = () => {
+    if (!signedIn) {
+      message.warning(t('shareNeedLogin'));
+      return;
+    }
+    if (!resumeId) {
+      message.warning(t('shareNeedSave'));
+      return;
+    }
+    setShareOpen(true);
   };
   return (
     <header className='relative shrink-0 border-b border-fg/10 px-4 pb-3 pt-3'>
@@ -119,6 +134,23 @@ function MobileEditHeader() {
             </span>
           </Tooltip>
         ) : null}
+        <Tooltip
+          title={
+            !signedIn ? t('shareNeedLogin') : !resumeId ? t('shareNeedSave') : undefined
+          }
+        >
+          <span className={`inline-flex ${canShare ? '' : 'cursor-not-allowed'}`}>
+            <Button
+              type='text'
+              size='small'
+              icon={<Share theme='outline' size={16} fill={`url(#${saveGradId})`} />}
+              aria-label={t('shareAria')}
+              disabled={!canShare}
+              onClick={onShareClick}
+              className='!h-8 !w-8 !min-w-8 !p-0 !border-[color-mix(in_srgb,var(--color-primary)_35%,transparent)]'
+            />
+          </span>
+        </Tooltip>
         <GithubAuthButton variant='compact' />
         <QqAuthButton variant='compact' />
       </div>
@@ -142,6 +174,13 @@ function MobileEditHeader() {
           className='pointer-events-auto !h-8 !w-8 !min-w-8 !p-0 enabled:cursor-pointer disabled:!cursor-not-allowed'
         />
       </div>
+      {resumeId ? (
+        <ShareResumeModal
+          open={shareOpen}
+          resumeId={resumeId}
+          onClose={() => setShareOpen(false)}
+        />
+      ) : null}
     </header>
   );
 }
