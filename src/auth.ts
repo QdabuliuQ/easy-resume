@@ -3,7 +3,7 @@ import type { NextAuthConfig } from 'next-auth';
 import GitHub from 'next-auth/providers/github';
 import { customFetch } from 'next-auth';
 import { Agent, ProxyAgent, fetch as undiciFetch } from 'undici';
-import { AUTH_BASE_PATH, GITHUB_CALLBACK_PATH } from '@/lib/authPaths';
+import { AUTH_BASE_PATH } from '@/lib/authPaths';
 import { cfApiBase, cfApiHeaders, cfApiSecret } from '@/lib/cfApi';
 import { QqProvider } from '@/lib/qqOAuthProvider';
 

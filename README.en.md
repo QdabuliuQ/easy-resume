@@ -107,7 +107,7 @@ See `.env.local.example`. Highlights:
 
 | Variable | Description |
 |----------|-------------|
-| `AUTH_SECRET` / `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | NextAuth GitHub OAuth; callback `/api/github/callback` |
+| `AUTH_SECRET` / `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | NextAuth GitHub OAuth; callback `/api/auth/callback/github` |
 | `CF_API_BASE_URL` | Worker base URL |
 | `CF_API_SECRET` | Server→CF key (`X-CF-Key`); falls back to `ADMIN_SECRET` |
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` / `ADMIN_SECRET` | Admin console at `/zh/admin` |
@@ -117,7 +117,7 @@ Never ship `CF_API_SECRET` / `ADMIN_SECRET` to the browser. Worker secrets: loca
 ## 📂 Layout
 
 ```
-src/app/          # App Router (incl. /api/github, /api/resume/cloud, /api/admin)
+src/app/          # App Router (incl. /api/auth, /api/resume/cloud, /api/admin)
 src/views/admin/  # Admin shell
 cf-api/           # Cloudflare Workers + D1
 tests/            # Vitest

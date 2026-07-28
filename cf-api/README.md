@@ -7,7 +7,7 @@
 | | 主站 Next | 本 Worker |
 |--|-----------|-----------|
 | 域名 | `https://resume.qdabuliuq.cn` | `https://api.resume.qdabuliuq.cn`（备用 workers.dev） |
-| 登录 | `/api/admin/login`、NextAuth `/api/github` | **无登录接口** |
+| 登录 | `/api/admin/login`、NextAuth `/api/auth` | **无登录接口** |
 | 数据 | 浏览器调 `/api/admin/stats`、`/api/resume/cloud` 等（Next 代理） | 真实 D1：`/api/admin/stats`、`/api/resume/*`、`/api/user/sync` |
 | 谁访问 | 浏览器 | **仅 Next 服务端**（`CF_API_BASE_URL` + 密钥） |
 

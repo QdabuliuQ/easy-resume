@@ -861,7 +861,7 @@ export default {
       if (method === 'GET' && (path === '/api/github/login' || path === '/api/github/callback')) {
         return json(
           request,
-          { error: '已停用：请使用站点 NextAuth GitHub 登录（/api/github）' },
+          { error: '已停用：请使用站点 NextAuth 登录（/api/auth）' },
           410,
         );
       }
