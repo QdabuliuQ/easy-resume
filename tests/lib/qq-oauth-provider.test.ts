@@ -19,7 +19,7 @@ describe('QqProvider', () => {
     const user = p.profile!({
       openid: 'oid-1',
       nickname: '小明',
-      figureurl_qq_2: 'https://thirdqq.qlogo.cn/a.png',
+      figureurl_qq_2: 'http://thirdqq.qlogo.cn/a.png',
     });
     expect(user).toMatchObject({
       id: 'oid-1',

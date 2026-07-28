@@ -49,6 +49,22 @@ const nextConfig = {
         hostname: 'q.qlogo.cn',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'qzapp.qlogo.cn',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.qlogo.cn',
+        pathname: '/**',
+      },
+      // QQ 偶发仅 http 可访问；优先业务侧已升 https，此处兜底
+      {
+        protocol: 'http',
+        hostname: '**.qlogo.cn',
+        pathname: '/**',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

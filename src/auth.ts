@@ -130,6 +130,10 @@ const authConfig: NextAuthConfig = {
   },
   callbacks: {
     async jwt({ token, profile, account, user }) {
+      // QQ 头像常为 http；每次签发都升 https，避免旧 session 卡在 http
+      if (typeof token.picture === 'string' && token.picture.startsWith('http://')) {
+        token.picture = `https://${token.picture.slice('http://'.length)}`;
+      }
       if (!account || (!profile && !user)) return token;
       const raw = (profile || user) as {
         id?: string | number | null;
@@ -152,11 +156,18 @@ const authConfig: NextAuthConfig = {
       const rawId = raw.openid ?? raw.id ?? user?.id;
       if (rawId != null && String(rawId)) {
         const syncId = account.provider === 'qq' ? `qq:${rawId}` : rawId;
+        const rawAvatar =
+          raw.figureurl_qq_2 || raw.figureurl_qq_1 || raw.avatar_url || user?.image || '';
+        const avatar =
+          typeof rawAvatar === 'string' && rawAvatar.startsWith('http://')
+            ? `https://${rawAvatar.slice('http://'.length)}`
+            : rawAvatar;
+        if (account.provider === 'qq' && avatar) token.picture = avatar;
         const uid = await syncUserToCfApi({
           id: syncId,
           login,
-          avatar_url: raw.figureurl_qq_2 || raw.figureurl_qq_1 || raw.avatar_url || user?.image || '',
-          image: user?.image,
+          avatar_url: avatar,
+          image: avatar || user?.image,
           email: raw.email || user?.email || '',
         });
         if (uid) token.uid = uid;
@@ -169,6 +180,15 @@ const authConfig: NextAuthConfig = {
         session.user.uid = (token.uid as string) || undefined;
         if (typeof token.login === 'string') {
           session.user.login = token.login;
+        }
+        const picture =
+          (typeof token.picture === 'string' && token.picture) ||
+          session.user.image ||
+          null;
+        if (picture) {
+          session.user.image = picture.startsWith('http://')
+            ? `https://${picture.slice('http://'.length)}`
+            : picture;
         }
       }
       return session;

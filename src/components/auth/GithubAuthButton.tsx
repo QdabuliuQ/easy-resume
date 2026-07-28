@@ -98,7 +98,7 @@ export default function GithubAuthButton({ variant = 'home' }: Props) {
         >
           {avatar ? (
             <Image
-              src={avatar}
+              src={avatar.startsWith('http://') ? `https://${avatar.slice(7)}` : avatar}
               alt={name}
               width={36}
               height={36}

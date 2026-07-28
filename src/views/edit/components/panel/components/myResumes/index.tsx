@@ -147,7 +147,7 @@ function MyResumes() {
       <div className={`${panelShellClass} flex items-center gap-3`}>
         {avatar ? (
           <Image
-            src={avatar}
+            src={avatar.startsWith('http://') ? `https://${avatar.slice(7)}` : avatar}
             alt={name}
             width={44}
             height={44}

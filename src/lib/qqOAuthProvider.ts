@@ -109,6 +109,14 @@ async function fetchQqOpenId(accessToken: string): Promise<string> {
   return meData.openid;
 }
 
+/** QQ 头像常为 http://*.qlogo.cn；Next/Image 仅允许 https */
+function normalizeQqAvatarUrl(url?: string | null): string | null {
+  const raw = typeof url === 'string' ? url.trim() : '';
+  if (!raw) return null;
+  if (raw.startsWith('http://')) return `https://${raw.slice('http://'.length)}`;
+  return raw;
+}
+
 /** QQ 互联（网站应用）；回调：{AUTH_BASE_PATH}/callback/qq */
 export function QqProvider(options?: {
   clientId?: string;
@@ -155,12 +163,12 @@ export function QqProvider(options?: {
         id: String(profile.openid || ''),
         name: profile.nickname || 'QQ用户',
         email: null,
-        image:
+        image: normalizeQqAvatarUrl(
           profile.figureurl_qq_2 ||
-          profile.figureurl_qq_1 ||
-          profile.figureurl_2 ||
-          profile.figureurl ||
-          null,
+            profile.figureurl_qq_1 ||
+            profile.figureurl_2 ||
+            profile.figureurl,
+        ),
         login: profile.nickname || undefined,
       };
     },
