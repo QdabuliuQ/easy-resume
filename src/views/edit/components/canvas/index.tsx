@@ -41,6 +41,7 @@ import { flattenModules } from '@/utils/resumePages';
 import ModuleOperation from '@/components/moduleOperation';
 import { CanvasScaleContext } from './canvasScaleContext';
 import { PAGE_STACK_GAP_PX } from './pageStackGap';
+import { normResumeFont, waitResumeFontsLoaded } from '@/lib/resumeFont';
 import ResumeFontCdn from './resumeFontCdn';
 import CanvasModuleFragment from './moduleFragment';
 import SelectableGuideLines from './selectableGuideLines';
@@ -57,6 +58,7 @@ const RENDER_DEBOUNCE_MS = 100;
 const PAGE_FIT_EPSILON_PX = 0.5;
 const MEASURE_HEIGHT_EPSILON_PX = 0.1;
 const MEASURE_FRAME_DELAY = 2;
+const PAGES_FADE_MS = 240;
 
 interface ResumeModule {
   type: string;
@@ -180,7 +182,7 @@ function Canvas({
   const moduleMeasureEls = useRef<Record<string, HTMLDivElement | null>>({});
   const moduleHeights = useRef<Record<string, number>>({});
   const [pages, setPages] = useState<Array<React.ReactNode>>([]);
-  const [layoutRevision, setLayoutRevision] = useState(0);
+  const [pagesReady, setPagesReady] = useState(false);
   const [quickSelectEnabled, setQuickSelectEnabled] = useState(true);
 
   const currentConfig = configStore.getConfig as ResumeConfig | null;
@@ -361,10 +363,16 @@ function Canvas({
 
     setPages(nextPages);
     configStore.setExportPages(layoutPages.map((page) => ({ modules: page.exportModules })));
-    if (!layoutReadySentRef.current && nextPages.length > 0) {
+    if (!layoutReadySentRef.current) {
       layoutReadySentRef.current = true;
+      setPagesReady(true);
       onLayoutReadyRef.current?.();
     }
+  });
+
+  const hasAllMeasuredHeights = useMemoizedFn(() => {
+    if (measureNodes.length === 0) return true;
+    return measureNodes.every(({ module }) => moduleHeights.current[module.id] != null);
   });
 
   const syncMeasuredHeights = useMemoizedFn(() => {
@@ -373,17 +381,18 @@ function Canvas({
       if (!liveIds.has(id)) delete moduleHeights.current[id];
     }
 
-    let changed = false;
     for (const { module } of measureNodes) {
       const el = moduleMeasureEls.current[module.id];
       if (!el) continue;
       const height = readLayoutHeightPx(el);
-      if (Math.abs((moduleHeights.current[module.id] ?? 0) - height) >= MEASURE_HEIGHT_EPSILON_PX) {
+      const prev = moduleHeights.current[module.id];
+      if (prev == null || Math.abs(prev - height) >= MEASURE_HEIGHT_EPSILON_PX) {
         moduleHeights.current[module.id] = height;
-        changed = true;
       }
     }
-    if (changed) setLayoutRevision((value) => value + 1);
+    // ponytail: 未量齐前不 setPages，避免 height≈1 的半成品首屏
+    if (!hasAllMeasuredHeights()) return;
+    buildPagination();
   });
 
   const scheduleMeasuredPagination = useMemoizedFn(() => {
@@ -397,10 +406,10 @@ function Canvas({
         }
         requestAnimationFrame(() => runAfterFrames(left - 1));
       };
-      const fontsReady = typeof document !== 'undefined'
-        ? document.fonts.ready.catch(() => undefined)
-        : Promise.resolve(undefined);
-      void fontsReady.then(() => runAfterFrames(MEASURE_FRAME_DELAY));
+      const font = normResumeFont(layoutGlobalStyle.resumeFont);
+      void waitResumeFontsLoaded(font)
+        .catch(() => undefined)
+        .then(() => runAfterFrames(MEASURE_FRAME_DELAY));
     }, RENDER_DEBOUNCE_MS);
   });
 
@@ -414,18 +423,7 @@ function Canvas({
 
   useLayoutEffect(() => {
     scheduleMeasuredPagination();
-  }, [measureNodes, scheduleMeasuredPagination]);
-
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    let cancelled = false;
-    void document.fonts.ready.then(() => {
-      if (!cancelled) scheduleMeasuredPagination();
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [scheduleMeasuredPagination]);
+  }, [measureNodes, layoutGlobalStyle.resumeFont, scheduleMeasuredPagination]);
 
   useEffect(() => {
     if (typeof ResizeObserver === 'undefined') return;
@@ -435,10 +433,6 @@ function Canvas({
     els.forEach((el) => ro.observe(el));
     return () => ro.disconnect();
   }, [measureNodes, scheduleMeasuredPagination]);
-
-  useEffect(() => {
-    buildPagination();
-  }, [buildPagination, layoutRevision, measureNodes]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -650,6 +644,8 @@ function Canvas({
           height: scaledH,
           visibility: previewOpen ? 'hidden' : undefined,
           pointerEvents: previewOpen ? 'none' : undefined,
+          opacity: pagesReady ? 1 : 0,
+          transition: pagesReady ? `opacity ${PAGES_FADE_MS}ms ease` : undefined,
         }}
       >
         <div

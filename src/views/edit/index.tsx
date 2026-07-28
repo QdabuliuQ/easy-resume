@@ -6,6 +6,11 @@ import { prefetchRichTextEditor } from '@/components/richTextEditor/lazy';
 import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
+import {
+  normResumeFont,
+  preloadResumeFontsForSnap,
+  resumeFontForExport,
+} from '@/lib/resumeFont';
 import { configStore, editHistoryStore } from '@/mobx';
 import Canvas from './components/canvas';
 import Container from './components/container';
@@ -13,19 +18,27 @@ import EditShellReveal from './components/editShellReveal';
 import Header from './components/header';
 import Menu from './components/menu/index';
 import ResumeConfigCanvasPreviewHost from './components/resumeConfigCanvasPreviewHost';
+import ResumeFontCdn from './components/canvas/resumeFontCdn';
 import EditTour from './components/editTour';
 
 const DEFAULT_MENU_KEY = 'resume';
-const SHELL_REVEAL_FALLBACK_MS = 3000;
 
 function Edit() {
   const searchParams = useSearchParams();
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
   const [shellRevealReady, setShellRevealReady] = useState(false);
+  const resumeFont = normResumeFont(configStore.mergedGlobalStyle.resumeFont);
+
   useEffect(() => {
     const id = window.setTimeout(() => prefetchRichTextEditor(), 1200);
     return () => clearTimeout(id);
   }, []);
+
+  useEffect(() => {
+    const font = resumeFontForExport(resumeFont);
+    void preloadResumeFontsForSnap(window.location.origin, font).catch(() => undefined);
+  }, [resumeFont]);
+
   useLayoutEffect(() => {
     const raw = searchParams.get('template');
     const color = searchParams.get('color');
@@ -52,14 +65,16 @@ function Edit() {
       configStore.setConfig(config, { source: 'reset' });
     }
   }, [searchParams]);
+
+  // 壳层尽早 reveal，不堵画布测量；画布内容由 Canvas pagesReady 单独淡入
   useLayoutEffect(() => {
-    if (shellRevealReady) return;
-    const timer = setTimeout(() => setShellRevealReady(true), SHELL_REVEAL_FALLBACK_MS);
-    return () => clearTimeout(timer);
-  }, [shellRevealReady]);
+    const id = requestAnimationFrame(() => setShellRevealReady(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   return (
     <div className='editor-shell-bg relative flex h-screen w-screen flex-col overflow-hidden text-[var(--text-strong)]'>
+      <ResumeFontCdn font={resumeFont} />
       <div className='editor-shell-grid pointer-events-none absolute inset-0 opacity-60' />
       <EditShellReveal revealReady={shellRevealReady}>
         <div className='relative z-[1] flex min-h-0 flex-1 flex-col gap-3 p-3 md:p-4'>
@@ -91,7 +106,6 @@ function Edit() {
               <Canvas
                 onOpenGeneralSettings={() => setMenuActiveKey('general-settings')}
                 onOpenResumePanel={() => setMenuActiveKey('resume')}
-                onLayoutReady={() => setShellRevealReady(true)}
               />
             </div>
           </div>
