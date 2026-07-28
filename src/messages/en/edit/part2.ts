@@ -46,7 +46,7 @@ export default {
     listTitle: 'Cloud resumes',
     emptyTitle: 'No cloud resumes yet',
     emptyDesc: 'Use Save in the header to store this resume. Up to 5 per account.',
-    needLogin: 'Sign in with GitHub first',
+    needLogin: 'Sign in first (Github / QQ)',
     needResync: 'Sign out and sign in again to sync your cloud account',
     quota: '{n}/{max}',
     unnamed: 'Untitled resume',

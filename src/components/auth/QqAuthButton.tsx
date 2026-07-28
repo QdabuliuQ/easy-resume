@@ -55,7 +55,7 @@ export default function QqAuthButton({ variant = 'home' }: Props) {
         title={t('signInQq')}
         className={`inline-flex h-9 w-9 items-center justify-center rounded-full border border-fg/14 bg-fg/[0.05] transition-colors hover:bg-fg/[0.09] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
       >
-        {busy ? <LoadingOutlined className='text-[14px]' /> : <QqIcon size={18} />}
+        {busy ? <LoadingOutlined className='text-[14px]' /> : <QqIcon size={15} />}
       </button>
     );
   }
@@ -68,7 +68,7 @@ export default function QqAuthButton({ variant = 'home' }: Props) {
       aria-label={t('signInQq')}
       className={`inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-fg/14 bg-fg/[0.05] px-3 text-xs font-medium text-fg/65 transition-colors hover:bg-fg/[0.09] hover:text-fg/88 disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
     >
-      {busy ? <LoadingOutlined className='text-[14px]' /> : <QqIcon size={16} />}
+      {busy ? <LoadingOutlined className='text-[14px]' /> : <QqIcon size={14} />}
       <span className='hidden sm:inline'>{t('signInQqShort')}</span>
     </button>
   );

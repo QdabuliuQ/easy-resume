@@ -46,7 +46,7 @@ export default {
     listTitle: '云端简历',
     emptyTitle: '暂无云端简历',
     emptyDesc: '点击顶栏「保存」将当前简历存到云端，最多 5 份。',
-    needLogin: '请先登录 GitHub',
+    needLogin: '请先登录（Github / QQ）',
     needResync: '请退出后重新登录以同步云端账号',
     quota: '{n}/{max}',
     unnamed: '未命名简历',
