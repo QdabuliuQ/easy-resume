@@ -6,10 +6,6 @@
   <a href="./README.en.md">English</a>
 </p>
 
-<p align="center">AI 简历编辑器 | 快捷编辑 · GitHub 登录云同步 · 本地备份 · AI 协助</p>
-<p align="center">基于 Next.js 14（App Router） 的在线简历编辑器：可视化编排模块、富文本编辑、拖拽布局，支持 Puppeteer 导出 PDF / PNG，以及 Cloudflare D1 云端简历同步。
-</p>
-
 <p align="center">
   <a href="https://resume.qdabuliuq.cn/"><strong>🌐 在线预览</strong></a>
 </p>
