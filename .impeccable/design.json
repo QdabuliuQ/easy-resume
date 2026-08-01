@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-01T22:48:14+08:00",
+  "title": "Design System: EasyResume (青松简历)",
+  "extensions": {
+    "colorMeta": {
+      "pine-teal": {
+        "role": "primary",
+        "displayName": "Pine Teal",
+        "canonical": "#0e9c8d",
+        "tonalRamp": ["#063d38", "#0a5c54", "#0e7a6f", "#0e9c8d", "#2bb3a3", "#5cc9bb", "#8dddd2", "#d5f5f0"]
+      },
+      "soft-mint": {
+        "role": "primary",
+        "displayName": "Soft Mint",
+        "canonical": "#8de3a4",
+        "tonalRamp": ["#1f4a2e", "#2f6e44", "#4a9a62", "#6fc484", "#8de3a4", "#a9ebbb", "#c8f3d4", "#e8faf0"]
+      },
+      "shell-ink": {
+        "role": "neutral",
+        "displayName": "Shell Ink",
+        "canonical": "#120f12",
+        "tonalRamp": ["#0a080a", "#120f12", "#1f1c22", "#281f2b", "#3a343f", "#6b6570", "#b8b3bc", "#f5f2f6"]
+      },
+      "shell-light": {
+        "role": "neutral",
+        "displayName": "Shell Light",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#1e1a21", "#4a4450", "#8a8490", "#c4c0c8", "#e8e6ea", "#f4f2f5", "#faf9fa", "#ffffff"]
+      },
+      "ink-plum": {
+        "role": "neutral",
+        "displayName": "Ink Plum",
+        "canonical": "#1e1a21",
+        "tonalRamp": ["#0c0a0e", "#1e1a21", "#2e2833", "#4a4450", "#6b6570", "#9a94a0", "#cfcad4", "#f2eff4"]
+      },
+      "panel-dark": {
+        "role": "neutral",
+        "displayName": "Panel Dark",
+        "canonical": "#281f2b",
+        "tonalRamp": ["#120f12", "#1a151c", "#211a24", "#281f2b", "#3a3040", "#5c5164", "#9a8fa4", "#e8e2ec"]
+      },
+      "panel-dark-soft": {
+        "role": "neutral",
+        "displayName": "Panel Dark Soft",
+        "canonical": "#1f1c22",
+        "tonalRamp": ["#100e12", "#16141a", "#1b181f", "#1f1c22", "#2e2a32", "#4e4854", "#8e8794", "#e4e0e8"]
+      },
+      "text-on-dark": {
+        "role": "neutral",
+        "displayName": "Text On Dark",
+        "canonical": "#f5f5f5",
+        "tonalRamp": ["#6b6b6b", "#8a8a8a", "#a8a8a8", "#c4c4c4", "#dcdcdc", "#ececec", "#f5f5f5", "#fafafa"]
+      },
+      "text-on-light": {
+        "role": "neutral",
+        "displayName": "Text On Light",
+        "canonical": "#1e1a21",
+        "tonalRamp": ["#0c0a0e", "#1e1a21", "#2e2833", "#4a4450", "#6b6570", "#9a94a0", "#cfcad4", "#f2eff4"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Marketing hero titles only." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles on marketing and dense panels." },
+      "title": { "displayName": "Title", "purpose": "Card and module headings." },
+      "body": { "displayName": "Body", "purpose": "Supporting copy; keep ~54–62ch on marketing." },
+      "label": { "displayName": "Label", "purpose": "Badges and eyebrows with wide tracking." }
+    },
+    "shadows": [
+      {
+        "name": "shell-lift",
+        "value": "0 24px 80px rgb(0 0 0 / 0.38)",
+        "purpose": "Editor shell and major elevated regions (dark)."
+      },
+      {
+        "name": "shell-lift-light",
+        "value": "0 18px 48px rgb(30 26 33 / 0.1)",
+        "purpose": "Editor shell lift on light theme."
+      },
+      {
+        "name": "preview-depth",
+        "value": "0 28px 80px rgb(0 0 0 / 0.45)",
+        "purpose": "Hero compare figure; the product demo plane."
+      },
+      {
+        "name": "panel-hover",
+        "value": "0 12px 32px rgb(255 255 255 / 0.08)",
+        "purpose": "FAQ/details and compact menus on dark."
+      },
+      {
+        "name": "cta-soft",
+        "value": "0 16px 40px rgb(255 255 255 / 0.12)",
+        "purpose": "Primary start button resting glow."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-quint",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Default UI transitions and nav chrome."
+      },
+      {
+        "name": "gsap-power3-out",
+        "value": "power3.out",
+        "purpose": "Hero entrance timeline."
+      },
+      {
+        "name": "gsap-power2-out",
+        "value": "power2.out",
+        "purpose": "Scroll reveals and magnetic settle."
+      },
+      {
+        "name": "entrance-budget",
+        "value": "0.55–0.7s staggered ~0.12s",
+        "purpose": "Hero choreography total under ~1.2s; no bounce/elastic."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Soft Mint → Pine Teal gradient CTA for start-edit actions.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">立即开始</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;height:48px;min-width:158px;padding:12px 24px;border:none;border-radius:12px;background:linear-gradient(90deg,#8de3a4 0%,#0e9c8d 100%);color:#fff;font:600 14px/1.2 system-ui,sans-serif;cursor:pointer;box-shadow:0 16px 40px rgb(0 0 0 / 0.12);transition:filter .2s cubic-bezier(0.22,1,0.36,1),box-shadow .2s cubic-bezier(0.22,1,0.36,1)}.ds-btn-primary:hover{filter:brightness(1.06);box-shadow:0 20px 44px rgb(0 0 0 / 0.14)}.ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 2px #120f12,0 0 0 4px color-mix(in srgb,#0e9c8d 58%,transparent)}.ds-btn-primary:active{filter:brightness(0.96)}"
+    },
+    {
+      "name": "Ghost Nav Pill",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Compact nav utility control (theme, lang, GitHub).",
+      "html": "<button class=\"ds-btn-ghost\" type=\"button\">EN</button>",
+      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 12px;border:1px solid rgb(255 255 255 / 0.14);border-radius:9999px;background:rgb(255 255 255 / 0.05);color:rgb(255 255 255 / 0.68);font:500 12px/1 system-ui,sans-serif;cursor:pointer;transition:background .2s cubic-bezier(0.22,1,0.36,1),color .2s cubic-bezier(0.22,1,0.36,1)}.ds-btn-ghost:hover{background:rgb(255 255 255 / 0.09);color:rgb(255 255 255 / 0.88)}.ds-btn-ghost:focus-visible{outline:none;box-shadow:0 0 0 2px #120f12,0 0 0 4px color-mix(in srgb,#0e9c8d 58%,transparent)}"
+    },
+    {
+      "name": "Accent Chip",
+      "kind": "chip",
+      "refersTo": "chip-accent",
+      "description": "Hero eyebrow badge with Soft Mint wash.",
+      "html": "<span class=\"ds-chip-accent\">AI · 云同步 · 一键分享</span>",
+      "css": ".ds-chip-accent{display:inline-flex;align-items:center;padding:4px 12px;border-radius:9999px;border:1px solid color-mix(in srgb,#8de3a4 34%,transparent);background:color-mix(in srgb,#8de3a4 12%,transparent);color:color-mix(in srgb,#8de3a4 52%,#f5f5f5);font:600 11px/1.2 system-ui,sans-serif;letter-spacing:0.14em}"
+    },
+    {
+      "name": "Panel Card",
+      "kind": "card",
+      "refersTo": "card-panel",
+      "description": "Elevated panel surface for modules and feature blocks.",
+      "html": "<article class=\"ds-card-panel\"><h3 class=\"ds-card-panel__title\">模块化编辑</h3><p class=\"ds-card-panel__body\">按模块组织简历，拖拽排序，导出即用。</p></article>",
+      "css": ".ds-card-panel{background:rgb(40 35 43 / 0.92);color:rgb(255 255 255 / 0.92);border:1px solid rgb(255 255 255 / 0.08);border-radius:16px;padding:24px;box-shadow:0 12px 32px rgb(0 0 0 / 0.12);transition:border-color .3s cubic-bezier(0.22,1,0.36,1),box-shadow .3s cubic-bezier(0.22,1,0.36,1)}.ds-card-panel:hover{border-color:rgb(255 255 255 / 0.14);box-shadow:0 18px 48px rgb(0 0 0 / 0.2)}.ds-card-panel__title{margin:0;font:600 1.25rem/1.3 system-ui,sans-serif}.ds-card-panel__body{margin:8px 0 0;font:400 15px/1.7 system-ui,sans-serif;color:rgb(255 255 255 / 0.58);max-width:54ch}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Compact dark editor input used in panels.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"姓名\" value=\"\" />",
+      "css": ".ds-input{display:block;width:100%;height:40px;padding:10px 12px;border:1px solid #555;border-radius:12px;background:#2a2a2a;color:#fff;font:400 14px/1.4 system-ui,sans-serif}.ds-input::placeholder{color:#aaa}.ds-input:hover{border-color:#777}.ds-input:focus{outline:none;border-color:#0e9c8d;box-shadow:0 0 0 2px color-mix(in srgb,#0e9c8d 35%,transparent)}.ds-input:disabled{opacity:.45;cursor:not-allowed}"
+    },
+    {
+      "name": "Top Navigation",
+      "kind": "nav",
+      "refersTo": "nav-pill",
+      "description": "Fixed blurred shell nav with brand and utility pills.",
+      "html": "<header class=\"ds-nav\"><div class=\"ds-nav__brand\"><span class=\"ds-nav__mark\"></span><span class=\"ds-nav__name\">青松简历</span></div><button class=\"ds-nav__pill\" type=\"button\">GitHub</button></header>",
+      "css": ".ds-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;height:64px;padding:0 20px;background:rgb(18 15 18 / 0.8);backdrop-filter:blur(20px);border-bottom:1px solid rgb(255 255 255 / 0.06)}.ds-nav__brand{display:flex;align-items:center;gap:8px;min-width:0}.ds-nav__mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#8de3a4,#0e9c8d)}.ds-nav__name{font:600 14px/1.2 system-ui,sans-serif;letter-spacing:0.12em;color:rgb(255 255 255 / 0.9)}.ds-nav__pill{height:36px;padding:0 12px;border-radius:9999px;border:1px solid rgb(255 255 255 / 0.14);background:rgb(255 255 255 / 0.05);color:rgb(255 255 255 / 0.65);font:500 12px/1 system-ui,sans-serif;cursor:pointer}.ds-nav__pill:hover{background:rgb(255 255 255 / 0.09);color:rgb(255 255 255 / 0.88)}.ds-nav__pill:focus-visible{outline:none;box-shadow:0 0 0 2px #120f12,0 0 0 4px color-mix(in srgb,#0e9c8d 58%,transparent)}"
+    },
+    {
+      "name": "Hero Preview Frame",
+      "kind": "custom",
+      "refersTo": "card-panel",
+      "description": "Signature lifted demo plane for light/dark compare preview.",
+      "html": "<figure class=\"ds-hero-preview\" aria-label=\"Resume preview\"><div class=\"ds-hero-preview__stage\"></div></figure>",
+      "css": ".ds-hero-preview{margin:0 auto;width:min(1120px,96vw)}.ds-hero-preview__stage{aspect-ratio:16/9;border-radius:16px;border:1px solid rgb(255 255 255 / 0.09);background:#161418;box-shadow:0 28px 80px rgb(0 0 0 / 0.45),0 0 0 1px rgb(255 255 255 / 0.04);transform:perspective(1200px) translateZ(0)}.ds-hero-preview__stage:hover{box-shadow:0 32px 88px rgb(0 0 0 / 0.5),0 0 0 1px rgb(255 255 255 / 0.06)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Soft Depth Editor",
+    "overview": "青松简历的视觉系统像一张带景深的工作台：表面柔软、层级清楚，深度只为证明「这是真工具」，不为装饰堆雾。气质对齐 PRODUCT 的轻快 · 利落 · 有景深，偏 Arc / Raycast 的浮层与交互趣味，情绪目标是轻松自信、想动手试，而不是被企业官网压住。\n\n密度上，营销页留白服务于首屏演示焦点；编辑器壳层用 tonal 面板与抬起阴影区分画布、侧栏与浮层。主色 Pine Teal 以渐变 CTA 与焦点环出现，稀少而清晰。系统明确拒绝紫粉渐变通用 SaaS 落地页、满屏装饰性玻璃拟态、Hero 堆大数字/统计条、霓虹赛博/过度发光、默认 Inter 味千篇一律卡片栅格，以及弹跳、弹性过度的动效。",
+    "keyCharacteristics": [
+      "Soft depth: 景深服务焦点，浮层即可信",
+      "Pine teal accent on ink/light shells with dual theme polarity",
+      "Soft radii (12–16px) and magnetic, non-bouncy motion",
+      "Demo-first marketing: real editor preview over abstract feature grids"
+    ],
+    "rules": [
+      {
+        "name": "The Soft Depth Accent Rule",
+        "body": "Pine Teal + Soft Mint appear as CTA gradients, focus rings, and sparse tints. They never become a full-bleed purple-to-indigo or pink SaaS wash.",
+        "section": "colors"
+      },
+      {
+        "name": "The Polarity Rule",
+        "body": "Dark and light flip --surface-fg-rgb and shell surfaces; primary teal stays identical across themes.",
+        "section": "colors"
+      },
+      {
+        "name": "The One-Family Chrome Rule",
+        "body": "UI chrome does not introduce display serifs or Inter-as-identity. Hierarchy comes from scale and weight inside system-ui.",
+        "section": "typography"
+      },
+      {
+        "name": "The Lifted Workbench Rule",
+        "body": "If a surface is meant to feel like a tool layer (preview, modal, floating action), it must lift. Decorative glass blur alone is not elevation.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do lead marketing with a real editor/resume preview (演示即产品).",
+      "Do use Soft Mint → Pine Teal only on primary CTAs and sparse accents.",
+      "Do lift tool surfaces with structural shadows; keep ease-out motion under ~800ms for entrances.",
+      "Do honor prefers-reduced-motion by jumping to final opacity/transform states.",
+      "Do keep light-theme ink as Ink Plum (#1e1a21), never #000.",
+      "Do allow experiment pages (/home-v2) to diverge while stable / stays rollback-safe."
+    ],
+    "donts": [
+      "Don't ship 紫粉渐变通用 SaaS 落地页.",
+      "Don't use 满屏装饰性玻璃拟态 as the default treatment.",
+      "Don't stack Hero 大数字 / 统计条 as proof.",
+      "Don't use 霓虹赛博 / 过度发光.",
+      "Don't default to Inter-as-brand or 千篇一律卡片栅格 (icon + title + blurb × N).",
+      "Don't use 弹跳、弹性过度的动效 (no bounce/elastic easings).",
+      "Don't use side-stripe accents (border-left > 1px) or gradient-clipped text.",
+      "Don't animate layout properties (width/height/top/left) when transform/opacity suffice."
+    ]
+  }
+}

@@ -2,6 +2,9 @@
 
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import {
@@ -13,7 +16,7 @@ import {
   useSyncExternalStore,
   type KeyboardEvent,
 } from 'react';
-import { bgDark, bgLight, logo, PHOTOS, PHOTO_SIZES } from '@/lib/brandAssets';
+import { logo, PHOTOS, PHOTO_SIZES } from '@/lib/brandAssets';
 import {
   getServerThemeSnapshot,
   getThemeSnapshot,
@@ -21,35 +24,14 @@ import {
   toggleAppTheme,
 } from '@/lib/themeStore';
 
-const HomeResumeTemplateScroll = dynamic(
-  () => import('@/components/homeResumeTemplateScroll'),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        className='relative w-full border-y border-fg/10 bg-[rgb(var(--surface-fg-rgb)/0.03)] h-[calc(100vh-env(safe-area-inset-top,0px)-3.5rem)] sm:h-[calc(100vh-env(safe-area-inset-top,0px)-4rem)]'
-        aria-hidden
-      />
-    ),
-  },
-);
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-const HeroPreviewCompare = dynamic(() => import('@/components/heroPreviewCompare'), {
+const TemplateMasonry = dynamic(() => import('@/components/home/TemplateMasonry'), {
   ssr: false,
-  loading: () => (
-    <div className='mx-auto aspect-[16/9] w-full max-w-4xl rounded-xl bg-fg/[0.04]' aria-hidden />
-  ),
-});
-
-const HomeRevealScope = dynamic(() => import('@/components/homeRevealScope'), {
-  ssr: true,
+  loading: () => <div className='h-full w-full bg-fg/[0.03]' aria-hidden />,
 });
 
 const HeroTypingTitle = dynamic(() => import('@/components/home/HeroTypingTitle'), {
-  ssr: false,
-});
-
-const HeroMagneticCta = dynamic(() => import('@/components/home/HeroMagneticCta'), {
   ssr: false,
 });
 
@@ -67,18 +49,26 @@ const QqAuthButton = dynamic(() => import('@/components/auth/QqAuthButton'), {
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_58%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-bg)]';
 
+const HomeRightBackdrop = memo(function HomeRightBackdrop() {
+  return (
+    <div className='pointer-events-none fixed inset-y-0 right-0 z-0 w-full overflow-hidden xl:w-1/2' aria-hidden>
+      <div className='absolute -left-[10%] top-[6%] h-[44%] w-[58%] rounded-[2rem] bg-[color-mix(in_srgb,var(--color-primary-gradient-start)_16%,transparent)] blur-3xl' />
+      <div className='absolute -right-[6%] top-[34%] h-[36%] w-[46%] rounded-[1.75rem] bg-[color-mix(in_srgb,var(--color-primary)_13%,transparent)] blur-3xl' />
+      <div className='absolute bottom-[8%] left-[4%] h-[30%] w-[40%] rounded-full bg-[color-mix(in_srgb,var(--color-primary)_9%,transparent)] blur-3xl' />
+      <div className='absolute right-[8%] top-[12%] h-32 w-32 rotate-12 rounded-2xl bg-[color-mix(in_srgb,var(--color-primary-gradient-start)_24%,transparent)]' />
+      <div className='absolute left-[12%] top-[46%] h-24 w-40 -rotate-[8deg] rounded-xl bg-[color-mix(in_srgb,var(--color-primary)_18%,transparent)]' />
+      <div className='absolute right-[20%] top-[58%] h-20 w-20 rotate-[22deg] rounded-2xl border border-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)]' />
+      <div className='absolute bottom-[18%] left-[28%] h-14 w-14 rounded-full bg-[color-mix(in_srgb,var(--color-primary-gradient-start)_20%,transparent)]' />
+      <div className='absolute right-[12%] bottom-[10%] h-28 w-16 rotate-[14deg] rounded-3xl bg-[color-mix(in_srgb,var(--color-primary)_14%,transparent)]' />
+      <div className='absolute inset-x-[8%] top-[68%] h-px bg-gradient-to-r from-transparent via-[color-mix(in_srgb,var(--color-primary)_22%,transparent)] to-transparent' />
+    </div>
+  );
+});
+
 const IconGithub = memo(function IconGithub({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox='0 0 16 16' width='1em' height='1em' fill='currentColor' aria-hidden>
       <path d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z' />
-    </svg>
-  );
-});
-
-const IconStar = memo(function IconStar({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox='0 0 16 16' width='1em' height='1em' fill='currentColor' aria-hidden>
-      <path d='M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z' />
     </svg>
   );
 });
@@ -123,47 +113,17 @@ type HighlightBlock = {
   bullets: [string, string];
 };
 
-function StaticHeroTitle({ line }: { line: string }) {
-  return (
-    <h1 className='min-h-[2.2lh] max-w-full px-2 text-center text-[1.625rem] font-semibold leading-[1.2] tracking-tight text-balance text-fg/96 sm:px-0 sm:text-4xl md:min-h-[1.15lh] md:text-[clamp(2.25rem,4vw+1rem,3.75rem)]'>
-      {line}
-    </h1>
-  );
-}
-
-function StaticCta({
-  label,
-  onClick,
-  onKeyDown,
-}: {
-  label: string;
-  onClick: () => void;
-  onKeyDown: (e: KeyboardEvent<HTMLSpanElement>) => void;
-}) {
-  return (
-    <span
-      role='button'
-      tabIndex={0}
-      onClick={onClick}
-      onKeyDown={onKeyDown}
-      className={`inline-flex h-12 min-w-[158px] cursor-pointer items-center justify-center rounded-xl px-6 text-sm font-semibold text-white shadow-[0_16px_40px_rgb(var(--surface-fg-rgb)/0.12)] ${focusRing}`}
-      style={{ background: 'var(--gradient-primary)' }}
-    >
-      {label}
-    </span>
-  );
-}
-
-export default function Home({ githubStars = null }: { githubStars?: number | null }) {
+export default function HomeClient({ githubStars = null }: { githubStars?: number | null }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
   const t = useTranslations('Home');
   const [langOpen, setLangOpen] = useState(false);
-  const langRef = useRef<HTMLDivElement>(null);
   const highlights = t.raw('highlights') as HighlightBlock[];
-  const faq = t.raw('faq') as { q: string; a: string }[];
   const heroLines = t.raw('heroLines') as string[];
+  const faq = t.raw('faq') as { q: string; a: string }[];
   const moduleTags = t.raw('moduleTags') as string[];
   const themeSnap = useSyncExternalStore(
     subscribeAppTheme,
@@ -182,16 +142,28 @@ export default function Home({ githubStars = null }: { githubStars?: number | nu
     () => false,
   );
   const [scrolled, setScrolled] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
-  const [pointerPos, setPointerPos] = useState(() => ({
-    x: typeof window === 'undefined' ? 0 : window.innerWidth / 2,
-    y: typeof window === 'undefined' ? 0 : window.innerHeight / 2,
-  }));
   const themeToggleOriginRef = useRef<{ x: number; y: number } | null>(null);
 
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
+  useGSAP(
+    () => {
+      if (reduceMotion) return;
+      const root = rootRef.current;
+      if (!root) return;
+      const reveals = gsap.utils.toArray<HTMLElement>('[data-home-neo-reveal]', root);
+      if (!reveals.length) return;
+      gsap.set(reveals, { autoAlpha: 0, y: 24 });
+      for (const el of reveals) {
+        gsap.to(el, {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.65,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+        });
+      }
+    },
+    { scope: rootRef, dependencies: [reduceMotion], revertOnUpdate: true },
+  );
 
   useEffect(() => {
     if (!langOpen) return;
@@ -203,56 +175,23 @@ export default function Home({ githubStars = null }: { githubStars?: number | nu
   }, [langOpen]);
 
   useEffect(() => {
-    let raf: number | null = null;
-    let pending: { x: number; y: number } | null = null;
-    const flush = () => {
-      raf = null;
-      if (!pending) return;
-      setPointerPos(pending);
-      pending = null;
-    };
-    const onMove = (e: MouseEvent) => {
-      pending = { x: e.clientX, y: e.clientY };
-      if (raf != null) return;
-      raf = requestAnimationFrame(flush);
-    };
-    const onLeave = () => {
-      pending = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-      if (raf != null) return;
-      raf = requestAnimationFrame(flush);
-    };
-    window.addEventListener('mousemove', onMove, { passive: true });
-    window.addEventListener('mouseleave', onLeave, { passive: true });
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseleave', onLeave);
-      if (raf != null) cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 14);
+    const onScroll = () => setScrolled(window.scrollY > 12);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const headerShellClass =
+    'pointer-events-none fixed left-0 top-0 z-50 w-full pt-[calc(env(safe-area-inset-top,0px)+12px)] xl:left-1/2 xl:w-1/2 xl:px-5';
   const navClass = useMemo(
     () =>
-      `fixed top-0 left-0 right-0 z-50 isolate w-full bg-[var(--editor-shell-bg)]/80 pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl transition-[background,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+      `pointer-events-auto mx-4 flex h-14 min-w-0 items-center justify-between gap-2 rounded-2xl border px-4 backdrop-blur-xl transition-[background,border-color,box-shadow] duration-300 sm:h-16 sm:px-5 xl:mx-0 ${
         scrolled
-          ? 'border-b border-fg/10 shadow-[0_12px_36px_rgb(var(--surface-fg-rgb)/0.08)]'
-          : 'border-b border-fg/[0.06]'
+          ? 'border-fg/14 bg-[var(--editor-shell-bg)]/78 shadow-[0_14px_38px_rgb(var(--surface-fg-rgb)/0.1)]'
+          : 'border-fg/10 bg-[var(--editor-shell-bg)]/52 shadow-[0_8px_28px_rgb(var(--surface-fg-rgb)/0.07)]'
       }`,
     [scrolled],
   );
-
-  const navStyle = scrolled
-    ? {
-        background:
-          'linear-gradient(90deg, color-mix(in srgb, var(--editor-shell-bg) 92%, black), color-mix(in srgb, var(--color-primary) 16%, var(--editor-shell-bg)), color-mix(in srgb, var(--editor-shell-bg) 88%, black))',
-      }
-    : undefined;
 
   const navKey =
     (fn: () => void) =>
@@ -268,32 +207,9 @@ export default function Home({ githubStars = null }: { githubStars?: number | nu
   const startEdit = pushPath('/edit');
 
   return (
-    <main className='relative min-h-screen bg-[var(--editor-shell-bg)] text-[var(--text-strong)]'>
-      <div className='pointer-events-none absolute inset-0 z-0 overflow-hidden'>
-        <img
-          src={appTheme === 'dark' ? bgDark : bgLight}
-          alt=''
-          aria-hidden='true'
-          className='fixed inset-0 w-[100vw]'
-        />
-        <div
-          className='absolute -left-[14vw] -top-[16vh] h-[52vh] w-[52vh] rounded-full blur-3xl'
-          style={{
-            background: 'var(--home-glow-a)',
-            opacity: 'var(--home-glow-a-opacity)',
-          }}
-        />
-        <div
-          className='absolute -bottom-[20vh] right-[-10vw] h-[48vh] w-[48vh] rounded-full blur-3xl'
-          style={{
-            background: 'var(--home-glow-b)',
-            opacity: 'var(--home-glow-b-opacity)',
-          }}
-        />
-      </div>
-
-      <header className={navClass} style={navStyle}>
-        <div className='mx-auto flex h-14 w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-4 sm:h-16 sm:gap-3 sm:px-5'>
+    <main ref={rootRef} className='relative min-h-screen bg-[var(--editor-shell-bg)] text-[var(--text-strong)]'>
+      <header className={headerShellClass}>
+        <div className={navClass}>
           <span
             role='link'
             tabIndex={0}
@@ -306,38 +222,11 @@ export default function Home({ githubStars = null }: { githubStars?: number | nu
               <Image src={logo} alt={t('logoAlt')} fill sizes='40px' className='object-contain p-0.5' />
             </span>
             <span className='min-w-0 truncate leading-tight'>
-              <span className='block truncate text-sm font-semibold tracking-[0.12em] text-fg/90'>
-                {t('brandName')}
-              </span>
-              <span className='block truncate text-[11px] font-medium tracking-[0.08em] text-fg/58'>
-                {locale === 'zh' ? 'EasyResume' : '青松简历'}
-              </span>
+              <span className='block truncate text-sm font-semibold tracking-[0.12em] text-fg/90'>{t('brandName')}</span>
+              <span className='block truncate text-[11px] font-medium tracking-[0.08em] text-fg/58'>{locale === 'zh' ? 'EasyResume' : '青松简历'}</span>
             </span>
           </span>
           <div className='flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2.5'>
-            <span
-              role='button'
-              tabIndex={0}
-              aria-label={
-                githubStars != null
-                  ? `${t('navGh')} · ${githubStars.toLocaleString(locale)} stars`
-                  : t('navGh')
-              }
-              onClick={openGh}
-              onKeyDown={navKey(openGh)}
-              className={`hidden h-9 cursor-pointer items-center gap-1.5 rounded-full border border-fg/14 bg-fg/[0.05] px-3 text-xs font-medium text-fg/65 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/[0.09] hover:text-fg/88 sm:inline-flex ${focusRing}`}
-            >
-              <IconGithub className='text-[14px]' />
-              {githubStars != null ? (
-                <>
-                  {githubStars.toLocaleString(locale)}
-                  <IconStar className='text-[12px]' />
-
-                </>
-              ) : (
-                t('navGhShort')
-              )}
-            </span>
             <div ref={langRef} className='relative'>
               <button
                 type='button'
@@ -345,7 +234,7 @@ export default function Home({ githubStars = null }: { githubStars?: number | nu
                 aria-haspopup='dialog'
                 aria-label={t('langSwitch')}
                 onClick={() => setLangOpen((v) => !v)}
-                className={`inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-fg/14 bg-fg/[0.05] text-fg/68 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/[0.09] hover:text-fg/88 sm:w-auto sm:gap-1.5 sm:px-3 ${focusRing}`}
+                className={`inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-fg/14 bg-fg/[0.05] text-fg/68 transition-colors duration-200 hover:bg-fg/[0.09] hover:text-fg/88 sm:w-auto sm:gap-1.5 sm:px-3 ${focusRing}`}
               >
                 <IconGlobe className='text-[15px]' />
                 <span className='hidden max-w-[7rem] truncate text-xs font-medium sm:inline'>
@@ -358,15 +247,10 @@ export default function Home({ githubStars = null }: { githubStars?: number | nu
                     type='button'
                     disabled={locale === 'zh'}
                     onClick={() => {
-                      if (locale === 'zh') return;
-                      router.replace(pathname, { locale: 'zh' });
+                      if (locale !== 'zh') router.replace(pathname, { locale: 'zh' });
                       setLangOpen(false);
                     }}
-                    className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                      locale === 'zh'
-                        ? 'cursor-default bg-fg/10 font-medium text-fg/90'
-                        : 'cursor-pointer text-fg/65 hover:bg-fg/[0.06]'
-                    }`}
+                    className={`rounded-lg px-3 py-2 text-left text-sm ${locale === 'zh' ? 'bg-fg/10 font-medium text-fg/90' : 'text-fg/65 hover:bg-fg/[0.06]'}`}
                   >
                     {t('langZh')}
                   </button>
@@ -374,15 +258,10 @@ export default function Home({ githubStars = null }: { githubStars?: number | nu
                     type='button'
                     disabled={locale === 'en'}
                     onClick={() => {
-                      if (locale === 'en') return;
-                      router.replace(pathname, { locale: 'en' });
+                      if (locale !== 'en') router.replace(pathname, { locale: 'en' });
                       setLangOpen(false);
                     }}
-                    className={`rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                      locale === 'en'
-                        ? 'cursor-default bg-fg/10 font-medium text-fg/90'
-                        : 'cursor-pointer text-fg/65 hover:bg-fg/[0.06]'
-                    }`}
+                    className={`rounded-lg px-3 py-2 text-left text-sm ${locale === 'en' ? 'bg-fg/10 font-medium text-fg/90' : 'text-fg/65 hover:bg-fg/[0.06]'}`}
                   >
                     {t('langEn')}
                   </button>
@@ -397,20 +276,12 @@ export default function Home({ githubStars = null }: { githubStars?: number | nu
               onClick={(e) => {
                 const origin = themeToggleOriginRef.current;
                 themeToggleOriginRef.current = null;
-                if (origin) {
-                  toggleAppTheme(origin);
-                  return;
-                }
-                toggleAppTheme({ x: e.clientX, y: e.clientY });
+                toggleAppTheme(origin ?? { x: e.clientX, y: e.clientY });
               }}
               aria-label={themeNavHint}
-              className={`cursor-pointer inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-fg/14 bg-fg/[0.06] text-fg/85 transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-fg/10 ${focusRing}`}
+              className={`inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-fg/14 bg-fg/[0.06] text-fg/85 transition-colors duration-200 hover:bg-fg/10 ${focusRing}`}
             >
-              {appTheme === 'dark' ? (
-                <IconSun className='text-[15px]' />
-              ) : (
-                <IconMoon className='text-[15px]' />
-              )}
+              {appTheme === 'dark' ? <IconSun className='text-[15px]' /> : <IconMoon className='text-[15px]' />}
             </button>
             <GithubAuthButton />
             <QqAuthButton />
@@ -418,222 +289,154 @@ export default function Home({ githubStars = null }: { githubStars?: number | nu
         </div>
       </header>
 
-      <div className='relative z-[1]'>
-        <section className='relative mx-auto min-h-[88vh] w-full max-w-6xl items-center px-5 pb-10 pt-[calc(3.5rem+env(safe-area-inset-top,0px)+1.25rem)] md:min-h-[90vh] md:pb-24 md:pt-32'>
-          <div className='mb-[100px] flex w-full items-center justify-center'>
-            <div className='flex flex-col items-center justify-center'>
-              <p
-                className='mb-[20px] inline-flex w-fit items-center rounded-full px-3 py-1 text-[11px] tracking-[0.14em]'
-                style={{
-                  border:
-                    '1px solid color-mix(in srgb, var(--color-primary-gradient-start) 34%, transparent)',
-                  background:
-                    'color-mix(in srgb, var(--color-primary-gradient-start) 12%, transparent)',
-                  color:
-                    'color-mix(in srgb, var(--color-primary-gradient-start) 52%, var(--text-strong))',
-                }}
-              >
-                {t('heroBadge')}
-              </p>
-              {hydrated ? (
-                <HeroTypingTitle reduceMotion={reduceMotion} lines={heroLines} />
-              ) : (
-                <StaticHeroTitle line={heroLines[0] || ''} />
-              )}
-              <p className='mt-[15px] max-w-[62ch] text-center text-base leading-[1.75] text-fg/58 md:text-[17px]'>
-                {t('heroSub')}
-              </p>
-              <div className='mt-[15px]'>
-                {hydrated ? (
-                  <HeroMagneticCta
-                    reduceMotion={reduceMotion}
-                    label={t('ctaStart')}
-                    onClick={startEdit}
-                    onKeyDown={navKey(startEdit)}
-                    focusRing={focusRing}
-                  />
-                ) : (
-                  <StaticCta label={t('ctaStart')} onClick={startEdit} onKeyDown={navKey(startEdit)} />
-                )}
-              </div>
-            </div>
-          </div>
+      <aside className='fixed left-0 top-0 z-[2] hidden h-[100vh] w-1/2 overflow-hidden border-r border-fg/[0.08] bg-[rgb(var(--surface-fg-rgb)/0.02)] xl:block'>
+        <TemplateMasonry reduceMotion={reduceMotion} />
+      </aside>
 
-          <HeroPreviewCompare
-            reduceMotion={reduceMotion}
-            compareFigure={t('compareFigure')}
-            compareSlider={t('compareSlider')}
-            previewLightAlt={t('previewLightAlt')}
-            previewDarkAlt={t('previewDarkAlt')}
-            focusRingClass={focusRing}
-            pointerX={pointerPos.x}
-            pointerY={pointerPos.y}
-          />
-        </section>
-
-        <div className='relative w-full overflow-x-hidden'>
-          <HomeResumeTemplateScroll reduceMotion={reduceMotion} />
-        </div>
-
-        <HomeRevealScope reduceMotion={reduceMotion}>
-          <section
-            id='features'
-            className='scroll-mt-[calc(3.5rem+env(safe-area-inset-top,0px))] border-t border-fg/[0.07] md:scroll-mt-[72px]'
-          >
-            <div className='mx-auto max-w-6xl px-5 py-16 md:py-20'>
-              <div data-home-reveal className='max-w-[52ch]'>
-                <h2 className='text-2xl font-semibold tracking-tight text-fg/94 md:text-[1.75rem]'>
-                  {t('featuresTitle')}
-                </h2>
-                <p className='mt-3 text-sm leading-7 text-fg/56 md:text-[15px]'>{t('featuresDesc')}</p>
-              </div>
-
-              <div className='mt-14 flex flex-col gap-16 md:gap-20'>
-                {highlights.map((block, idx) => (
-                  <div
-                    key={block.title}
-                    className='grid items-center gap-10 lg:grid-cols-2 lg:gap-14'
-                  >
-                    <div data-home-reveal className={idx === 1 ? 'lg:order-2' : ''}>
-                      <p className='text-[11px] font-semibold uppercase tracking-[0.2em] text-fg/38'>
-                        {String(idx + 1).padStart(2, '0')}
-                      </p>
-                      <h3 className='mt-2 text-xl font-semibold text-fg/92 md:text-2xl'>
-                        {block.title}
-                      </h3>
-                      <p className='mt-3 max-w-[54ch] text-sm leading-7 text-fg/58 md:text-[15px]'>
-                        {block.desc}
-                      </p>
-                      <ul className='mt-5 space-y-2.5 text-sm text-fg/62'>
-                        <li className='flex gap-2.5'>
-                          <span className='mt-2 h-1 w-1 shrink-0 rounded-full bg-[var(--color-primary)]' />
-                          <span>{block.bullets[0]}</span>
-                        </li>
-                        <li className='flex gap-2.5'>
-                          <span className='mt-2 h-1 w-1 shrink-0 rounded-full bg-[var(--color-primary-gradient-start)]' />
-                          <span>{block.bullets[1]}</span>
-                        </li>
-                      </ul>
-                    </div>
-                    <div data-home-reveal className={idx === 1 ? 'lg:order-1' : ''}>
-                      <Image
-                        src={
-                          appTheme === 'dark'
-                            ? PHOTOS[`photo${idx + 1}Dark` as 'photo1Dark' | 'photo2Dark']
-                            : PHOTOS[`photo${idx + 1}Light` as 'photo1Light' | 'photo2Light']
-                        }
-                        alt={block.title}
-                        width={PHOTO_SIZES[`photo${idx + 1}` as 'photo1' | 'photo2'].width}
-                        height={PHOTO_SIZES[`photo${idx + 1}` as 'photo1' | 'photo2'].height}
-                        className='h-auto w-full rounded-xl object-cover'
-                        sizes='(max-width: 1024px) 100vw, 50vw'
-                        loading='lazy'
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div data-home-reveal className='mt-16 md:mt-20'>
-                <div className='rounded-2xl border border-[var(--editor-shell-border)] bg-[var(--editor-shell-panel)] px-6 py-8 transition-[border-color,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-fg/14 hover:shadow-[var(--editor-shell-shadow)] md:flex md:items-start md:justify-between md:gap-10 md:px-10 md:py-10'>
-                  <div className='max-w-[52ch]'>
-                    <h3 className='text-lg font-semibold text-fg/92 md:text-xl'>{t('moduleTitle')}</h3>
-                    <p className='mt-2 text-sm leading-7 text-fg/58 md:text-[15px]'>{t('moduleDesc')}</p>
-                  </div>
-                  <div className='mt-6 flex flex-wrap gap-2 md:mt-0 md:max-w-[340px] md:justify-end'>
-                    {moduleTags.map((label) => (
-                      <span
-                        key={label}
-                        className='rounded-full border border-fg/12 bg-fg/[0.04] px-3 py-1.5 text-xs font-medium text-fg/68'
-                      >
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className='border-t border-fg/[0.07] bg-[rgb(var(--surface-fg-rgb)/0.02)]'>
-            <div className='mx-auto max-w-6xl px-5 py-16 md:py-20'>
-              <div data-home-reveal className='max-w-xl'>
-                <h2 className='text-2xl font-semibold tracking-tight text-fg/94 md:text-[1.75rem]'>
-                  {t('faqTitle')}
-                </h2>
-                <p className='mt-2 text-sm leading-relaxed text-fg/56'>{t('faqDesc')}</p>
-              </div>
-              <div className='mt-10 grid items-start gap-4 sm:grid-cols-2 lg:mt-12 lg:gap-5'>
-                {faq.map((item) => (
-                  <details
-                    key={item.q}
-                    data-home-reveal
-                    className='group rounded-xl border border-[var(--editor-shell-border)] bg-[var(--editor-shell-panel-strong)] px-5 py-[18px] open:border-fg/14 open:shadow-[0_12px_32px_rgb(var(--surface-fg-rgb)/0.06)] hover:border-fg/12'
-                  >
-                    <summary
-                      className={`flex cursor-pointer list-none items-start justify-between gap-3 marker:hidden [&::-webkit-details-marker]:hidden ${focusRing}`}
-                    >
-                      <span className='min-w-0 flex-1 text-[15px] font-medium leading-snug text-fg/90'>
-                        {item.q}
-                      </span>
-                      <IconDown className='mt-0.5 shrink-0 text-[11px] text-fg/38 transition-transform group-open:rotate-180' />
-                    </summary>
-                    <p className='mt-4 border-t border-fg/[0.06] pt-4 text-sm leading-relaxed text-fg/58'>
-                      {item.a}
-                    </p>
-                  </details>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className='mx-auto max-w-6xl px-5 pb-14 pt-6 md:pb-16'>
-            <div
-              data-home-reveal
-              className='overflow-hidden rounded-3xl px-6 py-12 text-center md:px-12 md:py-14'
-              style={{ background: 'var(--gradient-primary)', WebkitBackfaceVisibility: 'hidden' }}
-            >
-              <h2 className='text-xl font-semibold text-white md:text-2xl'>{t('closingTitle')}</h2>
-              <p className='mx-auto mt-3 max-w-[48ch] text-sm leading-7 text-white/85'>
-                {t('closingDesc')}
-              </p>
+      <div className='relative isolate z-[1] min-h-screen w-full xl:ml-auto xl:w-1/2'>
+        <HomeRightBackdrop />
+        <div className='relative z-[1]'>
+        <section className='space-y-6 px-5 pb-10 pt-[calc(5rem+env(safe-area-inset-top,0px)+1.25rem)] sm:px-8 lg:px-10'>
+          <div data-home-neo-reveal className='space-y-6'>
+            <p className='inline-flex rounded-full border border-fg/12 bg-fg/[0.03] px-3 py-1 text-[11px] tracking-[0.14em] text-fg/66'>
+              {t('heroBadge')}
+            </p>
+            <HeroTypingTitle
+              reduceMotion={reduceMotion}
+              lines={heroLines}
+              className='max-w-[28ch] text-left text-[clamp(2.2rem,4.8vw+0.8rem,4.2rem)] font-semibold leading-[1.05] tracking-[-0.03em] text-fg/96'
+            />
+            <p className='max-w-[54ch] text-[15px] leading-7 text-fg/60 md:text-[17px]'>{t('heroSub')}</p>
+            <div className='flex flex-wrap items-center gap-3'>
               <span
                 role='button'
                 tabIndex={0}
                 onClick={startEdit}
                 onKeyDown={navKey(startEdit)}
-                className={`mt-8 inline-flex h-11 min-h-11 min-w-[148px] cursor-pointer items-center justify-center rounded-full bg-white px-8 text-sm font-semibold text-[rgb(30_26_33/0.92)] shadow-[0_12px_28px_rgb(0_0_0/0.18)] transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:shadow-[0_14px_32px_rgb(0_0_0/0.22)] motion-reduce:hover:translate-y-0 active:translate-y-0 ${focusRing}`}
+                className={`inline-flex h-12 min-w-[158px] cursor-pointer items-center justify-center rounded-xl px-6 text-sm font-semibold text-white shadow-[0_16px_40px_rgb(var(--surface-fg-rgb)/0.12)] ${focusRing}`}
+                style={{ background: 'var(--gradient-primary)' }}
               >
-                {t('closingCta')}
+                {t('ctaStart')}
+              </span>
+              <span
+                role='button'
+                tabIndex={0}
+                onClick={openGh}
+                onKeyDown={navKey(openGh)}
+                className={`inline-flex h-12 cursor-pointer items-center gap-2 rounded-xl border border-fg/12 bg-fg/[0.04] px-4 text-sm text-fg/68 ${focusRing}`}
+              >
+                <IconGithub className='text-[14px]' />
+                {githubStars != null ? `${githubStars.toLocaleString(locale)} stars` : t('navGhShort')}
               </span>
             </div>
-          </section>
-
-          <footer
-            data-home-reveal
-            aria-label='Site footer'
-            className='mx-auto max-w-6xl px-5 pb-10 md:pb-12'
-          >
-            <div className='relative flex flex-col items-center pt-8'>
-              <div
-                aria-hidden
-                className='pointer-events-none absolute inset-x-8 top-0 h-px bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--color-primary)_32%,var(--editor-shell-border)),transparent)] md:inset-x-16'
-              />
-              <a
-                href='https://beian.miit.gov.cn/'
-                target='_blank'
-                rel='noopener noreferrer'
-                className={`group inline-flex items-center gap-2.5 rounded-full border border-[color-mix(in_srgb,var(--color-primary)_18%,var(--editor-shell-border))] bg-[var(--editor-shell-panel-soft)] px-4 py-2.5 text-[13px] tracking-wide text-[var(--color-primary)] shadow-[inset_0_1px_0_rgb(var(--surface-fg-rgb)/0.04)] backdrop-blur-sm transition-[color,border-color,background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:border-[color-mix(in_srgb,var(--color-primary)_32%,var(--editor-shell-border))] hover:bg-[color-mix(in_srgb,var(--color-primary)_8%,var(--editor-shell-panel))] hover:text-[color-mix(in_srgb,var(--color-primary)_92%,white)] hover:shadow-[0_10px_28px_color-mix(in_srgb,var(--color-primary)_12%,transparent)] motion-reduce:hover:translate-y-0 ${focusRing}`}
-              >
-                <span
-                  aria-hidden
-                  className='h-1.5 w-1.5 shrink-0 rounded-full bg-[color-mix(in_srgb,var(--color-primary)_58%,transparent)] shadow-[0_0_10px_color-mix(in_srgb,var(--color-primary)_40%,transparent)]'
-                />
-                <span className='text-[var(--color-primary)]'>粤ICP备2026060117号</span>
-              </a>
+            <div className='flex flex-wrap gap-2'>
+              {moduleTags.map((label) => (
+                <span key={label} className='rounded-lg border border-fg/10 bg-fg/[0.03] px-2.5 py-1 text-[11px] tracking-[0.06em] text-fg/58'>
+                  {label}
+                </span>
+              ))}
             </div>
-          </footer>
-        </HomeRevealScope>
+          </div>
+        </section>
+
+        <section id='features' className='border-t border-fg/[0.08] px-5 py-16 sm:px-8 lg:px-10'>
+          <div data-home-neo-reveal className='max-w-[54ch]'>
+            <h2 className='text-2xl font-semibold tracking-tight text-fg/94'>{t('featuresTitle')}</h2>
+            <p className='mt-3 text-sm leading-7 text-fg/56'>{t('featuresDesc')}</p>
+          </div>
+          <div className='mt-12 flex flex-col gap-16 sm:gap-20'>
+            {highlights.map((block, idx) => (
+              <article
+                key={block.title}
+                data-home-neo-reveal
+                className={`grid gap-8 ${idx % 2 === 1 ? 'sm:grid-cols-[minmax(0,1fr)_minmax(0,0.92fr)] sm:items-center' : 'sm:grid-cols-[minmax(0,0.92fr)_minmax(0,1fr)] sm:items-center'}`}
+              >
+                <div className={idx % 2 === 1 ? 'sm:order-2' : ''}>
+                  <p className='text-[11px] font-semibold tracking-[0.2em] text-fg/38'>{String(idx + 1).padStart(2, '0')}</p>
+                  <h3 className='mt-2 text-xl font-semibold leading-snug text-fg/92'>{block.title}</h3>
+                  <p className='mt-3 text-sm leading-7 text-fg/58'>{block.desc}</p>
+                  <ul className='mt-5 space-y-2.5'>
+                    {block.bullets.map((bullet, bulletIdx) => (
+                      <li key={bullet} className='flex gap-2.5 text-sm text-fg/66'>
+                        <span
+                          className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full ${bulletIdx === 0 ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-primary-gradient-start)]'}`}
+                        />
+                        <span>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <figure className={`overflow-hidden rounded-2xl ${idx % 2 === 1 ? 'sm:order-1' : ''}`}>
+                  <Image
+                    src={
+                      appTheme === 'dark'
+                        ? PHOTOS[`photo${idx + 1}Dark` as 'photo1Dark' | 'photo2Dark']
+                        : PHOTOS[`photo${idx + 1}Light` as 'photo1Light' | 'photo2Light']
+                    }
+                    alt={block.title}
+                    width={PHOTO_SIZES[`photo${idx + 1}` as 'photo1' | 'photo2'].width}
+                    height={PHOTO_SIZES[`photo${idx + 1}` as 'photo1' | 'photo2'].height}
+                    className='h-auto w-full object-cover shadow-[0_18px_48px_rgb(var(--surface-fg-rgb)/0.12)] ring-1 ring-fg/10'
+                    sizes='(max-width: 1280px) 100vw, 25vw'
+                    loading='lazy'
+                  />
+                </figure>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className='border-t border-fg/[0.08] px-5 py-14 sm:px-8 lg:px-10'>
+          <div data-home-neo-reveal className='max-w-[54ch]'>
+            <h2 className='text-2xl font-semibold tracking-tight text-fg/94'>{t('faqTitle')}</h2>
+            <p className='mt-2 text-sm leading-7 text-fg/56'>{t('faqDesc')}</p>
+          </div>
+          <div className='mt-8 space-y-3'>
+            {faq.map((item, idx) => (
+              <details key={item.q} data-home-neo-reveal className='group rounded-xl border border-fg/12 bg-[var(--editor-shell-panel)] px-5 py-4 open:border-fg/16'>
+                <summary className={`flex cursor-pointer list-none items-start gap-3 marker:hidden [&::-webkit-details-marker]:hidden ${focusRing}`}>
+                  <span className='mt-0.5 text-[11px] tracking-[0.16em] text-fg/38'>{String(idx + 1).padStart(2, '0')}</span>
+                  <span className='min-w-0 flex-1 text-[15px] font-medium leading-snug text-fg/90'>{item.q}</span>
+                  <IconDown className='mt-0.5 shrink-0 text-[11px] text-fg/38 transition-transform group-open:rotate-180' />
+                </summary>
+                <p className='mt-4 border-t border-fg/[0.06] pt-4 pl-[1.9rem] text-sm leading-relaxed text-fg/58'>{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <section className='px-5 pb-14 pt-4 sm:px-8 lg:px-10'>
+          <div
+            data-home-neo-reveal
+            className='overflow-hidden rounded-3xl border border-[color-mix(in_srgb,var(--color-primary)_22%,var(--editor-shell-border))] px-6 py-10'
+            style={{ background: 'var(--gradient-primary)' }}
+          >
+            <h2 className='text-xl font-semibold text-white'>{t('closingTitle')}</h2>
+            <p className='mt-3 max-w-[48ch] text-sm leading-7 text-white/85'>{t('closingDesc')}</p>
+            <span
+              role='button'
+              tabIndex={0}
+              onClick={startEdit}
+              onKeyDown={navKey(startEdit)}
+              className={`mt-6 inline-flex h-11 min-w-[148px] cursor-pointer items-center justify-center rounded-full bg-white px-8 text-sm font-semibold text-[rgb(30_26_33/0.92)] shadow-[0_12px_28px_rgb(0_0_0/0.14)] ${focusRing}`}
+            >
+              {t('closingCta')}
+            </span>
+          </div>
+        </section>
+
+        <footer aria-label='Site footer' className='relative z-[1] flex justify-center px-5 pb-10 pt-2 sm:px-8 lg:px-10'>
+          <a
+            href='https://beian.miit.gov.cn/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className={`inline-flex items-center gap-2.5 rounded-full border border-[color-mix(in_srgb,var(--color-primary)_18%,var(--editor-shell-border))] bg-[var(--editor-shell-panel-soft)] px-4 py-2.5 text-[13px] no-underline ${focusRing}`}
+          >
+            <span aria-hidden className='h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-primary)]' />
+            <span className='text-[var(--color-primary)]'>粤ICP备2026060117号</span>
+          </a>
+        </footer>
+        </div>
       </div>
     </main>
   );

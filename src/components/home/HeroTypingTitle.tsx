@@ -6,9 +6,11 @@ import Typed from 'typed.js';
 const HeroTypingTitle = memo(function HeroTypingTitle({
   reduceMotion,
   lines,
+  className = 'min-h-[2.2lh] max-w-full px-2 text-center text-[1.625rem] font-semibold leading-[1.2] tracking-tight text-balance text-fg/96 sm:px-0 sm:text-4xl md:min-h-[1.15lh] md:text-[clamp(2.25rem,4vw+1rem,3.75rem)]',
 }: {
   reduceMotion: boolean;
   lines: string[];
+  className?: string;
 }) {
   const elRef = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -45,7 +47,7 @@ const HeroTypingTitle = memo(function HeroTypingTitle({
     };
   }, [reduceMotion, lines]);
   return (
-    <h1 className='min-h-[2.2lh] max-w-full px-2 text-center text-[1.625rem] font-semibold leading-[1.2] tracking-tight text-balance text-fg/96 sm:px-0 sm:text-4xl md:min-h-[1.15lh] md:text-[clamp(2.25rem,4vw+1rem,3.75rem)]'>
+    <h1 className={className}>
       <span ref={elRef} className='inline align-top' />
     </h1>
   );

@@ -185,6 +185,8 @@
   --home-glow-a-opacity: 0.42;
   --home-glow-b: radial-gradient(circle, color-mix(in srgb, var(--color-primary) 52%, transparent) 0%, transparent 70%);
   --home-glow-b-opacity: 0.38;
+  --home-template-card-border: rgb(72 72 76 / 0.88);
+  --home-template-card-border-hover: rgb(196 196 200 / 0.92);
 
   /* —— 文本 —— */
   --text-strong: rgb(var(--surface-fg-rgb) / 0.96);
@@ -348,6 +350,8 @@
   --home-glow-a-opacity: 0.56;
   --home-glow-b: radial-gradient(circle, color-mix(in srgb, var(--color-primary) 72%, white 28%) 0%, transparent 72%);
   --home-glow-b-opacity: 0.5;
+  --home-template-card-border: rgb(var(--surface-fg-rgb) / 0.12);
+  --home-template-card-border-hover: rgb(var(--surface-fg-rgb) / 0.24);
 
   --text-strong: rgb(var(--surface-fg-rgb) / 0.92);
   --text-base: rgb(var(--surface-fg-rgb) / 0.78);
