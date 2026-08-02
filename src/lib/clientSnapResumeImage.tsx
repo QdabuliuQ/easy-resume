@@ -14,7 +14,6 @@ import { prepareResumeSnapSubtree } from '@/lib/resumeSnapPrepare';
 import { cropImageBlob } from '@/lib/imageCropWorkerClient';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import ResumeImageExportPage from '@/views/export/resumeImageExportPage';
-import { resumePrimaryFontFamily } from '@/lib/resumeFont';
 
 type SnapOpts = {
   config: unknown;
@@ -146,10 +145,10 @@ export async function downloadResumeJpegViaSnapdom(opts: SnapOpts): Promise<void
 }
 
 /**
- * Idle warm-up for export runtime. It avoids any network fetch and only primes
- * browser/runtime paths so the first real export has less startup overhead.
+ * Idle warm-up：只预热 snap 运行时，不预拉完整 woff2。
+ * 完整字体改在真正导出时再拉，避免和编辑器切片抢带宽。
  */
-export function warmupResumeImageExportRuntime(resumeFont: unknown): void {
+export function warmupResumeImageExportRuntime(_resumeFont: unknown): void {
   if (typeof window === 'undefined' || snapRuntimeWarmed) {
     return;
   }
@@ -157,27 +156,13 @@ export function warmupResumeImageExportRuntime(resumeFont: unknown): void {
 
   snapRuntimeWarmPromise = (async () => {
     try {
-      // Touch snapdom symbol so bundlers/runtime keep this path hot in memory.
       void snapdom;
-
-      const fid = resumeFontForExport(resumeFont);
-      const family = resumePrimaryFontFamily(fid);
-      if (typeof document !== 'undefined' && 'fonts' in document) {
-        void document.fonts.check(`400 16px "${family}"`);
-        void document.fonts.check(`700 16px "${family}"`);
-      }
-
-      // Trigger minimal layout work once during idle time.
       const probe = document.createElement('div');
       probe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;';
       probe.textContent = '.';
       document.body.appendChild(probe);
       void probe.getBoundingClientRect();
       probe.remove();
-
-      // Preload export font files ahead of first export, avoiding cold fetch on click.
-      await preloadResumeFontsForSnap(window.location.origin, fid).catch(() => undefined);
-
       snapRuntimeWarmed = true;
     } finally {
       snapRuntimeWarmPromise = null;

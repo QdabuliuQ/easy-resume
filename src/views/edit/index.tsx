@@ -6,11 +6,7 @@ import { prefetchRichTextEditor } from '@/components/richTextEditor/lazy';
 import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
-import {
-  normResumeFont,
-  preloadResumeFontsForSnap,
-  resumeFontForExport,
-} from '@/lib/resumeFont';
+import { normResumeFont } from '@/lib/resumeFont';
 import { configStore, editHistoryStore } from '@/mobx';
 import Canvas from './components/canvas';
 import Container from './components/container';
@@ -33,11 +29,6 @@ function Edit() {
     const id = window.setTimeout(() => prefetchRichTextEditor(), 1200);
     return () => clearTimeout(id);
   }, []);
-
-  useEffect(() => {
-    const font = resumeFontForExport(resumeFont);
-    void preloadResumeFontsForSnap(window.location.origin, font).catch(() => undefined);
-  }, [resumeFont]);
 
   useLayoutEffect(() => {
     const raw = searchParams.get('template');
