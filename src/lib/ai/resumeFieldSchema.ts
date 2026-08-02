@@ -20,7 +20,7 @@ const ETHNIC_ENUM = enumValues(ethnic);
 export const RESUME_FIELD_ENUMS = {
   pageSize: 'A4|A3|A5|Letter',
   globalLayout: 'default|line|rounded|leftCol|rightCol',
-  resumeFont: 'system|noto-sans-sc|noto-serif-sc',
+  resumeFont: 'system|noto-sans-sc|noto-serif-sc|qyn-flavor|chill-huo-fangsong|moon-stars-kai|shanggu-round|shanggu-serif|chill-round-f|acy',
   info1Position: 'left|right|center',
   gender: enumValues(gender),
   status: enumValues(status),

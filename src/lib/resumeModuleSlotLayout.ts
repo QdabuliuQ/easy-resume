@@ -7,7 +7,8 @@ export function resumeModuleSlotStyle(opts: {
   measuredModuleHeight?: number;
 }): CSSProperties {
   const { viewHeight, offsetY = 0, measuredModuleHeight: mh } = opts;
-  const needsClip = offsetY === 0 && mh != null && mh > viewHeight + 0.5;
+  const contentLeft = mh == null ? viewHeight : Math.max(0, mh - offsetY);
+  const needsClip = contentLeft > viewHeight + 0.5;
   const needsFixedHeight = offsetY > 0 || needsClip;
   return {
     height: needsFixedHeight ? viewHeight : undefined,

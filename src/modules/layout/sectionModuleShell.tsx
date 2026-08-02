@@ -1,5 +1,8 @@
 'use client';
-import { RESUME_MODULE_ID_ATTR } from '@/components/moduleOperation/constants';
+import {
+  RESUME_MODULE_HEADER_ATTR,
+  RESUME_MODULE_ID_ATTR,
+} from '@/components/moduleOperation/constants';
 import SectionHeader, {
   normHeaderType,
   SectionHeaderType11TimelineLayout,
@@ -78,7 +81,7 @@ function SectionModuleShell({
             style={{ backgroundColor: ruleColor }}
             aria-hidden
           />
-          <div className='relative z-[1] min-h-0 pr-2'>
+          <div className='relative z-[1] min-h-0 pr-2' {...{ [RESUME_MODULE_HEADER_ATTR]: '' }}>
             <SectionHeader
               config={{
                 ...headerConfig,
@@ -114,7 +117,7 @@ function SectionModuleShell({
       {...{ [RESUME_MODULE_ID_ATTR]: interactiveModuleId }}
       className='w-full cursor-pointer'
     >
-      <div className='mb-[10px] w-full'>
+      <div className='mb-[10px] w-full' {...{ [RESUME_MODULE_HEADER_ATTR]: '' }}>
         <SectionHeader
           config={{
             ...headerConfig,

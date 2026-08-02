@@ -1,6 +1,6 @@
 import { resumeExportFontFacesCss } from '@/lib/resumeFont';
 
-/** 服务端 PDF 导出：仅注入本地 TTF，不请求 Google Fonts */
+/** 服务端 PDF 导出：仅注入本地 WOFF2，不请求 Google Fonts */
 export function resumePdfFontLinkTags(
   font: unknown,
   opts?: { assetOrigin?: string },

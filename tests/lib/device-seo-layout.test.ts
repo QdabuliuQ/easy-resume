@@ -85,6 +85,12 @@ describe('resumeModuleSlotLayout', () => {
     ).toMatchObject({ height: 100, overflow: 'hidden' });
     expect(resumeModuleSlotStyle({ viewHeight: 80, offsetY: 40 })).toMatchObject({ height: 80 });
   });
+
+  it('clips continuation fragment when remaining content exceeds viewHeight', () => {
+    expect(
+      resumeModuleSlotStyle({ viewHeight: 80, offsetY: 40, measuredModuleHeight: 200 }),
+    ).toEqual({ height: 80, overflow: 'hidden', flexShrink: 0 });
+  });
 });
 
 describe('info1FieldLabels', () => {

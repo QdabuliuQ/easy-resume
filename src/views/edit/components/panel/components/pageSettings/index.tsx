@@ -84,6 +84,13 @@ function PageSettings() {
         { value: 'system' as const, label: t('fontSystem') },
         { value: 'noto-serif-sc' as const, label: t('fontSerif') },
         { value: 'noto-sans-sc' as const, label: t('fontSans') },
+        { value: 'qyn-flavor' as const, label: t('fontQynFlavor') },
+        { value: 'chill-huo-fangsong' as const, label: t('fontChillHuoFangSong') },
+        { value: 'moon-stars-kai' as const, label: t('fontMoonStarsKai') },
+        { value: 'shanggu-round' as const, label: t('fontShangguRound') },
+        { value: 'shanggu-serif' as const, label: t('fontShangguSerif') },
+        { value: 'chill-round-f' as const, label: t('fontChillRoundF') },
+        { value: 'acy' as const, label: t('fontAcy') },
       ] satisfies { label: string; value: ResumeFontId }[],
     [t],
   );

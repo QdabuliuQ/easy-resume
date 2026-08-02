@@ -1,4 +1,5 @@
 'use client';
+import { RESUME_MODULE_HEADER_ATTR } from '@/components/moduleOperation/constants';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import type { ReactNode } from 'react';
 import { header11TitleRowMinHeightPx } from './header11Layout';
@@ -86,7 +87,11 @@ export function SectionHeaderType11TimelineLayout({
         <div className='min-h-0 w-px flex-1' style={{ minHeight: 8, backgroundColor: color }} />
       </div>
       <div className='flex min-h-0 min-w-0 flex-1 flex-col'>
-        <div className='mb-1 flex shrink-0 items-center' style={{ minHeight: titleRowMinH }}>
+        <div
+          className='mb-1 flex shrink-0 items-center'
+          style={{ minHeight: titleRowMinH }}
+          {...{ [RESUME_MODULE_HEADER_ATTR]: '' }}
+        >
           <SectionHeaderType11TitleOnly title={title} globalStyle={globalStyle} />
         </div>
         <div className='min-h-0 min-w-0'>{children}</div>

@@ -36,9 +36,16 @@ import {
   Page,
 } from '@/modules';
 import { configStore, resumeImportStore } from '@/mobx';
+import {
+  PAGE_FIT_EPSILON_PX,
+  pickSplitFromSortedBodyRects,
+  resolveSplitAwayFromCut,
+} from '@/lib/pageSplitAvoidCut';
+import { resumeModuleSlotStyle } from '@/lib/resumeModuleSlotLayout';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { flattenModules } from '@/utils/resumePages';
 import ModuleOperation from '@/components/moduleOperation';
+import { RESUME_MODULE_HEADER_ATTR } from '@/components/moduleOperation/constants';
 import { CanvasScaleContext } from './canvasScaleContext';
 import { PAGE_STACK_GAP_PX } from './pageStackGap';
 import { normResumeFont, waitResumeFontsLoaded } from '@/lib/resumeFont';
@@ -55,10 +62,33 @@ import ResumeImportOverlay from './resumeImportOverlay';
 /** 容器内左右留白，用于判断是否需缩小画布（缩放时两侧至少各 40） */
 const CANVAS_SIDE_PAD = 70;
 const RENDER_DEBOUNCE_MS = 100;
-const PAGE_FIT_EPSILON_PX = 0.5;
 const MEASURE_HEIGHT_EPSILON_PX = 0.1;
 const MEASURE_FRAME_DELAY = 2;
 const PAGES_FADE_MS = 240;
+
+/** 正文文本行盒（排除 header），相对 module 顶，按 top 升序 */
+function getModuleBodyRectsRel(moduleEl: HTMLElement, headerEl: HTMLElement | null) {
+  const moduleTop = moduleEl.getBoundingClientRect().top;
+  const range = document.createRange();
+  const raw: { top: number; bottom: number; height: number }[] = [];
+  const walker = document.createTreeWalker(moduleEl, NodeFilter.SHOW_TEXT);
+  let node = walker.nextNode();
+  while (node) {
+    if (!headerEl?.contains(node) && (node.nodeValue ?? '').length > 0) {
+      range.selectNodeContents(node);
+      for (const r of Array.from(range.getClientRects())) {
+        if (r.height <= 0 && r.width <= 0) continue;
+        raw.push({
+          top: r.top - moduleTop,
+          bottom: r.bottom - moduleTop,
+          height: r.height,
+        });
+      }
+    }
+    node = walker.nextNode();
+  }
+  return raw.sort((a, b) => a.top - b.top);
+}
 
 interface ResumeModule {
   type: string;
@@ -303,17 +333,60 @@ function Canvas({
           continue;
         }
 
+        let splitViewHeight = visibleHeight;
+        let splitNextOffsetY = offsetY + visibleHeight;
+        const measureEl = moduleMeasureEls.current[module.id];
+        if (measureEl) {
+          const moduleBox = measureEl.getBoundingClientRect();
+          const headerEl = measureEl.querySelector<HTMLElement>(
+            `[${RESUME_MODULE_HEADER_ATTR}]`,
+          );
+          let headerCut = null as ReturnType<typeof resolveSplitAwayFromCut>;
+          if (headerEl) {
+            const headerBox = headerEl.getBoundingClientRect();
+            const headerTop = headerBox.top - moduleBox.top;
+            headerCut = resolveSplitAwayFromCut(
+              headerTop,
+              headerTop + headerBox.height,
+              offsetY,
+              visibleHeight,
+            );
+          }
+
+          if (headerCut === 'empty-page') {
+            startNextPage();
+            continue;
+          }
+
+          if (headerCut) {
+            splitViewHeight = headerCut.viewHeight;
+            splitNextOffsetY = headerCut.nextOffsetY;
+          } else {
+            const bodyHit = pickSplitFromSortedBodyRects(
+              getModuleBodyRectsRel(measureEl, headerEl),
+              offsetY,
+              visibleHeight,
+            );
+            if (bodyHit === 'empty-page') {
+              startNextPage();
+              continue;
+            }
+            if (bodyHit) {
+              splitViewHeight = bodyHit.viewHeight;
+              splitNextOffsetY = bodyHit.nextOffsetY;
+            }
+          }
+        }
+
         pushSlot(page, module, node, {
           gapBefore,
-          viewHeight: visibleHeight,
+          viewHeight: splitViewHeight,
           offsetY,
           measuredModuleHeight: moduleHeight,
         });
-        usedHeight = effectiveHeight;
-        const overflowHeight = remaining - visibleHeight;
-        const nextOffsetY = moduleHeight - overflowHeight;
-        offsetY = nextOffsetY;
-        remaining = overflowHeight;
+        usedHeight = usedHeight + gapBefore + splitViewHeight;
+        offsetY = splitNextOffsetY;
+        remaining = moduleHeight - splitNextOffsetY;
         startNextPage();
         isFirstFragment = false;
       }
@@ -328,18 +401,23 @@ function Canvas({
 
     const nextPages = layoutPages.map((page, pageIndex) => {
       const children = page.slots.map((slot) => {
-        const node = slot.offsetY > 0 ? (
-          <div
-            key={`${slot.module.id}-${slot.offsetY}`}
-            style={{ marginTop: -slot.offsetY }}
-          >
-            {slot.node}
-          </div>
-        ) : slot.node;
+        const inner = slot.offsetY > 0 ? (
+          <div style={{ transform: `translateY(-${slot.offsetY}px)` }}>{slot.node}</div>
+        ) : (
+          slot.node
+        );
         return (
           <Fragment key={`${slot.module.id}-${slot.offsetY}-${slot.viewHeight}`}>
             {slot.gapBefore > 0 ? <div style={{ height: slot.gapBefore }} aria-hidden /> : null}
-            {node}
+            <div
+              style={resumeModuleSlotStyle({
+                viewHeight: slot.viewHeight,
+                offsetY: slot.offsetY,
+                measuredModuleHeight: slot.measuredModuleHeight,
+              })}
+            >
+              {inner}
+            </div>
           </Fragment>
         );
       });
