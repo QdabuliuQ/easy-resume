@@ -1,10 +1,12 @@
 'use client';
 import { useTranslations } from 'next-intl';
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { Form } from 'antd';
+import { useMemoizedFn } from 'ahooks';
 import ResponsiveColorPicker from '@/components/responsiveColorPicker';
 import ResponsiveSelect from '@/components/responsiveSelect';
+import { useAppMessage } from '@/hooks/useAppMessage';
 import { hexForColorInput } from '@/lib/resumeColorHex';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
@@ -13,7 +15,11 @@ import SectionHeader, {
 } from '@/modules/header/sectionHeader';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import ModuleManage from '@/views/edit/components/header/moduleManage';
-import { normResumeFont, type ResumeFontId } from '@/lib/resumeFont';
+import {
+  ensureResumeFontLoaded,
+  normResumeFont,
+  type ResumeFontId,
+} from '@/lib/resumeFont';
 import {
   normResumePageLayout,
   type ResumePageLayout,
@@ -77,7 +83,10 @@ const BG_COLOR_FALLBACK = hexForColorInput(
 );
 function PageSettings() {
   const t = useTranslations('Edit.header');
+  const message = useAppMessage();
   const [form] = Form.useForm();
+  const [fontLoading, setFontLoading] = useState(false);
+  const fontLoadGenRef = useRef(0);
   const resumeFontOptions = useMemo(
     () =>
       [
@@ -165,6 +174,23 @@ function PageSettings() {
     };
     configStore.setConfig(base);
   };
+  const onResumeFontChange = useMemoizedFn(async (v: ResumeFontId) => {
+    if (fontLoading) return;
+    const current = normResumeFont(configStore.mergedGlobalStyle.resumeFont);
+    if (v === current) return;
+    const gen = ++fontLoadGenRef.current;
+    setFontLoading(true);
+    try {
+      await ensureResumeFontLoaded(v);
+      if (gen !== fontLoadGenRef.current) return;
+      setGlobalResumeFont(v);
+    } catch {
+      if (gen !== fontLoadGenRef.current) return;
+      message.error(t('fontLoadFail'));
+    } finally {
+      if (gen === fontLoadGenRef.current) setFontLoading(false);
+    }
+  });
   const setGlobalPageSize = (v: ResumePageSize) => {
     const base = configStore.getConfig
       ? JSON.parse(JSON.stringify(configStore.getConfig))
@@ -387,7 +413,11 @@ function PageSettings() {
                 <ResponsiveSelect
                   value={resumeFontVal}
                   options={resumeFontOptions}
-                  onChange={(v) => setGlobalResumeFont(v)}
+                  loading={fontLoading}
+                  disabled={fontLoading}
+                  onChange={(v) => {
+                    void onResumeFontChange(v as ResumeFontId);
+                  }}
                   popupMatchSelectWidth={false}
                   style={{ width: '100%' }}
                 />

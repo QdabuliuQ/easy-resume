@@ -46,7 +46,8 @@ export default function ResponsiveSelect(props: SelectProps) {
       onChange={rest.onChange as (v: string | number | (string | number)[]) => void}
       options={toMobileOptions(rest.options)}
       placeholder={typeof rest.placeholder === 'string' ? rest.placeholder : undefined}
-      disabled={rest.disabled}
+      disabled={rest.disabled || rest.loading}
+      loading={Boolean(rest.loading)}
       multiple={rest.mode === 'multiple'}
       style={rest.style}
       title={typeof title === 'string' ? title : undefined}

@@ -31,6 +31,7 @@ export default {
     exportFail: '导出失败',
     fontSizeLabel: '字号',
     fontFamilyLabel: '字体',
+    fontLoadFail: '字体加载失败，请稍后重试',
     headerStyleLabel: '标题样式',
     pageLayoutLabel: '页面布局',
     pageLayoutDefault: '默认',

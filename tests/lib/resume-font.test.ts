@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ensureResumeFontLoaded,
   normResumeFont,
   resumeExportFontFacesCss,
   resumeExportFontStack,
@@ -10,6 +11,7 @@ import {
   resumeSnapLocalFonts,
 } from '@/lib/resumeFont';
 import { resumePdfFontLinkTags } from '@/lib/resumePdfFontLinkTags';
+import { resumeFontSplitCssHref, resumeFontSplitCssHrefs } from '@/lib/resumeFontSplit';
 
 describe('resumeFont', () => {
   it('normResumeFont maps legacy ids', () => {
@@ -36,6 +38,13 @@ describe('resumeFont', () => {
     expect(resumeLocalFontFacesCss('system')).toBe('');
     expect(resumeLocalFontFacesCss('noto-sans-sc')).toContain('NotoSansSC-Regular.woff2');
     expect(resumeLocalFontFacesCss('noto-sans-sc')).toContain("format('woff2')");
+    expect(resumeLocalFontFacesCss('noto-sans-sc')).toContain('font-display:swap');
+  });
+
+  it('resumeExportFontFacesCss keeps font-display block', () => {
+    expect(resumeExportFontFacesCss('https://x.com', 'noto-sans-sc')).toContain(
+      'font-display:block',
+    );
   });
 
   it('resumeSnapLocalFonts builds font urls', () => {
@@ -95,6 +104,20 @@ describe('resumeFont', () => {
     expect(html).not.toContain('fonts.googleapis.com');
     expect(html).toContain('NotoSansSC-Regular.woff2');
     expect(html).toContain('https://x.com/fonts/NotoSansSC-Regular.woff2');
+  });
+
+  it('ensureResumeFontLoaded resolves immediately for system', async () => {
+    await expect(ensureResumeFontLoaded('system')).resolves.toBeUndefined();
+  });
+
+  it('resumeFontSplitCssHref points under /fonts/split', () => {
+    expect(resumeFontSplitCssHref('shanggu-serif', 400)).toBe(
+      '/fonts/split/shanggu-serif/400/result.css',
+    );
+    expect(resumeFontSplitCssHrefs('acy')).toEqual([
+      { weight: 400, href: '/fonts/split/acy/400/result.css' },
+      { weight: 700, href: '/fonts/split/acy/700/result.css' },
+    ]);
   });
 
   it('resumeExportFontFacesCss maps system to noto-sans-sc', () => {

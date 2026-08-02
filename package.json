@@ -16,6 +16,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "fonts:split:install-core": "cn-font-split i",
+    "fonts:split": "node scripts/split-resume-fonts.mjs",
     "prepare": "husky install"
   },
   "dependencies": {
@@ -65,6 +67,7 @@
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.7.0",
     "@vitest/coverage-v8": "^3.2.4",
+    "cn-font-split": "^7.4.3",
     "eslint": "^9.21.0",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^7.1.1",

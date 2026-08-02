@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckList, Popup } from 'antd-mobile';
+import { CheckList, Popup, SpinLoading } from 'antd-mobile';
 import { useEffect, useMemo, useState } from 'react';
 import {
   mobilePickerSheetBodyStyle,
@@ -23,6 +23,7 @@ type MobileCheckListPickerProps = {
   options?: MobileSelectOption[];
   placeholder?: string;
   disabled?: boolean;
+  loading?: boolean;
   multiple?: boolean;
   className?: string;
   style?: React.CSSProperties;
@@ -46,11 +47,13 @@ export default function MobileCheckListPicker({
   options = [],
   placeholder = '请选择',
   disabled,
+  loading,
   multiple,
   className,
   style,
   title,
 }: MobileCheckListPickerProps) {
+  const locked = Boolean(disabled || loading);
   const [visible, setVisible] = useState(false);
   const controlled = value !== undefined;
   const [inner, setInner] = useState<SingleValue | MultiValue>(() =>
@@ -91,8 +94,8 @@ export default function MobileCheckListPicker({
     <>
       <button
         type='button'
-        disabled={disabled}
-        onClick={() => !disabled && setVisible(true)}
+        disabled={locked}
+        onClick={() => !locked && setVisible(true)}
         className={`${mobilePickerTriggerClass} ${className ?? ''}`}
         style={style}
       >
@@ -101,6 +104,7 @@ export default function MobileCheckListPicker({
         >
           {display}
         </span>
+        {loading ? <SpinLoading style={{ fontSize: 16 }} /> : null}
       </button>
       <Popup
         visible={visible}

@@ -485,7 +485,7 @@ function Canvas({
         requestAnimationFrame(() => runAfterFrames(left - 1));
       };
       const font = normResumeFont(layoutGlobalStyle.resumeFont);
-      void waitResumeFontsLoaded(font)
+      void waitResumeFontsLoaded(font, { weights: [400] })
         .catch(() => undefined)
         .then(() => runAfterFrames(MEASURE_FRAME_DELAY));
     }, RENDER_DEBOUNCE_MS);

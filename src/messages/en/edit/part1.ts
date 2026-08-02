@@ -31,6 +31,7 @@ export default {
     exportFail: 'Export failed',
     fontSizeLabel: 'Font size',
     fontFamilyLabel: 'Font',
+    fontLoadFail: 'Failed to load font. Please try again.',
     headerStyleLabel: 'Heading style',
     pageLayoutLabel: 'Page layout',
     pageLayoutDefault: 'Default',

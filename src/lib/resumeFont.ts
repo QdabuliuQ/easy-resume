@@ -116,13 +116,17 @@ export function resumeExportFontStack(id: unknown): string {
   return resumeFontStack(fid);
 }
 
-function fontFaceBlocks(basePath: string, font: ResumeExportFontId): string {
+function fontFaceBlocks(
+  basePath: string,
+  font: ResumeExportFontId,
+  display: 'block' | 'swap' = 'block',
+): string {
   const def = LOCAL_FONTS[font];
   const u = (file: string) =>
     `url('${basePath}/fonts/${file}') format('woff2')`;
   return [
-    `@font-face{font-family:'${def.family}';font-style:normal;font-weight:400;font-display:block;src:${u(def.regular)};}`,
-    `@font-face{font-family:'${def.family}';font-style:normal;font-weight:700;font-display:block;src:${u(def.bold)};}`,
+    `@font-face{font-family:'${def.family}';font-style:normal;font-weight:400;font-display:${display};src:${u(def.regular)};}`,
+    `@font-face{font-family:'${def.family}';font-style:normal;font-weight:700;font-display:${display};src:${u(def.bold)};}`,
   ].join('');
 }
 
@@ -130,13 +134,13 @@ function fontFaceBlocks(basePath: string, font: ResumeExportFontId): string {
 export function resumeExportFontFacesCss(origin: string, font: unknown): string {
   const fid = resumeFontForExport(font);
   const base = origin.replace(/\/$/, '');
-  return fontFaceBlocks(base, fid);
+  return fontFaceBlocks(base, fid, 'block');
 }
 
-/** 本地 @font-face；system 不注入；字体在 public/fonts/ */
+/** 编辑器本地 @font-face；swap 避免长时间空白；system 不注入 */
 export function resumeLocalFontFacesCss(font: ResumeFontId = 'noto-sans-sc'): string {
   if (font === 'system') return '';
-  return fontFaceBlocks('', font);
+  return fontFaceBlocks('', font, 'swap');
 }
 
 export function resumePrimaryFontFamily(font: ResumeFontId): string {
@@ -157,19 +161,36 @@ export function resumeSnapLocalFonts(
   ];
 }
 
-export async function waitResumeFontsLoaded(font: ResumeFontId): Promise<void> {
+export async function waitResumeFontsLoaded(
+  font: ResumeFontId,
+  opts?: { weights?: ReadonlyArray<400 | 700> },
+): Promise<void> {
   const fid = resumeFontForExport(font);
   const family = resumePrimaryFontFamily(fid);
-  await Promise.all([
-    document.fonts.load(`400 16px "${family}"`),
-    document.fonts.load(`700 16px "${family}"`),
-  ]);
-  await document.fonts.ready;
+  const weights = opts?.weights ?? [400, 700];
+  await Promise.all(weights.map((w) => document.fonts.load(`${w} 16px "${family}"`)));
 }
 
 const snapFontPreloaded = new Set<string>();
+const uiFontReady = new Set<ResumeExportFontId>();
 
-/** snapDOM 前用 FontFace 拉取 public/fonts，避免离屏/克隆树缺字形 */
+async function loadFontFaceFromUrl(
+  family: string,
+  src: string,
+  weight: 400 | 700,
+): Promise<void> {
+  const key = `${family}-${weight}`;
+  if (snapFontPreloaded.has(key)) return;
+  const face = new FontFace(family, `url(${src})`, {
+    weight: String(weight),
+    style: 'normal',
+  });
+  await face.load();
+  document.fonts.add(face);
+  snapFontPreloaded.add(key);
+}
+
+/** snapDOM 前拉取完整 public/fonts（导出不用切片，避免缺字） */
 export async function preloadResumeFontsForSnap(
   origin: string,
   font: ResumeFontId,
@@ -194,4 +215,41 @@ export async function preloadResumeFontsForSnap(
     }),
   );
   await waitResumeFontsLoaded(font);
+}
+
+/**
+ * 编辑器切换字体：
+ * 1) 优先 unicode-range 切片（只下用到的小包）
+ * 2) 无切片时回退完整 Regular，Bold 后台补
+ */
+export async function ensureResumeFontLoaded(font: ResumeFontId): Promise<void> {
+  if (font === 'system') return;
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (uiFontReady.has(font)) return;
+
+  const { ensureResumeFontSplitStyles, RESUME_FONT_PROBE_TEXT } = await import(
+    '@/lib/resumeFontSplit'
+  );
+  const family = LOCAL_FONTS[font].family;
+  const usedSplit = await ensureResumeFontSplitStyles(font, { weights: [400] });
+  if (usedSplit) {
+    await document.fonts.load(`400 16px "${family}"`, RESUME_FONT_PROBE_TEXT);
+    uiFontReady.add(font);
+    void ensureResumeFontSplitStyles(font, { weights: [700] })
+      .then((ok) =>
+        ok
+          ? document.fonts.load(`700 16px "${family}"`, RESUME_FONT_PROBE_TEXT)
+          : undefined,
+      )
+      .catch(() => undefined);
+    return;
+  }
+
+  const origin = window.location.origin;
+  const def = LOCAL_FONTS[font];
+  await loadFontFaceFromUrl(def.family, `${origin}/fonts/${def.regular}`, 400);
+  uiFontReady.add(font);
+  void loadFontFaceFromUrl(def.family, `${origin}/fonts/${def.bold}`, 700).catch(
+    () => undefined,
+  );
 }
