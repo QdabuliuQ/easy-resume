@@ -1,5 +1,5 @@
 'use client';
-import { memo, useEffect, useState } from 'react';
+import { memo, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   formatIntentCityDisplay,
@@ -68,9 +68,7 @@ function Info1(props: Props) {
   const avatarSrc = typeof avatar === 'string' ? avatar.trim() : '';
   const showAvatar = !!avatarSrc && avatarSrc !== 'avatar';
 
-  const [itemLayout, setItemLayout] = useState<Array<React.ReactNode>>([]);
-
-  useEffect(() => {
+  const itemLayout = useMemo(() => {
     const colon = '：';
     const lbl = (k: string) =>
       info1ShowsInlineFieldLabel(k, showTitleOn) ? `${tField(k as never)}${colon}` : '';
@@ -90,7 +88,9 @@ function Info1(props: Props) {
           rowElements.push(
             <span
               key={`expectedSalary-${i}-${j}`}
-              className={inSideCol ? undefined : 'text-black'}
+              className={
+                inSideCol ? 'whitespace-nowrap' : 'whitespace-nowrap text-black'
+              }
               style={{ fontSize, lineHeight, color: fieldColor }}
             >
               {lbl('expectedSalary')}
@@ -99,7 +99,7 @@ function Info1(props: Props) {
                 selectable
                 dataItemId={`${id}_expectedSalary_0`}
               />
-              {' - '}
+              {'\u00a0-\u00a0'}
               <SafeText
                 text={b}
                 selectable
@@ -167,8 +167,8 @@ function Info1(props: Props) {
         </div>
       );
     }
-    setItemLayout(elements);
-  }, [layout, position, showTitleOn, inSideCol, fieldColor, sepColor, props, tField, fontSize, lineHeight, id]);
+    return elements;
+  }, [layout, position, showTitleOn, inSideCol, fieldColor, sepColor, props.config.options, tField, fontSize, lineHeight, id]);
 
   const avatarBlock = showAvatar ? (
     <div

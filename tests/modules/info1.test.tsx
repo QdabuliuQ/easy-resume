@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import { describe, expect, it } from 'vitest';
 import Info1, { type InfoProps } from '@/modules/info/info1';
@@ -65,17 +65,15 @@ function renderInfo(config = baseConfig, forceSideCol?: boolean) {
 }
 
 describe('Info1 module', () => {
-  it('renders name, avatar alt text and configured fields', async () => {
+  it('renders name, avatar alt text and configured fields', () => {
     const { container } = renderInfo();
 
     expect(screen.getByText('张三')).toBeInTheDocument();
     expect(screen.getByAltText('张三的头像')).toHaveAttribute('src', 'https://example.com/avatar.png');
     expect(container.querySelector('#info-1')).toHaveAttribute('data-resume-module-id', 'info-1');
 
-    await waitFor(() => {
-      expect(screen.getByText(/手机号：13800000000/)).toBeInTheDocument();
-      expect(screen.getByText(/邮箱：zhangsan@example.com/)).toBeInTheDocument();
-    });
+    expect(screen.getByText(/手机号：13800000000/)).toBeInTheDocument();
+    expect(screen.getByText(/邮箱：zhangsan@example.com/)).toBeInTheDocument();
     expect(document.querySelector('[data-item-id="info-1_expectedSalary_0"]')?.textContent).toBe(
       '20k'
     );
@@ -84,7 +82,7 @@ describe('Info1 module', () => {
     );
   });
 
-  it('omits avatar placeholder and inline labels when disabled', async () => {
+  it('omits avatar placeholder and inline labels when disabled', () => {
     renderInfo({
       ...baseConfig,
       options: {
@@ -96,13 +94,11 @@ describe('Info1 module', () => {
     });
 
     expect(screen.queryByAltText('张三的头像')).not.toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByText('13800000000')).toBeInTheDocument();
-    });
+    expect(screen.getByText('13800000000')).toBeInTheDocument();
     expect(screen.queryByText(/手机号：/)).not.toBeInTheDocument();
   });
 
-  it('renders in side-column mode', async () => {
+  it('renders in side-column mode', () => {
     renderInfo(
       {
         ...baseConfig,
@@ -115,12 +111,31 @@ describe('Info1 module', () => {
     );
 
     expect(screen.getByText('张三')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByText(/状态：在职-考虑机会/)).toBeInTheDocument();
-    });
+    expect(screen.getByText(/状态：在职-考虑机会/)).toBeInTheDocument();
   });
 
-  it('renders center layout with visible avatar before text', async () => {
+  it('keeps expected salary on one line in side column', () => {
+    const { container } = renderInfo(
+      {
+        ...baseConfig,
+        options: {
+          ...baseConfig.options,
+          layout: [['intentPosts', 'expectedSalary']],
+          intentPosts: '前端开发工程师、Web前端工程师',
+          expectedSalary: ['18k', '28k'],
+          showTitle: false,
+        },
+      },
+      true,
+    );
+    const sal = container.querySelector('[data-item-id="info-1_expectedSalary_0"]')
+      ?.parentElement;
+    expect(sal).toHaveClass('whitespace-nowrap');
+    expect(sal?.textContent).toContain('18k');
+    expect(sal?.textContent).toContain('28k');
+  });
+
+  it('renders center layout with visible avatar before text', () => {
     const { container } = renderInfo({
       ...baseConfig,
       options: {
@@ -131,9 +146,7 @@ describe('Info1 module', () => {
 
     expect(container.querySelector('img')).toHaveAttribute('src', 'https://example.com/avatar.png');
     expect(screen.getByText('张三')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByText(/意向城市：杭州/)).toBeInTheDocument();
-    });
+    expect(screen.getByText(/意向城市：杭州/)).toBeInTheDocument();
   });
 
   it('returns null when config is missing', () => {

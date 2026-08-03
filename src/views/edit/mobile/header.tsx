@@ -2,15 +2,23 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { EditOutlined, RedoOutlined, UndoOutlined } from '@ant-design/icons';
-import { SaveOne, Share } from '@icon-park/react';
+import {
+  DownOutlined,
+  EditOutlined,
+  GithubOutlined,
+  LoadingOutlined,
+  RedoOutlined,
+  UndoOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+import { Copy, SaveOne, Share } from '@icon-park/react';
 import { observer } from 'mobx-react';
-import { useSession } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useLocale, useTranslations } from 'next-intl';
 import { memo, useId, useRef, useState } from 'react';
-import { Button, Input, Tooltip } from 'antd';
+import { Button, Dropdown, Input, Tooltip } from 'antd';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
-import QqAuthButton from '@/components/auth/QqAuthButton';
+import qqIcon from '@/assets/qq.png';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { cloudResumeStore, configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
@@ -21,21 +29,60 @@ import ShareResumeModal from '@/views/edit/components/header/ShareResumeModal';
 
 function MobileEditHeader() {
   const t = useTranslations('Edit.header');
+  const ta = useTranslations('Auth');
   const message = useAppMessage();
   const { status } = useSession();
   const signedIn = status === 'authenticated';
+  const authLoading = status === 'loading';
+  const [authBusy, setAuthBusy] = useState(false);
   const { canUndo, canRedo, undo, redo } = useEditHistory();
   const locale = useLocale();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   const ignoreNextBlur = useRef(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
   const showSave = cloudResumeStore.showSaveButton;
+  const showSaveAs = cloudResumeStore.showSaveAsButton;
   const saving = cloudResumeStore.saving;
   const resumeId = cloudResumeStore.resumeId;
   const canShare = signedIn && Boolean(resumeId);
   const saveGradId = `mhdr-sg${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  const signInWith = async (provider: 'github' | 'qq') => {
+    if (authBusy) return;
+    setAuthBusy(true);
+    try {
+      await signIn(provider, { redirectTo: window.location.href, redirect: true });
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+  const loginMenuItems = [
+    {
+      key: 'github',
+      disabled: authBusy,
+      icon: <GithubOutlined className='text-[14px]' />,
+      label: ta('signInGithubShort'),
+      onClick: () => void signInWith('github'),
+    },
+    {
+      key: 'qq',
+      disabled: authBusy,
+      icon: (
+        <Image
+          src={qqIcon}
+          alt=''
+          width={14}
+          height={14}
+          className='object-contain'
+          aria-hidden
+        />
+      ),
+      label: ta('signInQqShort'),
+      onClick: () => void signInWith('qq'),
+    },
+  ];
   const commit = () => {
     const trimmed = draft.trim();
     const base = configStore.getConfig ?? JSON.parse(JSON.stringify(defaultResume));
@@ -53,6 +100,16 @@ function MobileEditHeader() {
     }
     const result = await cloudResumeStore.save();
     if (result.ok) message.success(t('saveOk'));
+    else message.error(result.error || t('saveFail'));
+  };
+  const onSaveAs = async () => {
+    if (status !== 'authenticated') {
+      message.warning(t('saveNeedLogin'));
+      return;
+    }
+    const base = (configStore.getConfig?.name ?? name).trim() || t('resumeDefaultName');
+    const result = await cloudResumeStore.saveAs({ name: t('saveAsName', { name: base }) });
+    if (result.ok) message.success(t('saveAsOk'));
     else message.error(result.error || t('saveFail'));
   };
   const onShareClick = () => {
@@ -134,6 +191,29 @@ function MobileEditHeader() {
             </span>
           </Tooltip>
         ) : null}
+        {showSaveAs ? (
+          <Tooltip title={signedIn ? undefined : t('saveNeedLogin')}>
+            <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
+              <Button
+                type='default'
+                size='small'
+                loading={saving}
+                disabled={!signedIn}
+                icon={
+                  saving ? undefined : (
+                    <Copy theme='outline' size={16} fill={`url(#${saveGradId})`} />
+                  )
+                }
+                onClick={() => void onSaveAs()}
+                className='!border-[color-mix(in_srgb,var(--color-primary)_35%,transparent)]'
+              >
+                <span className='bg-gradient-primary bg-clip-text font-semibold text-transparent'>
+                  {saving ? t('saving') : t('saveAs')}
+                </span>
+              </Button>
+            </span>
+          </Tooltip>
+        ) : null}
         <Tooltip
           title={
             !signedIn ? t('shareNeedLogin') : !resumeId ? t('shareNeedSave') : undefined
@@ -151,8 +231,47 @@ function MobileEditHeader() {
             />
           </span>
         </Tooltip>
-        <GithubAuthButton variant='compact' />
-        <QqAuthButton variant='compact' />
+        {authLoading ? (
+          <span
+            className='inline-flex h-8 w-8 items-center justify-center rounded-full border border-fg/14 bg-fg/[0.05] text-fg/55'
+            aria-label={ta('loading')}
+          >
+            <LoadingOutlined className='text-[14px]' />
+          </span>
+        ) : signedIn ? (
+          <GithubAuthButton variant='compact' />
+        ) : (
+          <Dropdown
+            menu={{ items: loginMenuItems }}
+            trigger={['hover', 'click']}
+            mouseEnterDelay={0.08}
+            mouseLeaveDelay={0.12}
+            disabled={authBusy}
+            placement='bottomRight'
+            open={loginOpen}
+            onOpenChange={setLoginOpen}
+          >
+            <button
+              type='button'
+              disabled={authBusy}
+              aria-label={ta('signIn')}
+              aria-expanded={loginOpen}
+              className='relative isolate inline-flex h-8 cursor-pointer items-center gap-1 overflow-hidden rounded-lg border-0 bg-gradient-to-r from-[var(--color-primary-gradient-start)] to-[var(--color-primary)] px-2.5 text-[12px] font-semibold text-white outline-none shadow-[0_4px_14px_color-mix(in_srgb,var(--color-primary)_36%,transparent)] disabled:opacity-50'
+            >
+              {authBusy ? (
+                <LoadingOutlined className='text-[12px] text-white' />
+              ) : (
+                <UserOutlined className='text-[12px] text-white' />
+              )}
+              {ta('signIn')}
+              {!authBusy ? (
+                <DownOutlined
+                  className={`text-[9px] text-white/85 transition-transform duration-200 ${loginOpen ? 'rotate-180' : ''}`}
+                />
+              ) : null}
+            </button>
+          </Dropdown>
+        )}
       </div>
       <div className='pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1'>
         <Button

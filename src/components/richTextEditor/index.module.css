@@ -202,16 +202,27 @@
 :global([data-theme='dark']) .aiPolishBtn {
   --polish-from: #9b8cff;
   --polish-to: #7ae0ff;
+  --polish-via: #c4b5fd;
   box-shadow: 0 2px 12px rgb(123 102 255 / 0.32);
 }
 
 .aiPolishBtn {
   --polish-from: #7b66ff;
   --polish-to: #5cd7ff;
+  --polish-via: #a78bfa;
   position: absolute;
   right: 12px;
   z-index: 4;
-  background: linear-gradient(90deg, var(--polish-from) 0%, var(--polish-to) 100%);
+  background-image: linear-gradient(
+    90deg,
+    var(--polish-from),
+    var(--polish-to),
+    var(--polish-via),
+    var(--polish-from)
+  );
+  background-size: 300% 100%;
+  background-position: 0% 50%;
+  animation: aiPolishBgShift 2.5s ease-in-out infinite;
   box-shadow: 0 2px 10px rgb(123 102 255 / 0.28);
 }
 
@@ -221,6 +232,16 @@
 
 .aiPolishBtn:active {
   filter: brightness(0.96);
+}
+
+@keyframes aiPolishBgShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .aiPolishBtnHint {
@@ -259,6 +280,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .aiPolishBtn {
+    animation: none;
+    background-image: linear-gradient(90deg, var(--polish-from) 0%, var(--polish-to) 100%);
+    background-size: auto;
+    background-position: initial;
+  }
   .aiPolishBtnHint::after {
     animation: none;
     opacity: 0;

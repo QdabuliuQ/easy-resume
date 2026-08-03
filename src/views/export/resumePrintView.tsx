@@ -81,8 +81,9 @@ function renderSlotsFromExportPages(
   exportPages: ExportPage[],
   gs: GlobalStyle,
   cfg: Record<string, unknown>,
-  info1Side: { type: string; options?: unknown } | null,
+  info1Side: Record<string, unknown> | null,
   effectiveHeight: number,
+  snapTarget = false,
 ): ReactNode[] {
   const gap = moduleGapPx(gs, cfg as { pages?: { moduleMargin?: number }[] });
   const sideCol = shouldPlaceInfo1InSideCol(gs.layout);
@@ -140,7 +141,7 @@ function renderSlotsFromExportPages(
     }
     return (
       <div key={`page-${pageIndex}`} className='pdf-page'>
-        <Page {...gs} firstPage={pageIndex === 0} sideSlot={sideSlot}>
+        <Page {...gs} firstPage={pageIndex === 0} sideSlot={sideSlot} snapTarget={snapTarget}>
           <div style={{ height: effectiveHeight, overflow: 'hidden' }}>
             {children}
           </div>
@@ -154,6 +155,7 @@ function renderFromLegacyPages(
   cfg: Record<string, unknown>,
   gs: GlobalStyle,
   effectiveHeight: number,
+  snapTarget = false,
 ): ReactNode[] {
   const pages = (cfg.pages as { modules?: unknown[] }[]) ?? [];
   return pages.map((page, pageIndex) => {
@@ -164,7 +166,7 @@ function renderFromLegacyPages(
     );
     return (
       <div key={`page-${pageIndex}`} className='pdf-page'>
-        <Page {...gs} firstPage={pageIndex === 0} sideSlot={sideSlot}>
+        <Page {...gs} firstPage={pageIndex === 0} sideSlot={sideSlot} snapTarget={snapTarget}>
           <div style={{ height: effectiveHeight, overflow: 'hidden' }}>
             {main}
           </div>
@@ -178,10 +180,13 @@ export default function ResumePrintView({
   config,
   assetOrigin = '',
   exportMode = 'pdf',
+  snapTarget = false,
 }: {
   config: unknown;
   assetOrigin?: string;
   exportMode?: 'pdf' | 'image';
+  /** 客户端 snap 截图：Page 使用 px 尺寸 */
+  snapTarget?: boolean;
 }) {
   const cfg = config as Record<string, unknown>;
   const gs = useMemo(() => mergeGs(cfg as { globalStyle?: Partial<GlobalStyle> }), [cfg]);
@@ -193,10 +198,10 @@ export default function ResumePrintView({
     const pageHeight = cssLengthToApproxPx(globalStylePageDimensions(gs).height);
     return Math.max(0, pageHeight - Number(gs.padding ?? 0) * 2);
   }, [gs]);
-  const info1Side = useMemo((): { type: string; options?: unknown } | null => {
+  const info1Side = useMemo((): Record<string, unknown> | null => {
     const m = findFirstInfo1Module(cfg);
     if (!m || !shouldPlaceInfo1InSideCol(gs.layout)) return null;
-    return { type: 'info1', options: m.options };
+    return m;
   }, [cfg, gs.layout]);
   const pages = useMemo(() => {
     if (exportMode === 'image') {
@@ -210,15 +215,25 @@ export default function ResumePrintView({
     }
     const exportPages = cfg.exportPages as ExportPage[] | null | undefined;
     if (Array.isArray(exportPages) && exportPages.length > 0) {
-      return renderSlotsFromExportPages(exportPages, printGs, cfg, info1Side, effectiveHeight);
+      return renderSlotsFromExportPages(
+        exportPages,
+        printGs,
+        cfg,
+        info1Side,
+        effectiveHeight,
+        snapTarget,
+      );
     }
-    const legacy = renderFromLegacyPages(cfg, printGs, effectiveHeight);
-    return legacy.length > 0 ? legacy : renderFromLegacyPages(
-      { pages: [{ modules: flattenModules(cfg) }] },
-      printGs,
-      effectiveHeight,
-    );
-  }, [exportMode, cfg, printGs, assetOrigin, info1Side, effectiveHeight]);
+    const legacy = renderFromLegacyPages(cfg, printGs, effectiveHeight, snapTarget);
+    return legacy.length > 0
+      ? legacy
+      : renderFromLegacyPages(
+          { pages: [{ modules: flattenModules(cfg) }] },
+          printGs,
+          effectiveHeight,
+          snapTarget,
+        );
+  }, [exportMode, cfg, printGs, assetOrigin, info1Side, effectiveHeight, snapTarget]);
   const bg = gs.backgroundColor ?? '#fff';
   const pageDims = globalStylePageDimensions(gs);
   const pageBreakCss =

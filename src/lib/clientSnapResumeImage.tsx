@@ -1,5 +1,6 @@
 'use client';
 import { snapdom } from '@zumer/snapdom';
+import { jsPDF } from 'jspdf';
 import { NextIntlClientProvider } from 'next-intl';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
@@ -10,10 +11,12 @@ import {
   resumeFontForExport,
   resumeSnapLocalFonts,
 } from '@/lib/resumeFont';
+import { globalStylePageDimensions } from '@/lib/resumePageSize';
 import { prepareResumeSnapSubtree } from '@/lib/resumeSnapPrepare';
 import { cropImageBlob } from '@/lib/imageCropWorkerClient';
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import ResumeImageExportPage from '@/views/export/resumeImageExportPage';
+import ResumePrintView from '@/views/export/resumePrintView';
 
 type SnapOpts = {
   config: unknown;
@@ -27,6 +30,27 @@ let snapRuntimeWarmPromise: Promise<void> | null = null;
 
 const SNAP_HOST_STYLE =
   'position:fixed;left:-100000px;top:0;z-index:-1;overflow:visible;opacity:1;pointer-events:none;width:max-content;';
+
+function cssLengthToMm(value: string): number {
+  const s = String(value).trim().toLowerCase();
+  const m = s.match(/^([\d.]+)\s*(mm|cm|in|pt|px)?$/);
+  if (!m) return 210;
+  const n = Number.parseFloat(m[1]);
+  if (!Number.isFinite(n)) return 210;
+  switch (m[2] || 'mm') {
+    case 'cm':
+      return n * 10;
+    case 'in':
+      return n * 25.4;
+    case 'pt':
+      return (n * 25.4) / 72;
+    case 'px':
+      return (n * 25.4) / 96;
+    case 'mm':
+    default:
+      return n;
+  }
+}
 
 async function cropJpegBorder(blob: Blob, borderPx = 1): Promise<Blob> {
   if (borderPx <= 0) return blob;
@@ -43,7 +67,7 @@ async function cropJpegBorder(blob: Blob, borderPx = 1): Promise<Blob> {
     const dw = sw - borderPx * 2;
     const dh = sh - borderPx * 2;
     if (dw < 8 || dh < 8) return blob;
-    const cropped = await cropImageBlob({
+    return cropImageBlob({
       source: blob,
       sx: borderPx,
       sy: borderPx,
@@ -54,7 +78,6 @@ async function cropJpegBorder(blob: Blob, borderPx = 1): Promise<Blob> {
       type: 'image/jpeg',
       quality: 0.92,
     });
-    return cropped;
   } finally {
     URL.revokeObjectURL(url);
   }
@@ -69,12 +92,11 @@ function assertSnapSize(el: HTMLElement) {
   }
 }
 
-async function snapElementToJpg(
+async function snapElementToJpgBlob(
   el: HTMLElement,
-  filename: string,
   gs: GlobalStyle,
   localFonts: ReturnType<typeof resumeSnapLocalFonts>,
-) {
+): Promise<Blob> {
   assertSnapSize(el);
   prepareResumeSnapSubtree(el, gs);
   await new Promise<void>((r) => {
@@ -89,27 +111,38 @@ async function snapElementToJpg(
     outerTransforms: false,
   });
   const rawBlob = await result.toBlob({ type: 'jpg', quality: 0.92 });
-  const blob = await cropJpegBorder(rawBlob, 5);
-  const base = filename.replace(/\.[^.]+$/, '') || 'export';
+  return cropJpegBorder(rawBlob, 5);
+}
+
+function triggerDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${base}.jpg`;
+  a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-async function mountExportPageAndSnap(
-  opts: SnapOpts,
-  gs: GlobalStyle,
-  localFonts: ReturnType<typeof resumeSnapLocalFonts>,
-) {
+async function prepareSnapContext(config: unknown) {
+  const cfg = config as Record<string, unknown>;
+  const gs = mergeGlobalStylePaper(
+    defaultResume.globalStyle as GlobalStyle,
+    (cfg?.globalStyle ?? {}) as Partial<GlobalStyle>,
+  );
+  const origin = window.location.origin;
+  const fontId = resumeFontForExport(gs.resumeFont);
+  const localFonts = resumeSnapLocalFonts(origin, fontId);
+  await preloadResumeFontsForSnap(origin, gs.resumeFont ?? 'system');
+  return { gs, localFonts, origin };
+}
+
+export async function downloadResumeJpegViaSnapdom(opts: SnapOpts): Promise<void> {
+  const { gs, localFonts, origin } = await prepareSnapContext(opts.config);
   const host = document.createElement('div');
   host.setAttribute('data-resume-image-export-host', '');
   host.style.cssText = SNAP_HOST_STYLE;
   document.body.appendChild(host);
   const root = createRoot(host);
-  const origin = window.location.origin;
   try {
     flushSync(() => {
       root.render(
@@ -124,24 +157,62 @@ async function mountExportPageAndSnap(
     if (!pageEl || !(pageEl instanceof HTMLElement)) {
       throw new Error('导出 Page 未渲染');
     }
-    await snapElementToJpg(pageEl, opts.filename, gs, localFonts);
+    const jpg = await snapElementToJpgBlob(pageEl, gs, localFonts);
+    const base = opts.filename.replace(/\.[^.]+$/, '') || 'export';
+    triggerDownload(jpg, `${base}.jpg`);
   } finally {
     root.unmount();
     host.remove();
   }
 }
 
-export async function downloadResumeJpegViaSnapdom(opts: SnapOpts): Promise<void> {
-  const cfg = opts.config as Record<string, unknown>;
-  const gs = mergeGlobalStylePaper(
-    defaultResume.globalStyle as GlobalStyle,
-    (cfg?.globalStyle ?? {}) as Partial<GlobalStyle>,
-  );
-  const origin = window.location.origin;
-  const fontId = resumeFontForExport(gs.resumeFont);
-  const localFonts = resumeSnapLocalFonts(origin, fontId);
-  await preloadResumeFontsForSnap(origin, gs.resumeFont ?? 'system');
-  await mountExportPageAndSnap(opts, gs, localFonts);
+export async function downloadResumeImagePdfViaSnapdom(opts: SnapOpts): Promise<void> {
+  const { gs, localFonts, origin } = await prepareSnapContext(opts.config);
+  const dims = globalStylePageDimensions(gs);
+  const wMm = cssLengthToMm(dims.width);
+  const hMm = cssLengthToMm(dims.height);
+  const host = document.createElement('div');
+  host.setAttribute('data-resume-image-export-host', '');
+  host.style.cssText = SNAP_HOST_STYLE;
+  document.body.appendChild(host);
+  const root = createRoot(host);
+  try {
+    flushSync(() => {
+      root.render(
+        <NextIntlClientProvider locale={opts.locale} messages={opts.messages}>
+          <div style={{ width: 'fit-content' }}>
+            <ResumePrintView
+              config={opts.config}
+              assetOrigin={origin}
+              exportMode='pdf'
+              snapTarget
+            />
+          </div>
+        </NextIntlClientProvider>,
+      );
+    });
+    const pages = Array.from(
+      host.querySelectorAll<HTMLElement>('[data-resume-export-page]'),
+    );
+    if (!pages.length) throw new Error('导出 Page 未渲染');
+    const pdf = new jsPDF({
+      orientation: wMm > hMm ? 'landscape' : 'portrait',
+      unit: 'mm',
+      format: [wMm, hMm],
+      compress: true,
+    });
+    for (let i = 0; i < pages.length; i += 1) {
+      const jpg = await snapElementToJpgBlob(pages[i], gs, localFonts);
+      const buf = new Uint8Array(await jpg.arrayBuffer());
+      if (i > 0) pdf.addPage([wMm, hMm], wMm > hMm ? 'landscape' : 'portrait');
+      pdf.addImage(buf, 'JPEG', 0, 0, wMm, hMm);
+    }
+    const base = opts.filename.replace(/\.[^.]+$/, '') || 'export';
+    triggerDownload(pdf.output('blob'), `${base}.pdf`);
+  } finally {
+    root.unmount();
+    host.remove();
+  }
 }
 
 /**

@@ -37,6 +37,7 @@ describe('cloudResumeStore', () => {
 
   it('showSaveButton is true when unbound', () => {
     expect(cloudResumeStore.showSaveButton).toBe(true);
+    expect(cloudResumeStore.showSaveAsButton).toBe(false);
     expect(cloudResumeStore.statusLabel).toBe('idle');
   });
 
@@ -44,6 +45,7 @@ describe('cloudResumeStore', () => {
     cloudResumeStore.bindId('r1');
     expect(cloudResumeStore.resumeId).toBe('r1');
     expect(cloudResumeStore.showSaveButton).toBe(false);
+    expect(cloudResumeStore.showSaveAsButton).toBe(true);
     expect(sessionStorage.getItem(STORAGE_KEY)).toBe('r1');
     expect(cloudResumeStore.statusLabel).toBe('saved');
   });
@@ -80,6 +82,29 @@ describe('cloudResumeStore', () => {
       content: configStore.getConfig,
       id: 'exist',
     });
+  });
+
+  it('saveAs rejects when unbound', async () => {
+    const r = await cloudResumeStore.saveAs({ name: '副本' });
+    expect(r).toEqual({ ok: false, error: '当前简历尚未保存' });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('saveAs creates new resume without id and rebinds', async () => {
+    cloudResumeStore.bindId('old');
+    configStore.setConfig({ ...cloneResume(), name: '原简历' }, { source: 'hydrate' });
+    const epoch = cloudResumeStore.listEpoch;
+    vi.mocked(fetch).mockResolvedValueOnce(await jsonRes({ id: 'new-copy' }));
+    const r = await cloudResumeStore.saveAs({ name: '原简历 副本' });
+    expect(r).toEqual({ ok: true });
+    expect(lastSaveBody()).toEqual({
+      content: expect.objectContaining({ name: '原简历 副本' }),
+    });
+    expect(lastSaveBody().id).toBeUndefined();
+    expect(cloudResumeStore.resumeId).toBe('new-copy');
+    expect(configStore.getConfig?.name).toBe('原简历 副本');
+    expect(cloudResumeStore.listEpoch).toBe(epoch + 1);
+    expect(cloudResumeStore.showSaveAsButton).toBe(true);
   });
 
   it('save records API error', async () => {

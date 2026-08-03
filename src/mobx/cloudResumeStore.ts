@@ -33,6 +33,11 @@ class CloudResumeStore {
     return !this.resumeId;
   }
 
+  /** 已绑定云端 id 时可另存为新简历 */
+  get showSaveAsButton() {
+    return Boolean(this.resumeId);
+  }
+
   get statusLabel() {
     if (this.saving) return 'saving';
     if (this.lastError) return 'error';
@@ -128,6 +133,72 @@ class CloudResumeStore {
       return { ok: true };
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : '网络错误' };
+    }
+  }
+
+  /**
+   * 另存为：以当前内容新建一份云端简历（不带 id），成功后切换到新 id。
+   * 仅已保存简历可用。
+   */
+  async saveAs(opts?: { name?: string }): Promise<{ ok: boolean; error?: string }> {
+    if (!this.resumeId) return { ok: false, error: '当前简历尚未保存' };
+    const content = configStore.getConfig;
+    if (!content) return { ok: false, error: '无简历内容' };
+
+    this.clearTimer();
+    const mySeq = ++this.seq;
+    const copy = JSON.parse(JSON.stringify(content)) as Record<string, unknown>;
+    if (opts?.name) copy.name = opts.name;
+
+    runInAction(() => {
+      this.saving = true;
+      this.lastError = '';
+    });
+
+    try {
+      const res = await fetch('/api/resume/cloud', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: copy }),
+      });
+      const data = await res.json();
+      if (mySeq !== this.seq) return { ok: false };
+
+      if (!res.ok) {
+        const error = data?.error || '保存失败';
+        runInAction(() => {
+          this.saving = false;
+          this.lastError = error;
+        });
+        return { ok: false, error };
+      }
+
+      const id = data?.id ? String(data.id) : '';
+      if (!id) {
+        runInAction(() => {
+          this.saving = false;
+          this.lastError = '保存失败';
+        });
+        return { ok: false, error: '保存失败' };
+      }
+
+      configStore.setConfig(copy, { source: 'hydrate' });
+      runInAction(() => {
+        this.saving = false;
+        this.lastError = '';
+        this.lastSavedAt = Date.now();
+        this.persistId(id);
+        this.bumpList();
+      });
+      return { ok: true };
+    } catch (e) {
+      if (mySeq !== this.seq) return { ok: false };
+      const error = e instanceof Error ? e.message : '网络错误';
+      runInAction(() => {
+        this.saving = false;
+        this.lastError = error;
+      });
+      return { ok: false, error };
     }
   }
 

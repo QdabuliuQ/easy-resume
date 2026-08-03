@@ -2,18 +2,22 @@
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { memo, useId, useRef, useState } from 'react';
+import { memo, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
-import { useSession } from 'next-auth/react';
-import { Button, Input, Tooltip } from 'antd';
+import { signIn, useSession } from 'next-auth/react';
+import { Button, Dropdown, Input, Tooltip } from 'antd';
 import {
+  DownOutlined,
   EditOutlined,
+  GithubOutlined,
+  LoadingOutlined,
   RedoOutlined,
   UndoOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
-import { FilePdf, DownPicture, FileCode, Save, Share } from '@icon-park/react';
+import { Copy, Download, FilePdf, DownPicture, FileCode, Save, Share } from '@icon-park/react';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
-import QqAuthButton from '@/components/auth/QqAuthButton';
+import qqIcon from '@/assets/qq.png';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { cloudResumeStore, configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
@@ -21,39 +25,109 @@ import { logo } from '@/lib/brandAssets';
 import { useResumeExport } from '@/views/edit/hooks/useResumeExport';
 import { useEditHistory } from '@/views/edit/hooks/useEditHistory';
 import ShareResumeModal from '@/views/edit/components/header/ShareResumeModal';
+
+const ICON_PRIMARY = 'var(--color-primary)';
+const actionBtnCls = [
+  'inline-flex min-h-9 cursor-pointer select-none items-center justify-center gap-1 rounded-xl px-3 py-2',
+  'border border-[color-mix(in_srgb,var(--color-primary)_32%,transparent)]',
+  'bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--editor-shell-panel-strong))]',
+  'text-[12px] font-medium leading-snug text-[color:var(--color-primary)] whitespace-nowrap',
+  'transition-[transform,background-color,border-color,color,box-shadow] duration-200 ease-out',
+  'hover:border-[color-mix(in_srgb,var(--color-primary)_42%,transparent)]',
+  'hover:bg-[color-mix(in_srgb,var(--color-primary)_16%,var(--editor-shell-panel-strong))]',
+  'active:scale-[0.98]',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_42%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-panel)]',
+  'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
+  'motion-reduce:transition-none motion-reduce:active:scale-100',
+].join(' ');
+/** 登录 CTA：实心渐变；无 border，避免圆角抗锯齿白边 */
+const loginBtnCls = [
+  'relative isolate inline-flex min-h-9 cursor-pointer select-none items-center justify-center gap-1.5 overflow-hidden rounded-xl px-3.5 py-2',
+  'border-0 bg-gradient-to-r from-[var(--color-primary-gradient-start)] to-[var(--color-primary)]',
+  'text-[12px] font-semibold leading-snug text-white whitespace-nowrap outline-none',
+  'shadow-[0_6px_18px_color-mix(in_srgb,var(--color-primary)_36%,transparent)]',
+  'transition-[transform,filter,box-shadow] duration-200 ease-out',
+  'hover:brightness-110 hover:shadow-[0_8px_22px_color-mix(in_srgb,var(--color-primary)_44%,transparent)]',
+  'active:scale-[0.98] active:brightness-95',
+  'focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_55%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-bg)]',
+  'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 disabled:hover:brightness-100',
+  'motion-reduce:transition-none motion-reduce:active:scale-100',
+].join(' ');
+const actionIconSpin =
+  'inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]';
+const historyBtnCls =
+  'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-fg/[0.1] bg-surface/[0.04] text-fg/55 transition-colors enabled:cursor-pointer enabled:hover:border-fg/[0.16] enabled:hover:bg-surface/[0.08] enabled:hover:text-fg/88 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-fg/[0.1] disabled:hover:bg-surface/[0.04] disabled:hover:text-fg/55';
+const arrowCls = (open: boolean) =>
+  `text-[10px] opacity-80 transition-transform duration-200 ${open ? 'rotate-180' : ''}`;
+const loginArrowCls = (open: boolean) =>
+  `text-[10px] text-white/85 transition-transform duration-200 ${open ? 'rotate-180' : ''}`;
+
 function Header() {
   const t = useTranslations('Edit.header');
+  const ta = useTranslations('Auth');
   const message = useAppMessage();
   const { status } = useSession();
   const signedIn = status === 'authenticated';
+  const authLoading = status === 'loading';
+  const [authBusy, setAuthBusy] = useState(false);
   const { canUndo, canRedo, undo, redo } = useEditHistory();
   const {
     exportPdf,
+    exportImagePdf,
     exportImage,
     exportJson,
     pdfLoading,
+    imagePdfLoading,
     imageLoading,
     exporting,
   } = useResumeExport();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const ignoreNextBlur = useRef(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
   const actionsDisabled = exporting;
   const showSave = cloudResumeStore.showSaveButton;
+  const showSaveAs = cloudResumeStore.showSaveAsButton;
   const saving = cloudResumeStore.saving;
   const resumeId = cloudResumeStore.resumeId;
   const canShare = signedIn && Boolean(resumeId);
-  const exportGradId = `hdr-eg${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
-  const exportChipOuter =
-    'group rounded-2xl bg-gradient-primary p-px shadow-[0_2px_12px_rgb(0_0_0/0.18)] transition-[filter] duration-200 hover:brightness-110 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100';
-  const exportChipInner =
-    'flex min-h-9 items-center justify-center gap-1 rounded-[15px] bg-[var(--float-btn-bg)] px-3 py-2 transition-colors group-hover:bg-[var(--float-btn-bg-hover)]';
-  const exportIconSlot =
-    'inline-flex size-5 shrink-0 items-center justify-center';
-  const historyBtnCls =
-    'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-fg/[0.1] bg-surface/[0.04] text-fg/55 transition-colors enabled:cursor-pointer enabled:hover:border-fg/[0.16] enabled:hover:bg-surface/[0.08] enabled:hover:text-fg/88 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-fg/[0.1] disabled:hover:bg-surface/[0.04] disabled:hover:text-fg/55';
+  const signInWith = async (provider: 'github' | 'qq') => {
+    if (authBusy) return;
+    setAuthBusy(true);
+    try {
+      await signIn(provider, { redirectTo: window.location.href, redirect: true });
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+  const loginMenuItems = [
+    {
+      key: 'github',
+      disabled: authBusy,
+      icon: <GithubOutlined className='text-[14px]' />,
+      label: ta('signInGithubShort'),
+      onClick: () => void signInWith('github'),
+    },
+    {
+      key: 'qq',
+      disabled: authBusy,
+      icon: (
+        <Image
+          src={qqIcon}
+          alt=''
+          width={14}
+          height={14}
+          className='object-contain'
+          aria-hidden
+        />
+      ),
+      label: ta('signInQqShort'),
+      onClick: () => void signInWith('qq'),
+    },
+  ];
   const commit = () => {
     const trimmed = draft.trim();
     const base =
@@ -89,6 +163,16 @@ function Header() {
     if (result.ok) message.success(t('saveOk'));
     else message.error(result.error || t('saveFail'));
   };
+  const onSaveAs = async () => {
+    if (status !== 'authenticated') {
+      message.warning(t('saveNeedLogin'));
+      return;
+    }
+    const base = (configStore.getConfig?.name ?? name).trim() || t('resumeDefaultName');
+    const result = await cloudResumeStore.saveAs({ name: t('saveAsName', { name: base }) });
+    if (result.ok) message.success(t('saveAsOk'));
+    else message.error(result.error || t('saveFail'));
+  };
   const onShareClick = () => {
     if (!signedIn) {
       message.warning(t('shareNeedLogin'));
@@ -100,6 +184,39 @@ function Header() {
     }
     setShareOpen(true);
   };
+  const exportMenuItems = useMemo(
+    () => [
+      {
+        key: 'pdf',
+        disabled: actionsDisabled,
+        icon: <FilePdf theme='outline' size={16} fill={ICON_PRIMARY} />,
+        label: t('exportPdf'),
+        onClick: () => void exportPdf(),
+      },
+      {
+        key: 'imagePdf',
+        disabled: actionsDisabled,
+        icon: <FilePdf theme='outline' size={16} fill={ICON_PRIMARY} />,
+        label: t('exportImagePdf'),
+        onClick: () => void exportImagePdf(),
+      },
+      {
+        key: 'image',
+        disabled: actionsDisabled,
+        icon: <DownPicture theme='outline' size={16} fill={ICON_PRIMARY} />,
+        label: t('exportImage'),
+        onClick: () => void exportImage(),
+      },
+      {
+        key: 'json',
+        disabled: actionsDisabled,
+        icon: <FileCode theme='outline' size={16} fill={ICON_PRIMARY} />,
+        label: t('exportJson'),
+        onClick: exportJson,
+      },
+    ],
+    [actionsDisabled, exportImage, exportImagePdf, exportJson, exportPdf, t],
+  );
   return (
     <div className='relative flex h-full items-center justify-between gap-4 px-4 md:px-5'>
       <div className='flex min-h-0 min-w-0 flex-1 items-center gap-2'>
@@ -197,24 +314,43 @@ function Header() {
         className='flex shrink-0 flex-wrap items-center justify-end gap-2'
         data-edit-tour='header-export'
       >
-        <GithubAuthButton variant='compact' />
-        <QqAuthButton variant='compact' />
-        <svg
-          width={0}
-          height={0}
-          className='pointer-events-none absolute'
-          aria-hidden
-        >
-          <defs>
-            <linearGradient id={exportGradId} x1='0%' y1='0%' x2='100%' y2='0%'>
-              <stop
-                offset='0%'
-                stopColor='var(--color-primary-gradient-start)'
-              />
-              <stop offset='100%' stopColor='var(--color-primary)' />
-            </linearGradient>
-          </defs>
-        </svg>
+        {authLoading ? (
+          <span
+            className='inline-flex h-9 w-9 items-center justify-center rounded-xl border border-fg/14 bg-fg/[0.05] text-fg/55'
+            aria-label={ta('loading')}
+          >
+            <LoadingOutlined className='text-[14px]' />
+          </span>
+        ) : signedIn ? (
+          <GithubAuthButton variant='compact' />
+        ) : (
+          <Dropdown
+            menu={{ items: loginMenuItems }}
+            trigger={['hover']}
+            mouseEnterDelay={0.08}
+            mouseLeaveDelay={0.12}
+            disabled={authBusy}
+            placement='bottomRight'
+            open={loginOpen}
+            onOpenChange={setLoginOpen}
+          >
+            <button
+              type='button'
+              disabled={authBusy}
+              aria-label={ta('signIn')}
+              aria-expanded={loginOpen}
+              className={loginBtnCls}
+            >
+              {authBusy ? (
+                <LoadingOutlined className='text-[14px] text-white' />
+              ) : (
+                <UserOutlined className='text-[14px] text-white' />
+              )}
+              {ta('signIn')}
+              {!authBusy ? <DownOutlined className={loginArrowCls(loginOpen)} /> : null}
+            </button>
+          </Dropdown>
+        )}
         {showSave ? (
           <Tooltip title={signedIn ? undefined : t('saveNeedLogin')}>
             <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
@@ -222,24 +358,33 @@ function Header() {
                 type='button'
                 disabled={actionsDisabled || saving || !signedIn}
                 onClick={() => void onSave()}
-                className={`${signedIn ? 'cursor-pointer' : 'pointer-events-none'} ${exportChipOuter}`}
+                className={`${signedIn ? '' : 'pointer-events-none'} ${actionBtnCls}`}
               >
-                <span className={exportChipInner}>
-                  <span className={exportIconSlot} aria-hidden>
-                    {saving ? (
-                      <span className='inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]' />
-                    ) : (
-                      <Save
-                        theme='outline'
-                        size={20}
-                        fill={`url(#${exportGradId})`}
-                      />
-                    )}
-                  </span>
-                  <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent whitespace-nowrap'>
-                    {saving ? t('saving') : t('save')}
-                  </span>
-                </span>
+                {saving ? (
+                  <span className={actionIconSpin} aria-hidden />
+                ) : (
+                  <Save theme='outline' size={18} fill={ICON_PRIMARY} />
+                )}
+                {saving ? t('saving') : t('save')}
+              </button>
+            </span>
+          </Tooltip>
+        ) : null}
+        {showSaveAs ? (
+          <Tooltip title={signedIn ? undefined : t('saveNeedLogin')}>
+            <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
+              <button
+                type='button'
+                disabled={actionsDisabled || saving || !signedIn}
+                onClick={() => void onSaveAs()}
+                className={`${signedIn ? '' : 'pointer-events-none'} ${actionBtnCls}`}
+              >
+                {saving ? (
+                  <span className={actionIconSpin} aria-hidden />
+                ) : (
+                  <Copy theme='outline' size={18} fill={ICON_PRIMARY} />
+                )}
+                {saving ? t('saving') : t('saveAs')}
               </button>
             </span>
           </Tooltip>
@@ -255,88 +400,41 @@ function Header() {
               disabled={actionsDisabled || !canShare}
               onClick={onShareClick}
               aria-label={t('shareAria')}
-              className={`${canShare ? 'cursor-pointer' : 'pointer-events-none'} ${exportChipOuter}`}
+              className={`${canShare ? '' : 'pointer-events-none'} ${actionBtnCls}`}
             >
-              <span className={exportChipInner}>
-                <span className={exportIconSlot} aria-hidden>
-                  <Share
-                    theme='outline'
-                    size={20}
-                    fill={`url(#${exportGradId})`}
-                  />
-                </span>
-                <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent whitespace-nowrap'>
-                  {t('share')}
-                </span>
-              </span>
+              <Share theme='outline' size={18} fill={ICON_PRIMARY} />
+              {t('share')}
             </button>
           </span>
         </Tooltip>
-        <button
-          type='button'
+        <Dropdown
+          menu={{ items: exportMenuItems }}
+          trigger={['hover']}
+          mouseEnterDelay={0.08}
+          mouseLeaveDelay={0.12}
           disabled={actionsDisabled}
-          onClick={() => void exportPdf()}
-          className={`cursor-pointer ${exportChipOuter}`}
+          placement='bottomRight'
+          open={exportOpen}
+          onOpenChange={(open) => {
+            if (!actionsDisabled) setExportOpen(open);
+          }}
         >
-          <span className={exportChipInner}>
-            <span className={exportIconSlot} aria-hidden>
-              {pdfLoading ? (
-                <span className='inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]' />
-              ) : (
-                <FilePdf
-                  theme='outline'
-                  size={20}
-                  fill={`url(#${exportGradId})`}
-                />
-              )}
-            </span>
-            <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent whitespace-nowrap'>
-              {t('exportPdf')}
-            </span>
-          </span>
-        </button>
-        <button
-          type='button'
-          disabled={actionsDisabled}
-          onClick={() => void exportImage()}
-          className={`cursor-pointer ${exportChipOuter}`}
-        >
-          <span className={exportChipInner}>
-            <span className={exportIconSlot} aria-hidden>
-              {imageLoading ? (
-                <span className='inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]' />
-              ) : (
-                <DownPicture
-                  theme='outline'
-                  size={20}
-                  fill={`url(#${exportGradId})`}
-                />
-              )}
-            </span>
-            <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent'>
-              {t('exportImage')}
-            </span>
-          </span>
-        </button>
-        <button
-          type='button'
-          disabled={actionsDisabled}
-          onClick={exportJson}
-          className={`cursor-pointer ${exportChipOuter}`}
-        >
-          <span className={exportChipInner}>
-            <span className={exportIconSlot} aria-hidden>
-              <FileCode
-                theme='outline'
-                size={20}
-                fill={`url(#${exportGradId})`}
-              />
-            </span>
-            <span className='bg-gradient-primary bg-clip-text text-center text-[12px] font-semibold leading-snug text-transparent'>
-              {t('exportJson')}
-            </span>
-          </span>
-        </button>
+          <button
+            type='button'
+            disabled={actionsDisabled}
+            aria-label={t('exportLabel')}
+            aria-expanded={exportOpen}
+            className={actionBtnCls}
+          >
+            {pdfLoading || imagePdfLoading || imageLoading ? (
+              <span className={actionIconSpin} aria-hidden />
+            ) : (
+              <Download theme='outline' size={18} fill={ICON_PRIMARY} />
+            )}
+            {actionsDisabled ? t('exporting') : t('exportLabel')}
+            {!actionsDisabled ? <DownOutlined className={arrowCls(exportOpen)} /> : null}
+          </button>
+        </Dropdown>
       </div>
       {resumeId ? (
         <ShareResumeModal

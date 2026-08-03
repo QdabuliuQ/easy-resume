@@ -21,8 +21,10 @@ export function useResumeExport() {
   const locale = useLocale();
   const messages = useMessages();
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [imagePdfLoading, setImagePdfLoading] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
+  const exporting = pdfLoading || imagePdfLoading || imageLoading;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -70,7 +72,7 @@ export function useResumeExport() {
     return base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
   };
   const exportPdf = async () => {
-    if (typeof window === 'undefined' || pdfLoading || imageLoading) return;
+    if (typeof window === 'undefined' || exporting) return;
     if (!navigator.onLine) {
       message.warning(t('offlineNeedNetworkBackupJson'));
       return;
@@ -110,8 +112,30 @@ export function useResumeExport() {
       setPdfLoading(false);
     }
   };
+  const exportImagePdf = async () => {
+    if (typeof window === 'undefined' || exporting) return;
+    setImagePdfLoading(true);
+    const hide = message.loading(t('exportImagePdfLoading'), 0);
+    try {
+      const snapClient = await loadSnapClient();
+      const safe = safeName();
+      await snapClient.downloadResumeImagePdfViaSnapdom({
+        config: snapshotForExport(),
+        filename: `${safe}.pdf`,
+        locale,
+        messages: messages as Record<string, unknown>,
+      });
+      hide();
+      message.success(t('exportImagePdfOk'));
+    } catch (e) {
+      hide();
+      message.error(e instanceof Error ? e.message : t('exportFail'));
+    } finally {
+      setImagePdfLoading(false);
+    }
+  };
   const exportImage = async () => {
-    if (typeof window === 'undefined' || imageLoading || pdfLoading) return;
+    if (typeof window === 'undefined' || exporting) return;
     if (!navigator.onLine) {
       message.warning(t('offlineNeedNetworkBackupJson'));
       return;
@@ -155,10 +179,12 @@ export function useResumeExport() {
   };
   return {
     exportPdf,
+    exportImagePdf,
     exportImage,
     exportJson,
     pdfLoading,
+    imagePdfLoading,
     imageLoading,
-    exporting: pdfLoading || imageLoading,
+    exporting,
   };
 }
