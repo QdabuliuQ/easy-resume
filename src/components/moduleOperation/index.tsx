@@ -42,10 +42,18 @@ function findModuleRoot(host: HTMLElement, id: string): HTMLElement | null {
   ) as HTMLElement | null;
 }
 
-function countModuleRoots(host: HTMLElement, id: string): number {
-  return host.querySelectorAll(
-    `[${RESUME_MODULE_ID_ATTR}="${CSS.escape(id)}"]`,
-  ).length;
+function findModuleRoots(host: HTMLElement, id: string): HTMLElement[] {
+  return Array.from(
+    host.querySelectorAll(`[${RESUME_MODULE_ID_ATTR}="${CSS.escape(id)}"]`),
+  ) as HTMLElement[];
+}
+
+/** 槽位节点：续页时模块外包一层 translateY */
+function moduleSlotEl(root: HTMLElement): HTMLElement {
+  const p = root.parentElement;
+  if (!p) return root;
+  if (p.style.transform.includes('translateY')) return p.parentElement ?? p;
+  return p;
 }
 
 function afterReorder(fn: () => void) {
@@ -252,23 +260,21 @@ function ModuleOperation({
         setToolbarBox(HIDDEN_TOOLBAR);
         return;
       }
-      const el = findModuleRoot(host, id);
-      if (!el) {
+      const roots = findModuleRoots(host, id);
+      if (!roots.length) {
         setToolbarBox(HIDDEN_TOOLBAR);
         return;
       }
       const stageRect = stage.getBoundingClientRect();
-      const elRect = el.getBoundingClientRect();
+      const firstSlot = moduleSlotEl(roots[0]).getBoundingClientRect();
+      const lastSlot = moduleSlotEl(roots[roots.length - 1]).getBoundingClientRect();
       const s =
         canvasScale > 0 && Number.isFinite(canvasScale) ? canvasScale : 1;
-      const pad = Number(configStore.mergedGlobalStyle.padding ?? 0);
-      const splitBonus =
-        countModuleRoots(host, id) > 1 ? pad * 2 + 20 : 0;
       setToolbarBox({
-        top: (elRect.top - stageRect.top) / s,
+        top: (firstSlot.top - stageRect.top) / s,
         visible: true,
         motion: source === 'active' ? 'smooth' : 'snap',
-        moduleHeight: elRect.height / s + splitBonus,
+        moduleHeight: Math.max(0, (lastSlot.bottom - firstSlot.top) / s),
       });
     },
   );

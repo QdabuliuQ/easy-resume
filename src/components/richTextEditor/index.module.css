@@ -370,7 +370,16 @@
 .polishPreview :global(.ql-editor li[data-list]) {
   display: block;
   margin-block: 0 !important;
-  padding-left: 0 !important;
+  padding-left: 0;
+}
+.polishPreview :global(.ql-editor li[data-list].ql-indent-1:not(.ql-direction-rtl)) {
+  padding-left: 1.5em !important;
+}
+.polishPreview :global(.ql-editor li[data-list].ql-indent-2:not(.ql-direction-rtl)) {
+  padding-left: 3em !important;
+}
+.polishPreview :global(.ql-editor li[data-list].ql-indent-3:not(.ql-direction-rtl)) {
+  padding-left: 4.5em !important;
 }
 
 .polishPreview :global(.ql-editor li[data-list] > .ql-ui) {

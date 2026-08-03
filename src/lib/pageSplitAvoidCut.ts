@@ -1,6 +1,11 @@
 export const PAGE_FIT_EPSILON_PX = 0.5;
 
-export type PageSplitHit = { viewHeight: number; nextOffsetY: number };
+export type PageSplitHit = {
+  viewHeight: number;
+  nextOffsetY: number;
+  /** 页缝上移量：本页少展示的高度，下一页相对硬切回退这么多 */
+  pullBackPx: number;
+};
 export type PageSplitResolve = PageSplitHit | 'empty-page' | null;
 
 /** header / 行盒被页缝切开时：本页收到 anchorTop，整块从下一页开始 */
@@ -14,7 +19,12 @@ export function resolveSplitAwayFromCut(
   if (!(anchorTop < cutY && anchorBottom > cutY)) return null;
   const viewHeight = anchorTop - offsetY;
   if (viewHeight <= PAGE_FIT_EPSILON_PX) return 'empty-page';
-  return { viewHeight, nextOffsetY: anchorTop };
+  const pullBackPx = cutY - anchorTop;
+  return {
+    viewHeight,
+    nextOffsetY: offsetY + visibleHeight - pullBackPx,
+    pullBackPx,
+  };
 }
 
 /**

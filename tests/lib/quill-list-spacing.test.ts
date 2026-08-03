@@ -38,4 +38,12 @@ describe('quill list spacing', () => {
     expect(out.match(/data-list="bullet"/g)?.length).toBe(2);
     expect(out.match(/<ol>/g)?.length).toBe(1);
   });
+
+  it('preserves ql-indent through sanitize (Tab nest lists)', () => {
+    const nested =
+      '<ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>父项</li><li data-list="bullet" class="ql-indent-1"><span class="ql-ui" contenteditable="false"></span>子项</li></ol>';
+    const sanitized = sanitizeRichTextHtml(nested);
+    expect(sanitized).toContain('ql-indent-1');
+    expect(quillDomFromHtml(sanitized)).toContain('ql-indent-1');
+  });
 });

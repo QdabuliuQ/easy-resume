@@ -18,6 +18,7 @@ describe('resolveSplitAwayFromCut', () => {
     expect(resolveSplitAwayFromCut(90, 110, 0, 100)).toEqual({
       viewHeight: 90,
       nextOffsetY: 90,
+      pullBackPx: 10,
     });
   });
 
@@ -25,6 +26,7 @@ describe('resolveSplitAwayFromCut', () => {
     expect(resolveSplitAwayFromCut(270, 290, 200, 80)).toEqual({
       viewHeight: 70,
       nextOffsetY: 270,
+      pullBackPx: 10,
     });
   });
 
@@ -44,6 +46,7 @@ describe('pickSplitFromSortedBodyRects', () => {
     expect(pickSplitFromSortedBodyRects(rects, 0, 100)).toEqual({
       viewHeight: 90,
       nextOffsetY: 90,
+      pullBackPx: 10,
     });
   });
 
@@ -87,6 +90,6 @@ describe('pickSplitFromSortedBodyRects', () => {
         200,
         80,
       ),
-    ).toEqual({ viewHeight: 70, nextOffsetY: 270 });
+    ).toEqual({ viewHeight: 70, nextOffsetY: 270, pullBackPx: 10 });
   });
 });

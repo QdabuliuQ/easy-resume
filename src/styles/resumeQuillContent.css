@@ -21,7 +21,8 @@
 .rte-quill-sync .ql-editor li[data-list] {
   display: block;
   margin-block: 0 !important;
-  padding-left: 0 !important;
+  /* 勿对全部 li 强制 padding-left:0，否则 Tab 产生的 ql-indent-* 无视觉缩进 */
+  padding-left: 0;
   position: static !important;
   white-space: normal;
   line-height: inherit;
@@ -32,6 +33,44 @@
   padding-left: 0 !important;
   margin: 0 !important;
   white-space: normal;
+}
+
+/* inline 子弹下每级 1.5em（Quill 默认 4.5em 起含 absolute 槽位） */
+.resume-quill-embed .ql-editor li[data-list].ql-indent-1:not(.ql-direction-rtl),
+.rte-quill-sync .ql-editor li[data-list].ql-indent-1:not(.ql-direction-rtl) {
+  padding-left: 1.5em !important;
+}
+.resume-quill-embed .ql-editor li[data-list].ql-indent-2:not(.ql-direction-rtl),
+.rte-quill-sync .ql-editor li[data-list].ql-indent-2:not(.ql-direction-rtl) {
+  padding-left: 3em !important;
+}
+.resume-quill-embed .ql-editor li[data-list].ql-indent-3:not(.ql-direction-rtl),
+.rte-quill-sync .ql-editor li[data-list].ql-indent-3:not(.ql-direction-rtl) {
+  padding-left: 4.5em !important;
+}
+.resume-quill-embed .ql-editor li[data-list].ql-indent-4:not(.ql-direction-rtl),
+.rte-quill-sync .ql-editor li[data-list].ql-indent-4:not(.ql-direction-rtl) {
+  padding-left: 6em !important;
+}
+.resume-quill-embed .ql-editor li[data-list].ql-indent-5:not(.ql-direction-rtl),
+.rte-quill-sync .ql-editor li[data-list].ql-indent-5:not(.ql-direction-rtl) {
+  padding-left: 7.5em !important;
+}
+.resume-quill-embed .ql-editor li[data-list].ql-indent-6:not(.ql-direction-rtl),
+.rte-quill-sync .ql-editor li[data-list].ql-indent-6:not(.ql-direction-rtl) {
+  padding-left: 9em !important;
+}
+.resume-quill-embed .ql-editor li[data-list].ql-indent-7:not(.ql-direction-rtl),
+.rte-quill-sync .ql-editor li[data-list].ql-indent-7:not(.ql-direction-rtl) {
+  padding-left: 10.5em !important;
+}
+.resume-quill-embed .ql-editor li[data-list].ql-indent-8:not(.ql-direction-rtl),
+.rte-quill-sync .ql-editor li[data-list].ql-indent-8:not(.ql-direction-rtl) {
+  padding-left: 12em !important;
+}
+.resume-quill-embed .ql-editor li[data-list].ql-indent-9:not(.ql-direction-rtl),
+.rte-quill-sync .ql-editor li[data-list].ql-indent-9:not(.ql-direction-rtl) {
+  padding-left: 13.5em !important;
 }
 
 .resume-quill-embed .ql-editor li[data-list] > .ql-ui,

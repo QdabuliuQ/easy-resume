@@ -360,7 +360,8 @@ function Canvas({
 
           if (headerCut) {
             splitViewHeight = headerCut.viewHeight;
-            splitNextOffsetY = headerCut.nextOffsetY;
+            splitNextOffsetY =
+              offsetY + visibleHeight - headerCut.pullBackPx;
           } else {
             const bodyHit = pickSplitFromSortedBodyRects(
               getModuleBodyRectsRel(measureEl, headerEl),
@@ -373,7 +374,8 @@ function Canvas({
             }
             if (bodyHit) {
               splitViewHeight = bodyHit.viewHeight;
-              splitNextOffsetY = bodyHit.nextOffsetY;
+              splitNextOffsetY =
+                offsetY + visibleHeight - bodyHit.pullBackPx;
             }
           }
         }
