@@ -14,6 +14,21 @@ import { SectionHeaderType6 } from './sectionHeaderType6';
 import { SectionHeaderType7 } from './sectionHeaderType7';
 import { SectionHeaderType8 } from './sectionHeaderType8';
 import { SectionHeaderType9 } from './sectionHeaderType9';
+import { SectionHeaderType12 } from './sectionHeaderType12';
+import { SectionHeaderType13 } from './sectionHeaderType13';
+import { SectionHeaderType14 } from './sectionHeaderType14';
+import { SectionHeaderType15 } from './sectionHeaderType15';
+import { SectionHeaderType16 } from './sectionHeaderType16';
+import { SectionHeaderType17 } from './sectionHeaderType17';
+import { SectionHeaderType18 } from './sectionHeaderType18';
+import { SectionHeaderType19 } from './sectionHeaderType19';
+import { SectionHeaderType20 } from './sectionHeaderType20';
+import { SectionHeaderType21 } from './sectionHeaderType21';
+import { SectionHeaderType22 } from './sectionHeaderType22';
+import { SectionHeaderType23 } from './sectionHeaderType23';
+import { SectionHeaderType24 } from './sectionHeaderType24';
+import { SectionHeaderType25 } from './sectionHeaderType25';
+import { SectionHeaderType26 } from './sectionHeaderType26';
 import type { SectionHeaderConfig } from './sectionHeaderTypes';
 
 export type { SectionHeaderConfig } from './sectionHeaderTypes';
@@ -77,6 +92,67 @@ function SectionHeader({
   }
   if (t === 8) {
     return <SectionHeaderType8 title={title} color={color} fontSizeCss={fs} moduleType={moduleType} />;
+  }
+  if (t === 12) {
+    return (
+      <SectionHeaderType12
+        title={title}
+        color={color}
+        fontSizeCss={fs}
+        fontSizeNum={fsNum}
+        sectionOrdinal={sectionOrdinal}
+      />
+    );
+  }
+  if (t === 13) {
+    return <SectionHeaderType13 title={title} color={color} fontSizeCss={fs} />;
+  }
+  if (t === 14) {
+    return <SectionHeaderType14 title={title} color={color} fontSizeCss={fs} />;
+  }
+  if (t === 15) {
+    return <SectionHeaderType15 title={title} color={color} fontSizeCss={fs} />;
+  }
+  if (t === 16) {
+    return <SectionHeaderType16 title={title} color={color} fontSizeCss={fs} />;
+  }
+  if (t === 17) {
+    return <SectionHeaderType17 title={title} color={color} fontSizeCss={fs} />;
+  }
+  if (t === 18) {
+    return <SectionHeaderType18 title={title} color={color} fontSizeCss={fs} />;
+  }
+  if (t === 19) {
+    return <SectionHeaderType19 title={title} color={color} fontSizeCss={fs} />;
+  }
+  if (t === 20) {
+    return <SectionHeaderType20 title={title} color={color} fontSizeCss={fs} />;
+  }
+  if (t === 21) {
+    return <SectionHeaderType21 title={title} color={color} fontSizeCss={fs} />;
+  }
+  if (t === 22) {
+    return <SectionHeaderType22 title={title} color={color} fontSizeCss={fs} />;
+  }
+  if (t === 23) {
+    return (
+      <SectionHeaderType23
+        title={title}
+        color={color}
+        fontSizeCss={fs}
+        fontSizeNum={fsNum}
+        sectionOrdinal={sectionOrdinal}
+      />
+    );
+  }
+  if (t === 24) {
+    return <SectionHeaderType24 title={title} color={color} fontSizeCss={fs} />;
+  }
+  if (t === 25) {
+    return <SectionHeaderType25 title={title} color={color} fontSizeCss={fs} />;
+  }
+  if (t === 26) {
+    return <SectionHeaderType26 title={title} color={color} fontSizeCss={fs} />;
   }
   return <SectionHeaderType1 title={title} color={color} fontSizeCss={fs} />;
 }

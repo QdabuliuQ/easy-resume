@@ -5,21 +5,23 @@ import { HeaderTypeIcon } from '@/modules/header/headerTypeIcon';
 import { makeGlobalStyle } from './fixtures';
 
 describe('header modules', () => {
-  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])('renders section header type %s', (headerType) => {
-    render(
+  it.each([
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+  ])('renders section header type %s', (headerType) => {
+    const { container } = render(
       <SectionHeader
         config={{ title: `标题${headerType}`, moduleType: 'education', sectionOrdinal: 3 }}
         globalStyle={makeGlobalStyle({ headerType })}
       />
     );
 
-    expect(screen.getByText(`标题${headerType}`)).toBeInTheDocument();
+    expect(container.textContent).toContain(`标题${headerType}`);
   });
 
   it('normalizes invalid header types into supported range', () => {
     expect(normHeaderType(makeGlobalStyle({ headerType: undefined }))).toBe(1);
     expect(normHeaderType(makeGlobalStyle({ headerType: -1 }))).toBe(1);
-    expect(normHeaderType(makeGlobalStyle({ headerType: 99 }))).toBe(11);
+    expect(normHeaderType(makeGlobalStyle({ headerType: 99 }))).toBe(26);
     expect(normHeaderType(makeGlobalStyle({ headerType: 6.8 }))).toBe(6);
   });
 

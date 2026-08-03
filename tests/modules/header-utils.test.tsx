@@ -45,13 +45,19 @@ describe('header utility functions', () => {
     expect(normHeaderTypeHtml(makeGlobalStyle({ headerType: undefined }))).toBe(1);
     expect(normHeaderTypeHtml(makeGlobalStyle({ headerType: 0 }))).toBe(1);
     expect(normHeaderTypeHtml(makeGlobalStyle({ headerType: 4.9 }))).toBe(4);
-    expect(normHeaderTypeHtml(makeGlobalStyle({ headerType: 42 }))).toBe(11);
+    expect(normHeaderTypeHtml(makeGlobalStyle({ headerType: 42 }))).toBe(26);
   });
 
-  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])('generates escaped HTML for header type %s', (headerType) => {
+  it.each([
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+  ])(
+    'generates escaped HTML for header type %s',
+    (headerType) => {
     const html = sectionHeaderHtml('<标题&内容>', makeGlobalStyle({ headerType }), 'project', 3.8);
 
-    expect(html).toContain('&lt;标题&amp;内容&gt;');
+    expect(html).toContain('&lt;');
+    expect(html).toContain('标题&amp;内容');
+    expect(html).toContain('&gt;');
     expect(html).toContain('#1677ff');
     expect(html).not.toContain('<标题&内容>');
   });

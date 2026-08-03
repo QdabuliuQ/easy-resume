@@ -48,7 +48,7 @@ globalStyle：
 - padding?: number — 页内边距 px
 - color: string — 主题色
 - backgroundColor: string — 背景色
-- headerType?: number — 标题样式 1–11
+- headerType?: number — 标题样式 1–26
 - resumeFont?: enum(${RESUME_FIELD_ENUMS.resumeFont})
 - layout?: enum(${RESUME_FIELD_ENUMS.globalLayout})
 

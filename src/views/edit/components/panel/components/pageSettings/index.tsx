@@ -29,6 +29,7 @@ import {
   normResumePageSize,
   type ResumePageSize,
 } from '@/lib/resumePageSize';
+import { MAX_HEADER_TYPE } from '@/modules/header/headerTypeBounds';
 
 const PAGE_SECTION_SHELL =
   'overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),rgb(var(--panel-surface-rgb)/0.03)] p-4 shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04),var(--panel-shadow-md)]';
@@ -51,11 +52,14 @@ const MODULE_MARGIN_OPTIONS = [10, 15, 20, 25, 30, 35, 40].map((n) => ({
   label: `${n}px`,
   value: n,
 }));
-const HEADER_TYPE_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
+const HEADER_TYPE_VALUES = Array.from(
+  { length: MAX_HEADER_TYPE },
+  (_, i) => (i + 1) as number,
+);
 function headerTypeNorm(v: unknown): number {
   const n = Number(v);
   if (!Number.isFinite(n) || n < 1) return 1;
-  return Math.min(11, Math.floor(n));
+  return Math.min(MAX_HEADER_TYPE, Math.floor(n));
 }
 function headerPreviewGlobal(t: number, base: GlobalStyle): GlobalStyle {
   return { ...base, headerType: t };
@@ -332,7 +336,7 @@ function PageSettings() {
           config={{
             title: t('moduleTitlePreview'),
             moduleType: 'education',
-            ...(n === 10 ? { sectionOrdinal: 1 } : {}),
+            ...(n === 10 || n === 12 || n === 23 ? { sectionOrdinal: 1 } : {}),
           }}
           globalStyle={headerPreviewGlobal(n, mergedGs)}
         />

@@ -1,12 +1,13 @@
 import type { GlobalStyle } from '@/modules/utils/common.type';
 import { header11DotPx, header11TitleRowMinHeightPx } from './header11Layout';
+import { MAX_HEADER_TYPE } from './headerTypeBounds';
 import { SECTION_HEADER_ROW_HEIGHT_PX, sectionHeaderRowHeightCss } from './sectionHeaderLayout';
 
 /** 与 {@link normHeaderType}（sectionHeader.tsx）一致，供 PDF/PNG 服务端渲染 */
 export function normHeaderTypeHtml(gs: GlobalStyle): number {
   const n = Number(gs.headerType);
   if (!Number.isFinite(n) || n < 1) return 1;
-  return Math.min(11, Math.floor(n));
+  return Math.min(MAX_HEADER_TYPE, Math.floor(n));
 }
 
 function moduleIconSvg(moduleType?: string): string {
@@ -140,6 +141,144 @@ ${prefixHtml}
     return `<div style="width:100%;display:flex;align-items:center;gap:8px;${rh}">
 <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;border-radius:999px;background:${c};color:#fff;line-height:1;">${moduleIconSvg(moduleType)}</span>
 <span style="font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
+</div>`;
+  }
+  if (t === 12) {
+    const mark =
+      sectionOrdinal != null && Number.isFinite(sectionOrdinal) && sectionOrdinal > 0
+        ? escapeHtml(String(Math.floor(sectionOrdinal)).padStart(2, '0'))
+        : '01';
+    const markFs = Math.max(20, Math.round(fs * 1.85));
+    const ruleW = Math.max(28, Math.round(fs * 2.4));
+    return `<div style="width:100%;position:relative;display:flex;align-items:center;overflow:hidden;${rh}">
+<span aria-hidden="true" style="position:absolute;left:0;top:50%;transform:translateY(-50%);font-weight:bold;font-size:${markFs}px;line-height:1;color:${c};opacity:0.14;font-variant-numeric:tabular-nums;user-select:none;">${mark}</span>
+<div style="position:relative;z-index:1;min-width:0;padding-left:36px;">
+<span style="font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
+<span aria-hidden="true" style="position:absolute;left:36px;bottom:0;width:${ruleW}px;height:2px;border-radius:999px;background:${c};transform:translateY(4px);"></span>
+</div>
+</div>`;
+  }
+  if (t === 13) {
+    return `<div style="width:100%;display:flex;align-items:center;${rh}">
+<span style="display:inline-flex;height:100%;max-width:100%;align-items:center;gap:8px;border-radius:999px;padding:0 12px;background:${c};box-sizing:border-box;">
+<span aria-hidden="true" style="display:inline-block;width:6px;height:6px;border-radius:1px;background:rgba(255,255,255,0.9);flex-shrink:0;"></span>
+<span style="min-width:0;font-weight:bold;font-size:${fs}px;line-height:1;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escT}</span>
+</span>
+</div>`;
+  }
+  if (t === 14) {
+    const arm = 7;
+    const thick = 1.5;
+    const corner = (pos: string) => {
+      const base = `position:absolute;width:${arm}px;height:${arm}px;border-color:${c};pointer-events:none;`;
+      if (pos === 'tl') return `${base}top:0;left:0;border-top:${thick}px solid;border-left:${thick}px solid;`;
+      if (pos === 'tr') return `${base}top:0;right:0;border-top:${thick}px solid;border-right:${thick}px solid;`;
+      if (pos === 'bl') return `${base}bottom:0;left:0;border-bottom:${thick}px solid;border-left:${thick}px solid;`;
+      return `${base}bottom:0;right:0;border-bottom:${thick}px solid;border-right:${thick}px solid;`;
+    };
+    return `<div style="width:100%;display:flex;align-items:center;${rh}">
+<span style="position:relative;display:inline-flex;height:100%;max-width:100%;align-items:center;padding:0 10px;box-sizing:border-box;">
+<span aria-hidden="true" style="${corner('tl')}"></span>
+<span aria-hidden="true" style="${corner('tr')}"></span>
+<span aria-hidden="true" style="${corner('bl')}"></span>
+<span aria-hidden="true" style="${corner('br')}"></span>
+<span style="font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
+</span>
+</div>`;
+  }
+  if (t === 15) {
+    const dashHtml = [1, 0.72, 0.48, 0.28, 0.14]
+      .map(
+        (op, i) =>
+          `<span aria-hidden="true" style="display:inline-block;height:2px;width:${10 + i * 4}px;border-radius:999px;background:${c};opacity:${op};flex-shrink:0;"></span>`,
+      )
+      .join('');
+    return `<div style="width:100%;display:flex;align-items:center;gap:8px;${rh}">
+<span style="display:flex;height:100%;align-items:center;padding:0 12px;font-weight:bold;font-size:${fs}px;line-height:1;color:#fff;background:${c};flex-shrink:0;box-sizing:border-box;">${escT}</span>
+<span aria-hidden="true" style="display:flex;min-width:0;flex:1;align-items:center;gap:6px;">${dashHtml}<span style="height:1px;min-width:0;flex:1;background:${c};opacity:0.2;"></span></span>
+</div>`;
+  }
+  if (t === 16) {
+    return `<div style="width:100%;display:flex;align-items:center;gap:8px;${rh}">
+<span aria-hidden="true" style="display:inline-block;width:7px;height:7px;border-radius:999px;background:${c};flex-shrink:0;"></span>
+<span style="flex-shrink:0;font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
+<span aria-hidden="true" style="display:flex;min-width:0;flex:1;flex-direction:column;justify-content:center;gap:3px;">
+<span style="display:block;height:1px;width:100%;background:${c};opacity:0.85;"></span>
+<span style="display:block;height:1px;width:100%;background:${c};opacity:0.35;"></span>
+</span>
+</div>`;
+  }
+  if (t === 17) {
+    return `<div style="width:100%;display:flex;align-items:center;gap:10px;${rh}">
+<span aria-hidden="true" style="display:inline-block;width:1px;height:55%;background:${c};flex-shrink:0;"></span>
+<span style="flex-shrink:0;font-weight:600;font-size:${fs}px;color:${c};line-height:1;letter-spacing:0.14em;">${escT}</span>
+<span aria-hidden="true" style="display:block;height:1px;min-width:0;flex:1;background:${c};opacity:0.28;"></span>
+</div>`;
+  }
+  if (t === 18) {
+    return `<div style="width:100%;display:flex;align-items:center;gap:10px;border-bottom:2px solid ${c};box-sizing:border-box;${rh}">
+<span aria-hidden="true" style="display:flex;flex-direction:column;gap:3px;flex-shrink:0;">
+<span style="display:flex;gap:3px;"><span style="width:4px;height:4px;border-radius:0.5px;background:${c};"></span><span style="width:4px;height:4px;border-radius:0.5px;background:${c};opacity:0.4;"></span></span>
+<span style="display:flex;gap:3px;"><span style="width:4px;height:4px;border-radius:0.5px;background:${c};opacity:0.4;"></span><span style="width:4px;height:4px;border-radius:0.5px;background:${c};opacity:0.2;"></span></span>
+</span>
+<span style="font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
+</div>`;
+  }
+  if (t === 19) {
+    return `<div style="width:100%;display:flex;align-items:center;gap:10px;${rh}">
+<span aria-hidden="true" style="display:inline-block;width:6px;height:6px;background:${c};transform:rotate(45deg);flex-shrink:0;"></span>
+<span style="flex-shrink:0;font-weight:600;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
+<span aria-hidden="true" style="display:block;height:1px;min-width:0;flex:1;opacity:0.55;background-image:linear-gradient(90deg, ${c} 0%, transparent 100%);"></span>
+</div>`;
+  }
+  if (t === 20) {
+    return `<div style="width:100%;position:relative;display:flex;align-items:stretch;${rh}">
+<span aria-hidden="true" style="position:absolute;left:0;right:0;bottom:0;height:2px;background:${c};"></span>
+<span style="position:relative;z-index:1;display:inline-flex;height:100%;max-width:100%;align-items:center;padding:0 12px;font-weight:bold;font-size:${fs}px;line-height:1;color:#fff;background:${c};box-sizing:border-box;">${escT}</span>
+</div>`;
+  }
+  if (t === 21) {
+    return `<div style="width:100%;display:flex;align-items:center;${rh}">
+<span style="display:inline-flex;height:100%;max-width:100%;align-items:center;border-radius:5px;padding:0 12px;font-weight:bold;font-size:${fs}px;line-height:1;color:#fff;background:${c};box-sizing:border-box;">${escT}</span>
+</div>`;
+  }
+  if (t === 22) {
+    return `<div style="width:100%;display:flex;align-items:center;gap:10px;border-bottom:1.5px solid ${c};box-sizing:border-box;${rh}">
+<span aria-hidden="true" style="display:flex;height:14px;align-items:stretch;gap:3px;flex-shrink:0;">
+<span style="display:block;width:3px;border-radius:1px;background:${c};"></span>
+<span style="display:block;width:3px;border-radius:1px;background:${c};opacity:0.45;"></span>
+</span>
+<span style="font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
+</div>`;
+  }
+  if (t === 23) {
+    const ordMark =
+      sectionOrdinal != null && Number.isFinite(sectionOrdinal) && sectionOrdinal > 0
+        ? escapeHtml(String(Math.floor(sectionOrdinal)).padStart(2, '0'))
+        : '01';
+    const ordFs = Math.max(10, Math.round(fs * 0.72));
+    return `<div style="width:100%;display:flex;align-items:center;gap:10px;${rh}">
+<span style="display:inline-flex;height:22px;min-width:22px;align-items:center;justify-content:center;border-radius:4px;padding:0 4px;font-weight:bold;font-size:${ordFs}px;line-height:1;color:#fff;background:${c};font-variant-numeric:tabular-nums;flex-shrink:0;box-sizing:border-box;">${ordMark}</span>
+<span style="flex-shrink:0;font-weight:bold;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
+<span aria-hidden="true" style="display:block;height:1.5px;min-width:0;flex:1;border-radius:999px;background:${c};opacity:0.35;"></span>
+</div>`;
+  }
+  if (t === 24) {
+    return `<div style="width:100%;display:flex;align-items:center;justify-content:center;gap:12px;${rh}">
+<span aria-hidden="true" style="display:inline-block;width:28px;height:2.5px;border-radius:999px;background:${c};flex-shrink:0;"></span>
+<span style="flex-shrink:0;font-weight:bold;font-size:${fs}px;color:${c};line-height:1;letter-spacing:0.08em;">${escT}</span>
+<span aria-hidden="true" style="display:inline-block;width:28px;height:2.5px;border-radius:999px;background:${c};flex-shrink:0;"></span>
+</div>`;
+  }
+  if (t === 25) {
+    return `<div style="width:100%;display:flex;align-items:center;${rh}">
+<span style="display:inline-flex;height:100%;max-width:100%;align-items:center;padding:0 16px;font-weight:bold;font-size:${fs}px;line-height:1;color:#fff;background:${c};clip-path:polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);box-sizing:border-box;">${escT}</span>
+</div>`;
+  }
+  if (t === 26) {
+    return `<div style="width:100%;display:flex;align-items:center;${rh}">
+<span style="display:inline-flex;height:100%;max-width:100%;align-items:center;padding:0 20px 0 12px;font-weight:bold;font-size:${fs}px;line-height:1;color:#fff;background:${c};clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);box-sizing:border-box;">${escT}</span>
+<span aria-hidden="true" style="display:block;height:2px;min-width:0;flex:1;background:${c};opacity:0.3;"></span>
 </div>`;
   }
   return `<div style="position:relative;display:flex;align-items:center;font-weight:bold;padding:0 0 0 15px;color:${c};${rh}">
