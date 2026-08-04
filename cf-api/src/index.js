@@ -236,26 +236,25 @@ async function handleResumeList(request, env) {
   if (!uid) return json(request, { error: '缺少 uid' }, 400);
 
   const { results } = await env.DB.prepare(
-    'SELECT id, user_id, update_at FROM resume_header WHERE user_id = ? ORDER BY update_at DESC',
+    `SELECT h.id, h.user_id, h.update_at,
+      (SELECT module_json FROM resume_module m
+        WHERE m.resume_id = h.id AND m.module_type = 'base' LIMIT 1) AS base_json
+     FROM resume_header h
+     WHERE h.user_id = ?
+     ORDER BY h.update_at DESC`,
   )
     .bind(uid)
     .all();
 
-  const list = [];
-  for (const row of results || []) {
-    const baseRow = await env.DB.prepare(
-      "SELECT module_json FROM resume_module WHERE resume_id = ? AND module_type = 'base' LIMIT 1",
-    )
-      .bind(row.id)
-      .first();
-    const base = safeParseJson(baseRow?.module_json) || {};
-    list.push({
+  const list = (results || []).map((row) => {
+    const base = safeParseJson(row.base_json) || {};
+    return {
       id: row.id,
       user_id: row.user_id,
       update_at: row.update_at,
       name: base.name || '',
-    });
-  }
+    };
+  });
 
   return json(request, { list, max: MAX_RESUMES_PER_USER, count: list.length });
 }
