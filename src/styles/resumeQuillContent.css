@@ -11,6 +11,13 @@
   white-space: pre-wrap;
 }
 
+/* 预览/导出无 .ql-snow 包裹，需显式蓝色，避免继承简历主题色 */
+.resume-quill-embed .ql-editor a,
+.rte-quill-sync .ql-editor a {
+  color: #06c;
+  text-decoration: underline;
+}
+
 .resume-quill-embed .ql-editor li,
 .rte-quill-sync .ql-editor li {
   margin-block: calc(var(--spacing) * 0.5);

@@ -266,6 +266,9 @@ export default {
     addTitle: 'Add',
     fieldLayout: 'Field layout',
     supplementaryInfo: 'Supplementary info',
+    dragHint: 'Drag to reorder fields and rows. Up to 4 fields per row.',
+    emptyHint: 'No fields yet. Add some below.',
+    newRowHint: 'Drop here to start a new row',
   },
   buttonGroup: {
     moveUp: 'Move up',

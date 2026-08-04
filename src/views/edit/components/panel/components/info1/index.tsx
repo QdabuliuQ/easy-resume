@@ -347,26 +347,10 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
     });
   });
 
-  const formatLayout = useMemoizedFn((layout: Array<any>) => {
-    const sorted = [...layout].sort((a, b) =>
-      a.y !== b.y ? a.y - b.y : a.x - b.x
-    );
-    const newLayout: Array<Array<string>> = [];
-    let prevY = -Infinity;
-    for (const item of sorted) {
-      if (prevY !== item.y) {
-        newLayout.push([]);
-        prevY = item.y;
-      }
-      newLayout[newLayout.length - 1].push(item.i);
-    }
-    return newLayout;
-  });
-
-  const onDragStop = useMemoizedFn((newLayout: Array<any>) => {
+  const onLayoutChange = useMemoizedFn((layout: string[][]) => {
     configStore.setConfigOption(mid, {
       ...configStore.getConfigOption(mid),
-      layout: formatLayout(newLayout),
+      layout,
     });
   });
 
@@ -466,6 +450,13 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
           key={`edit-${configStore.historyRevision}`}
           className='panel-module-edit info1-panel-animate text-fg/95'
         >
+          <InfoLayout
+            layout={
+              (configStore.getConfigOption(mid)?.layout as string[][] | undefined) ??
+              []
+            }
+            onChange={onLayoutChange}
+          />
           <p className='mb-3 rounded-md border border-[color:color-mix(in_srgb,var(--color-primary)_52%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)] px-3 py-2.5 text-[11px] font-medium leading-relaxed text-[color:var(--color-primary)] shadow-[inset_0_1px_0_0_color-mix(in_srgb,var(--color-primary)_28%,transparent)]'>
             <span className='font-semibold'>{ti('hintTitle')}</span>
             ：{ti('hintBody')}
@@ -650,12 +641,6 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
             </Row>
           </Form>
           <CropperImage ref={cropperRef} />
-          {configStore.getConfigOption(mid)?.layout ? (
-            <InfoLayout
-              layout={configStore.getConfigOption(mid)!.layout}
-              onDragStop={onDragStop}
-            />
-          ) : null}
         </div>
       ) : null}
     </div>

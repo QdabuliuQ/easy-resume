@@ -1,5 +1,14 @@
-# 在 resume.qdabuliuq.cn 的 server 块中加入（504 多为 proxy 超时 < Puppeteer 耗时）
+# 青松简历 Nginx 片段（Ubuntu nginx/1.18+）
+# 把下列配置并入站点 server {}，改完后：
+#   sudo nginx -t && sudo systemctl reload nginx
+#
+# 413 Request Entity Too Large 原因：
+#   默认 client_max_body_size 多为 1m，而简历导入允许 PDF≤10MB、图片≤5MB。
 
+# —— 站点级（推荐写在 server 块顶部）——
+client_max_body_size 12m;
+
+# —— PDF 导出（耗时长，需加大 proxy 超时）——
 location /api/pdf {
   proxy_pass http://127.0.0.1:3010;
   proxy_http_version 1.1;
@@ -10,5 +19,19 @@ location /api/pdf {
   proxy_connect_timeout 30s;
   proxy_send_timeout 180s;
   proxy_read_timeout 180s;
-  client_max_body_size 8m;
+  client_max_body_size 12m;
+}
+
+# —— 简历导入 / 语音等大 body API（可选：单独加大）——
+location /api/ai/ {
+  proxy_pass http://127.0.0.1:3010;
+  proxy_http_version 1.1;
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto $scheme;
+  proxy_buffering off;
+  proxy_read_timeout 300s;
+  proxy_send_timeout 300s;
+  client_max_body_size 12m;
 }

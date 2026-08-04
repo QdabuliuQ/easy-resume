@@ -264,6 +264,9 @@ export default {
     addTitle: '添加',
     fieldLayout: '字段布局',
     supplementaryInfo: '辅助信息',
+    dragHint: '拖拽调整字段顺序与换行，每行最多 4 个。',
+    emptyHint: '暂无展示字段，请从下方添加。',
+    newRowHint: '拖到此处单独成行',
   },
   buttonGroup: {
     moveUp: '上移',

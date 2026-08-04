@@ -68,11 +68,18 @@ export async function importResumeFromFile(
   });
   const ct = res.headers.get('content-type') || '';
   if (!res.ok) {
+    if (res.status === 413) {
+      throw new Error('文件过大，服务器拒绝接收（请压缩后重试，PDF≤10MB、图片≤5MB）');
+    }
     if (ct.includes('application/json')) {
       const data = (await res.json().catch(() => null)) as ApiError | null;
       throw new Error(data?.error || res.statusText || '简历识别失败');
     }
-    throw new Error((await res.text().catch(() => '')) || res.statusText || '简历识别失败');
+    const text = (await res.text().catch(() => '')) || '';
+    if (/413|Request Entity Too Large/i.test(text)) {
+      throw new Error('文件过大，服务器拒绝接收（请压缩后重试，PDF≤10MB、图片≤5MB）');
+    }
+    throw new Error(text || res.statusText || '简历识别失败');
   }
   if (!res.body) throw new Error('无响应体');
   return readResumeImportSse(res.body, onEvent);
