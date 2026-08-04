@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 import { signIn, useSession } from 'next-auth/react';
 import { Button, Dropdown, Input, Tooltip } from 'antd';
 import {
+  CheckCircleFilled,
   DownOutlined,
   EditOutlined,
   GithubOutlined,
@@ -280,11 +281,6 @@ function Header() {
               className='cursor-pointer !text-fg/45 hover:!text-[var(--text-strong)] !p-0 !h-7 !w-7 !min-w-7 inline-flex shrink-0 items-center justify-center'
               onClick={startEdit}
             />
-            {!showSave && (
-              <span className='hidden text-[11px] text-fg/40 sm:inline'>
-                {saving ? t('saving') : t('autosaved')}
-              </span>
-            )}
           </>
         )}
       </div>
@@ -314,6 +310,19 @@ function Header() {
         className='flex shrink-0 flex-wrap items-center justify-end gap-2'
         data-edit-tour='header-export'
       >
+        {!showSave ? (
+          <span
+            className='hidden items-center gap-1.5 rounded-lg border border-[color-mix(in_srgb,var(--color-primary)_38%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_14%,transparent)] px-2.5 py-1.5 text-[12px] font-semibold text-[color:var(--color-primary)] sm:inline-flex'
+            aria-live='polite'
+          >
+            {saving ? (
+              <LoadingOutlined className='text-[13px]' />
+            ) : (
+              <CheckCircleFilled className='text-[14px]' />
+            )}
+            {saving ? t('saving') : t('autosaved')}
+          </span>
+        ) : null}
         {authLoading ? (
           <span
             className='inline-flex h-9 w-9 items-center justify-center rounded-xl border border-fg/14 bg-fg/[0.05] text-fg/55'
