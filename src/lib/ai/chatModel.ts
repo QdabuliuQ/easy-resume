@@ -38,19 +38,32 @@ function createOpenAiModel(opts: {
   });
 }
 
-/** DeepSeek 官方 API（对话修改、富文本润色等） */
-export function createModifyChatModel(opts?: { temperature?: number; jsonMode?: boolean }): AppChatModel {
+/** DeepSeek 官方 API */
+export function createDeepSeekModel(opts?: {
+  temperature?: number;
+  jsonMode?: boolean;
+  model?: string;
+}): AppChatModel {
   const temperature = opts?.temperature ?? 0.7;
   const jsonMode = opts?.jsonMode ?? false;
   const model = createOpenAiModel({
     apiKey: process.env.DEEPSEEK_API_KEY?.trim() || process.env.BASE_API_KEY?.trim(),
     baseURL: DEEPSEEK_BASE_URL,
-    model: MODIFY_CHAT_MODEL,
+    model: opts?.model?.trim() || DEEPSEEK_MODEL,
     temperature,
     jsonMode,
   });
-  if (!model) throw new Error('缺少 DEEPSEEK_API_KEY（对话修改 / 润色需 DeepSeek 官方 Key）');
+  if (!model) throw new Error('缺少 DEEPSEEK_API_KEY');
   return model;
+}
+
+/** AI 对话修改专用：DeepSeek 官方 API */
+export function createModifyChatModel(opts?: { temperature?: number; jsonMode?: boolean }): AppChatModel {
+  return createDeepSeekModel({
+    temperature: opts?.temperature,
+    jsonMode: opts?.jsonMode,
+    model: MODIFY_CHAT_MODEL,
+  });
 }
 
 /** 优先讯飞星辰 Coding Plan MaaS，失败时降级 ChatAnywhere */

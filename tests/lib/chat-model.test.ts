@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { createChatModel } from '@/lib/ai/chatModel';
+import { createChatModel, createDeepSeekModel } from '@/lib/ai/chatModel';
 
 describe('createChatModel', () => {
   afterEach(() => {
@@ -28,5 +28,21 @@ describe('createChatModel', () => {
     process.env.CHATANYWHERE_API_KEY = 'sk-test';
     const m = createChatModel();
     expect(m.constructor.name).toBe('RunnableWithFallbacks');
+  });
+});
+
+describe('createDeepSeekModel', () => {
+  afterEach(() => {
+    delete process.env.DEEPSEEK_API_KEY;
+    delete process.env.BASE_API_KEY;
+  });
+
+  it('throws when no deepseek key', () => {
+    expect(() => createDeepSeekModel()).toThrow('缺少 DEEPSEEK_API_KEY');
+  });
+
+  it('creates model when key set', () => {
+    process.env.DEEPSEEK_API_KEY = 'sk-test';
+    expect(createDeepSeekModel({ temperature: 1 })).toBeTruthy();
   });
 });
