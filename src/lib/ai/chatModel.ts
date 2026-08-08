@@ -38,7 +38,7 @@ function createOpenAiModel(opts: {
   });
 }
 
-/** AI 对话修改专用：DeepSeek 官方 API */
+/** DeepSeek 官方 API（对话修改、富文本润色等） */
 export function createModifyChatModel(opts?: { temperature?: number; jsonMode?: boolean }): AppChatModel {
   const temperature = opts?.temperature ?? 0.7;
   const jsonMode = opts?.jsonMode ?? false;
@@ -49,7 +49,7 @@ export function createModifyChatModel(opts?: { temperature?: number; jsonMode?: 
     temperature,
     jsonMode,
   });
-  if (!model) throw new Error('缺少 DEEPSEEK_API_KEY（对话修改需 DeepSeek 官方 Key）');
+  if (!model) throw new Error('缺少 DEEPSEEK_API_KEY（对话修改 / 润色需 DeepSeek 官方 Key）');
   return model;
 }
 

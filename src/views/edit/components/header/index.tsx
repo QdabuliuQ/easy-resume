@@ -77,6 +77,7 @@ function Header() {
     exportImagePdf,
     exportImage,
     exportJson,
+    exportDocx,
     pdfLoading,
     imagePdfLoading,
     imageLoading,
@@ -209,6 +210,12 @@ function Header() {
         onClick: () => void exportImage(),
       },
       {
+        key: 'docx',
+        disabled: actionsDisabled,
+        label: t('exportDocx'),
+        onClick: () => void exportDocx(),
+      },
+      {
         key: 'json',
         disabled: actionsDisabled,
         icon: <FileCode theme='outline' size={16} fill={ICON_PRIMARY} />,
@@ -216,7 +223,7 @@ function Header() {
         onClick: exportJson,
       },
     ],
-    [actionsDisabled, exportImage, exportImagePdf, exportJson, exportPdf, t],
+    [actionsDisabled, exportDocx, exportImage, exportImagePdf, exportJson, exportPdf, t],
   );
   return (
     <div className='relative flex h-full items-center justify-between gap-4 px-4 md:px-5'>
