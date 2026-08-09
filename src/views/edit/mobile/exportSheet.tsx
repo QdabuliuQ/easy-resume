@@ -14,7 +14,7 @@ function MobileExportSheet({
 }) {
   const th = useTranslations('Edit.header');
   const tm = useTranslations('Edit.menu');
-  const { exportPdf, exportImagePdf, exportImage, exportJson, exportDocx } = useResumeExport();
+  const { exportPdf, exportImagePdf, exportImage, exportJson } = useResumeExport();
   const run = (fn: () => void | Promise<void>) => {
     onClose();
     void fn();
@@ -39,9 +39,6 @@ function MobileExportSheet({
           </List.Item>
           <List.Item className='text-[14px]' clickable onClick={() => run(exportImage)}>
             {th('exportImage')}
-          </List.Item>
-          <List.Item className='text-[14px]' clickable onClick={() => run(exportDocx)}>
-            {th('exportDocx')}
           </List.Item>
           <List.Item className='text-[14px]' clickable onClick={() => run(exportJson)}>
             {th('exportJson')}

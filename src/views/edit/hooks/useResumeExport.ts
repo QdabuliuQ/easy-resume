@@ -23,9 +23,8 @@ export function useResumeExport() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [imagePdfLoading, setImagePdfLoading] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
-  const [docxLoading, setDocxLoading] = useState(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
-  const exporting = pdfLoading || imagePdfLoading || imageLoading || docxLoading;
+  const exporting = pdfLoading || imagePdfLoading || imageLoading;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -178,46 +177,14 @@ export function useResumeExport() {
       message.error(e instanceof Error ? e.message : t('exportFail'));
     }
   };
-  const exportDocx = async () => {
-    if (typeof window === 'undefined' || exporting) return;
-    setDocxLoading(true);
-    const hide = message.loading(t('exportDocxLoading'), 0);
-    try {
-      const safe = safeName();
-      const res = await fetch('/api/docx', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ config: snapshotForExport(), filename: `${safe}.docx`, locale }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(typeof data.error === 'string' ? data.error : t('requestFailed', { status: res.status }));
-      }
-      const href = URL.createObjectURL(await res.blob());
-      const a = document.createElement('a');
-      a.href = href;
-      a.download = `${safe}.docx`;
-      a.click();
-      URL.revokeObjectURL(href);
-      hide();
-      message.success(t('exportDocxOk'));
-    } catch (e) {
-      hide();
-      message.error(e instanceof Error ? e.message : t('exportFail'));
-    } finally {
-      setDocxLoading(false);
-    }
-  };
   return {
     exportPdf,
     exportImagePdf,
     exportImage,
     exportJson,
-    exportDocx,
     pdfLoading,
     imagePdfLoading,
     imageLoading,
-    docxLoading,
     exporting,
   };
 }
