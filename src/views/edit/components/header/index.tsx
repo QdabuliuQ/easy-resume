@@ -28,6 +28,7 @@ import { useEditHistory } from '@/views/edit/hooks/useEditHistory';
 import ShareResumeModal from '@/views/edit/components/header/ShareResumeModal';
 
 const ICON_PRIMARY = 'var(--color-primary)';
+const ICON_MUTED = 'rgb(var(--surface-fg-rgb) / 0.55)';
 const actionBtnCls = [
   'inline-flex min-h-9 cursor-pointer select-none items-center justify-center gap-1 rounded-xl px-3 py-2',
   'border border-[color-mix(in_srgb,var(--color-primary)_32%,transparent)]',
@@ -38,6 +39,18 @@ const actionBtnCls = [
   'hover:bg-[color-mix(in_srgb,var(--color-primary)_16%,var(--editor-shell-panel-strong))]',
   'active:scale-[0.98]',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_42%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-panel)]',
+  'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
+  'motion-reduce:transition-none motion-reduce:active:scale-100',
+].join(' ');
+/** 次要操作（创建副本等）：弱化样式，避免被当成「保存」 */
+const quietBtnCls = [
+  'inline-flex min-h-9 cursor-pointer select-none items-center justify-center gap-1 rounded-xl px-2.5 py-2',
+  'border border-fg/12 bg-transparent',
+  'text-[12px] font-medium leading-snug text-fg/55 whitespace-nowrap',
+  'transition-[transform,background-color,border-color,color] duration-200 ease-out',
+  'hover:border-fg/20 hover:bg-fg/[0.06] hover:text-fg/75',
+  'active:scale-[0.98]',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-panel)]',
   'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
   'motion-reduce:transition-none motion-reduce:active:scale-100',
 ].join(' ');
@@ -318,17 +331,19 @@ function Header() {
         data-edit-tour='header-export'
       >
         {!showSave ? (
-          <span
-            className='hidden items-center gap-1.5 rounded-lg border border-[color-mix(in_srgb,var(--color-primary)_38%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_14%,transparent)] px-2.5 py-1.5 text-[12px] font-semibold text-[color:var(--color-primary)] sm:inline-flex'
-            aria-live='polite'
-          >
-            {saving ? (
-              <LoadingOutlined className='text-[13px]' />
-            ) : (
-              <CheckCircleFilled className='text-[14px]' />
-            )}
-            {saving ? t('saving') : t('autosaved')}
-          </span>
+          <Tooltip title={t('saveAsHint')}>
+            <span
+              className='hidden items-center gap-1.5 rounded-lg border border-[color-mix(in_srgb,var(--color-primary)_42%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_16%,transparent)] px-2.5 py-1.5 text-[12px] font-semibold text-[color:var(--color-primary)] sm:inline-flex'
+              aria-live='polite'
+            >
+              {saving ? (
+                <LoadingOutlined className='text-[13px]' />
+              ) : (
+                <CheckCircleFilled className='text-[14px]' />
+              )}
+              {saving ? t('autosaving') : t('autosaved')}
+            </span>
+          </Tooltip>
         ) : null}
         {authLoading ? (
           <span
@@ -386,25 +401,6 @@ function Header() {
             </span>
           </Tooltip>
         ) : null}
-        {showSaveAs ? (
-          <Tooltip title={signedIn ? undefined : t('saveNeedLogin')}>
-            <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
-              <button
-                type='button'
-                disabled={actionsDisabled || saving || !signedIn}
-                onClick={() => void onSaveAs()}
-                className={`${signedIn ? '' : 'pointer-events-none'} ${actionBtnCls}`}
-              >
-                {saving ? (
-                  <span className={actionIconSpin} aria-hidden />
-                ) : (
-                  <Copy theme='outline' size={18} fill={ICON_PRIMARY} />
-                )}
-                {saving ? t('saving') : t('saveAs')}
-              </button>
-            </span>
-          </Tooltip>
-        ) : null}
         <Tooltip
           title={
             !signedIn ? t('shareNeedLogin') : !resumeId ? t('shareNeedSave') : undefined
@@ -451,6 +447,26 @@ function Header() {
             {!actionsDisabled ? <DownOutlined className={arrowCls(exportOpen)} /> : null}
           </button>
         </Dropdown>
+        {showSaveAs ? (
+          <Tooltip title={signedIn ? t('saveAsHint') : t('saveNeedLogin')}>
+            <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
+              <button
+                type='button'
+                disabled={actionsDisabled || saving || !signedIn}
+                onClick={() => void onSaveAs()}
+                aria-label={t('saveAs')}
+                className={`${signedIn ? '' : 'pointer-events-none'} ${quietBtnCls}`}
+              >
+                {saving ? (
+                  <LoadingOutlined className='text-[13px]' />
+                ) : (
+                  <Copy theme='outline' size={16} fill={ICON_MUTED} />
+                )}
+                {t('saveAs')}
+              </button>
+            </span>
+          </Tooltip>
+        ) : null}
       </div>
       {resumeId ? (
         <ShareResumeModal

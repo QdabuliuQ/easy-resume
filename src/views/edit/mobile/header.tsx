@@ -190,30 +190,17 @@ function MobileEditHeader() {
               </Button>
             </span>
           </Tooltip>
-        ) : null}
-        {showSaveAs ? (
-          <Tooltip title={signedIn ? undefined : t('saveNeedLogin')}>
-            <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
-              <Button
-                type='default'
-                size='small'
-                loading={saving}
-                disabled={!signedIn}
-                icon={
-                  saving ? undefined : (
-                    <Copy theme='outline' size={16} fill={`url(#${saveGradId})`} />
-                  )
-                }
-                onClick={() => void onSaveAs()}
-                className='!border-[color-mix(in_srgb,var(--color-primary)_35%,transparent)]'
-              >
-                <span className='bg-gradient-primary bg-clip-text font-semibold text-transparent'>
-                  {saving ? t('saving') : t('saveAs')}
-                </span>
-              </Button>
+        ) : (
+          <Tooltip title={t('saveAsHint')}>
+            <span
+              className='inline-flex max-w-[7.5rem] items-center gap-1 truncate rounded-lg border border-[color-mix(in_srgb,var(--color-primary)_42%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_16%,transparent)] px-2 py-1 text-[11px] font-semibold text-[color:var(--color-primary)]'
+              aria-live='polite'
+            >
+              {saving ? <LoadingOutlined className='text-[11px]' /> : null}
+              {saving ? t('autosaving') : t('autosaved')}
             </span>
           </Tooltip>
-        ) : null}
+        )}
         <Tooltip
           title={
             !signedIn ? t('shareNeedLogin') : !resumeId ? t('shareNeedSave') : undefined
@@ -231,6 +218,28 @@ function MobileEditHeader() {
             />
           </span>
         </Tooltip>
+        {showSaveAs ? (
+          <Tooltip title={signedIn ? t('saveAsHint') : t('saveNeedLogin')}>
+            <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
+              <Button
+                type='text'
+                size='small'
+                loading={saving}
+                disabled={!signedIn}
+                icon={
+                  saving ? undefined : (
+                    <Copy theme='outline' size={16} fill='currentColor' />
+                  )
+                }
+                onClick={() => void onSaveAs()}
+                aria-label={t('saveAs')}
+                className='!h-8 !border-fg/12 !px-2 !text-fg/55'
+              >
+                <span className='text-[11px] font-medium text-fg/55'>{t('saveAs')}</span>
+              </Button>
+            </span>
+          </Tooltip>
+        ) : null}
         {authLoading ? (
           <span
             className='inline-flex h-8 w-8 items-center justify-center rounded-full border border-fg/14 bg-fg/[0.05] text-fg/55'
