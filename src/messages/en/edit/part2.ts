@@ -291,9 +291,9 @@ export default {
     uploadAvatar: 'Upload photo',
     deleteAvatar: 'Remove photo',
     imageFormatError: 'Please upload JPEG or PNG',
-    hintTitle: 'Tip',
+    hintTitle: 'Field missing on the page?',
     hintBody:
-      'If a field does not show after editing, enable it in “Field layout” below.',
+      'If you edited phone, email, etc. but they still don’t appear in the preview: open “Field layout” below and turn that field on.',
     enterPrefix: 'Enter ',
     selectPrefix: 'Select ',
     salaryPh: 'Salary',

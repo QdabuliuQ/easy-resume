@@ -48,6 +48,11 @@ const CHIP_ICON_FILL = 'var(--info-layout-chip-icon)';
 const MAX_COLS = 4;
 const SKIP_KEYS = new Set(['name', 'avatar']);
 
+function useInfoFieldLabel() {
+  const t = useTranslations('Edit.info1');
+  return (key: string) => t(`fields.${key}` as never);
+}
+
 const INFO_FIELD_ICONS: Record<
   string,
   ComponentType<{
@@ -277,6 +282,7 @@ function LayoutRow(props: {
   keys: string[];
   onRemove: (key: string) => void;
 }) {
+  const fieldLabel = useInfoFieldLabel();
   const rowId = `row-${props.rowIndex}`;
   const { setNodeRef, isOver } = useDroppable({ id: rowId });
   const emptyCount = Math.max(0, MAX_COLS - props.keys.length);
@@ -290,7 +296,7 @@ function LayoutRow(props: {
           <SortableFieldChip
             key={key}
             fieldKey={key}
-            label={info[key as keyof typeof info] ?? key}
+            label={fieldLabel(key)}
             onRemove={() => props.onRemove(key)}
           />
         ))}
@@ -352,6 +358,7 @@ function InfoLayout(props: {
   onChange: (layout: string[][]) => void;
 }) {
   const ti = useTranslations('Edit.infoLayout');
+  const fieldLabel = useInfoFieldLabel();
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<string[][]>(() =>
     sanitizeLayoutRows(props.layout),
@@ -390,9 +397,7 @@ function InfoLayout(props: {
     commit(moveField(rows, String(active.id), String(over.id)));
   };
 
-  const activeLabel = activeId
-    ? info[activeId as keyof typeof info] ?? activeId
-    : '';
+  const activeLabel = activeId ? fieldLabel(activeId) : '';
 
   return (
     <>
@@ -456,7 +461,7 @@ function InfoLayout(props: {
               <AddFieldChip
                 key={key}
                 fieldKey={key}
-                label={info[key as keyof typeof info]}
+                label={fieldLabel(key)}
                 onAdd={() => commit(appendField(rows, key))}
               />
             ))}

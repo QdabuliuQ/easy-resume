@@ -36,6 +36,7 @@ import PanelToolbar from '../panelToolbar';
 import { useTranslations } from 'next-intl';
 import {
   AlignLeft,
+  Attention,
   AutoHeightOne,
   Avatar,
   Delete,
@@ -450,6 +451,23 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
           key={`edit-${configStore.historyRevision}`}
           className='panel-module-edit info1-panel-animate text-fg/95'
         >
+          <div
+            role='note'
+            className='mb-3 flex gap-2.5 rounded-xl border border-[#f59e0b]/55 bg-[#f59e0b]/15 px-3.5 py-3 text-[13px] leading-relaxed'
+          >
+            <Attention
+              theme='filled'
+              size={20}
+              fill='#f59e0b'
+              className='mt-0.5 shrink-0'
+            />
+            <div className='min-w-0'>
+              <p className='text-[15px] font-semibold tracking-tight text-[#fbbf24]'>
+                {ti('hintTitle')}
+              </p>
+              <p className='mt-1.5 text-[13px] leading-relaxed text-[#f59e0b]'>{ti('hintBody')}</p>
+            </div>
+          </div>
           <InfoLayout
             layout={
               (configStore.getConfigOption(mid)?.layout as string[][] | undefined) ??
@@ -457,10 +475,6 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
             }
             onChange={onLayoutChange}
           />
-          <p className='mb-3 rounded-md border border-[color:color-mix(in_srgb,var(--color-primary)_52%,transparent)] bg-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)] px-3 py-2.5 text-[11px] font-medium leading-relaxed text-[color:var(--color-primary)] shadow-[inset_0_1px_0_0_color-mix(in_srgb,var(--color-primary)_28%,transparent)]'>
-            <span className='font-semibold'>{ti('hintTitle')}</span>
-            ：{ti('hintBody')}
-          </p>
           <Form form={form} variant='filled' layout='vertical'>
             <Row gutter={15} className='mb-1'>
               <Col span={24}>
