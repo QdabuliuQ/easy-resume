@@ -1,3 +1,4 @@
+'use client';
 import Image from 'next/image';
 import { photo3, photo3Light } from '@/lib/brandAssets';
 import { useSyncExternalStore } from 'react';
@@ -36,7 +37,6 @@ export default function PanelHero({ eyebrow, title, description, chip, className
         className='pointer-events-none object-cover object-right'
         loading='lazy'
       />
-      <div className='pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgb(var(--panel-surface-rgb)/0.55)_0%,rgb(var(--panel-surface-rgb)/0.12)_55%,transparent_100%)]' />
       <div className='relative z-[1] flex items-start justify-between gap-3'>
         <div className='min-w-0'>
           <p className='text-[11px] font-medium tracking-[0.18em] text-fg/62'>{eyebrow}</p>
