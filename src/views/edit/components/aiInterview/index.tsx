@@ -490,7 +490,11 @@ export default observer(function AiInterviewPage() {
                               {item.name || '未命名简历'}
                             </div>
                             <div className='mt-1 text-[11px] tabular-nums text-fg/42'>
-                              {item.update_at ? new Date(item.update_at).toLocaleString() : item.id}
+                              {item.update_at
+                                ? new Date(
+                                    item.update_at < 1e12 ? item.update_at * 1000 : item.update_at,
+                                  ).toLocaleString('zh-CN', { hour12: false })
+                                : item.id}
                             </div>
                           </button>
                         );
