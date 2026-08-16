@@ -64,7 +64,6 @@ describe('ai interview service', () => {
     );
 
     const questions = await generateInterviewQuestions({
-      resume: { pages: [] },
       anchors,
       questionCount: 5,
       targetRole: '前端工程师',
@@ -82,16 +81,19 @@ describe('ai interview service', () => {
       difficulty?: string;
       questionCount?: number;
       targetRole?: string;
+      resumeHint?: unknown;
+      anchors?: unknown[];
     };
     expect(body.difficulty).toBe('hard');
     expect(body.questionCount).toBe(5);
     expect(body.targetRole).toBe('前端工程师');
+    expect(body.resumeHint).toBeUndefined();
+    expect(body.anchors).toHaveLength(2);
   });
 
   it('generateInterviewQuestions fills missing model rows with fallbacks', async () => {
     invoke.mockResolvedValueOnce(JSON.stringify({ questions: [{ text: '仅一题', anchorIndex: 0 }] }));
     const questions = await generateInterviewQuestions({
-      resume: {},
       anchors,
       questionCount: 3,
       targetRole: '',
@@ -102,7 +104,7 @@ describe('ai interview service', () => {
     expect(questions[1]?.text).toMatch(/结合/);
   });
 
-  it('generateInterviewReport parses dimensions and action items', async () => {
+  it('generateInterviewReport clips long answers and omits resumeHint', async () => {
     invoke.mockResolvedValueOnce(
       JSON.stringify({
         summary: '整体表达清楚，细节可再量化。',
@@ -117,8 +119,8 @@ describe('ai interview service', () => {
       }),
     );
 
+    const long = '答'.repeat(2000);
     const report = await generateInterviewReport({
-      resume: {},
       targetRole: '前端',
       difficulty: 'medium',
       questions: [
@@ -130,12 +132,20 @@ describe('ai interview service', () => {
           depth: 'L1',
         },
       ],
-      answers: [{ questionId: 'q1', text: '答1' }],
+      answers: [{ questionId: 'q1', text: long }],
     });
 
     expect(report.summary).toContain('整体表达');
     expect(report.dimensions.detailDepth).toBe(70);
     expect(report.actionItems[0]?.text).toContain('性能基线');
     expect(report.inconsistencies?.[0]).toMatch(/50%/);
+
+    const human = invoke.mock.calls[0]?.[0] as Array<{ content?: string }>;
+    const body = JSON.parse(String(human?.[1]?.content || '{}')) as {
+      resumeHint?: unknown;
+      turns?: Array<{ answer?: string }>;
+    };
+    expect(body.resumeHint).toBeUndefined();
+    expect(body.turns?.[0]?.answer?.length).toBeLessThanOrEqual(1201);
   });
 });

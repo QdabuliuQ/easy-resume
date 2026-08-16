@@ -1,6 +1,12 @@
+import { createHash } from 'crypto';
 import { assertSessionOwner, requireInterviewAuth } from '@/lib/ai/interview/auth';
-import { getInterviewSession, saveInterviewSession } from '@/lib/ai/interview/sessionStore';
-import { err, ok } from '@/lib/ai/score/routeShared';
+import {
+  getInterviewSession,
+  interviewStoreError,
+  saveInterviewSession,
+} from '@/lib/ai/interview/sessionStore';
+import { INTERVIEW_ANSWER_MAX_CHARS } from '@/lib/ai/interview/types';
+import { checkInterviewRateLimit, err, getClientIp, ok } from '@/lib/ai/score/routeShared';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -8,6 +14,13 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const gate = await requireInterviewAuth();
   if ('error' in gate) return gate.error;
+
+  const storeErr = interviewStoreError();
+  if (storeErr) return err(storeErr, 503);
+
+  const rateKey = gate.uid || createHash('sha256').update(getClientIp(req)).digest('hex').slice(0, 16);
+  const rate = await checkInterviewRateLimit(rateKey, 'answer');
+  if (!rate.allowed) return err(rate.message, 429, rate.resetIn);
 
   const id = params.id?.trim();
   if (!id) return err('缺少 sessionId', 400);
@@ -34,6 +47,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const skipped = Boolean(body.skipped);
   const text = typeof body.text === 'string' ? body.text.trim() : '';
   if (!skipped && text.length < 2) return err('请先作答或选择跳过', 400);
+  if (!skipped && text.length > INTERVIEW_ANSWER_MAX_CHARS) {
+    return err(`作答过长，最多 ${INTERVIEW_ANSWER_MAX_CHARS} 字`, 400);
+  }
 
   session.answers.push({
     questionId: current.id,

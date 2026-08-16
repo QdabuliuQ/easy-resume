@@ -2,7 +2,11 @@ import { createHash, randomUUID } from 'crypto';
 import { requireInterviewAuth } from '@/lib/ai/interview/auth';
 import { preflightFromResume, resolveInterviewResume } from '@/lib/ai/interview/resolveResume';
 import { generateInterviewQuestions, targetRoleFromResume } from '@/lib/ai/interview/service';
-import { freshExpiry, replaceOwnerActiveSession } from '@/lib/ai/interview/sessionStore';
+import {
+  freshExpiry,
+  interviewStoreError,
+  replaceOwnerActiveSession,
+} from '@/lib/ai/interview/sessionStore';
 import { clampQuestionCount, normalizeInterviewDifficulty, type InterviewSession } from '@/lib/ai/interview/types';
 import { checkInterviewRateLimit, err, getClientIp, ok } from '@/lib/ai/score/routeShared';
 
@@ -14,8 +18,11 @@ export async function POST(req: Request) {
   const gate = await requireInterviewAuth();
   if ('error' in gate) return gate.error;
 
+  const storeErr = interviewStoreError();
+  if (storeErr) return err(storeErr, 503);
+
   const rateKey = gate.uid || createHash('sha256').update(getClientIp(req)).digest('hex').slice(0, 16);
-  const rate = await checkInterviewRateLimit(rateKey);
+  const rate = await checkInterviewRateLimit(rateKey, 'session');
   if (!rate.allowed) return err(rate.message, 429, rate.resetIn);
 
   let body: {
@@ -48,7 +55,6 @@ export async function POST(req: Request) {
   let questions;
   try {
     questions = await generateInterviewQuestions({
-      resume: resolved.resume,
       anchors: pf.anchors,
       questionCount,
       targetRole,

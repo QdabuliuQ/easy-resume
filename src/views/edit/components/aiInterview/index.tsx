@@ -5,6 +5,7 @@ import { observer } from 'mobx-react';
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  interviewAbandon,
   interviewAnswer,
   interviewEnd,
   interviewReportStream,
@@ -16,6 +17,7 @@ import DifficultySlider from './DifficultySlider';
 import PanelHero from '../panel/components/panelHero';
 import type { InterviewDifficulty, InterviewQuestion, InterviewReport } from '@/lib/ai/interview/types';
 import {
+  INTERVIEW_ANSWER_MAX_CHARS,
   INTERVIEW_DIFFICULTY_DEFAULT,
   INTERVIEW_Q_DEFAULT,
   INTERVIEW_Q_MAX,
@@ -63,18 +65,30 @@ const DIM_LABELS = ['与简历一致性', '细节深度', '表达结构', '岗�
 
 function ReportStatusChip({ step }: { step: 0 | 1 | 2 }) {
   const copy =
-    step === 0 ? '正在计算维度分…' : step === 1 ? '正在撰写总评…' : '正在整理改进建议…';
+    step === 0 ? '正在生成报告…' : step === 1 ? '正在撰写总评…' : '正在整理改进建议…';
+  const pct = step === 0 ? 28 : step === 1 ? 62 : 88;
   return (
     <div
-      className='flex items-center gap-2.5 rounded-xl border border-[color-mix(in_srgb,var(--color-primary)_22%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] px-3.5 py-2.5'
+      className='space-y-2.5 rounded-xl border border-[color-mix(in_srgb,var(--color-primary)_22%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] px-3.5 py-3'
       role='status'
       aria-live='polite'
     >
-      <span className='relative flex size-2 shrink-0'>
-        <span className='absolute inset-0 animate-ping rounded-full bg-[var(--color-primary)]/45 motion-reduce:animate-none' />
-        <span className='relative size-2 rounded-full bg-[var(--color-primary)]' />
-      </span>
-      <p className='text-[12px] font-medium text-fg/78'>{copy}</p>
+      <div className='flex items-center gap-2.5'>
+        <span className='relative flex size-2 shrink-0'>
+          <span className='absolute inset-0 animate-ping rounded-full bg-[var(--color-primary)]/45 motion-reduce:animate-none' />
+          <span className='relative size-2 rounded-full bg-[var(--color-primary)]' />
+        </span>
+        <p className='text-[12px] font-medium text-fg/78'>{copy}</p>
+      </div>
+      <div className='h-1 overflow-hidden rounded-full bg-fg/[0.08]'>
+        <div
+          className='h-full rounded-full bg-[var(--color-primary)] transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none'
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className='text-[11px] leading-relaxed text-fg/45'>
+        生成开始后会计费；离开本页会中断本场面试，无法取消已产生的扣费。
+      </p>
     </div>
   );
 }
@@ -165,7 +179,12 @@ export default observer(function AiInterviewPage() {
   const [finalReport, setFinalReport] = useState<InterviewReport | null>(null);
   const [reportStreaming, setReportStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
+  const phaseRef = useRef<Phase>('prepare');
   const listEpoch = cloudResumeStore.listEpoch;
+
+  sessionIdRef.current = sessionId;
+  phaseRef.current = phase;
 
   const voice = useVoiceInput({
     onText: (text) => setAnswerText((prev) => (prev ? `${prev}${text}` : text)),
@@ -176,6 +195,9 @@ export default observer(function AiInterviewPage() {
   const resetSession = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
+    const sid = sessionIdRef.current;
+    if (sid) interviewAbandon(sid);
+    sessionIdRef.current = null;
     setPhase('prepare');
     setSessionId(null);
     setQuestion(null);
@@ -187,6 +209,67 @@ export default observer(function AiInterviewPage() {
     setFinalReport(null);
     setReportStreaming(false);
     setBusy(false);
+  }, []);
+
+  const streamReport = useCallback(
+    async (sid: string) => {
+      setPhase('report');
+      setReportStreaming(true);
+      setDimensions(null);
+      setSummary('');
+      setActionTexts([]);
+      setFinalReport(null);
+      abortRef.current?.abort();
+      const ac = new AbortController();
+      abortRef.current = ac;
+      try {
+        const report = await interviewReportStream(
+          sid,
+          {
+            onMeta: (dims) => setDimensions(dims),
+            onDelta: (evt) => {
+              if (evt.field === 'summary') {
+                setSummary((s) => s + evt.textDelta);
+                return;
+              }
+              if (evt.field === 'actionItem' && typeof evt.index === 'number') {
+                setActionTexts((prev) => {
+                  const next = [...prev];
+                  next[evt.index!] = (next[evt.index!] || '') + evt.textDelta;
+                  return next;
+                });
+              }
+            },
+            onDone: (r) => setFinalReport(r),
+          },
+          ac.signal,
+        );
+        if (report) setFinalReport(report);
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
+        message.error(e instanceof Error ? e.message : '报告生成失败');
+      } finally {
+        setReportStreaming(false);
+      }
+    },
+    [message],
+  );
+
+  // 切走菜单 / 关页：中断本场，再进从准备页开始
+  useEffect(() => {
+    const abandonLive = () => {
+      abortRef.current?.abort();
+      const sid = sessionIdRef.current;
+      if (!sid || phaseRef.current === 'prepare') return;
+      interviewAbandon(sid);
+      sessionIdRef.current = null;
+    };
+    const onPageHide = () => abandonLive();
+    window.addEventListener('pagehide', onPageHide);
+    return () => {
+      window.removeEventListener('pagehide', onPageHide);
+      abandonLive();
+    };
   }, []);
 
   useEffect(() => {
@@ -252,61 +335,12 @@ export default observer(function AiInterviewPage() {
       setProgress(started.progress);
       setAnswerText('');
       setPhase('session');
-      try {
-        sessionStorage.setItem('easy-resume-interview-sid', started.sessionId);
-      } catch {
-        /* ignore */
-      }
     } catch (e) {
       message.error(e instanceof Error ? e.message : '开始失败');
     } finally {
       setBusy(false);
     }
   }, [buildBody, message, questionCount, difficulty, isDev]);
-
-  const streamReport = useCallback(
-    async (sid: string) => {
-      setPhase('report');
-      setReportStreaming(true);
-      setDimensions(null);
-      setSummary('');
-      setActionTexts([]);
-      setFinalReport(null);
-      abortRef.current?.abort();
-      const ac = new AbortController();
-      abortRef.current = ac;
-      try {
-        const report = await interviewReportStream(
-          sid,
-          {
-            onMeta: (dims) => setDimensions(dims),
-            onDelta: (evt) => {
-              if (evt.field === 'summary') {
-                setSummary((s) => s + evt.textDelta);
-                return;
-              }
-              if (evt.field === 'actionItem' && typeof evt.index === 'number') {
-                setActionTexts((prev) => {
-                  const next = [...prev];
-                  next[evt.index!] = (next[evt.index!] || '') + evt.textDelta;
-                  return next;
-                });
-              }
-            },
-            onDone: (r) => setFinalReport(r),
-          },
-          ac.signal,
-        );
-        if (report) setFinalReport(report);
-      } catch (e) {
-        if (e instanceof DOMException && e.name === 'AbortError') return;
-        message.error(e instanceof Error ? e.message : '报告生成失败');
-      } finally {
-        setReportStreaming(false);
-      }
-    },
-    [message],
-  );
 
   const submitAnswer = useCallback(
     async (skipped?: boolean) => {
@@ -638,6 +672,8 @@ export default observer(function AiInterviewPage() {
                   value={answerText}
                   onChange={(e) => setAnswerText(e.target.value)}
                   rows={7}
+                  maxLength={INTERVIEW_ANSWER_MAX_CHARS}
+                  showCount
                   placeholder='语音转写会出现在这里，也可手动微调后再提交'
                   disabled={busy}
                   variant='borderless'

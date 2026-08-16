@@ -85,7 +85,7 @@ function MobileMainTabs({
   }, [present, beginClose]);
 
   const visualKey = (key: TabKey): boolean => {
-    if (key === 'ai-tools') return aiActive;
+    if (key === 'ai-tools') return aiActive || present;
     return activeKey === key;
   };
 
@@ -112,14 +112,17 @@ function MobileMainTabs({
                   <span className='absolute left-1/2 top-0 h-0.5 w-8 -translate-x-1/2 rounded-full bg-gradient-to-r from-[var(--color-primary-gradient-start)] to-[var(--color-primary)]' />
                 ) : null}
                 {key === 'ai-tools' ? (
-                  <AiToolsIcon
-                    size={18}
-                    className={on ? 'text-[var(--color-primary)]' : 'text-[var(--menu-icon-muted)]'}
-                  />
+                  <AiToolsIcon size={20} gradient className='relative size-5 shrink-0' />
                 ) : Icon ? (
                   <Icon className='text-[18px]' />
                 ) : null}
-                <span className='max-w-full truncate px-0.5'>{labels[key]}</span>
+                <span
+                  className={`max-w-full truncate px-0.5 ${
+                    key === 'ai-tools' ? 'ai-tools-tile-label' : ''
+                  }`}
+                >
+                  {labels[key]}
+                </span>
               </button>
             );
           })}

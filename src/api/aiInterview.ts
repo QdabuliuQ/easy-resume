@@ -83,6 +83,19 @@ export async function interviewGetSession(sessionId: string, signal?: AbortSigna
   }>(`/api/ai/interview/session/${sessionId}`, signal);
 }
 
+/** 中断本场；unmount / pagehide 用 keepalive，不抛错 */
+export function interviewAbandon(sessionId: string): void {
+  try {
+    void fetch(`/api/ai/interview/session/${sessionId}`, {
+      method: 'DELETE',
+      keepalive: true,
+      cache: 'no-store',
+    });
+  } catch {
+    /* ignore */
+  }
+}
+
 export type InterviewAnswerResult =
   | {
       phase: 'question';
@@ -115,6 +128,7 @@ export async function interviewEnd(sessionId: string, signal?: AbortSignal) {
 }
 
 export type InterviewReportStreamHandlers = {
+  onProgress?: (stage: string) => void;
   onMeta?: (dimensions: InterviewReport['dimensions']) => void;
   onDelta?: (evt: { field: string; index?: number; textDelta: string }) => void;
   onDone?: (report: InterviewReport) => void;
@@ -132,6 +146,10 @@ function processReportSseLine(line: string, handlers: InterviewReportStreamHandl
     return;
   }
   if (j.type === 'error') throw new Error(String(j.message || '报告生成失败'));
+  if (j.type === 'report.progress' && typeof j.stage === 'string') {
+    handlers.onProgress?.(j.stage);
+    return;
+  }
   if (j.type === 'report.meta' && j.dimensions && typeof j.dimensions === 'object') {
     handlers.onMeta?.(j.dimensions as InterviewReport['dimensions']);
     return;

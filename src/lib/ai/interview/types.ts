@@ -70,6 +70,11 @@ export const INTERVIEW_Q_DEFAULT = 6;
 export const INTERVIEW_ANCHOR_MIN = 2;
 export const INTERVIEW_SESSION_TTL_MS = 2 * 60 * 60 * 1000;
 export const INTERVIEW_DIFFICULTY_DEFAULT: InterviewDifficulty = 'medium';
+/** 单题作答最大字符数（防 token 爆炸 / 注入） */
+export const INTERVIEW_ANSWER_MAX_CHARS = 4000;
+/** 送模型时单题答案截断（完整文本仍存 session） */
+export const INTERVIEW_MODEL_ANSWER_CHARS = 1200;
+export const INTERVIEW_MODEL_EXCERPT_CHARS = 400;
 
 export function clampQuestionCount(n: unknown): number {
   const v = typeof n === 'number' ? n : Number(n);

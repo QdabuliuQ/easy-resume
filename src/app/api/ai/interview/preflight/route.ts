@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   if ('error' in gate) return gate.error;
 
   const rateKey = gate.uid || crypto.createHash('sha256').update(getClientIp(req)).digest('hex').slice(0, 16);
-  const rate = await checkInterviewRateLimit(rateKey);
+  const rate = await checkInterviewRateLimit(rateKey, 'session');
   if (!rate.allowed) return err(rate.message, 429, rate.resetIn);
 
   let body: { resumeId?: string; resume?: unknown };

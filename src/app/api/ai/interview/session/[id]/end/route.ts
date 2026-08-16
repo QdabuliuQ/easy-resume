@@ -1,5 +1,9 @@
 import { assertSessionOwner, requireInterviewAuth } from '@/lib/ai/interview/auth';
-import { getInterviewSession, saveInterviewSession } from '@/lib/ai/interview/sessionStore';
+import {
+  getInterviewSession,
+  interviewStoreError,
+  saveInterviewSession,
+} from '@/lib/ai/interview/sessionStore';
 import { err, ok } from '@/lib/ai/score/routeShared';
 
 export const runtime = 'nodejs';
@@ -8,6 +12,9 @@ export const dynamic = 'force-dynamic';
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const gate = await requireInterviewAuth();
   if ('error' in gate) return gate.error;
+
+  const storeErr = interviewStoreError();
+  if (storeErr) return err(storeErr, 503);
 
   const id = params.id?.trim();
   if (!id) return err('缺少 sessionId', 400);

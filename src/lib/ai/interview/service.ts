@@ -10,7 +10,10 @@ import type {
   InterviewQuestion,
   InterviewReport,
 } from '@/lib/ai/interview/types';
-import { stripResumeForAiAnalyze } from '@/lib/stripResumeForAiAnalyze';
+import {
+  INTERVIEW_MODEL_ANSWER_CHARS,
+  INTERVIEW_MODEL_EXCERPT_CHARS,
+} from '@/lib/ai/interview/types';
 import { intentPostsFromResumeConfig } from '@/utils/intentPosts';
 import { randomUUID } from 'crypto';
 
@@ -18,6 +21,21 @@ function pickAnchor(anchors: InterviewAnchor[], index: unknown): InterviewAnchor
   const i = typeof index === 'number' ? index : Number(index);
   if (Number.isFinite(i) && i >= 0 && i < anchors.length) return anchors[i]!;
   return anchors[0]!;
+}
+
+function clipText(s: string, max: number): string {
+  const t = s.trim();
+  if (t.length <= max) return t;
+  return `${t.slice(0, max)}…`;
+}
+
+function anchorsPayload(anchors: InterviewAnchor[]) {
+  return anchors.map((a, i) => ({
+    index: i,
+    moduleType: a.moduleType,
+    label: a.label,
+    excerpt: clipText(a.excerpt, INTERVIEW_MODEL_EXCERPT_CHARS),
+  }));
 }
 
 async function invokeJson(system: string, payload: string, temperature: number): Promise<string> {
@@ -35,25 +53,18 @@ export function targetRoleFromResume(resume: unknown): string {
   );
 }
 
+/** 出题：只送锚点摘要，不送整份简历 */
 export async function generateInterviewQuestions(opts: {
-  resume: unknown;
   anchors: InterviewAnchor[];
   questionCount: number;
   targetRole: string;
   difficulty: InterviewDifficulty;
 }): Promise<InterviewQuestion[]> {
-  const sanitized = stripResumeForAiAnalyze(opts.resume);
   const payload = JSON.stringify({
     questionCount: opts.questionCount,
     targetRole: opts.targetRole || '',
     difficulty: opts.difficulty,
-    anchors: opts.anchors.map((a, i) => ({
-      index: i,
-      moduleType: a.moduleType,
-      label: a.label,
-      excerpt: a.excerpt,
-    })),
-    resumeHint: sanitized,
+    anchors: anchorsPayload(opts.anchors),
   });
   const temperature = opts.difficulty === 'easy' ? 0.5 : opts.difficulty === 'hard' ? 0.75 : 0.6;
   const raw = await invokeJson(INTERVIEW_QUESTION_SYSTEM, payload, temperature);
@@ -77,27 +88,31 @@ export async function generateInterviewQuestions(opts: {
   return questions;
 }
 
+/** 报告：锚点 + 截断答案；完整答案只在 session */
 export async function generateInterviewReport(opts: {
-  resume: unknown;
   targetRole: string;
   difficulty: InterviewDifficulty;
   questions: InterviewQuestion[];
   answers: InterviewAnswer[];
 }): Promise<InterviewReport> {
-  const sanitized = stripResumeForAiAnalyze(opts.resume);
   const turns = opts.questions.map((q) => {
     const a = opts.answers.find((x) => x.questionId === q.id);
+    const skipped = Boolean(a?.skipped);
+    const full = skipped ? '' : a?.text || '';
     return {
       question: q.text,
-      anchor: q.anchor,
-      skipped: Boolean(a?.skipped),
-      answer: a?.skipped ? '' : a?.text || '',
+      anchor: {
+        moduleType: q.anchor.moduleType,
+        label: q.anchor.label,
+        excerpt: clipText(q.anchor.excerpt, INTERVIEW_MODEL_EXCERPT_CHARS),
+      },
+      skipped,
+      answer: skipped ? '' : clipText(full, INTERVIEW_MODEL_ANSWER_CHARS),
     };
   });
   const payload = JSON.stringify({
     targetRole: opts.targetRole || '',
     difficulty: opts.difficulty,
-    resumeHint: sanitized,
     turns,
   });
   const raw = await invokeJson(INTERVIEW_REPORT_SYSTEM, payload, 0.4);

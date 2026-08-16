@@ -1124,6 +1124,89 @@ body {
     var(--add-module-gradient);
 }
 
+/* AI 工具菜单格：底同选中菜单项；边框 / 文字为润色紫→青渐变 */
+.ai-tools-tile {
+  --ai-polish-from: #7b66ff;
+  --ai-polish-to: #5cd7ff;
+  --ai-polish-via: #a78bfa;
+  --ai-tools-fill: rgb(var(--surface-fg-rgb) / 0.055);
+  position: relative;
+  isolation: isolate;
+  border: none;
+  background: var(--ai-tools-fill);
+  box-shadow: none;
+}
+.ai-tools-tile:hover {
+  --ai-tools-fill: rgb(var(--surface-fg-rgb) / 0.085);
+}
+.ai-tools-tile-lit,
+.ai-tools-tile-lit:hover {
+  --ai-tools-fill: color-mix(in srgb, var(--color-primary) 11%, var(--editor-shell-panel-strong));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent),
+    0 6px 18px color-mix(in srgb, var(--color-primary) 16%, transparent);
+}
+.ai-tools-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  pointer-events: none;
+  background-image: linear-gradient(
+    90deg,
+    var(--ai-polish-from),
+    var(--ai-polish-to),
+    var(--ai-polish-via),
+    var(--ai-polish-from)
+  );
+  background-size: 300% 100%;
+  background-position: 0% 50%;
+  animation: ai-polish-border-shift 2.5s ease-in-out infinite;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+.ai-tools-tile-label {
+  --ai-polish-from: #7b66ff;
+  --ai-polish-to: #5cd7ff;
+  background-image: linear-gradient(90deg, var(--ai-polish-from) 0%, var(--ai-polish-to) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+[data-theme='dark'] .ai-tools-tile-label {
+  --ai-polish-from: #9b8cff;
+  --ai-polish-to: #7ae0ff;
+}
+[data-theme='dark'] .ai-tools-tile {
+  --ai-polish-from: #9b8cff;
+  --ai-polish-to: #7ae0ff;
+  --ai-polish-via: #c4b5fd;
+}@keyframes ai-polish-border-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-tools-tile::before {
+    animation: none;
+    background-image: linear-gradient(90deg, var(--ai-polish-from) 0%, var(--ai-polish-to) 100%);
+    background-size: 100% 100%;
+    background-position: 0 0;
+  }
+}
+
 a {
   font-weight: 500;
   color: #646cff;

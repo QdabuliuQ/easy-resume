@@ -29,7 +29,7 @@ import { POST as preflightPost } from '@/app/api/ai/interview/preflight/route';
 import { POST as sessionPost } from '@/app/api/ai/interview/session/route';
 import { POST as answerPost } from '@/app/api/ai/interview/session/[id]/answer/route';
 import { POST as endPost } from '@/app/api/ai/interview/session/[id]/end/route';
-import { GET as sessionGet } from '@/app/api/ai/interview/session/[id]/route';
+import { DELETE as sessionDelete, GET as sessionGet } from '@/app/api/ai/interview/session/[id]/route';
 import {
   getInterviewSession,
   saveInterviewSession,
@@ -238,6 +238,41 @@ describe('ai interview API', () => {
     expect(g.answered).toBe(2);
   });
 
+  it('rejects oversized answer', async () => {
+    const now = Date.now();
+    await saveInterviewSession({
+      id: 'api-sess-long',
+      ownerKey: 'dev-local',
+      resume: richResume,
+      targetRole: '前端',
+      difficulty: 'medium',
+      questionCount: 1,
+      questions: [
+        {
+          id: 'q1',
+          index: 0,
+          text: '题1',
+          anchor: { moduleType: 'job', label: 'A', excerpt: '足够长的摘要文本内容' },
+          depth: 'L1',
+        },
+      ],
+      answers: [],
+      currentIndex: 0,
+      status: 'active',
+      createdAt: now,
+      expiresAt: freshExpiry(now),
+    });
+    const res = await answerPost(
+      new Request('http://localhost/api/ai/interview/session/api-sess-long/answer', {
+        method: 'POST',
+        body: JSON.stringify({ questionId: 'q1', text: '字'.repeat(4001) }),
+      }),
+      { params: { id: 'api-sess-long' } },
+    );
+    expect(res.status).toBe(400);
+    expect((await readJson(res)).error).toMatch(/过长/);
+  });
+
   it('end marks session reporting', async () => {
     const now = Date.now();
     await saveInterviewSession({
@@ -269,6 +304,39 @@ describe('ai interview API', () => {
     expect(res.status).toBe(200);
     expect((await readJson(res)).data).toMatchObject({ phase: 'reporting' });
     expect((await getInterviewSession('api-sess-end'))?.status).toBe('reporting');
+  });
+
+  it('DELETE abandons session', async () => {
+    const now = Date.now();
+    await saveInterviewSession({
+      id: 'api-sess-abandon',
+      ownerKey: 'dev-local',
+      resume: richResume,
+      targetRole: '',
+      difficulty: 'medium',
+      questionCount: 5,
+      questions: [
+        {
+          id: 'q1',
+          index: 0,
+          text: '题',
+          anchor: { moduleType: 'job', label: 'A', excerpt: '足够长的摘要文本内容' },
+          depth: 'L1',
+        },
+      ],
+      answers: [{ questionId: 'q1', text: '答一半' }],
+      currentIndex: 1,
+      status: 'active',
+      createdAt: now,
+      expiresAt: freshExpiry(now),
+    });
+
+    const res = await sessionDelete(new Request('http://localhost', { method: 'DELETE' }), {
+      params: { id: 'api-sess-abandon' },
+    });
+    expect(res.status).toBe(200);
+    expect((await readJson(res)).data).toMatchObject({ abandoned: true });
+    expect(await getInterviewSession('api-sess-abandon')).toBeNull();
   });
 
   it('production anonymous session is 401', async () => {

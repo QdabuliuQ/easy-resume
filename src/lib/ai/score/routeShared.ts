@@ -237,29 +237,82 @@ export async function checkResumeImportRateLimit(
   return { allowed: true };
 }
 
-/** AI 面试：生产环境创建会话 2 次/分钟、8 次/小时（按 uid 或 IP）。本地调试跳过；未配置 Upstash 时也跳过。 */
+/** AI 面试限流。生产必限流：有 Redis 用 Redis，否则进程内内存桶。本地调试跳过。 */
+export type InterviewRateKind = 'session' | 'answer' | 'report';
+
+const INTERVIEW_RATE: Record<InterviewRateKind, { perMin: number; perHour: number }> = {
+  session: { perMin: 2, perHour: 8 },
+  answer: { perMin: 30, perHour: 200 },
+  report: { perMin: 3, perHour: 10 },
+};
+
+type MemBucket = { t: number[] };
+const interviewMemBuckets = new Map<string, MemBucket>();
+
+function checkMemRateLimit(
+  key: string,
+  limit: number,
+  windowSec: number,
+): { allowed: boolean; resetIn: number } {
+  const now = Date.now();
+  const windowMs = windowSec * 1000;
+  let bucket = interviewMemBuckets.get(key);
+  if (!bucket) {
+    bucket = { t: [] };
+    interviewMemBuckets.set(key, bucket);
+  }
+  bucket.t = bucket.t.filter((ts) => now - ts < windowMs);
+  if (bucket.t.length >= limit) {
+    const oldest = bucket.t[0] ?? now;
+    return { allowed: false, resetIn: Math.max(1, Math.ceil((oldest + windowMs - now) / 1000)) };
+  }
+  bucket.t.push(now);
+  return { allowed: true, resetIn: windowSec };
+}
+
 export async function checkInterviewRateLimit(
   key: string,
+  kind: InterviewRateKind = 'session',
 ): Promise<RateLimitDenied | { allowed: true }> {
   if (process.env.NODE_ENV !== 'production') return { allowed: true };
+  const cfg = INTERVIEW_RATE[kind];
   const redis = getRedis();
-  if (!redis) return { allowed: true };
-  const [minuteCheck, hourCheck] = await Promise.all([
-    checkRateLimit(redis, `ratelimit:interview:1m:${key}`, 2, 60),
-    checkRateLimit(redis, `ratelimit:interview:1h:${key}`, 8, 3600),
-  ]);
-  if (!minuteCheck.allowed) {
+  if (redis) {
+    const [minuteCheck, hourCheck] = await Promise.all([
+      checkRateLimit(redis, `ratelimit:interview:${kind}:1m:${key}`, cfg.perMin, 60),
+      checkRateLimit(redis, `ratelimit:interview:${kind}:1h:${key}`, cfg.perHour, 3600),
+    ]);
+    if (!minuteCheck.allowed) {
+      return {
+        allowed: false,
+        resetIn: minuteCheck.resetIn,
+        message: `请求过于频繁，1 分钟内最多 ${cfg.perMin} 次，请 ${minuteCheck.resetIn} 秒后重试`,
+      };
+    }
+    if (!hourCheck.allowed) {
+      return {
+        allowed: false,
+        resetIn: hourCheck.resetIn,
+        message: `1 小时内最多 ${cfg.perHour} 次，请 ${hourCheck.resetIn} 秒后重试`,
+      };
+    }
+    return { allowed: true };
+  }
+  // ponytail: 无 Upstash 时用进程内桶，多实例不共享，但强于生产静默放行
+  const minute = checkMemRateLimit(`interview:${kind}:1m:${key}`, cfg.perMin, 60);
+  if (!minute.allowed) {
     return {
       allowed: false,
-      resetIn: minuteCheck.resetIn,
-      message: `请求过于频繁，1 分钟内最多 2 次，请 ${minuteCheck.resetIn} 秒后重试`,
+      resetIn: minute.resetIn,
+      message: `请求过于频繁，1 分钟内最多 ${cfg.perMin} 次，请 ${minute.resetIn} 秒后重试`,
     };
   }
-  if (!hourCheck.allowed) {
+  const hour = checkMemRateLimit(`interview:${kind}:1h:${key}`, cfg.perHour, 3600);
+  if (!hour.allowed) {
     return {
       allowed: false,
-      resetIn: hourCheck.resetIn,
-      message: `今日面试次数较多，请 ${hourCheck.resetIn} 秒后重试`,
+      resetIn: hour.resetIn,
+      message: `1 小时内最多 ${cfg.perHour} 次，请 ${hour.resetIn} 秒后重试`,
     };
   }
   return { allowed: true };

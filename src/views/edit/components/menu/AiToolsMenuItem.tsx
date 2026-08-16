@@ -2,33 +2,18 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Tooltip } from 'antd';
-import MenuItemIcon from './menuItemIcon';
+import AiToolsIcon from './AiToolsIcon';
 import { AiToolsPanel, isAiToolKey, type AiToolKey } from './AiToolsPanel';
 
 const MENU_TILE_SIZE_PX = 68;
 const EXIT_MS = 160;
 const MENU_TILE_TRANSITION =
-  'transition-[transform,box-shadow,background-color,border-color,color] duration-200 ease-out motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100';
+  'transition-[transform,box-shadow,background-color,color] duration-200 ease-out motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100';
 const MENU_TILE_FOCUS =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_42%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-panel)]';
-const menuTileClass = `relative isolate flex cursor-pointer select-none flex-col items-center justify-center gap-1 overflow-hidden rounded-xl py-2 text-[10px] leading-[1.2] ${MENU_TILE_TRANSITION} ${MENU_TILE_FOCUS}`;
-const TILE_DEFAULT = [
-  'border border-transparent',
-  'bg-[rgb(var(--surface-fg-rgb)/0.055)]',
-  'text-[var(--menu-icon-muted)]',
-  'hover:bg-[rgb(var(--surface-fg-rgb)/0.085)]',
-  'hover:text-[rgb(var(--surface-fg-rgb)/0.58)]',
-  'active:scale-[0.98]',
-].join(' ');
-const TILE_SELECTED = [
-  'z-[1]',
-  'border border-[color:var(--color-primary)]',
-  'bg-[color-mix(in_srgb,var(--color-primary)_11%,var(--editor-shell-panel-strong))]',
-  'text-[color:var(--color-primary)]',
-  'shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_14%,transparent),0_6px_18px_color-mix(in_srgb,var(--color-primary)_16%,transparent)]',
-  'hover:bg-[color-mix(in_srgb,var(--color-primary)_14%,var(--editor-shell-panel-strong))]',
-  'active:scale-[0.98]',
-].join(' ');
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(123_102_255/0.42)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-panel)]';
+const menuTileClass = `relative isolate flex cursor-pointer select-none flex-col items-center justify-center gap-1 rounded-xl py-2 text-[10px] leading-[1.2] ${MENU_TILE_TRANSITION} ${MENU_TILE_FOCUS}`;
+const TILE_AI = ['z-[1]', 'ai-tools-tile', 'active:scale-[0.98]'].join(' ');
+const TILE_AI_LIT = ['z-[1]', 'ai-tools-tile', 'ai-tools-tile-lit', 'active:scale-[0.98]'].join(' ');
 
 type AiToolsMenuItemProps = {
   activeKey: string;
@@ -61,8 +46,9 @@ export default function AiToolsMenuItem({
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const [mounted, setMounted] = useState(false);
   const aiActive = isAiToolKey(activeKey);
-  const tileCls = aiActive ? TILE_SELECTED : TILE_DEFAULT;
-  const hintCls = showHint && !aiActive ? ' ui-hint-shimmer' : '';
+  const lit = aiActive || present;
+  const tileCls = lit ? TILE_AI_LIT : TILE_AI;
+  const hintCls = showHint && !lit ? ' ui-hint-shimmer' : '';
 
   useEffect(() => setMounted(true), []);
 
@@ -182,8 +168,10 @@ export default function AiToolsMenuItem({
         className={`${menuTileClass} ${tileCls}${hintCls}`}
         style={{ width: MENU_TILE_SIZE_PX, height: MENU_TILE_SIZE_PX }}
       >
-        <MenuItemIcon menuKey='ai-tools' selected={aiActive} />
-        <span className='relative z-[1] max-w-[62px] px-0.5 text-center font-medium'>{label}</span>
+        <AiToolsIcon size={24} gradient className='relative z-[1] mb-0.5 size-6 shrink-0' />
+        <span className='ai-tools-tile-label relative z-[1] max-w-[62px] px-0.5 text-center font-medium'>
+          {label}
+        </span>
       </div>
 
       {mounted && present
