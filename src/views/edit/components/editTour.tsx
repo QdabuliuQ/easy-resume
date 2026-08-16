@@ -7,8 +7,7 @@ import { isEditTourDone, markEditTourDone } from '@/lib/editTourStorage';
 const TOUR_TARGET_KEYS = [
   'module-nav',
   'menu-resume-template',
-  'menu-ai-score',
-  'menu-ai-modify',
+  'menu-ai-tools',
   'header-export',
 ] as const;
 
@@ -70,13 +69,7 @@ function EditTour({ ready }: EditTourProps) {
       {
         title: t('aiScoreTitle'),
         description: t('aiScoreDesc'),
-        target: tourTarget('menu-ai-score'),
-        placement: 'right' as const,
-      },
-      {
-        title: t('aiModifyTitle'),
-        description: t('aiModifyDesc'),
-        target: tourTarget('menu-ai-modify'),
+        target: tourTarget('menu-ai-tools'),
         placement: 'right' as const,
       },
       {

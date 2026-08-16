@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl';
 import { observer } from 'mobx-react';
 import { Tooltip } from 'antd';
 import MenuItemIcon from './menuItemIcon';
+import AiToolsMenuItem from './AiToolsMenuItem';
+import type { AiToolKey } from './AiToolsPanel';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { configStore, editHistoryStore, resumeImportStore } from '@/mobx';
@@ -66,13 +68,29 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
       { label: t('resumeTemplate'), key: 'resume-template' },
       { label: t('myResumes'), key: 'my-resumes' },
       { label: t('resume'), key: 'resume' },
-      { label: t('aiScore'), key: 'ai-score' },
-      { label: t('aiModify'), key: 'ai-modify' },
       { label: t('pageSettings'), key: 'page-settings' },
       { label: t('generalSettings'), key: 'general-settings' },
     ];
     return items;
   }, [t]);
+  const aiTitles = useMemo(
+    () =>
+      ({
+        'ai-score': t('aiScore'),
+        'ai-modify': t('aiModify'),
+        'ai-interview': t('aiInterview'),
+      }) satisfies Record<AiToolKey, string>,
+    [t],
+  );
+  const aiDescriptions = useMemo(
+    () =>
+      ({
+        'ai-score': t('aiScoreDesc'),
+        'ai-modify': t('aiModifyDesc'),
+        'ai-interview': t('aiInterviewDesc'),
+      }) satisfies Record<AiToolKey, string>,
+    [t],
+  );
   useEffect(() => {
     if (!signedIn && activeKey === 'my-resumes') {
       onActiveKeyChange('resume');
@@ -93,14 +111,11 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
     setHintAiModify(!uiHints.aiModifyMenu.isDismissed());
     setHintAiScore(!uiHints.aiScoreMenu.isDismissed());
   }, []);
-  const dismissMenuHint = (key: string) => {
-    if (key === 'ai-modify') {
-      uiHints.aiModifyMenu.dismiss();
-      setHintAiModify(false);
-    } else if (key === 'ai-score') {
-      uiHints.aiScoreMenu.dismiss();
-      setHintAiScore(false);
-    }
+  const dismissAiHints = () => {
+    uiHints.aiModifyMenu.dismiss();
+    uiHints.aiScoreMenu.dismiss();
+    setHintAiModify(false);
+    setHintAiScore(false);
   };
   const pickImportFile = () => fileRef.current?.click();
   const confirmThenPickImport = () => {
@@ -144,11 +159,6 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
     const selected = !isAction && activeKey === item.key;
     const accent = selected || isAction;
     const tileCls = isAction ? TILE_IMPORT : selected ? TILE_SELECTED : TILE_DEFAULT;
-    const showHint =
-      !isAction &&
-      !selected &&
-      ((item.key === 'ai-modify' && hintAiModify) || (item.key === 'ai-score' && hintAiScore));
-    const hintCls = showHint ? ' ui-hint-shimmer' : '';
     const label =
       isActionImportResume && resumeImportLoading && resumeImportStore.statusText
         ? resumeImportStore.statusText
@@ -156,11 +166,7 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
     const loginLocked = item.key === 'my-resumes' && !signedIn;
     const tile = (
       <div
-        data-edit-tour={
-          item.key === 'resume-template' || item.key === 'ai-score' || item.key === 'ai-modify'
-            ? `menu-${item.key}`
-            : undefined
-        }
+        data-edit-tour={item.key === 'resume-template' ? 'menu-resume-template' : undefined}
         role='button'
         tabIndex={loginLocked ? -1 : 0}
         aria-current={selected ? 'page' : undefined}
@@ -171,10 +177,7 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
           if (loginLocked) return;
           if (isActionImportResume) confirmThenPickResumeImport();
           else if (isActionImport) confirmThenPickImport();
-          else {
-            dismissMenuHint(item.key);
-            onActiveKeyChange(item.key);
-          }
+          else onActiveKeyChange(item.key);
         }}
         onKeyDown={(e) => {
           if (loginLocked) return;
@@ -182,13 +185,10 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
             e.preventDefault();
             if (isActionImportResume) confirmThenPickResumeImport();
             else if (isActionImport) confirmThenPickImport();
-            else {
-              dismissMenuHint(item.key);
-              onActiveKeyChange(item.key);
-            }
+            else onActiveKeyChange(item.key);
           }
         }}
-        className={`${menuTileClass} ${tileCls}${hintCls}${
+        className={`${menuTileClass} ${tileCls}${
           isActionImportResume && resumeImportLoading ? ' pointer-events-none opacity-60' : ''
         }${loginLocked ? ' pointer-events-none' : ''}`}
         style={{ width: MENU_TILE_SIZE_PX, height: MENU_TILE_SIZE_PX }}
@@ -215,6 +215,7 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
     }
     return <Fragment key={item.key}>{tile}</Fragment>;
   };
+  const interviewLocked = !signedIn && process.env.NODE_ENV === 'production';
   return (
     <>
       {contextHolder}
@@ -240,7 +241,21 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
         <div className='relative flex min-h-0 flex-1 flex-col'>
           <div className='flex min-h-0 flex-1 flex-col items-center overflow-y-auto overscroll-contain [scrollbar-width:thin]'>
             <div className='flex w-full flex-col items-center gap-2'>
-              {panelMenuItems.map((item) => renderMenuItem(item))}
+              {panelMenuItems.slice(0, 3).map((item) => renderMenuItem(item))}
+              <AiToolsMenuItem
+                activeKey={activeKey}
+                label={t('aiTools')}
+                titles={aiTitles}
+                descriptions={aiDescriptions}
+                needLoginLabel={t('needLogin')}
+                interviewLocked={interviewLocked}
+                showHint={hintAiModify || hintAiScore}
+                onSelectTool={(key) => {
+                  dismissAiHints();
+                  onActiveKeyChange(key);
+                }}
+              />
+              {panelMenuItems.slice(3).map((item) => renderMenuItem(item))}
             </div>
           </div>
           <div className='relative mt-3 flex shrink-0 flex-col items-center gap-2 pt-1'>

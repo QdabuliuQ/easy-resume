@@ -9,6 +9,7 @@ import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { configStore, editHistoryStore } from '@/mobx';
 import Container from '../components/container';
+import AiInterviewPage from '../components/aiInterview';
 import ResumeConfigCanvasPreviewHost from '../components/resumeConfigCanvasPreviewHost';
 import MobileEditHeader from './header';
 import MobileMainTabs from './mainTabs';
@@ -32,6 +33,7 @@ function MobileEdit() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [templateOpen, setTemplateOpen] = useState(false);
+  const isInterview = menuActiveKey === 'ai-interview';
 
   useLayoutEffect(() => {
     const raw = searchParams.get('template');
@@ -68,7 +70,9 @@ function MobileEdit() {
     }
   };
 
-  const onMainTab = (key: 'resume' | 'page-settings' | 'ai-score' | 'general-settings') => {
+  const onMainTab = (
+    key: 'resume' | 'page-settings' | 'ai-score' | 'ai-modify' | 'ai-interview' | 'general-settings',
+  ) => {
     setMenuActiveKey(key);
   };
 
@@ -78,6 +82,8 @@ function MobileEdit() {
       : menuActiveKey === 'resume' ||
           menuActiveKey === 'page-settings' ||
           menuActiveKey === 'ai-score' ||
+          menuActiveKey === 'ai-modify' ||
+          menuActiveKey === 'ai-interview' ||
           menuActiveKey === 'general-settings'
         ? menuActiveKey
         : DEFAULT_MENU_KEY;
@@ -92,29 +98,23 @@ function MobileEdit() {
 
   return (
     <MobileEditProvider>
-    <div className='mobile-edit-shell relative flex h-[100dvh] w-full flex-col overflow-hidden bg-[var(--editor-shell-bg)] text-[var(--text-strong)]'>
-      <div className='editor-shell-grid pointer-events-none absolute inset-0 opacity-40' />
-      <div className='relative z-[1] flex min-h-0 flex-1 flex-col'>
-        <MobileEditHeader />
-        <MobileMainTabs activeKey={mainTabKey} onChange={onMainTab} />
-        <div className='flex min-h-0 w-full flex-1 flex-col overflow-hidden'>
-          <Container menuActiveKey={menuActiveKey} fullWidth />
+      <div className='mobile-edit-shell relative flex h-[100dvh] w-full flex-col overflow-hidden bg-[var(--editor-shell-bg)] text-[var(--text-strong)]'>
+        <div className='editor-shell-grid pointer-events-none absolute inset-0 opacity-40' />
+        <div className='relative z-[1] flex min-h-0 flex-1 flex-col'>
+          <MobileEditHeader />
+          <MobileMainTabs activeKey={mainTabKey} onChange={onMainTab} />
+          <div className='flex min-h-0 w-full flex-1 flex-col overflow-hidden'>
+            {isInterview ? <AiInterviewPage /> : <Container menuActiveKey={menuActiveKey} fullWidth />}
+          </div>
+          <MobileBottomNav activeKey={bottomActive} onChange={onBottomNav} />
         </div>
-        <MobileBottomNav activeKey={bottomActive} onChange={onBottomNav} />
+        {previewOpen ? <MobilePreviewOverlay onClose={() => setPreviewOpen(false)} /> : null}
+        {exportOpen ? (
+          <MobileExportSheet visible={exportOpen} onClose={() => setExportOpen(false)} />
+        ) : null}
+        {templateOpen ? <MobileTemplateOverlay onClose={() => setTemplateOpen(false)} /> : null}
+        <ResumeConfigCanvasPreviewHost />
       </div>
-      {previewOpen ? (
-        <MobilePreviewOverlay
-          onClose={() => setPreviewOpen(false)}
-        />
-      ) : null}
-      {exportOpen ? (
-        <MobileExportSheet visible={exportOpen} onClose={() => setExportOpen(false)} />
-      ) : null}
-      {templateOpen ? (
-        <MobileTemplateOverlay onClose={() => setTemplateOpen(false)} />
-      ) : null}
-      <ResumeConfigCanvasPreviewHost />
-    </div>
     </MobileEditProvider>
   );
 }

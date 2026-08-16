@@ -237,6 +237,34 @@ export async function checkResumeImportRateLimit(
   return { allowed: true };
 }
 
+/** AI 面试：生产环境创建会话 2 次/分钟、8 次/小时（按 uid 或 IP）。本地调试跳过；未配置 Upstash 时也跳过。 */
+export async function checkInterviewRateLimit(
+  key: string,
+): Promise<RateLimitDenied | { allowed: true }> {
+  if (process.env.NODE_ENV !== 'production') return { allowed: true };
+  const redis = getRedis();
+  if (!redis) return { allowed: true };
+  const [minuteCheck, hourCheck] = await Promise.all([
+    checkRateLimit(redis, `ratelimit:interview:1m:${key}`, 2, 60),
+    checkRateLimit(redis, `ratelimit:interview:1h:${key}`, 8, 3600),
+  ]);
+  if (!minuteCheck.allowed) {
+    return {
+      allowed: false,
+      resetIn: minuteCheck.resetIn,
+      message: `请求过于频繁，1 分钟内最多 2 次，请 ${minuteCheck.resetIn} 秒后重试`,
+    };
+  }
+  if (!hourCheck.allowed) {
+    return {
+      allowed: false,
+      resetIn: hourCheck.resetIn,
+      message: `今日面试次数较多，请 ${hourCheck.resetIn} 秒后重试`,
+    };
+  }
+  return { allowed: true };
+}
+
 export async function getCachedJson<T>(cacheKey: string): Promise<T | null> {
   const redis = getRedis();
   if (!redis) return null;

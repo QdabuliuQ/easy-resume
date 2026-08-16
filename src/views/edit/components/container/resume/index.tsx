@@ -93,7 +93,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
   }, [buildAnalyzePayload, scoreLoading, message, tr]);
   const panelBody = (
     <>
-      {!isAiScore ? <PanelHero {...panelHero} /> : null}
+      <PanelHero {...panelHero} />
       <div className={isAiModify || isAiScore ? 'min-h-0 flex-1 flex flex-col' : undefined}>
         <Suspense
           fallback={

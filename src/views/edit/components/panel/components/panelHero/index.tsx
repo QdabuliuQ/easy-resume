@@ -12,12 +12,13 @@ export type PanelHeroProps = {
   title: string;
   description: string;
   chip: string;
+  className?: string;
 };
 
 const PANEL_HERO_CLASS =
-  'relative mb-4 overflow-hidden rounded-[16px] px-4 py-4 text-fg shadow-[0_18px_42px_rgba(0,0,0,0.14)]';
+  'relative mb-4 overflow-hidden rounded-[16px] border border-fg/[0.08] px-4 py-4 text-fg shadow-[0_18px_42px_rgba(0,0,0,0.14)]';
 
-export default function PanelHero({ eyebrow, title, description, chip }: PanelHeroProps) {
+export default function PanelHero({ eyebrow, title, description, chip, className }: PanelHeroProps) {
   const themeSnap = useSyncExternalStore(
     subscribeAppTheme,
     getThemeSnapshot,
@@ -26,15 +27,16 @@ export default function PanelHero({ eyebrow, title, description, chip }: PanelHe
   const [, appTheme] = themeSnap.split('|') as ['dark' | 'light' | 'system', 'dark' | 'light'];
 
   return (
-    <div className={PANEL_HERO_CLASS}>
+    <div className={`${PANEL_HERO_CLASS}${className ? ` ${className}` : ''}`}>
       <Image
         src={appTheme === 'dark' ? photo3 : photo3Light}
-        alt={`${title} background illustration`}
+        alt=''
         fill
-        className='h-full pointer-events-none'
+        sizes='(max-width: 768px) 100vw, 720px'
+        className='pointer-events-none object-cover object-right'
         loading='lazy'
       />
-      <div className='pointer-events-none absolute inset-0' />
+      <div className='pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgb(var(--panel-surface-rgb)/0.55)_0%,rgb(var(--panel-surface-rgb)/0.12)_55%,transparent_100%)]' />
       <div className='relative z-[1] flex items-start justify-between gap-3'>
         <div className='min-w-0'>
           <p className='text-[11px] font-medium tracking-[0.18em] text-fg/62'>{eyebrow}</p>

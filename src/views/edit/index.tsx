@@ -13,6 +13,7 @@ import Container from './components/container';
 import EditShellReveal from './components/editShellReveal';
 import Header from './components/header';
 import Menu from './components/menu/index';
+import AiInterviewPage from './components/aiInterview';
 import ResumeConfigCanvasPreviewHost from './components/resumeConfigCanvasPreviewHost';
 import ResumeFontCdn from './components/canvas/resumeFontCdn';
 import EditTour from './components/editTour';
@@ -24,6 +25,7 @@ function Edit() {
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
   const [shellRevealReady, setShellRevealReady] = useState(false);
   const resumeFont = normResumeFont(configStore.mergedGlobalStyle.resumeFont);
+  const isInterview = menuActiveKey === 'ai-interview';
 
   useEffect(() => {
     const id = window.setTimeout(() => prefetchRichTextEditor(), 1200);
@@ -57,7 +59,6 @@ function Edit() {
     }
   }, [searchParams]);
 
-  // 壳层尽早 reveal，不堵画布测量；画布内容由 Canvas pagesReady 单独淡入
   useLayoutEffect(() => {
     const id = requestAnimationFrame(() => setShellRevealReady(true));
     return () => cancelAnimationFrame(id);
@@ -84,21 +85,32 @@ function Edit() {
             >
               <Menu activeKey={menuActiveKey} onActiveKeyChange={setMenuActiveKey} />
             </div>
-            <div
-              data-edit-reveal='bottom'
-              className='editor-shell-card h-full min-h-0 rounded-[28px] overflow-hidden'
-            >
-              <Container menuActiveKey={menuActiveKey} />
-            </div>
-            <div
-              data-edit-reveal='right'
-              className='editor-shell-card editor-shell-card-strong box-border flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[32px]'
-            >
-              <Canvas
-                onOpenGeneralSettings={() => setMenuActiveKey('general-settings')}
-                onOpenResumePanel={() => setMenuActiveKey('resume')}
-              />
-            </div>
+            {isInterview ? (
+              <div
+                data-edit-reveal='bottom'
+                className='editor-shell-card editor-shell-card-strong box-border flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[32px]'
+              >
+                <AiInterviewPage />
+              </div>
+            ) : (
+              <>
+                <div
+                  data-edit-reveal='bottom'
+                  className='editor-shell-card h-full min-h-0 overflow-hidden rounded-[28px]'
+                >
+                  <Container menuActiveKey={menuActiveKey} />
+                </div>
+                <div
+                  data-edit-reveal='right'
+                  className='editor-shell-card editor-shell-card-strong box-border flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[32px]'
+                >
+                  <Canvas
+                    onOpenGeneralSettings={() => setMenuActiveKey('general-settings')}
+                    onOpenResumePanel={() => setMenuActiveKey('resume')}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
       </EditShellReveal>

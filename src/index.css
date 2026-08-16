@@ -131,6 +131,101 @@
   );
 }
 
+@keyframes ai-tools-flyout-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ai-tools-flyout-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.ai-tools-flyout-enter {
+  animation: ai-tools-flyout-enter 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ai-tools-flyout-exit {
+  animation: ai-tools-flyout-exit 150ms cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
+}
+
+/* 毛玻璃：必须挂在无 transform 祖先的节点上，否则 backdrop-filter 采不到页面背景 */
+.ai-tools-glass {
+  background: color-mix(in srgb, var(--editor-shell-panel-strong) 30%, transparent);
+  -webkit-backdrop-filter: blur(48px) saturate(1.65);
+  backdrop-filter: blur(48px) saturate(1.65);
+  border: 1px solid color-mix(in srgb, rgb(var(--surface-fg-rgb)) 14%, transparent);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ai-tools-glass {
+    background: color-mix(in srgb, var(--editor-shell-panel-strong) 92%, transparent);
+  }
+}
+
+@keyframes ai-tools-sheet-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ai-tools-sheet-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.ai-tools-sheet-enter {
+  animation: ai-tools-sheet-enter 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ai-tools-sheet-exit {
+  animation: ai-tools-sheet-exit 160ms cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
+}
+
+@keyframes ai-tools-scrim-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ai-tools-scrim-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.ai-tools-scrim-enter {
+  animation: ai-tools-scrim-enter 200ms ease both;
+}
+
+.ai-tools-scrim-exit {
+  animation: ai-tools-scrim-exit 160ms ease both;
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .info1-panel-animate {
     animation: none;
@@ -146,6 +241,15 @@
   .ui-hint-shimmer::after {
     animation: none;
     opacity: 0;
+  }
+
+  .ai-tools-flyout-enter,
+  .ai-tools-flyout-exit,
+  .ai-tools-sheet-enter,
+  .ai-tools-sheet-exit,
+  .ai-tools-scrim-enter,
+  .ai-tools-scrim-exit {
+    animation: none;
   }
 }
 
