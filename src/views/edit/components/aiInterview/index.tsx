@@ -12,6 +12,7 @@ import {
   interviewStart,
 } from '@/api/aiInterview';
 import { useAppMessage } from '@/hooks/useAppMessage';
+import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import DifficultySlider from './DifficultySlider';
 import PanelHero from '../panel/components/panelHero';
@@ -153,8 +154,13 @@ function ActionsSkeleton() {
   );
 }
 
-export default observer(function AiInterviewPage() {
+export default observer(function AiInterviewPage({
+  onLiveChange,
+}: {
+  onLiveChange?: (live: boolean) => void;
+} = {}) {
   const message = useAppMessage();
+  const { confirm, contextHolder } = useResponsiveConfirm();
   const { status, data: session } = useSession();
   const signedIn = status === 'authenticated' && Boolean(session?.user?.uid);
   const isDev = process.env.NODE_ENV !== 'production';
@@ -185,6 +191,7 @@ export default observer(function AiInterviewPage() {
 
   sessionIdRef.current = sessionId;
   phaseRef.current = phase;
+  const live = Boolean(sessionId) && phase !== 'prepare';
 
   const voice = useVoiceInput({
     onText: (text) => setAnswerText((prev) => (prev ? `${prev}${text}` : text)),
@@ -210,6 +217,21 @@ export default observer(function AiInterviewPage() {
     setReportStreaming(false);
     setBusy(false);
   }, []);
+
+  const requestLeaveInterview = useCallback(() => {
+    if (!live) {
+      resetSession();
+      return;
+    }
+    confirm({
+      title: '确认退出面试？',
+      content: '退出后本场进度将丢失，无法恢复。',
+      okText: '确认退出',
+      cancelText: '继续面试',
+      danger: true,
+      onOk: () => resetSession(),
+    });
+  }, [live, confirm, resetSession]);
 
   const streamReport = useCallback(
     async (sid: string) => {
@@ -254,6 +276,21 @@ export default observer(function AiInterviewPage() {
     },
     [message],
   );
+
+  useEffect(() => {
+    onLiveChange?.(live);
+    return () => onLiveChange?.(false);
+  }, [live, onLiveChange]);
+
+  useEffect(() => {
+    if (!live) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [live]);
 
   // 切走菜单 / 关页：中断本场，再进从准备页开始
   useEffect(() => {
@@ -400,6 +437,7 @@ export default observer(function AiInterviewPage() {
 
   return (
     <div className='flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden'>
+      {contextHolder}
       <div className='min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-5'>
         <div className='mx-auto flex w-full max-w-[720px] flex-col gap-5'>
           {phase === 'session' || phase === 'report' ? (
@@ -418,7 +456,7 @@ export default observer(function AiInterviewPage() {
               </div>
               <button
                 type='button'
-                onClick={resetSession}
+                onClick={requestLeaveInterview}
                 className='shrink-0 rounded-lg px-2.5 py-1.5 text-[12px] font-medium text-fg/50 transition-colors hover:bg-fg/[0.05] hover:text-fg/80'
               >
                 返回准备
@@ -826,7 +864,7 @@ export default observer(function AiInterviewPage() {
                 <button
                   type='button'
                   className={`${primaryBtnClass} sm:shrink-0`}
-                  onClick={resetSession}
+                  onClick={requestLeaveInterview}
                   disabled={reportStreaming}
                 >
                   {reportStreaming ? (

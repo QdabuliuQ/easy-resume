@@ -1,5 +1,5 @@
 'use client';
-import { memo, useEffect, useLayoutEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSearchParams } from 'next/navigation';
 import { prefetchRichTextEditor } from '@/components/richTextEditor/lazy';
@@ -8,6 +8,7 @@ import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { normResumeFont } from '@/lib/resumeFont';
 import { configStore, editHistoryStore } from '@/mobx';
+import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import Canvas from './components/canvas';
 import Container from './components/container';
 import EditShellReveal from './components/editShellReveal';
@@ -24,8 +25,28 @@ function Edit() {
   const searchParams = useSearchParams();
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
   const [shellRevealReady, setShellRevealReady] = useState(false);
+  const interviewLiveRef = useRef(false);
+  const { confirm, contextHolder } = useResponsiveConfirm();
   const resumeFont = normResumeFont(configStore.mergedGlobalStyle.resumeFont);
   const isInterview = menuActiveKey === 'ai-interview';
+
+  const changeMenuKey = useCallback(
+    (key: string) => {
+      if (menuActiveKey === 'ai-interview' && key !== 'ai-interview' && interviewLiveRef.current) {
+        confirm({
+          title: '确认退出面试？',
+          content: '退出后本场进度将丢失，无法恢复。',
+          okText: '确认退出',
+          cancelText: '继续面试',
+          danger: true,
+          onOk: () => setMenuActiveKey(key),
+        });
+        return;
+      }
+      setMenuActiveKey(key);
+    },
+    [menuActiveKey, confirm],
+  );
 
   useEffect(() => {
     const id = window.setTimeout(() => prefetchRichTextEditor(), 1200);
@@ -66,8 +87,8 @@ function Edit() {
 
   return (
     <div className='editor-shell-bg relative flex h-screen w-screen flex-col overflow-hidden text-[var(--text-strong)]'>
+      {contextHolder}
       <ResumeFontCdn font={resumeFont} />
-      <div className='editor-shell-grid pointer-events-none absolute inset-0 opacity-60' />
       <EditShellReveal revealReady={shellRevealReady}>
         <div className='relative z-[1] flex min-h-0 flex-1 flex-col gap-3 p-3 md:p-4'>
           <div
@@ -83,14 +104,18 @@ function Edit() {
               data-edit-reveal='left'
               className='editor-shell-card h-full min-h-0 overflow-visible rounded-[28px]'
             >
-              <Menu activeKey={menuActiveKey} onActiveKeyChange={setMenuActiveKey} />
+              <Menu activeKey={menuActiveKey} onActiveKeyChange={changeMenuKey} />
             </div>
             {isInterview ? (
               <div
                 data-edit-reveal='bottom'
                 className='editor-shell-card editor-shell-card-strong box-border flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[32px]'
               >
-                <AiInterviewPage />
+                <AiInterviewPage
+                  onLiveChange={(live) => {
+                    interviewLiveRef.current = live;
+                  }}
+                />
               </div>
             ) : (
               <>
@@ -105,8 +130,8 @@ function Edit() {
                   className='editor-shell-card editor-shell-card-strong box-border flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[32px]'
                 >
                   <Canvas
-                    onOpenGeneralSettings={() => setMenuActiveKey('general-settings')}
-                    onOpenResumePanel={() => setMenuActiveKey('resume')}
+                    onOpenGeneralSettings={() => changeMenuKey('general-settings')}
+                    onOpenResumePanel={() => changeMenuKey('resume')}
                   />
                 </div>
               </>
