@@ -715,7 +715,6 @@ export default observer(function AiInterviewPage({
                   onChange={(e) => setAnswerText(e.target.value)}
                   rows={7}
                   maxLength={INTERVIEW_ANSWER_MAX_CHARS}
-                  showCount
                   placeholder='语音转写会出现在这里，也可手动微调后再提交'
                   disabled={busy}
                   variant='borderless'
@@ -745,31 +744,32 @@ export default observer(function AiInterviewPage({
                         ? '识别中…'
                         : '语音作答'}
                   </button>
-                  <div className='ml-auto flex flex-wrap items-center gap-2'>
-                    <button
-                      type='button'
-                      className='h-10 rounded-xl px-3.5 text-[13px] font-medium text-fg/50 transition-colors hover:bg-fg/[0.06] hover:text-fg/75 disabled:opacity-50'
-                      onClick={() => void submitAnswer(true)}
-                      disabled={busy}
-                    >
-                      跳过
-                    </button>
-                    <button
-                      type='button'
-                      className={`${primaryBtnClass} !min-w-[120px] !h-10`}
-                      disabled={busy}
-                      onClick={() => void submitAnswer(false)}
-                    >
-                      {busy ? (
-                        <>
-                          <LoadingOutlined spin />
-                          提交中…
-                        </>
-                      ) : (
-                        '提交回答'
-                      )}
-                    </button>
-                  </div>
+                  <span className='ml-auto tabular-nums text-[11px] text-fg/40'>
+                    {answerText.length} / {INTERVIEW_ANSWER_MAX_CHARS}
+                  </span>
+                  <button
+                    type='button'
+                    className='h-10 rounded-xl px-3.5 text-[13px] font-medium text-fg/50 transition-colors hover:bg-fg/[0.06] hover:text-fg/75 disabled:opacity-50'
+                    onClick={() => void submitAnswer(true)}
+                    disabled={busy}
+                  >
+                    跳过
+                  </button>
+                  <button
+                    type='button'
+                    className={`${primaryBtnClass} !min-w-[120px] !h-10`}
+                    disabled={busy}
+                    onClick={() => void submitAnswer(false)}
+                  >
+                    {busy ? (
+                      <>
+                        <LoadingOutlined spin />
+                        提交中…
+                      </>
+                    ) : (
+                      '提交回答'
+                    )}
+                  </button>
                 </div>
               </div>
             </section>

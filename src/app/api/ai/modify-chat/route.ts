@@ -114,8 +114,8 @@ export async function POST(req: Request) {
             }
             emit(evt);
           },
-          abortController.signal,
-        );
+            abortController.signal,
+          );
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') return;
         if (abortController.signal.aborted) return;

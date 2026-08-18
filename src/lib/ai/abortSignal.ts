@@ -3,11 +3,24 @@ export function isAbortError(e: unknown): boolean {
   return e instanceof Error && e.name === 'AbortError';
 }
 
+function errorText(e: unknown): string {
+  if (!(e instanceof Error)) return String(e);
+  const causeMsg = e.cause instanceof Error ? e.cause.message : String(e.cause ?? '');
+  return `${e.message} ${causeMsg} ${e.stack ?? ''}`;
+}
+
+export function isRateLimitError(e: unknown): boolean {
+  return /429|rate.?limit|quota exceeded|MODEL_RATE_LIMIT/i.test(errorText(e));
+}
+
 /** 将 LLM / Redis 等外部 fetch 错误转为可读文案 */
 export function formatExternalError(e: unknown): string {
   if (!(e instanceof Error)) return String(e);
   const causeMsg = e.cause instanceof Error ? e.cause.message : String(e.cause ?? '');
-  const detail = `${e.message} ${causeMsg} ${e.stack ?? ''}`;
+  const detail = errorText(e);
+  if (isRateLimitError(e)) {
+    return '额度已用完或请求过快，请稍后再试';
+  }
   if (
     detail.includes('127.0.0.1:443') ||
     detail.includes('@xenova/transformers') ||

@@ -127,7 +127,8 @@ npm run start
 |------|------|------|
 | `XFYUN_MAAS_API_KEY` | 二选一 | [讯飞星辰 Coding Plan](https://www.xfyun.cn/doc/spark/CodingPlan.html) API Key（`appId:apiSecret`） |
 | `CHATANYWHERE_API_KEY` | 二选一 | [ChatAnywhere 免费 API](https://github.com/chatanywhere/GPT_API_free)；讯飞不可用时降级 |
-| `DEEPSEEK_API_KEY` | 否 | DeepSeek（AI 对话修改、富文本润色） |
+| `DEEPSEEK_API_KEY` | 否 | DeepSeek（AI 对话修改、模拟面试） |
+| `SENSENOVA_API_KEY` | 否 | 商汤 SenseNova（AI 润色） |
 | `BAIDU_OCR_API_KEY` / `BAIDU_OCR_SECRET_KEY` | 否 | 百度 OCR（简历导入） |
 | `PUPPETEER_EXECUTABLE_PATH` | 否 | 导出用浏览器路径；开发未设时用 Puppeteer 自带 Chromium |
 

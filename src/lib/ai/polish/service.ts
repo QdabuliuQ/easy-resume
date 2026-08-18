@@ -1,6 +1,6 @@
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { consumeAsyncIterable, throwIfAborted } from '@/lib/ai/abortSignal';
-import { createDeepSeekModel } from '@/lib/ai/chatModel';
+import { createSenseNovaModel } from '@/lib/ai/chatModel';
 import { getPolishPrompt } from '@/lib/ai/polish/prompts';
 import type { PolishRequest } from '@/lib/ai/polish/types';
 import { plainTextFromRichHtml, sanitizeRichTextHtml, unwrapFencedHtml } from '@/utils/sanitizeHtml';
@@ -64,7 +64,7 @@ export async function streamPolishDescription(
 ): Promise<string> {
   throwIfAborted(signal);
   const prompt = getPolishPrompt(req.type);
-  const llm = createDeepSeekModel({ temperature: 1 });
+  const llm = createSenseNovaModel({ temperature: 1 });
   const chain = prompt.pipe(llm).pipe(new StringOutputParser());
   const vars = buildPromptVars(req);
   const stream = await chain.stream(vars, { signal });

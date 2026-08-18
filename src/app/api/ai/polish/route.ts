@@ -3,7 +3,7 @@
  *
  * 调用链：
  *   编辑器 RichTextEditor → src/api/polishDescription.ts → 本路由
- *   → LangChain（src/lib/ai/polish/service.ts）→ DeepSeek
+ *   → LangChain（src/lib/ai/polish/service.ts）→ SenseNova deepseek-v4-flash
  *
  * 环境变量：
  *   XFYUN_MAAS_API_KEY — 讯飞星辰 Coding Plan（优先）

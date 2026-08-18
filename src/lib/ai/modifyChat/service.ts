@@ -1,7 +1,7 @@
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { createModifyChatModel } from '@/lib/ai/chatModel';
-import { consumeAsyncIterable, isAbortError, throwIfAborted } from '@/lib/ai/abortSignal';
+import { consumeAsyncIterable, isAbortError, isRateLimitError, throwIfAborted } from '@/lib/ai/abortSignal';
 import { classifyModifyIntent } from './intentRouter';
 import { resolveModifyScope } from './scopeRouter';
 import { executeScopedModify } from './executeScopeModify';
@@ -124,7 +124,7 @@ async function streamResumeModify(
       if (structureErr) throw new Error(structureErr);
       return { message: parsed.message.trim(), resume: parsed.resume };
     } catch (e) {
-      if (isAbortError(e)) throw e;
+      if (isAbortError(e) || isRateLimitError(e)) throw e;
       lastError = new Error(formatZodError(e));
     }
   }
