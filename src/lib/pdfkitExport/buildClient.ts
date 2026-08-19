@@ -49,11 +49,11 @@ async function buildPdfkitDocumentInBrowserInner(
   const files = resumeExportFontFiles(payload.font);
   const text = glyphText(pages);
   const regularBuf = await subsetWoff2ToSfnt(await fetchFont(files.regular), text);
-  doc.registerFont('resume-regular', regularBuf);
+  doc.registerFont('resume-regular', regularBuf as unknown as Buffer);
   let fonts = { regular: 'resume-regular', bold: 'resume-regular' };
   if (pdfkitNeedBold(pages)) {
     const boldBuf = await subsetWoff2ToSfnt(await fetchFont(files.bold), text);
-    doc.registerFont('resume-bold', boldBuf);
+    doc.registerFont('resume-bold', boldBuf as unknown as Buffer);
     fonts = { regular: 'resume-regular', bold: 'resume-bold' };
   }
   drawPdfkitPages(doc, pages, fonts);

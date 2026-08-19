@@ -145,7 +145,6 @@ export function collectPdfBytes(doc: PDFKit.PDFDocument): Promise<Uint8Array> {
       chunks.push(c instanceof Uint8Array ? c : new Uint8Array(c));
     });
     doc.on('end', finish);
-    doc.on('finish', finish);
     doc.on('error', fail);
   });
 }

@@ -7,6 +7,6 @@ if (isBrowser) {
     process?: { versions?: { node?: string } };
   };
   if (proc.process?.versions && typeof proc.process.versions.node === 'string') {
-    delete proc.process.versions.node;
+    delete (proc.process.versions as { node?: string }).node;
   }
 }
