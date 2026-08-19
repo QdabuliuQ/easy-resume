@@ -49,14 +49,18 @@ function heap(hb: HbSubset): Uint8Array {
   return new Uint8Array(hb.memory.buffer);
 }
 
-function wawoff2() {
-  const m = wawoff2Module as typeof wawoff2Module & { default?: typeof wawoff2Module };
-  return m.decompress ? m : m.default;
+function wawoff2(): typeof wawoff2Module {
+  const m = wawoff2Module as unknown as {
+    decompress?: typeof wawoff2Module['decompress'];
+    default?: typeof wawoff2Module;
+  };
+  if (typeof m.decompress === 'function') return m as typeof wawoff2Module;
+  if (m.default) return m.default;
+  throw new Error('wawoff2 加载失败');
 }
 
 async function decompressWoff2(src: Uint8Array): Promise<Uint8Array> {
   const mod = wawoff2();
-  if (!mod) throw new Error('wawoff2 加载失败');
   if (!mod.calledRun) {
     await new Promise<void>((resolve, reject) => {
       const t = setTimeout(() => reject(new Error('字体解压初始化超时')), 20_000);
