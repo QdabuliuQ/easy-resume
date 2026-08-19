@@ -23,7 +23,7 @@ export function SectionHeaderType13({
           aria-hidden
         />
         <span
-          className='min-w-0 truncate font-bold leading-none'
+          className='font-bold leading-none'
           style={{ fontSize: fontSizeCss, color: '#fff' }}
         >
           {title}

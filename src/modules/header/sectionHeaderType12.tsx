@@ -1,4 +1,5 @@
 'use client';
+import { RESUME_HEADER_MARK_ATTR } from '@/components/moduleOperation/constants';
 import { sectionHeaderRowHeightStyle } from './sectionHeaderLayout';
 
 /** 样式12：水印序号 + 短下划线（默认 01） */
@@ -27,6 +28,7 @@ export function SectionHeaderType12({
         className='pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 select-none font-bold leading-none tabular-nums'
         style={{ color, fontSize: markFs, opacity: 0.14 }}
         aria-hidden
+        {...{ [RESUME_HEADER_MARK_ATTR]: '' }}
       >
         {mark}
       </span>

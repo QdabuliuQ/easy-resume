@@ -45,6 +45,7 @@
     "next": "^14.0.0",
     "next-auth": "^5.0.0-beta.31",
     "next-intl": "^4.11.1",
+    "pdfkit": "^0.19.1",
     "puppeteer": "^24.42.0",
     "quill": "^2.0.3",
     "react": "^19.0.0",
@@ -52,6 +53,7 @@
     "react-grid-layout": "^1.5.1",
     "react-image-crop": "^11.0.10",
     "react-virtuoso": "^4.18.10",
+    "subset-font": "^2.5.0",
     "typed.js": "^3.0.0",
     "unpdf": "^1.6.2",
     "zod": "^4.4.3"
@@ -64,6 +66,7 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.13.5",
+    "@types/pdfkit": "^0.17.6",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.7.0",

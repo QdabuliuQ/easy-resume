@@ -1,5 +1,14 @@
+import fs from 'fs';
+import path from 'path';
 import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+
+const hbWasmSrc = path.join(process.cwd(), 'node_modules/harfbuzzjs/hb-subset.wasm');
+const hbWasmDest = path.join(process.cwd(), 'public/wasm/hb-subset.wasm');
+if (fs.existsSync(hbWasmSrc)) {
+  fs.mkdirSync(path.dirname(hbWasmDest), { recursive: true });
+  fs.copyFileSync(hbWasmSrc, hbWasmDest);
+}
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -16,11 +25,43 @@ const nextConfig = {
       '@xenova/transformers',
       'onnxruntime-node',
       'unpdf',
+      'pdfkit',
+      'fontkit',
+      'subset-font',
+      'harfbuzzjs',
+      'fontverter',
     ],
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-      config.externals = [...(config.externals ?? []), 'puppeteer', 'puppeteer-core'];
+      config.externals = [
+        ...(config.externals ?? []),
+        'puppeteer',
+        'puppeteer-core',
+        'pdfkit',
+      ];
+    } else {
+      config.resolve.fallback = {
+        ...(config.resolve.fallback ?? {}),
+        fs: false,
+        path: false,
+        crypto: false,
+        stream: false,
+        zlib: false,
+        module: false,
+      };
+      config.module.noParse = [
+        ...(Array.isArray(config.module.noParse)
+          ? config.module.noParse
+          : config.module.noParse
+            ? [config.module.noParse]
+            : []),
+        /pdfkit[\\/]js[\\/]pdfkit\.standalone\.js$/,
+      ];
+      config.module.rules.unshift({
+        test: /wawoff2[\\/]build[\\/]decompress_binding\.js$/,
+        loader: path.resolve(process.cwd(), 'scripts/export-emscripten-module.cjs'),
+      });
     }
     return config;
   },

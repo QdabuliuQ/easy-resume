@@ -17,6 +17,14 @@
   color: #06c;
   text-decoration: underline;
 }
+.resume-quill-embed .ql-editor s,
+.resume-quill-embed .ql-editor strike,
+.resume-quill-embed .ql-editor del,
+.rte-quill-sync .ql-editor s,
+.rte-quill-sync .ql-editor strike,
+.rte-quill-sync .ql-editor del {
+  text-decoration: line-through;
+}
 
 .resume-quill-embed .ql-editor li,
 .rte-quill-sync .ql-editor li {

@@ -65,6 +65,7 @@ function CropperImage(props: any, ref: any) {
 
       try {
         const source = await fetch(image).then((res) => res.blob());
+        const type = source.type === 'image/png' ? 'image/png' : 'image/jpeg';
         const blob = await cropImageBlob({
           source,
           sx: crop.x * scaleX,
@@ -73,8 +74,8 @@ function CropperImage(props: any, ref: any) {
           sh: crop.height * scaleY,
           dw: actualCropWidth,
           dh: actualCropHeight,
-          type: 'image/jpeg',
-          quality: 0.92,
+          type,
+          quality: type === 'image/jpeg' ? 0.92 : undefined,
         });
         const base64Image = await blobToDataUrl(blob);
         setShow(false);
@@ -96,8 +97,13 @@ function CropperImage(props: any, ref: any) {
           actualCropWidth,
           actualCropHeight
         );
+        const type = /^data:image\/png/i.test(image) ? 'image/png' : 'image/jpeg';
         const blob = await new Promise<Blob | null>((resolve) => {
-          canvas.toBlob((result) => resolve(result), 'image/jpeg', 0.92);
+          canvas.toBlob(
+            (result) => resolve(result),
+            type,
+            type === 'image/jpeg' ? 0.92 : undefined,
+          );
         });
         if (!blob) return;
         const base64Image = await blobToDataUrl(blob);

@@ -21,10 +21,11 @@ export function useResumeExport() {
   const locale = useLocale();
   const messages = useMessages();
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfkitLoading, setPdfkitLoading] = useState(false);
   const [imagePdfLoading, setImagePdfLoading] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
-  const exporting = pdfLoading || imagePdfLoading || imageLoading;
+  const exporting = pdfLoading || pdfkitLoading || imagePdfLoading || imageLoading;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -112,6 +113,28 @@ export function useResumeExport() {
       setPdfLoading(false);
     }
   };
+  const exportPdfkit = async () => {
+    if (typeof window === 'undefined' || exporting) return;
+    setPdfkitLoading(true);
+    const hide = message.loading(t('exportPdfkitLoading'), 0);
+    try {
+      const { downloadResumePdfkit } = await import('@/lib/clientPdfkitExport');
+      const safe = safeName();
+      await downloadResumePdfkit({
+        config: snapshotForExport(),
+        filename: `${safe}.pdf`,
+        locale,
+        messages: messages as Record<string, unknown>,
+      });
+      hide();
+      message.success(t('exportPdfkitOk'));
+    } catch (e) {
+      hide();
+      message.error(e instanceof Error ? e.message : t('exportFail'));
+    } finally {
+      setPdfkitLoading(false);
+    }
+  };
   const exportImagePdf = async () => {
     if (typeof window === 'undefined' || exporting) return;
     setImagePdfLoading(true);
@@ -179,10 +202,12 @@ export function useResumeExport() {
   };
   return {
     exportPdf,
+    exportPdfkit,
     exportImagePdf,
     exportImage,
     exportJson,
     pdfLoading,
+    pdfkitLoading,
     imagePdfLoading,
     imageLoading,
     exporting,

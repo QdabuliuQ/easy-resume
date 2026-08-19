@@ -34,7 +34,7 @@ describe('layout modules', () => {
   });
 
   it('renders section shell without header and keeps type 7 body panel', () => {
-    render(
+    const { container } = render(
       <SectionModuleShell
         moduleId='other-1'
         headerConfig={{ title: '隐藏标题' }}
@@ -47,6 +47,7 @@ describe('layout modules', () => {
 
     expect(screen.queryByText('隐藏标题')).not.toBeInTheDocument();
     expect(screen.getByText('仅内容')).toBeInTheDocument();
+    expect(container.querySelector('[data-resume-h7-panel]')).toBeInTheDocument();
   });
 
   it('renders top and rounded banners with color and height', () => {
@@ -101,6 +102,7 @@ describe('layout modules', () => {
       </Page>
     );
     expect(screen.getByText('弧形首页')).toBeInTheDocument();
+    expect(container.querySelector('[data-resume-rounded-banner]')).toBeInTheDocument();
 
     rerender(
       <Page {...makeGlobalStyle({ layout: 'leftCol' })} sideSlot={<aside>个人信息</aside>}>

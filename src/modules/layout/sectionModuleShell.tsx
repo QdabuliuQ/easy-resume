@@ -1,5 +1,6 @@
 'use client';
 import {
+  RESUME_H7_PANEL_ATTR,
   RESUME_MODULE_HEADER_ATTR,
   RESUME_MODULE_ID_ATTR,
 } from '@/components/moduleOperation/constants';
@@ -50,7 +51,10 @@ function SectionModuleShell({
           {...{ [RESUME_MODULE_ID_ATTR]: interactiveModuleId }}
           className='w-full cursor-pointer'
         >
-          <div className='min-h-0 min-w-0 overflow-hidden rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'>
+          <div
+            className='min-h-0 min-w-0 overflow-visible rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'
+            {...{ [RESUME_H7_PANEL_ATTR]: '' }}
+          >
             <ModuleBody>{children}</ModuleBody>
           </div>
         </div>
@@ -92,7 +96,10 @@ function SectionModuleShell({
             />
           </div>
         </div>
-        <div className='min-h-0 min-w-0 overflow-hidden rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'>
+        <div
+          className='min-h-0 min-w-0 overflow-visible rounded-sm border border-zinc-200 bg-zinc-50 px-3 py-2'
+          {...{ [RESUME_H7_PANEL_ATTR]: '' }}
+        >
           <ModuleBody>{children}</ModuleBody>
         </div>
       </div>

@@ -14,7 +14,7 @@ export function SectionHeaderType19({
   return (
     <div style={sectionHeaderRowHeightStyle} className='flex w-full items-center gap-2.5'>
       <span
-        className='inline-block h-[6px] w-[6px] shrink-0 rotate-45'
+        className='ml-px inline-block h-[6px] w-[6px] shrink-0 rotate-45'
         style={{ backgroundColor: color }}
         aria-hidden
       />

@@ -87,10 +87,12 @@ function Header() {
   const { canUndo, canRedo, undo, redo } = useEditHistory();
   const {
     exportPdf,
+    exportPdfkit,
     exportImagePdf,
     exportImage,
     exportJson,
     pdfLoading,
+    pdfkitLoading,
     imagePdfLoading,
     imageLoading,
     exporting,
@@ -208,6 +210,13 @@ function Header() {
         onClick: () => void exportPdf(),
       },
       {
+        key: 'pdfkit',
+        disabled: actionsDisabled,
+        icon: <FilePdf theme='outline' size={16} fill={ICON_PRIMARY} />,
+        label: t('exportPdfkit'),
+        onClick: () => void exportPdfkit(),
+      },
+      {
         key: 'imagePdf',
         disabled: actionsDisabled,
         icon: <FilePdf theme='outline' size={16} fill={ICON_PRIMARY} />,
@@ -229,7 +238,7 @@ function Header() {
         onClick: exportJson,
       },
     ],
-    [actionsDisabled, exportImage, exportImagePdf, exportJson, exportPdf, t],
+    [actionsDisabled, exportImage, exportImagePdf, exportJson, exportPdf, exportPdfkit, t],
   );
   return (
     <div className='relative flex h-full items-center justify-between gap-4 px-4 md:px-5'>
@@ -431,7 +440,7 @@ function Header() {
             aria-expanded={exportOpen}
             className={actionBtnCls}
           >
-            {pdfLoading || imagePdfLoading || imageLoading ? (
+            {pdfLoading || pdfkitLoading || imagePdfLoading || imageLoading ? (
               <span className={actionIconSpin} aria-hidden />
             ) : (
               <Download theme='outline' size={18} fill={ICON_PRIMARY} />

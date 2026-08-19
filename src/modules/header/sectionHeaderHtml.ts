@@ -226,7 +226,7 @@ ${prefixHtml}
   }
   if (t === 19) {
     return `<div style="width:100%;display:flex;align-items:center;gap:10px;${rh}">
-<span aria-hidden="true" style="display:inline-block;width:6px;height:6px;background:${c};transform:rotate(45deg);flex-shrink:0;"></span>
+<span aria-hidden="true" style="display:inline-block;width:6px;height:6px;margin-left:1px;background:${c};transform:rotate(45deg);flex-shrink:0;"></span>
 <span style="flex-shrink:0;font-weight:600;font-size:${fs}px;color:${c};line-height:1;">${escT}</span>
 <span aria-hidden="true" style="display:block;height:1px;min-width:0;flex:1;opacity:0.55;background-image:linear-gradient(90deg, ${c} 0%, transparent 100%);"></span>
 </div>`;

@@ -17,6 +17,7 @@ export default memo(function RoundedTopBanner({
   return (
     <div
       aria-hidden
+      data-resume-rounded-banner
       className='pointer-events-none absolute inset-x-0 top-0 z-0'
       style={{ height }}
     >

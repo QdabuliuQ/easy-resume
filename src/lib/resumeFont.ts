@@ -108,6 +108,16 @@ export function resumeFontForExport(id: unknown): ResumeExportFontId {
   return fid === 'system' ? 'noto-sans-sc' : fid;
 }
 
+/** pdfkit 嵌入：local woff2 文件名 */
+export function resumeExportFontFiles(id: unknown): {
+  family: string;
+  regular: string;
+  bold: string;
+} {
+  const def = LOCAL_FONTS[resumeFontForExport(id)];
+  return { family: def.family, regular: def.regular, bold: def.bold };
+}
+
 export function resumeExportFontStack(id: unknown): string {
   const fid = normResumeFont(id);
   if (fid === 'system') {

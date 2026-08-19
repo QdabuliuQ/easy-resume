@@ -3,6 +3,7 @@ import {
   ensureResumeFontLoaded,
   normResumeFont,
   resumeExportFontFacesCss,
+  resumeExportFontFiles,
   resumeExportFontStack,
   resumeFontForExport,
   resumeFontStack,
@@ -23,6 +24,14 @@ describe('resumeFont', () => {
   it('resumeFontForExport falls back system to noto-sans-sc', () => {
     expect(resumeFontForExport('system')).toBe('noto-sans-sc');
     expect(resumeFontForExport('noto-serif-sc')).toBe('noto-serif-sc');
+  });
+
+  it('resumeExportFontFiles maps to local woff2', () => {
+    expect(resumeExportFontFiles('system')).toEqual({
+      family: 'Noto Sans SC',
+      regular: 'NotoSansSC-Regular.woff2',
+      bold: 'NotoSansSC-Bold.woff2',
+    });
   });
 
   it('resumeFontStack returns stack string', () => {
