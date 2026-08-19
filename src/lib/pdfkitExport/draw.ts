@@ -96,10 +96,10 @@ export function drawPage(
       lineBreak: false,
       characterSpacing: spacing,
       oblique: Boolean(run.italic),
+      wordSpacing: 0,
       textWidth: textW,
       wordCount: 1,
-      wordSpacing: 0,
-    });
+    } as PDFKit.Mixins.TextOptions);
     if (run.underline || run.strike) {
       const lw = Math.max(0.6, sizePt * 0.07);
       const boxTop = pxToPt(run.y);
