@@ -204,7 +204,7 @@ function imageToDataUrl(img: HTMLImageElement): string | null {
 }
 
 function indentKey(el: HTMLElement): string {
-  return [...el.classList].find((c) => c.startsWith('ql-indent-')) ?? '';
+  return Array.from(el.classList).find((c) => c.startsWith('ql-indent-')) ?? '';
 }
 
 function orderedIndex(li: HTMLElement): number {
