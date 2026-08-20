@@ -38,6 +38,10 @@ export function useResumeExport() {
         if (canceled) return;
         mod.warmupResumeImageExportRuntime(resumeFont);
       });
+      void import('@/lib/clientPdfkitExport').then((mod) => {
+        if (canceled) return;
+        mod.warmupPdfkitExportRuntime(resumeFont);
+      });
     };
 
     runWarmup();

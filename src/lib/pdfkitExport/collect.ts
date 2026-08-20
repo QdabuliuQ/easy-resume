@@ -35,7 +35,47 @@ const PSEUDO_ATTR = 'data-pdfkit-pseudo';
 const HIDE_BEFORE = 'data-pdfkit-hide-before';
 const HIDE_AFTER = 'data-pdfkit-hide-after';
 const PSEUDO_HIDE_STYLE_ID = 'pdfkit-pseudo-hide';
-const SNAP_BORDER_PX = 5;
+/** snapdom 有限并发：太多会抢主线程，太少吃不满 */
+const SNAP_CONCURRENCY = 3;
+const PAGE_CONCURRENCY = 2;
+/** 装饰截图像素倍率：1.5 比 2 明显更快，观感通常够用 */
+export const PDFKIT_SNAP_SCALE = 1.5;
+/** snap 边缘毛边约 2.5css px；按 scale 换成位图像素 */
+const SNAP_BORDER_CSS_PX = 2.5;
+
+function snapBorderImgPx(scale: number): number {
+  return Math.max(2, Math.round(SNAP_BORDER_CSS_PX * scale));
+}
+
+function boxesAlmostEqual(a: ClipBox, b: ClipBox, eps = 0.5): boolean {
+  return (
+    Math.abs(a.x - b.x) < eps &&
+    Math.abs(a.y - b.y) < eps &&
+    Math.abs(a.w - b.w) < eps &&
+    Math.abs(a.h - b.h) < eps
+  );
+}
+
+async function mapLimit<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  if (!items.length) return [];
+  const out = new Array<R>(items.length);
+  let next = 0;
+  const workers = Math.min(Math.max(1, limit), items.length);
+  await Promise.all(
+    Array.from({ length: workers }, async () => {
+      while (next < items.length) {
+        const i = next;
+        next += 1;
+        out[i] = await fn(items[i], i);
+      }
+    }),
+  );
+  return out;
+}
 
 export type SnapElementOpts = {
   /** 伪元素探针有文字时才需要；装饰截图默认 false */
@@ -239,60 +279,118 @@ function waitFrame(): Promise<void> {
   });
 }
 
-async function cropDataUrlBorder(dataUrl: string, px: number): Promise<string> {
-  if (px <= 0) return dataUrl;
+async function decodeSnapImage(
+  dataUrl: string,
+): Promise<ImageBitmap | HTMLImageElement | null> {
+  try {
+    if (typeof createImageBitmap === 'function') {
+      const blob = await (await fetch(dataUrl)).blob();
+      return await createImageBitmap(blob);
+    }
+  } catch {
+    // fall through
+  }
   const img = new Image();
   img.src = dataUrl;
   try {
     await img.decode();
+    return img;
   } catch {
-    return dataUrl;
+    return null;
   }
-  const dw = img.naturalWidth - px * 2;
-  const dh = img.naturalHeight - px * 2;
-  if (dw < 8 || dh < 8) return dataUrl;
-  const canvas = document.createElement('canvas');
-  canvas.width = dw;
-  canvas.height = dh;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return dataUrl;
-  ctx.drawImage(img, px, px, dw, dh, 0, 0, dw, dh);
-  return canvas.toDataURL('image/png');
 }
 
-async function cropDataUrlToCssBox(
-  dataUrl: string,
-  full: ClipBox,
-  vis: ClipBox,
+function snapImageSize(img: ImageBitmap | HTMLImageElement): { w: number; h: number } {
+  if ('naturalWidth' in img && img.naturalWidth > 0) {
+    return { w: img.naturalWidth, h: img.naturalHeight };
+  }
+  return { w: img.width, h: img.height };
+}
+
+function closeSnapImage(img: ImageBitmap | HTMLImageElement) {
+  if ('close' in img && typeof img.close === 'function') img.close();
+}
+
+async function encodeSnapCrop(
+  img: ImageBitmap | HTMLImageElement,
+  sx: number,
+  sy: number,
+  sw: number,
+  sh: number,
 ): Promise<string> {
-  if (
-    Math.abs(full.x - vis.x) < 0.5 &&
-    Math.abs(full.y - vis.y) < 0.5 &&
-    Math.abs(full.w - vis.w) < 0.5 &&
-    Math.abs(full.h - vis.h) < 0.5
-  ) {
-    return dataUrl;
-  }
-  if (full.w < 1 || full.h < 1) return dataUrl;
-  const img = new Image();
-  img.src = dataUrl;
-  try {
-    await img.decode();
-  } catch {
-    return dataUrl;
-  }
-  const sx = ((vis.x - full.x) / full.w) * img.naturalWidth;
-  const sy = ((vis.y - full.y) / full.h) * img.naturalHeight;
-  const sw = (vis.w / full.w) * img.naturalWidth;
-  const sh = (vis.h / full.h) * img.naturalHeight;
-  if (sw < 1 || sh < 1) return dataUrl;
   const canvas = document.createElement('canvas');
   canvas.width = Math.max(1, Math.round(sw));
   canvas.height = Math.max(1, Math.round(sh));
   const ctx = canvas.getContext('2d');
-  if (!ctx) return dataUrl;
+  if (!ctx) {
+    closeSnapImage(img);
+    throw new Error('canvas');
+  }
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  closeSnapImage(img);
   return canvas.toDataURL('image/png');
+}
+
+/**
+ * 单次解码/编码。无毛边且无需按可视框裁切时直接返回原 dataUrl。
+ */
+async function cropSnapPng(
+  dataUrl: string,
+  opts: {
+    cssW: number;
+    cssH: number;
+    full?: ClipBox;
+    vis?: ClipBox;
+    trimBorder?: boolean;
+  },
+): Promise<string> {
+  const scale = PDFKIT_SNAP_SCALE;
+  const needVis =
+    opts.full && opts.vis && !boxesAlmostEqual(opts.full, opts.vis) && opts.full.w >= 1;
+  const border = opts.trimBorder && !needVis ? snapBorderImgPx(scale) : 0;
+  if (!needVis && border <= 0) return dataUrl;
+
+  const img = await decodeSnapImage(dataUrl);
+  if (!img) return dataUrl;
+  const { w: nw, h: nh } = snapImageSize(img);
+
+  let sx = 0;
+  let sy = 0;
+  let sw = nw;
+  let sh = nh;
+
+  if (needVis && opts.full && opts.vis) {
+    sx = ((opts.vis.x - opts.full.x) / opts.full.w) * nw;
+    sy = ((opts.vis.y - opts.full.y) / opts.full.h) * nh;
+    sw = (opts.vis.w / opts.full.w) * nw;
+    sh = (opts.vis.h / opts.full.h) * nh;
+  } else if (border > 0) {
+    const ew = Math.ceil(opts.cssW * scale);
+    const eh = Math.ceil(opts.cssH * scale);
+    // 位图没有明显大于期望尺寸 → 无毛边，跳过裁切
+    if (nw <= ew + 1 && nh <= eh + 1) {
+      closeSnapImage(img);
+      return dataUrl;
+    }
+    sx = border;
+    sy = border;
+    sw = nw - border * 2;
+    sh = nh - border * 2;
+  }
+
+  if (sw < 8 || sh < 8) {
+    closeSnapImage(img);
+    return dataUrl;
+  }
+  if (sx <= 0.5 && sy <= 0.5 && sw >= nw - 0.5 && sh >= nh - 0.5) {
+    closeSnapImage(img);
+    return dataUrl;
+  }
+  try {
+    return await encodeSnapCrop(img, sx, sy, sw, sh);
+  } catch {
+    return dataUrl;
+  }
 }
 
 function ensurePseudoHideCss(doc: Document) {
@@ -375,7 +473,7 @@ async function collectPseudoImages(
   snap: SnapElementToDataUrl,
 ): Promise<PdfkitImageRun[]> {
   ensurePseudoHideCss(page.ownerDocument);
-  const out: PdfkitImageRun[] = [];
+  const targets: HTMLElement[] = [];
   const els = page.querySelectorAll<HTMLElement>('*');
   for (let i = 0; i < els.length; i += 1) {
     const el = els[i];
@@ -388,6 +486,15 @@ async function collectPseudoImages(
       continue;
     }
     if (isHiddenStyle(getComputedStyle(el))) continue;
+    if (
+      cssPseudoIsVisual(getComputedStyle(el, '::before')) ||
+      cssPseudoIsVisual(getComputedStyle(el, '::after'))
+    ) {
+      targets.push(el);
+    }
+  }
+  const groups = await mapLimit(targets, SNAP_CONCURRENCY, async (el) => {
+    const out: PdfkitImageRun[] = [];
     const beforeCs = getComputedStyle(el, '::before');
     if (cssPseudoIsVisual(beforeCs)) {
       const before = await snapPseudo(el, '::before', page, pageRect, snap, beforeCs);
@@ -398,8 +505,9 @@ async function collectPseudoImages(
       const after = await snapPseudo(el, '::after', page, pageRect, snap, afterCs);
       if (after) out.push(after);
     }
-  }
-  return out;
+    return out;
+  });
+  return groups.flat();
 }
 
 function hideTextKeepLayout(root: HTMLElement): () => void {
@@ -522,8 +630,7 @@ async function collectRoundedBanner(
   pageRect: DOMRect,
   snapElement: SnapElementToDataUrl,
 ): Promise<{ images: PdfkitImageRun[]; fills: PdfkitFillRun[] }> {
-  const images: PdfkitImageRun[] = [];
-  const fills: PdfkitFillRun[] = [];
+  const candidates: HTMLElement[] = [];
   const banners = page.querySelectorAll<HTMLElement>(ROUNDED_BANNER_SEL);
   for (let i = 0; i < banners.length; i += 1) {
     const el = banners[i];
@@ -531,9 +638,17 @@ async function collectRoundedBanner(
     const r = el.getBoundingClientRect();
     if (r.width < 1 || r.height < 1) continue;
     if (!keepFullyVisible(toClipBox(r), visibleClip(el, page))) continue;
+    candidates.push(el);
+  }
+  const parts = await mapLimit(candidates, SNAP_CONCURRENCY, async (el) => {
+    const r = el.getBoundingClientRect();
     const raw = await snapElement(el);
-    if (!raw) continue;
-    const dataUrl = await cropDataUrlBorder(raw, SNAP_BORDER_PX);
+    if (!raw) return null;
+    const dataUrl = await cropSnapPng(raw, {
+      cssW: r.width,
+      cssH: r.height,
+      trimBorder: true,
+    });
     const placed = flushToPageEdge(relBox(r, pageRect), {
       x: 0,
       y: 0,
@@ -543,7 +658,8 @@ async function collectRoundedBanner(
     placed.x = 0;
     placed.y = 0;
     placed.w = pageRect.width;
-    images.push({ ...placed, dataUrl });
+    const images: PdfkitImageRun[] = [{ ...placed, dataUrl }];
+    const fills: PdfkitFillRun[] = [];
     const inner = el.firstElementChild;
     const color =
       inner instanceof HTMLElement
@@ -556,6 +672,14 @@ async function collectRoundedBanner(
       fills.push({ x: 0, y: 0, w: 3, h: straightH, color });
       fills.push({ x: Math.max(0, placed.w - 3), y: 0, w: 3, h: straightH, color });
     }
+    return { images, fills };
+  });
+  const images: PdfkitImageRun[] = [];
+  const fills: PdfkitFillRun[] = [];
+  for (const part of parts) {
+    if (!part) continue;
+    images.push(...part.images);
+    fills.push(...part.fills);
   }
   return { images, fills };
 }
@@ -567,9 +691,10 @@ async function collectSnapDecor(
   selector: string,
   clipVisible: boolean,
 ): Promise<PdfkitImageRun[]> {
-  const out: PdfkitImageRun[] = [];
-  const nodes = page.querySelectorAll<HTMLElement>(selector);
   ensurePseudoHideCss(page.ownerDocument);
+  type Job = { el: HTMLElement; full: ClipBox; vis: ClipBox };
+  const jobs: Job[] = [];
+  const nodes = page.querySelectorAll<HTMLElement>(selector);
   for (let i = 0; i < nodes.length; i += 1) {
     const el = nodes[i];
     if (isHiddenStyle(getComputedStyle(el))) continue;
@@ -579,21 +704,31 @@ async function collectSnapDecor(
     const vis = clip ? intersectBoxes(full, clip) : null;
     if (!vis || vis.w < 1 || vis.h < 1) continue;
     if (!clipVisible && !keepFullyVisible(full, clip)) continue;
+    jobs.push({ el, full, vis });
+  }
+  const parts = await mapLimit(jobs, SNAP_CONCURRENCY, async ({ el, full, vis }) => {
     const restore = hideTextKeepLayout(el);
     // header 伪元素只靠本截图；面板伪元素另采，截图时关掉防叠两层
     if (selector !== HEADER_SEL) el.setAttribute('data-pdfkit-hide-pseudos', '');
     try {
       await waitFrame();
       const raw = await snapElement(el);
-      if (!raw) continue;
-      const dataUrl = clipVisible ? await cropDataUrlToCssBox(raw, full, vis) : raw;
-      out.push({ ...relBox(vis, pageRect), dataUrl });
+      if (!raw) return null;
+      const dataUrl = clipVisible
+        ? await cropSnapPng(raw, {
+            cssW: full.w,
+            cssH: full.h,
+            full,
+            vis,
+          })
+        : raw;
+      return { ...relBox(vis, pageRect), dataUrl } satisfies PdfkitImageRun;
     } finally {
       el.removeAttribute('data-pdfkit-hide-pseudos');
       restore();
     }
-  }
-  return out;
+  });
+  return parts.filter((x): x is PdfkitImageRun => Boolean(x));
 }
 
 async function collectHeaderImages(
@@ -678,9 +813,12 @@ export async function collectPdfkitPage(
     node = walker.nextNode();
   }
   const background = pageStyle.backgroundColor;
-  const banner = await collectRoundedBanner(page, pageRect, snapElement);
-  const headerImages = await collectHeaderImages(page, pageRect, snapElement);
-  const panelImages = await collectH7PanelImages(page, pageRect, snapElement);
+  // 伪元素可能落在 h7 面板内，等面板截完再采，避免 hide 状态互踩
+  const [banner, headerImages, panelImages] = await Promise.all([
+    collectRoundedBanner(page, pageRect, snapElement),
+    collectHeaderImages(page, pageRect, snapElement),
+    collectH7PanelImages(page, pageRect, snapElement),
+  ]);
   const pseudoImages = await collectPseudoImages(page, pageRect, snapElement);
   return {
     width: pageRect.width,
@@ -708,9 +846,7 @@ export async function collectPdfkitPages(
   const pages = Array.from(
     root.querySelectorAll<HTMLElement>('[data-resume-export-page]'),
   );
-  const out: PdfkitPage[] = [];
-  for (const page of pages) {
-    out.push(await collectPdfkitPage(page, snapElement));
-  }
-  return out;
+  return mapLimit(pages, PAGE_CONCURRENCY, (page) =>
+    collectPdfkitPage(page, snapElement),
+  );
 }

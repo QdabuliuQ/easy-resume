@@ -277,6 +277,19 @@ describe('pdfkitExport draw helpers', () => {
   });
 });
 
+describe('subsetCache', () => {
+  it('fingerprints glyphs order-independently', async () => {
+    const { fingerprintGlyphs, subsetCacheKey, getCachedSubset, setCachedSubset } =
+      await import('@/lib/pdfkitExport/subsetCache');
+    expect(fingerprintGlyphs('你a好')).toBe(fingerprintGlyphs('好你a'));
+    expect(subsetCacheKey('a.woff2', '你')).not.toBe(subsetCacheKey('b.woff2', '你'));
+    const key = subsetCacheKey('demo.woff2', '测');
+    const buf = new Uint8Array([1, 2, 3, 4]);
+    setCachedSubset(key, buf);
+    expect(await getCachedSubset(key)).toEqual(buf);
+  });
+});
+
 describe('subsetWoff2ToSfnt', () => {
   it('subsets CJK woff2 with browser hb-subset wasm', async () => {
     const { existsSync } = await import('fs');

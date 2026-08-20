@@ -4,10 +4,11 @@ import { NextIntlClientProvider } from 'next-intl';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import defaultResume from '@/json/resume.defaults';
-import { collectPdfkitPages } from '@/lib/pdfkitExport/collect';
+import { collectPdfkitPages, PDFKIT_SNAP_SCALE } from '@/lib/pdfkitExport/collect';
 import { buildPdfkitBlob, preloadPdfkitWorker } from '@/lib/pdfkitExport/pdfkitWorkerClient';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import {
+  normResumeFont,
   preloadResumeFontsForSnap,
   resumeExportFontFiles,
   resumeFontForExport,
@@ -25,6 +26,29 @@ type Opts = {
 
 const HOST_STYLE =
   'position:fixed;left:-100000px;top:0;z-index:-1;overflow:visible;opacity:1;pointer-events:none;width:max-content;';
+
+let pdfkitWarmPromise: Promise<void> | null = null;
+
+/** 编辑页空闲预热：chunk / wasm / 字体 / hb */
+export function warmupPdfkitExportRuntime(resumeFont?: string): void {
+  if (typeof window === 'undefined') return;
+  if (pdfkitWarmPromise) return;
+  const font = normResumeFont(resumeFont);
+  const fontId = resumeFontForExport(font);
+  const files = resumeExportFontFiles(fontId);
+  const origin = window.location.origin;
+  preloadPdfkitWorker();
+  pdfkitWarmPromise = (async () => {
+    void fetch('/wasm/hb-subset.wasm');
+    void fetch(`/fonts/${files.regular}`);
+    void fetch(`/fonts/${files.bold}`);
+    void preloadResumeFontsForSnap(origin, font);
+    const { preloadHbSubset } = await import('@/lib/pdfkitExport/subsetBrowser');
+    await preloadHbSubset();
+  })().catch(() => {
+    pdfkitWarmPromise = null;
+  });
+}
 
 async function waitPaint(root: HTMLElement) {
   const imgs = Array.from(root.querySelectorAll('img'));
@@ -61,11 +85,10 @@ function makeElementSnapper(
       if (rect.width < 0.5 || rect.height < 0.5) return null;
       const embedFonts = Boolean(opts?.embedFonts);
       const result = await snapdom(el, {
-        scale: 2,
+        scale: PDFKIT_SNAP_SCALE,
         embedFonts,
         ...(embedFonts ? { localFonts } : {}),
         backgroundColor: 'transparent',
-        // snapdom: skip small idle delays; pixels stay scale=2
         fast: true,
         outerTransforms: false,
       });
@@ -95,12 +118,8 @@ export async function downloadResumePdfkit(opts: Opts): Promise<void> {
   const origin = window.location.origin;
   const fontId = resumeFontForExport(gs.resumeFont);
   const localFonts = resumeSnapLocalFonts(origin, fontId);
-  preloadPdfkitWorker();
-  const fontFiles = resumeExportFontFiles(fontId);
-  void fetch('/wasm/hb-subset.wasm');
-  void fetch(`/fonts/${fontFiles.regular}`);
-  void fetch(`/fonts/${fontFiles.bold}`);
-  await preloadResumeFontsForSnap(origin, gs.resumeFont ?? 'system');
+  warmupPdfkitExportRuntime(gs.resumeFont);
+  await preloadResumeFontsForSnap(origin, normResumeFont(gs.resumeFont));
 
   const host = document.createElement('div');
   host.setAttribute('data-resume-pdfkit-export-host', '');

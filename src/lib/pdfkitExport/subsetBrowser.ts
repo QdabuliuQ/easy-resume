@@ -45,6 +45,16 @@ async function loadHb(): Promise<HbSubset> {
   return hbPromise;
 }
 
+/** 编辑页预热：实例化 hb + 触发 wawoff2 模块解析 */
+export async function preloadHbSubset(): Promise<void> {
+  await loadHb();
+  try {
+    wawoff2();
+  } catch {
+    // ignore
+  }
+}
+
 function heap(hb: HbSubset): Uint8Array {
   return new Uint8Array(hb.memory.buffer);
 }
