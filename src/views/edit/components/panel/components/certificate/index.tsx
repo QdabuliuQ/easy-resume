@@ -211,10 +211,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
       )}
 
       {editOpen && module ? (
-        <div
-          key='edit'
-          className='panel-module-edit info1-panel-animate text-fg/95'
-        >
+        <>
           <AddGradientButton onClick={addCertificate} disabled={certificateItemsFull}>
             {tc('add')}
           </AddGradientButton>
@@ -282,14 +279,13 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                     copyDisabled={certificateItemsFull}
                     flush
                   />
-                  {/* 分割线已移除 */}
                 </div>
               ))}
             </div>
           ) : (
             <Empty description={tc('empty')} className='mb-5' />
           )}
-        </div>
+        </>
       ) : null}
     </div>
   );
