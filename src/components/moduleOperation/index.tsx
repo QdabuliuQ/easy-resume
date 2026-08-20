@@ -226,6 +226,7 @@ function ModuleOperation({
   const [toolbarBox, setToolbarBox] = useState<ToolbarBox>(HIDDEN_TOOLBAR);
   const [toolbarOpacity, setToolbarOpacity] = useState(0);
   const prevActiveIdRef = useRef(activeId);
+  const refreshTimersRef = useRef<number[]>([]);
 
   const orderedModules = useMemo(
     () => flattenModules(configStore.getConfig),
@@ -270,11 +271,22 @@ function ModuleOperation({
       const lastSlot = moduleSlotEl(roots[roots.length - 1]).getBoundingClientRect();
       const s =
         canvasScale > 0 && Number.isFinite(canvasScale) ? canvasScale : 1;
-      setToolbarBox({
+      const next: ToolbarBox = {
         top: (firstSlot.top - stageRect.top) / s,
         visible: true,
         motion: source === 'active' ? 'smooth' : 'snap',
         moduleHeight: Math.max(0, (lastSlot.bottom - firstSlot.top) / s),
+      };
+      setToolbarBox((prev) => {
+        if (
+          prev.visible === next.visible &&
+          prev.motion === next.motion &&
+          Math.abs(prev.top - next.top) < 0.5 &&
+          Math.abs(prev.moduleHeight - next.moduleHeight) < 0.5
+        ) {
+          return prev;
+        }
+        return next;
       });
     },
   );
@@ -289,11 +301,28 @@ function ModuleOperation({
   });
 
   const refreshAfterModuleChange = useMemoizedFn(() => {
+    // canvas 分页 debounce≈100ms + 量高帧；双 rAF 时常仍是旧 DOM
+    for (const t of refreshTimersRef.current) window.clearTimeout(t);
+    refreshTimersRef.current = [];
     afterReorder(() => {
       updateToolbarPos('active');
       scrollActiveModuleIntoView();
     });
+    refreshTimersRef.current.push(
+      window.setTimeout(() => {
+        updateToolbarPos('active');
+        scrollActiveModuleIntoView();
+      }, 160),
+      window.setTimeout(() => updateToolbarPos('resize'), 280),
+    );
   });
+
+  useEffect(() => {
+    return () => {
+      for (const t of refreshTimersRef.current) window.clearTimeout(t);
+      refreshTimersRef.current = [];
+    };
+  }, []);
 
   const moveActive = useMemoizedFn((dir: -1 | 1) => {
     if (activeId === 'global') return;
@@ -315,6 +344,12 @@ function ModuleOperation({
   useLayoutEffect(() => {
     updateToolbarPos('active');
   }, [orderedModules, updateToolbarPos]);
+
+  // 分页 debounce 后 pages 才换；children 变了再按新 DOM 定位（位置变、尺寸不变时 RO 不响）
+  useLayoutEffect(() => {
+    if (activeId === 'global') return;
+    updateToolbarPos('resize');
+  }, [children, activeId, updateToolbarPos]);
 
   useLayoutEffect(() => {
     const host = hostRef.current;
