@@ -323,8 +323,15 @@ function ModuleOperation({
     const ro = new ResizeObserver(() => updateToolbarPos('resize'));
     ro.observe(host);
     ro.observe(stage);
+    // 页高固定时，删子项只缩模块不缩 page；必须观察当前模块槽位
+    if (activeId !== 'global') {
+      for (const root of findModuleRoots(host, activeId)) {
+        ro.observe(moduleSlotEl(root));
+        if (root !== moduleSlotEl(root)) ro.observe(root);
+      }
+    }
     return () => ro.disconnect();
-  }, [updateToolbarPos, stageRef]);
+  }, [activeId, updateToolbarPos, stageRef, orderedModules]);
 
   useLayoutEffect(() => {
     const host = hostRef.current;
