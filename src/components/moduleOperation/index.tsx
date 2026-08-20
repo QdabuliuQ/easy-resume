@@ -278,13 +278,14 @@ function ModuleOperation({
         moduleHeight: Math.max(0, (lastSlot.bottom - firstSlot.top) / s),
       };
       setToolbarBox((prev) => {
-        if (
+        const samePos =
           prev.visible === next.visible &&
-          prev.motion === next.motion &&
           Math.abs(prev.top - next.top) < 0.5 &&
-          Math.abs(prev.moduleHeight - next.moduleHeight) < 0.5
-        ) {
-          return prev;
+          Math.abs(prev.moduleHeight - next.moduleHeight) < 0.5;
+        if (samePos) {
+          // 位置没变时，别把进行中的 smooth 降成 snap（会掐掉滑动）
+          if (prev.motion === 'smooth' && next.motion === 'snap') return prev;
+          if (prev.motion === next.motion) return prev;
         }
         return next;
       });
@@ -313,7 +314,7 @@ function ModuleOperation({
         updateToolbarPos('active');
         scrollActiveModuleIntoView();
       }, 160),
-      window.setTimeout(() => updateToolbarPos('resize'), 280),
+      window.setTimeout(() => updateToolbarPos('active'), 280),
     );
   });
 
@@ -345,10 +346,10 @@ function ModuleOperation({
     updateToolbarPos('active');
   }, [orderedModules, updateToolbarPos]);
 
-  // 分页 debounce 后 pages 才换；children 变了再按新 DOM 定位（位置变、尺寸不变时 RO 不响）
+  // 分页后 children 更新：用 active 走 transform 滑动，勿用 resize 瞬切
   useLayoutEffect(() => {
     if (activeId === 'global') return;
-    updateToolbarPos('resize');
+    updateToolbarPos('active');
   }, [children, activeId, updateToolbarPos]);
 
   useLayoutEffect(() => {
