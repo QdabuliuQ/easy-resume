@@ -16,7 +16,7 @@ import {
   UndoOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Copy, Download, FilePdf, DownPicture, FileCode, Save, Share } from '@icon-park/react';
+import { Copy, Download, FilePdf, ImageFiles, FileCode, FileWord, Save, Share } from '@icon-park/react';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
 import qqIcon from '@/assets/qq.png';
 import { useAppMessage } from '@/hooks/useAppMessage';
@@ -54,27 +54,32 @@ const quietBtnCls = [
   'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
   'motion-reduce:transition-none motion-reduce:active:scale-100',
 ].join(' ');
-/** 登录 CTA：实心渐变；无 border，避免圆角抗锯齿白边 */
+/** 登录 CTA：嵌套 chip（主题色图标块 + 轻壳），对齐 Soft Depth / Raycast */
 const loginBtnCls = [
-  'relative isolate inline-flex min-h-9 cursor-pointer select-none items-center justify-center gap-1.5 overflow-hidden rounded-xl px-3.5 py-2',
-  'border-0 bg-gradient-to-r from-[var(--color-primary-gradient-start)] to-[var(--color-primary)]',
-  'text-[12px] font-semibold leading-snug text-white whitespace-nowrap outline-none',
-  'shadow-[0_6px_18px_color-mix(in_srgb,var(--color-primary)_36%,transparent)]',
-  'transition-[transform,filter,box-shadow] duration-200 ease-out',
-  'hover:brightness-110 hover:shadow-[0_8px_22px_color-mix(in_srgb,var(--color-primary)_44%,transparent)]',
-  'active:scale-[0.98] active:brightness-95',
+  'inline-flex h-9 cursor-pointer select-none items-center gap-2 rounded-full py-0 pl-1 pr-3',
+  'border border-[color-mix(in_srgb,var(--color-primary)_28%,transparent)]',
+  'bg-[color-mix(in_srgb,var(--color-primary)_10%,var(--editor-shell-panel-strong))]',
+  'text-[12px] font-semibold leading-none tracking-[0.01em] text-[color:var(--color-primary)] whitespace-nowrap outline-none',
+  'shadow-[inset_0_1px_0_rgb(255_255_255/0.06)]',
+  'transition-[transform,background-color,border-color,box-shadow] duration-200 ease-out',
+  'hover:border-[color-mix(in_srgb,var(--color-primary)_42%,transparent)]',
+  'hover:bg-[color-mix(in_srgb,var(--color-primary)_14%,var(--editor-shell-panel-strong))]',
+  'hover:shadow-[0_6px_16px_color-mix(in_srgb,var(--color-primary)_18%,transparent),inset_0_1px_0_rgb(255_255_255/0.08)]',
+  'active:scale-[0.98]',
   'focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_55%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-bg)]',
-  'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 disabled:hover:brightness-100',
+  'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
   'motion-reduce:transition-none motion-reduce:active:scale-100',
 ].join(' ');
+const loginIconCls =
+  'inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-primary-gradient-start),var(--color-primary))] text-white shadow-[0_2px_8px_color-mix(in_srgb,var(--color-primary)_32%,transparent),inset_0_1px_0_rgb(255_255_255/0.35)]';
+const loginArrowCls = (open: boolean) =>
+  `text-[10px] text-[color:color-mix(in_srgb,var(--color-primary)_72%,transparent)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`;
 const actionIconSpin =
   'inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]';
 const historyBtnCls =
   'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-fg/[0.1] bg-surface/[0.04] text-fg/55 transition-colors enabled:cursor-pointer enabled:hover:border-fg/[0.16] enabled:hover:bg-surface/[0.08] enabled:hover:text-fg/88 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-fg/[0.1] disabled:hover:bg-surface/[0.04] disabled:hover:text-fg/55';
 const arrowCls = (open: boolean) =>
   `text-[10px] opacity-80 transition-transform duration-200 ${open ? 'rotate-180' : ''}`;
-const loginArrowCls = (open: boolean) =>
-  `text-[10px] text-white/85 transition-transform duration-200 ${open ? 'rotate-180' : ''}`;
 
 function Header() {
   const t = useTranslations('Edit.header');
@@ -91,6 +96,7 @@ function Header() {
     exportImagePdf,
     exportImage,
     exportJson,
+    exportDocx,
     pdfLoading,
     pdfkitLoading,
     imagePdfLoading,
@@ -224,9 +230,23 @@ function Header() {
         onClick: () => void exportImagePdf(),
       },
       {
+        key: 'docx',
+        disabled: actionsDisabled,
+        icon: <FileWord theme='outline' size={16} fill={ICON_PRIMARY} />,
+        label: (
+          <span className='inline-flex items-center gap-1.5'>
+            {t('exportDocx')}
+            <span className='rounded border border-fg/15 px-1 py-px text-[10px] font-medium leading-tight text-fg/45'>
+              {t('exportDocxBeta')}
+            </span>
+          </span>
+        ),
+        onClick: () => void exportDocx(),
+      },
+      {
         key: 'image',
         disabled: actionsDisabled,
-        icon: <DownPicture theme='outline' size={16} fill={ICON_PRIMARY} />,
+        icon: <ImageFiles theme='outline' size={16} fill={ICON_PRIMARY} />,
         label: t('exportImage'),
         onClick: () => void exportImage(),
       },
@@ -238,7 +258,7 @@ function Header() {
         onClick: exportJson,
       },
     ],
-    [actionsDisabled, exportImage, exportImagePdf, exportJson, exportPdf, exportPdfkit, t],
+    [actionsDisabled, exportDocx, exportImage, exportImagePdf, exportJson, exportPdf, exportPdfkit, t],
   );
   return (
     <div className='relative flex h-full items-center justify-between gap-4 px-4 md:px-5'>
@@ -374,11 +394,13 @@ function Header() {
               aria-expanded={loginOpen}
               className={loginBtnCls}
             >
-              {authBusy ? (
-                <LoadingOutlined className='text-[14px] text-white' />
-              ) : (
-                <UserOutlined className='text-[14px] text-white' />
-              )}
+              <span className={loginIconCls} aria-hidden>
+                {authBusy ? (
+                  <LoadingOutlined className='text-[12px]' />
+                ) : (
+                  <UserOutlined className='text-[12px]' />
+                )}
+              </span>
               {ta('signIn')}
               {!authBusy ? <DownOutlined className={loginArrowCls(loginOpen)} /> : null}
             </button>

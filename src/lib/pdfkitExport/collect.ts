@@ -1,4 +1,10 @@
-import { RESUME_H7_PANEL_ATTR, RESUME_HEADER_MARK_ATTR, RESUME_MODULE_HEADER_ATTR } from '@/components/moduleOperation/constants';
+import {
+  RESUME_H7_PANEL_ATTR,
+  RESUME_HEADER_MARK_ATTR,
+  RESUME_INFO1_ATTR,
+  RESUME_INFO1_ROW_ATTR,
+  RESUME_MODULE_HEADER_ATTR,
+} from '@/components/moduleOperation/constants';
 import {
   boxFullyInside,
   boxTopInsideClip,
@@ -28,6 +34,9 @@ import type {
 const SKIP_CLOSEST = 'script,style,noscript,textarea';
 const HEADER_SEL = `[${RESUME_MODULE_HEADER_ATTR}]`;
 const HEADER_MARK_SEL = `[${RESUME_HEADER_MARK_ATTR}]`;
+const INFO1_SEL = `[${RESUME_INFO1_ATTR}]`;
+const INFO1_ROW_SEL = `[${RESUME_INFO1_ROW_ATTR}]`;
+const SIDE_COL_SEL = '[data-resume-side-col]';
 const H7_PANEL_SEL = `[${RESUME_H7_PANEL_ATTR}]`;
 const ROUNDED_BANNER_SEL = '[data-resume-rounded-banner]';
 const QL_UI_SEL = '.ql-ui';
@@ -42,6 +51,8 @@ const PAGE_CONCURRENCY = 2;
 export const PDFKIT_SNAP_SCALE = 1.5;
 /** snap 边缘毛边约 2.5css px；按 scale 换成位图像素 */
 const SNAP_BORDER_CSS_PX = 2.5;
+/** 伪元素探针盒包含少量行盒顶部留白，DOCX 浮动图需要向上收紧。 */
+const PSEUDO_IMAGE_Y_LIFT_PX = 3;
 
 function snapBorderImgPx(scale: number): number {
   return Math.max(2, Math.round(SNAP_BORDER_CSS_PX * scale));
@@ -86,6 +97,16 @@ export type SnapElementToDataUrl = (
   el: HTMLElement,
   opts?: SnapElementOpts,
 ) => Promise<string | null>;
+
+export type CollectPdfkitOptions = {
+  /** Word 等：装饰区（header/banner/h7）只出图，不采正文 run，避免叠两层 */
+  skipDecorText?: boolean;
+};
+
+/** skipDecorText 时截图须带标题；PDF 默认藏字另画 run */
+export function shouldBakeDecorText(opts?: CollectPdfkitOptions): boolean {
+  return Boolean(opts?.skipDecorText);
+}
 
 function inSnapDecor(el: Element): boolean {
   return Boolean(
@@ -189,6 +210,57 @@ function cssFontWeight(weight: string): number {
   if (Number.isFinite(n)) return n;
   if (weight === 'bold' || weight === 'bolder') return 700;
   return 400;
+}
+
+function canvasFontString(style: CSSStyleDeclaration, fontWeight: number, fontSize: number) {
+  const fontStyle = style.fontStyle && style.fontStyle !== 'normal' ? `${style.fontStyle} ` : '';
+  const fontVariant = style.fontVariant && style.fontVariant !== 'normal' ? `${style.fontVariant} ` : '';
+  const family = style.fontFamily || 'sans-serif';
+  return `${fontStyle}${fontVariant}${fontWeight} ${fontSize}px ${family}`;
+}
+
+function measureTextInk(
+  context: CanvasRenderingContext2D,
+  text: string,
+  style: CSSStyleDeclaration,
+  fontWeight: number,
+  fontSize: number,
+): { width?: number; ascent?: number; descent?: number } {
+  try {
+    context.font = canvasFontString(style, fontWeight, fontSize);
+    const metrics = context.measureText(text);
+    const letterSpacing = style.letterSpacing === 'normal'
+      ? 0
+      : Number.parseFloat(style.letterSpacing) || 0;
+    const width = metrics.width + Math.max(0, text.length - 1) * letterSpacing;
+    const ascent = metrics.actualBoundingBoxAscent;
+    const descent = metrics.actualBoundingBoxDescent;
+    return {
+      ...(Number.isFinite(width) && width > 0 ? { width } : {}),
+      ...(Number.isFinite(ascent) && ascent > 0 ? { ascent } : {}),
+      ...(Number.isFinite(descent) && descent >= 0 ? { descent } : {}),
+    };
+  } catch {
+    return {};
+  }
+}
+
+/** 向上找最重字重（info1.name 的 font-bold 在父级时也能采到） */
+function resolveFontWeight(el: HTMLElement): number {
+  let best = 400;
+  let n: HTMLElement | null = el;
+  for (let i = 0; i < 12 && n; i += 1) {
+    best = Math.max(best, cssFontWeight(getComputedStyle(n).fontWeight));
+    const tag = n.tagName;
+    if (tag === 'B' || tag === 'STRONG') best = Math.max(best, 700);
+    if (n.classList.contains('font-bold')) best = Math.max(best, 700);
+    if (n.classList.contains('font-semibold')) best = Math.max(best, 600);
+    if (n.classList.contains('ql-editor') || n.hasAttribute('data-resume-export-page')) {
+      break;
+    }
+    n = n.parentElement;
+  }
+  return best;
 }
 
 function richTextFlagsFor(el: HTMLElement): {
@@ -460,7 +532,11 @@ async function snapPseudo(
     const dataUrl = await snap(probe, { embedFonts: Boolean(text.trim()) });
     if (!dataUrl) return null;
     const placed = relBox(r, pageRect);
-    return { ...placed, y: placed.y - 2, dataUrl };
+    return {
+      ...placed,
+      y: Math.max(0, placed.y - PSEUDO_IMAGE_Y_LIFT_PX),
+      dataUrl,
+    };
   } finally {
     probe.remove();
     el.removeAttribute(hideAttr);
@@ -575,6 +651,7 @@ function collectFills(
     if (
       el === page ||
       el.hasAttribute(PSEUDO_ATTR) ||
+      el.matches(SIDE_COL_SEL) ||
       el.closest(HEADER_SEL) ||
       el.closest(H7_PANEL_SEL) ||
       el.closest(ROUNDED_BANNER_SEL)
@@ -607,6 +684,25 @@ function collectFills(
   return out;
 }
 
+/** 侧栏背景是布局级色块，单独采集可避免 flex 子树/裁剪规则让它丢失。 */
+function collectSideColFills(page: HTMLElement, pageRect: DOMRect): PdfkitFillRun[] {
+  const out: PdfkitFillRun[] = [];
+  const els = page.querySelectorAll<HTMLElement>(SIDE_COL_SEL);
+  for (let i = 0; i < els.length; i += 1) {
+    const el = els[i];
+    const style = getComputedStyle(el);
+    if (isHiddenStyle(style)) continue;
+    const color = parseCssColor(style.backgroundColor);
+    if (!color) continue;
+    const box = toClipBox(el.getBoundingClientRect());
+    const clip = visibleClip(el, page);
+    const visible = clip ? intersectBoxes(box, clip) : null;
+    if (!visible || visible.w < 1 || visible.h < 1) continue;
+    out.push({ ...relBox(visible, pageRect), color });
+  }
+  return out;
+}
+
 function collectImages(page: HTMLElement, pageRect: DOMRect): PdfkitImageRun[] {
   const out: PdfkitImageRun[] = [];
   const imgs = page.querySelectorAll('img');
@@ -629,6 +725,7 @@ async function collectRoundedBanner(
   page: HTMLElement,
   pageRect: DOMRect,
   snapElement: SnapElementToDataUrl,
+  bakeText?: boolean,
 ): Promise<{ images: PdfkitImageRun[]; fills: PdfkitFillRun[] }> {
   const candidates: HTMLElement[] = [];
   const banners = page.querySelectorAll<HTMLElement>(ROUNDED_BANNER_SEL);
@@ -642,7 +739,7 @@ async function collectRoundedBanner(
   }
   const parts = await mapLimit(candidates, SNAP_CONCURRENCY, async (el) => {
     const r = el.getBoundingClientRect();
-    const raw = await snapElement(el);
+    const raw = await snapElement(el, { embedFonts: Boolean(bakeText) });
     if (!raw) return null;
     const dataUrl = await cropSnapPng(raw, {
       cssW: r.width,
@@ -690,6 +787,8 @@ async function collectSnapDecor(
   snapElement: SnapElementToDataUrl,
   selector: string,
   clipVisible: boolean,
+  /** Word：装饰区不采文字 run，截图须带标题；PDF：藏字只截装饰，文字另画 */
+  bakeText?: boolean,
 ): Promise<PdfkitImageRun[]> {
   ensurePseudoHideCss(page.ownerDocument);
   type Job = { el: HTMLElement; full: ClipBox; vis: ClipBox };
@@ -707,12 +806,12 @@ async function collectSnapDecor(
     jobs.push({ el, full, vis });
   }
   const parts = await mapLimit(jobs, SNAP_CONCURRENCY, async ({ el, full, vis }) => {
-    const restore = hideTextKeepLayout(el);
+    const restore = bakeText ? () => undefined : hideTextKeepLayout(el);
     // header 伪元素只靠本截图；面板伪元素另采，截图时关掉防叠两层
     if (selector !== HEADER_SEL) el.setAttribute('data-pdfkit-hide-pseudos', '');
     try {
       await waitFrame();
-      const raw = await snapElement(el);
+      const raw = await snapElement(el, { embedFonts: Boolean(bakeText) });
       if (!raw) return null;
       const dataUrl = clipVisible
         ? await cropSnapPng(raw, {
@@ -735,26 +834,31 @@ async function collectHeaderImages(
   page: HTMLElement,
   pageRect: DOMRect,
   snapElement: SnapElementToDataUrl,
+  bakeText?: boolean,
 ): Promise<PdfkitImageRun[]> {
-  return collectSnapDecor(page, pageRect, snapElement, HEADER_SEL, true);
+  return collectSnapDecor(page, pageRect, snapElement, HEADER_SEL, true, bakeText);
 }
 
 async function collectH7PanelImages(
   page: HTMLElement,
   pageRect: DOMRect,
   snapElement: SnapElementToDataUrl,
+  bakeText?: boolean,
 ): Promise<PdfkitImageRun[]> {
-  return collectSnapDecor(page, pageRect, snapElement, H7_PANEL_SEL, true);
+  return collectSnapDecor(page, pageRect, snapElement, H7_PANEL_SEL, true, bakeText);
 }
 
 export async function collectPdfkitPage(
   page: HTMLElement,
   snapElement: SnapElementToDataUrl,
+  opts?: CollectPdfkitOptions,
 ): Promise<PdfkitPage> {
   const pageRect = page.getBoundingClientRect();
   const pageStyle = getComputedStyle(page);
   const runs: PdfkitTextRun[] = [];
   const doc = page.ownerDocument;
+  const measureCanvas = doc.createElement('canvas');
+  const measureContext = measureCanvas.getContext('2d');
   const range = doc.createRange();
   const walker = doc.createTreeWalker(page, NodeFilter.SHOW_TEXT);
   let node: Node | null = walker.nextNode();
@@ -767,19 +871,32 @@ export async function collectPdfkitPage(
         el &&
         !el.closest(SKIP_CLOSEST) &&
         !el.closest(QL_UI_SEL) &&
-        !el.closest(HEADER_MARK_SEL)
+        !el.closest(HEADER_MARK_SEL) &&
+        !(opts?.skipDecorText && inSnapDecor(el))
       ) {
         const style = getComputedStyle(el);
         if (!isHiddenStyle(style)) {
           const clip = visibleClip(el, page);
           const fontSize = Number.parseFloat(style.fontSize) || 12;
-          const fontWeight = cssFontWeight(style.fontWeight);
+          const fontWeight = resolveFontWeight(el);
           const letterSpacing =
             style.letterSpacing === 'normal'
               ? 0
               : Number.parseFloat(style.letterSpacing) || 0;
           const flags = richTextFlagsFor(el);
           const href = resolveTextHref(el);
+          const isHeader = Boolean(el.closest(HEADER_SEL));
+          const isInfo1 = Boolean(el.closest(INFO1_SEL));
+          const info1Row = el.closest(INFO1_ROW_SEL);
+          const info1RowBox = info1Row instanceof HTMLElement
+            ? info1Row.getBoundingClientRect()
+            : null;
+          const info1LineId = info1Row?.getAttribute(RESUME_INFO1_ROW_ATTR) || undefined;
+          const info1LineAlign = info1RowBox && info1Row instanceof HTMLElement
+            ? (['left', 'center', 'right'].includes(getComputedStyle(info1Row).textAlign)
+                ? getComputedStyle(info1Row).textAlign as 'left' | 'center' | 'right'
+                : undefined)
+            : undefined;
           const lineRuns = groupTextNodeIntoLineRuns(raw, (start, end) =>
             rangeRects(range, node as Text, start, end),
           );
@@ -787,10 +904,38 @@ export async function collectPdfkitPage(
             const fb = ancestorTextBox(el);
             if (fb) lineRuns.push({ text: raw.trim(), x: fb.x, y: fb.y, w: fb.w, h: fb.h });
           }
+          const itemEl = el.closest('[data-item-id]');
+          const itemBox =
+            itemEl instanceof HTMLElement ? itemEl.getBoundingClientRect() : null;
+          const itemText =
+            itemEl instanceof HTMLElement
+              ? (itemEl.textContent ?? '').replace(/\s+/g, ' ').trim()
+              : '';
           for (const r of lineRuns) {
+            // 整字段只有这一段文本时，用元素盒宽（与预览一致），不用纯字形 rect
+            if (
+              !isInfo1 &&
+              itemBox &&
+              itemBox.width >= 1 &&
+              itemText &&
+              itemText === r.text.replace(/\s+/g, ' ').trim()
+            ) {
+              r.x = itemBox.left;
+              r.y = itemBox.top;
+              r.w = itemBox.width;
+              r.h = itemBox.height;
+            }
             if (!keepTextVisible({ x: r.x, y: r.y, w: r.w, h: r.h }, clip)) {
               continue;
             }
+            const ink = measureContext
+              ? measureTextInk(measureContext, r.text, style, fontWeight, fontSize)
+              : {};
+            // 一个逻辑 row 可能因侧栏宽度不足而换成多条视觉行；每条视觉行
+            // 必须独立成 Frame，否则合并时会把换行内容压成一行并发生裁切。
+            const info1VisualLineId = info1LineId && info1RowBox
+              ? `${info1LineId}:${Math.round((r.y - info1RowBox.top) * 2) / 2}`
+              : undefined;
             runs.push({
               text: r.text,
               x: r.x - pageRect.left,
@@ -801,6 +946,22 @@ export async function collectPdfkitPage(
               fontWeight,
               color: style.color,
               letterSpacing,
+              fontFamily: style.fontFamily || undefined,
+              ...(ink.width != null ? { textWidth: ink.width } : {}),
+              ...(ink.ascent != null ? { textAscent: ink.ascent } : {}),
+              ...(ink.descent != null ? { textDescent: ink.descent } : {}),
+              ...(isHeader ? { isHeader: true } : {}),
+              ...(isInfo1 ? { isInfo1: true } : {}),
+              ...(info1VisualLineId && info1RowBox
+                ? {
+                    info1LineId: info1VisualLineId,
+                    info1LineX: info1RowBox.left - pageRect.left,
+                    info1LineY: r.y - pageRect.top,
+                    info1LineW: info1RowBox.width,
+                    info1LineH: Math.max(r.h, fontSize * 1.15),
+                    ...(info1LineAlign ? { info1LineAlign } : {}),
+                  }
+                : {}),
               ...(flags.italic ? { italic: true } : {}),
               ...(flags.underline || href ? { underline: true } : {}),
               ...(flags.strike ? { strike: true } : {}),
@@ -813,11 +974,12 @@ export async function collectPdfkitPage(
     node = walker.nextNode();
   }
   const background = pageStyle.backgroundColor;
+  const bakeDecorText = shouldBakeDecorText(opts);
   // 伪元素可能落在 h7 面板内，等面板截完再采，避免 hide 状态互踩
   const [banner, headerImages, panelImages] = await Promise.all([
-    collectRoundedBanner(page, pageRect, snapElement),
-    collectHeaderImages(page, pageRect, snapElement),
-    collectH7PanelImages(page, pageRect, snapElement),
+    collectRoundedBanner(page, pageRect, snapElement, bakeDecorText),
+    collectHeaderImages(page, pageRect, snapElement, bakeDecorText),
+    collectH7PanelImages(page, pageRect, snapElement, bakeDecorText),
   ]);
   const pseudoImages = await collectPseudoImages(page, pageRect, snapElement);
   return {
@@ -834,6 +996,7 @@ export async function collectPdfkitPage(
     ],
     fills: [
       ...banner.fills,
+      ...collectSideColFills(page, pageRect),
       ...collectFills(page, pageRect, parseCssColor(background)),
     ],
   };
@@ -842,11 +1005,12 @@ export async function collectPdfkitPage(
 export async function collectPdfkitPages(
   root: ParentNode,
   snapElement: SnapElementToDataUrl,
+  opts?: CollectPdfkitOptions,
 ): Promise<PdfkitPage[]> {
   const pages = Array.from(
     root.querySelectorAll<HTMLElement>('[data-resume-export-page]'),
   );
   return mapLimit(pages, PAGE_CONCURRENCY, (page) =>
-    collectPdfkitPage(page, snapElement),
+    collectPdfkitPage(page, snapElement, opts),
   );
 }

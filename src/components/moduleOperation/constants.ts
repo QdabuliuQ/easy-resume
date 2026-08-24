@@ -6,3 +6,7 @@ export const RESUME_MODULE_HEADER_ATTR = 'data-resume-module-header';
 export const RESUME_H7_PANEL_ATTR = 'data-resume-h7-panel';
 /** 标题装饰字（如 header12 水印序号），截图保留、不采为矢量字 */
 export const RESUME_HEADER_MARK_ATTR = 'data-resume-header-mark';
+/** info1 字段布局标记：导出时避免把 flex 行盒误当成字段文本宽度 */
+export const RESUME_INFO1_ATTR = 'data-resume-info1';
+/** info1 每一行的布局盒标记，用于 DOCX 按行定位和设置对齐方式 */
+export const RESUME_INFO1_ROW_ATTR = 'data-resume-info1-row';

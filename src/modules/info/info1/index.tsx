@@ -6,7 +6,11 @@ import {
   normalizeResumeCityDisplay,
 } from '@/utils/resumeCityDisplay';
 import { GlobalStyle } from '@/modules/utils/common.type';
-import { RESUME_MODULE_ID_ATTR } from '@/components/moduleOperation/constants';
+import {
+  RESUME_INFO1_ATTR,
+  RESUME_INFO1_ROW_ATTR,
+  RESUME_MODULE_ID_ATTR,
+} from '@/components/moduleOperation/constants';
 import { info1ShowsInlineFieldLabel } from '@/lib/info1FieldLabels';
 import {
   resumeInfo1FieldSeparatorColor,
@@ -72,10 +76,21 @@ function Info1(props: Props) {
     const colon = '：';
     const lbl = (k: string) =>
       info1ShowsInlineFieldLabel(k, showTitleOn) ? `${tField(k as never)}${colon}` : '';
+    const rowAlign = inSideCol
+      ? position === 'center'
+        ? 'text-center'
+        : position === 'left'
+          ? 'text-left'
+          : 'text-right'
+      : position === 'center'
+        ? 'text-center'
+        : position === 'left'
+          ? 'text-right'
+          : 'text-left';
     const elements: React.ReactNode[] = [];
     for (let i = 0; i < layout.length; i++) {
       const row = layout[i];
-      const rowElements: React.ReactNode[] = [];
+      const fields: React.ReactNode[] = [];
       for (let j = 0; j < row.length; j++) {
         const key = row[j];
         if (key === 'avatar' || key === 'name' || key === 'layout') {
@@ -85,11 +100,11 @@ function Info1(props: Props) {
           const sal = props.config.options.expectedSalary;
           const a = sal?.[0] ?? '';
           const b = sal?.[1] ?? '';
-          rowElements.push(
+          fields.push(
             <span
               key={`expectedSalary-${i}-${j}`}
               className={
-                inSideCol ? 'whitespace-nowrap' : 'whitespace-nowrap text-black'
+                inSideCol ? 'inline whitespace-nowrap' : 'inline whitespace-nowrap text-black'
               }
               style={{ fontSize, lineHeight, color: fieldColor }}
             >
@@ -119,12 +134,12 @@ function Info1(props: Props) {
               : key === 'intentCity'
                 ? formatIntentCityDisplay(val as unknown)
                 : String(val);
-          rowElements.push(
+          fields.push(
             <SafeText
               key={`${String(key)}-${i}-${j}`}
               selectable
               dataItemId={`${id}_${String(key)}`}
-              className={inSideCol ? 'min-w-0' : 'min-w-0 text-black'}
+              className={inSideCol ? 'inline min-w-0' : 'inline min-w-0 text-black'}
               style={{
                 fontSize,
                 lineHeight,
@@ -138,31 +153,31 @@ function Info1(props: Props) {
             </SafeText>
           );
         }
-        if (j !== row.length - 1) {
+      }
+      const rowElements: React.ReactNode[] = [];
+      fields.forEach((field, fi) => {
+        if (fi > 0) {
           rowElements.push(
             <span
-              key={j + '|'}
-              className={inSideCol ? 'inline-block mx-[10px]' : 'inline-block mx-[10px] text-[#999]'}
+              key={`sep-${i}-${fi}`}
+              className={
+                inSideCol ? 'inline-block' : 'inline-block text-[#999]'
+              }
               style={{ fontSize, lineHeight, color: sepColor }}
             >
-              |
+              {/* 空格进文本节点，导出时 | 为独立元素且自带间隙 */}
+              {'\u00a0\u00a0|\u00a0\u00a0'}
             </span>
           );
         }
-      }
-      const rowCls = inSideCol
-        ? position === 'center'
-          ? 'flex items-center flex-wrap justify-center not-last:mb-[5px]'
-          : position === 'left'
-            ? 'flex items-center flex-wrap justify-start not-last:mb-[5px]'
-            : 'flex items-center flex-wrap justify-end not-last:mb-[5px]'
-        : position === 'center'
-          ? 'flex items-center flex-wrap justify-center not-last:mb-[5px]'
-          : position === 'left'
-            ? 'flex items-center flex-wrap justify-end not-last:mb-[5px]'
-            : 'flex items-center flex-wrap not-last:mb-[5px]';
+        rowElements.push(field);
+      });
       elements.push(
-        <div key={i} className={`${rowCls} min-w-0`}>
+        <div
+          key={i}
+          {...{ [RESUME_INFO1_ROW_ATTR]: `${id}:${i}` }}
+          className={`min-w-0 not-last:mb-[5px] ${rowAlign}`}
+        >
           {rowElements}
         </div>
       );
@@ -214,7 +229,11 @@ function Info1(props: Props) {
       ? 'flex w-full cursor-pointer flex-col items-center gap-3'
       : `flex w-full cursor-pointer items-center ${showAvatar ? 'gap-3' : ''} ${showAvatar && (position === 'right' || position === 'left') ? 'justify-between' : ''}`;
   return (
-    <div id={id} {...{ [RESUME_MODULE_ID_ATTR]: id }} className={rootCls}>
+    <div
+      id={id}
+      {...{ [RESUME_MODULE_ID_ATTR]: id, [RESUME_INFO1_ATTR]: '' }}
+      className={rootCls}
+    >
       {inSideCol ? (
         <>
           {showAvatar ? avatarBlock : null}

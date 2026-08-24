@@ -265,17 +265,22 @@ function MobileEditHeader() {
               disabled={authBusy}
               aria-label={ta('signIn')}
               aria-expanded={loginOpen}
-              className='relative isolate inline-flex h-8 cursor-pointer items-center gap-1 overflow-hidden rounded-lg border-0 bg-gradient-to-r from-[var(--color-primary-gradient-start)] to-[var(--color-primary)] px-2.5 text-[12px] font-semibold text-white outline-none shadow-[0_4px_14px_color-mix(in_srgb,var(--color-primary)_36%,transparent)] disabled:opacity-50'
+              className='inline-flex h-8 cursor-pointer select-none items-center gap-1.5 rounded-full border border-[color-mix(in_srgb,var(--color-primary)_28%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_10%,var(--editor-shell-panel-strong))] py-0 pl-0.5 pr-2.5 text-[12px] font-semibold leading-none tracking-[0.01em] text-[color:var(--color-primary)] outline-none transition-[transform,background-color,border-color] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--color-primary)_42%,transparent)] hover:bg-[color-mix(in_srgb,var(--color-primary)_14%,var(--editor-shell-panel-strong))] active:scale-[0.98] disabled:opacity-50'
             >
-              {authBusy ? (
-                <LoadingOutlined className='text-[12px] text-white' />
-              ) : (
-                <UserOutlined className='text-[12px] text-white' />
-              )}
+              <span
+                className='inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-primary-gradient-start),var(--color-primary))] text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.35)]'
+                aria-hidden
+              >
+                {authBusy ? (
+                  <LoadingOutlined className='text-[11px]' />
+                ) : (
+                  <UserOutlined className='text-[11px]' />
+                )}
+              </span>
               {ta('signIn')}
               {!authBusy ? (
                 <DownOutlined
-                  className={`text-[9px] text-white/85 transition-transform duration-200 ${loginOpen ? 'rotate-180' : ''}`}
+                  className={`text-[9px] text-[color:color-mix(in_srgb,var(--color-primary)_72%,transparent)] transition-transform duration-200 ${loginOpen ? 'rotate-180' : ''}`}
                 />
               ) : null}
             </button>

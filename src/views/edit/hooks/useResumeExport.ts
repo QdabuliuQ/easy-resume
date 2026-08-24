@@ -24,8 +24,10 @@ export function useResumeExport() {
   const [pdfkitLoading, setPdfkitLoading] = useState(false);
   const [imagePdfLoading, setImagePdfLoading] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
+  const [docxLoading, setDocxLoading] = useState(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
-  const exporting = pdfLoading || pdfkitLoading || imagePdfLoading || imageLoading;
+  const exporting =
+    pdfLoading || pdfkitLoading || imagePdfLoading || imageLoading || docxLoading;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -204,16 +206,40 @@ export function useResumeExport() {
       message.error(e instanceof Error ? e.message : t('exportFail'));
     }
   };
+  const exportDocx = async () => {
+    if (typeof window === 'undefined' || exporting) return;
+    setDocxLoading(true);
+    const hide = message.loading(t('exportDocxLoading'), 0);
+    try {
+      const { downloadResumeDocx } = await import('@/lib/clientDocxExport');
+      const safe = safeName();
+      await downloadResumeDocx({
+        config: snapshotForExport(),
+        filename: `${safe}.docx`,
+        locale,
+        messages: messages as Record<string, unknown>,
+      });
+      hide();
+      message.success(t('exportDocxOk'));
+    } catch (e) {
+      hide();
+      message.error(e instanceof Error ? e.message : t('exportFail'));
+    } finally {
+      setDocxLoading(false);
+    }
+  };
   return {
     exportPdf,
     exportPdfkit,
     exportImagePdf,
     exportImage,
     exportJson,
+    exportDocx,
     pdfLoading,
     pdfkitLoading,
     imagePdfLoading,
     imageLoading,
+    docxLoading,
     exporting,
   };
 }

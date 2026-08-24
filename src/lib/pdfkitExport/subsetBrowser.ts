@@ -91,6 +91,11 @@ async function decompressWoff2(src: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(result);
 }
 
+/** 仅解压 woff2，供 DOCX 字体嵌入在子集失败时保留完整字体。 */
+export async function woff2ToSfnt(src: Uint8Array): Promise<Uint8Array> {
+  return decompressWoff2(src);
+}
+
 /** woff2 → ttf，再 hb-subset；与 subset-font 同路径 */
 export async function subsetWoff2ToSfnt(src: Uint8Array, text: string): Promise<Uint8Array> {
   const ttf = await decompressWoff2(src);
