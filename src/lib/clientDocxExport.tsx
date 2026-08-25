@@ -28,6 +28,28 @@ type Opts = {
 const HOST_STYLE =
   'position:fixed;left:-100000px;top:0;z-index:-1;overflow:visible;opacity:1;pointer-events:none;width:max-content;';
 
+let docxWarmPromise: Promise<void> | null = null;
+
+/** 编辑页空闲预热：本模块 chunk / wasm / 字体 / hb（与 pdfkit 共用资源） */
+export function warmupDocxExportRuntime(resumeFont?: string): void {
+  if (typeof window === 'undefined') return;
+  if (docxWarmPromise) return;
+  const font = normResumeFont(resumeFont);
+  const fontId = resumeFontForExport(font);
+  const files = resumeExportFontFiles(fontId);
+  const origin = window.location.origin;
+  docxWarmPromise = (async () => {
+    void fetch('/wasm/hb-subset.wasm');
+    void fetch(`/fonts/${files.regular}`);
+    void fetch(`/fonts/${files.bold}`);
+    void preloadResumeFontsForSnap(origin, font);
+    const { preloadHbSubset } = await import('@/lib/pdfkitExport/subsetBrowser');
+    await preloadHbSubset();
+  })().catch(() => {
+    docxWarmPromise = null;
+  });
+}
+
 async function waitPaint(root: HTMLElement) {
   const imgs = Array.from(root.querySelectorAll('img'));
   await Promise.all(
@@ -130,6 +152,7 @@ export async function downloadResumeDocx(opts: Opts): Promise<void> {
   const origin = window.location.origin;
   const fontId = resumeFontForExport(gs.resumeFont);
   const localFonts = resumeSnapLocalFonts(origin, fontId);
+  warmupDocxExportRuntime(gs.resumeFont);
   await preloadResumeFontsForSnap(origin, normResumeFont(gs.resumeFont));
 
   const host = document.createElement('div');

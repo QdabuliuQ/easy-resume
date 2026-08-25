@@ -7,12 +7,20 @@ import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 
 let snapClientPromise: Promise<typeof import('@/lib/clientSnapResumeImage')> | null = null;
+let docxClientPromise: Promise<typeof import('@/lib/clientDocxExport')> | null = null;
 
 function loadSnapClient() {
   if (!snapClientPromise) {
     snapClientPromise = import('@/lib/clientSnapResumeImage');
   }
   return snapClientPromise;
+}
+
+function loadDocxClient() {
+  if (!docxClientPromise) {
+    docxClientPromise = import('@/lib/clientDocxExport');
+  }
+  return docxClientPromise;
 }
 
 export function useResumeExport() {
@@ -43,6 +51,10 @@ export function useResumeExport() {
       void import('@/lib/clientPdfkitExport').then((mod) => {
         if (canceled) return;
         mod.warmupPdfkitExportRuntime(resumeFont);
+      });
+      void loadDocxClient().then((mod) => {
+        if (canceled) return;
+        mod.warmupDocxExportRuntime(resumeFont);
       });
     };
 
@@ -211,7 +223,7 @@ export function useResumeExport() {
     setDocxLoading(true);
     const hide = message.loading(t('exportDocxLoading'), 0);
     try {
-      const { downloadResumeDocx } = await import('@/lib/clientDocxExport');
+      const { downloadResumeDocx } = await loadDocxClient();
       const safe = safeName();
       await downloadResumeDocx({
         config: snapshotForExport(),
