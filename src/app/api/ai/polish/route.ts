@@ -6,8 +6,7 @@
  *   → LangChain（src/lib/ai/polish/service.ts）→ SenseNova deepseek-v4-flash
  *
  * 环境变量：
- *   XFYUN_MAAS_API_KEY — 讯飞星辰 Coding Plan（优先）
- *   CHATANYWHERE_API_KEY — 降级备用
+ *   SENSENOVA_API_KEY — 商汤 SenseNova（AI 润色）
  *
  * 请求体（JSON）：
  *   type: 'job' | 'project' | 'education' | 'skill'

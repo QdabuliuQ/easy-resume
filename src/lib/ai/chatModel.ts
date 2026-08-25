@@ -6,15 +6,6 @@ import type { Runnable } from '@langchain/core/runnables';
 
 export type AppChatModel = Runnable<BaseLanguageModelInput, AIMessageChunk>;
 
-const XFYUN_MAAS_BASE_URL =
-  process.env.XFYUN_MAAS_BASE_URL?.trim() ||
-  'https://maas-coding-api.cn-huabei-1.xf-yun.com/v2';
-const XFYUN_MAAS_MODEL =
-  process.env.XFYUN_MAAS_MODEL?.trim() || 'xsparkx2flash';
-
-const CHATANYWHERE_BASE_URL = 'https://api.chatanywhere.tech/v1';
-const CHATANYWHERE_MODEL = 'deepseek-v4-flash';
-
 const DEEPSEEK_BASE_URL =
   process.env.DEEPSEEK_BASE_URL?.trim() || 'https://api.deepseek.com';
 const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL?.trim() || 'deepseek-v4-flash';
@@ -43,7 +34,7 @@ function createOpenAiModel(opts: {
   });
 }
 
-/** DeepSeek 官方 API：AI 对话修改、模拟面试 */
+/** DeepSeek 官方 API：AI 评分、对话修改、模拟面试、简历识别等 */
 export function createDeepSeekModel(opts?: {
   temperature?: number;
   jsonMode?: boolean;
@@ -90,26 +81,10 @@ export function createModifyChatModel(opts?: { temperature?: number; jsonMode?: 
   });
 }
 
-/** 优先讯飞星辰 Coding Plan MaaS，失败时降级 ChatAnywhere */
+/** AI 评分等通用链路：DeepSeek */
 export function createChatModel(opts?: { temperature?: number; jsonMode?: boolean }): AppChatModel {
-  const temperature = opts?.temperature ?? 0.7;
-  const jsonMode = opts?.jsonMode ?? false;
-  const primary = createOpenAiModel({
-    apiKey: process.env.XFYUN_MAAS_API_KEY?.trim(),
-    baseURL: XFYUN_MAAS_BASE_URL,
-    model: XFYUN_MAAS_MODEL,
-    temperature,
-    jsonMode,
+  return createDeepSeekModel({
+    temperature: opts?.temperature,
+    jsonMode: opts?.jsonMode,
   });
-  const fallback = createOpenAiModel({
-    apiKey: process.env.CHATANYWHERE_API_KEY?.trim(),
-    baseURL: CHATANYWHERE_BASE_URL,
-    model: CHATANYWHERE_MODEL,
-    temperature,
-    jsonMode,
-  });
-  if (primary && fallback) return primary.withFallbacks([fallback]);
-  if (primary) return primary;
-  if (fallback) return fallback;
-  throw new Error('缺少 XFYUN_MAAS_API_KEY 或 CHATANYWHERE_API_KEY');
 }
