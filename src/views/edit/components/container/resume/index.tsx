@@ -28,6 +28,15 @@ const ResumeTemplate = lazy(() => import('../../panel/components/resumeTemplate'
 type ResumeProps = { menuActiveKey: string };
 import PanelHero from '../../panel/components/panelHero';
 import { resolvePanelHeroContent } from '../../panel/components/panelHero/resolveContent';
+import {
+  AiModifySkeleton,
+  AiScoreSkeleton,
+  GeneralSettingsSkeleton,
+  MyResumesSkeleton,
+  PageSettingsSkeleton,
+  ResumeEditPanelSkeleton,
+  ResumeTemplateSkeleton,
+} from '../../panel/components/settingsSkeletons';
 
 const GRADIENT_CTA_CLASS =
   'bg-add-module-gradient relative isolate flex h-10 w-full max-w-full cursor-pointer select-none items-center justify-center gap-2 overflow-hidden rounded-md text-[14px] font-bold text-white shadow-lg shadow-black/20 outline-none backdrop-blur-md backdrop-saturate-200 transition-[filter] duration-200 hover:brightness-125 hover:saturate-150 active:brightness-95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100 disabled:hover:saturate-100';
@@ -91,23 +100,37 @@ function Resume({ menuActiveKey }: ResumeProps) {
       })
       .finally(() => setScoreLoading(false));
   }, [buildAnalyzePayload, scoreLoading, message, tr]);
+  const panelSuspenseFallback =
+    isPageSettings ? (
+      <PageSettingsSkeleton />
+    ) : isGeneralSettings ? (
+      <GeneralSettingsSkeleton />
+    ) : isResumeEdit ? (
+      <ResumeEditPanelSkeleton />
+    ) : isAiScore ? (
+      <AiScoreSkeleton />
+    ) : isAiModify ? (
+      <AiModifySkeleton />
+    ) : isResumeTemplate ? (
+      <ResumeTemplateSkeleton />
+    ) : isMyResumes ? (
+      <MyResumesSkeleton />
+    ) : (
+      <div className='rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.09),rgb(var(--panel-surface-rgb)/0.04))] px-4 py-10'>
+        <div className='flex items-center justify-center gap-2 text-[13px] text-fg/58'>
+          <span
+            className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-fg/25 border-t-[color:var(--color-primary)]'
+            aria-hidden
+          />
+          <span>{tr('loadingPanel')}</span>
+        </div>
+      </div>
+    );
   const panelBody = (
     <>
       <PanelHero {...panelHero} />
       <div className={isAiModify || isAiScore ? 'min-h-0 flex-1 flex flex-col' : undefined}>
-        <Suspense
-          fallback={
-            <div className='rounded-[20px] border border-fg/[0.14] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.09),rgb(var(--panel-surface-rgb)/0.04))] px-4 py-10'>
-              <div className='flex items-center justify-center gap-2 text-[13px] text-fg/58'>
-                <span
-                  className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-fg/25 border-t-[color:var(--color-primary)]'
-                  aria-hidden
-                />
-                <span>{tr('loadingPanel')}</span>
-              </div>
-            </div>
-          }
-        >
+        <Suspense fallback={panelSuspenseFallback}>
           {isAiScore ? (
             <AiScore scoreLoading={scoreLoading} analysis={aiScoreResult} onAnalyze={onStartScoreAnalyze} />
           ) : isAiModify ? (

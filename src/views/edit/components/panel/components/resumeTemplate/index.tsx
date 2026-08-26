@@ -18,6 +18,7 @@ import { configStore, editHistoryStore, moduleActiveStore } from '@/mobx';
 import { resumePreviewStore } from '@/mobx/resumePreviewStore';
 import { renderResumePageModules } from '@/views/edit/components/canvas/renderResumePageModules';
 import ResumeFontCdn from '@/views/edit/components/canvas/resumeFontCdn';
+import { ResumeTemplateSkeleton } from '@/views/edit/components/panel/components/settingsSkeletons';
 
 /** 侧栏模板卡片内仅预览首页，缩放略小于走马灯以便双列容纳 */
 export const TEMPLATE_CARD_PREVIEW_SCALE = 0.2;
@@ -190,12 +191,7 @@ function ResumeTemplate() {
       {contextHolder}
       <div className='relative flex h-full min-h-0 flex-col gap-3 overflow-auto px-0.5 pt-0.5 text-left'>
         {!templateCards.length ? (
-          <div className='flex items-center justify-center gap-2 py-16 text-[13px] text-fg/58'>
-            <span
-              className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-fg/25 border-t-[color:var(--color-primary)]'
-              aria-hidden
-            />
-          </div>
+          <ResumeTemplateSkeleton />
         ) : (
         <ul className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
           {templateCards.map((t) => (

@@ -18,8 +18,12 @@ import Menu from './components/menu/index';
 import ResumeConfigCanvasPreviewHost from './components/resumeConfigCanvasPreviewHost';
 import ResumeFontCdn from './components/canvas/resumeFontCdn';
 import EditTour from './components/editTour';
+import { AiInterviewSkeleton } from './components/panel/components/settingsSkeletons';
 
-const AiInterviewPage = dynamic(() => import('./components/aiInterview'), { ssr: false });
+const AiInterviewPage = dynamic(() => import('./components/aiInterview'), {
+  ssr: false,
+  loading: () => <AiInterviewSkeleton />,
+});
 
 const DEFAULT_MENU_KEY = 'resume';
 

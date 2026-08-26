@@ -10,12 +10,17 @@ import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { configStore, editHistoryStore } from '@/mobx';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import Container from '../components/container';
-import AiInterviewPage from '../components/aiInterview';
 import ResumeConfigCanvasPreviewHost from '../components/resumeConfigCanvasPreviewHost';
+import { AiInterviewSkeleton } from '../components/panel/components/settingsSkeletons';
 import MobileEditHeader from './header';
 import MobileMainTabs from './mainTabs';
 import MobileBottomNav, { type MobileBottomKey } from './bottomNav';
 import { MobileEditProvider } from './context';
+
+const AiInterviewPage = dynamic(() => import('../components/aiInterview'), {
+  ssr: false,
+  loading: () => <AiInterviewSkeleton />,
+});
 
 const MobilePreviewOverlay = dynamic(() => import('./previewOverlay'), {
   ssr: false,

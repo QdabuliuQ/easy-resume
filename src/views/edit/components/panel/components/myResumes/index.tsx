@@ -10,7 +10,7 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons';
 import { DeleteOne } from '@icon-park/react';
-import { Button, Spin } from 'antd';
+import { Button } from 'antd';
 import { observer } from 'mobx-react';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
@@ -24,6 +24,7 @@ import {
   TEMPLATE_CARD_PREVIEW_SCALE,
   TemplateFirstPagePreview,
 } from '@/views/edit/components/panel/components/resumeTemplate';
+import { MyResumesSkeleton } from '@/views/edit/components/panel/components/settingsSkeletons';
 
 const panelShellClass =
   'overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),rgb(var(--panel-surface-rgb)/0.03)] p-4 shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04),var(--panel-shadow-md)]';
@@ -202,9 +203,7 @@ function MyResumes() {
             <p className='text-[13px] text-fg/62'>{t('needResync')}</p>
           </div>
         ) : loading && !list.length ? (
-          <div className='flex justify-center py-10'>
-            <Spin />
-          </div>
+          <MyResumesSkeleton withProfile={false} />
         ) : !list.length ? (
           <div className='flex flex-col items-center gap-2 rounded-xl border border-dashed border-fg/12 bg-fg/[0.02] px-4 py-8 text-center'>
             <CloudOutlined className='text-[28px] text-fg/28' />

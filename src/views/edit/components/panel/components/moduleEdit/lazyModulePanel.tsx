@@ -1,6 +1,7 @@
 'use client';
 import { memo, useEffect, useState, type ComponentType } from 'react';
 import { prefetchRichTextEditor } from '@/components/richTextEditor/lazy';
+import { ModulePanelSkeleton } from '../settingsSkeletons';
 
 type ModulePanel = ComponentType<{ moduleId?: string }>;
 
@@ -31,14 +32,7 @@ function LazyModulePanel({ type, moduleId }: { type: string; moduleId: string })
     };
   }, [type]);
   if (!Panel) {
-    return (
-      <div className='flex items-center justify-center gap-2 py-10 text-[13px] text-fg/58'>
-        <span
-          className='inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-fg/25 border-t-[color:var(--color-primary)]'
-          aria-hidden
-        />
-      </div>
-    );
+    return <ModulePanelSkeleton />;
   }
   return <Panel moduleId={moduleId} />;
 }
