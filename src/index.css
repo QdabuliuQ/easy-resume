@@ -281,6 +281,7 @@
   --home-glow-b-opacity: 0.38;
   --home-template-card-border: rgb(72 72 76 / 0.88);
   --home-template-card-border-hover: rgb(196 196 200 / 0.92);
+  --home-expand-scrim: rgb(32 30 34 / 0.78);
 
   /* —— 文本 —— */
   --text-strong: rgb(var(--surface-fg-rgb) / 0.96);
@@ -436,6 +437,7 @@
   --home-glow-b-opacity: 0.5;
   --home-template-card-border: rgb(var(--surface-fg-rgb) / 0.12);
   --home-template-card-border-hover: rgb(var(--surface-fg-rgb) / 0.24);
+  --home-expand-scrim: rgb(245 245 247 / 0.84);
 
   --text-strong: rgb(var(--surface-fg-rgb) / 0.92);
   --text-base: rgb(var(--surface-fg-rgb) / 0.78);

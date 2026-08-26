@@ -45,6 +45,9 @@ import { resumeModuleSlotStyle } from '@/lib/resumeModuleSlotLayout';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { flattenModules } from '@/utils/resumePages';
 import ModuleOperation from '@/components/moduleOperation';
+import { InlineFieldEditProvider } from '@/components/inlineFieldPopover/InlineFieldEditProvider';
+import CanvasFieldHighlight from '@/components/inlineFieldPopover/CanvasFieldHighlight';
+import { usePanelFieldCanvasHighlight } from '@/components/inlineFieldPopover/usePanelFieldCanvasHighlight';
 import { RESUME_MODULE_HEADER_ATTR } from '@/components/moduleOperation/constants';
 import { CanvasScaleContext } from './canvasScaleContext';
 import { PAGE_STACK_GAP_PX } from './pageStackGap';
@@ -187,6 +190,7 @@ function buildModuleNode(
 }
 
 type CanvasProps = {
+  menuActiveKey?: string;
   onOpenGeneralSettings?: () => void;
   onOpenResumePanel?: () => void;
   onLayoutReady?: () => void;
@@ -194,12 +198,14 @@ type CanvasProps = {
 };
 
 function Canvas({
+  menuActiveKey = 'resume',
   onOpenGeneralSettings,
   onOpenResumePanel,
   onLayoutReady,
   mode = 'edit',
 }: CanvasProps) {
   const isEditMode = mode === 'edit';
+  const fieldEditMode = menuActiveKey === 'resume' ? 'panel' : 'inline';
   const tc = useTranslations('Edit.canvas');
   const locale = useLocale();
   const pathname = usePathname();
@@ -213,7 +219,7 @@ function Canvas({
   const moduleHeights = useRef<Record<string, number>>({});
   const [pages, setPages] = useState<Array<React.ReactNode>>([]);
   const [pagesReady, setPagesReady] = useState(false);
-  const [quickSelectEnabled, setQuickSelectEnabled] = useState(true);
+  const resumeFieldGuideActive = isEditMode && menuActiveKey === 'resume';
 
   const currentConfig = configStore.getConfig as ResumeConfig | null;
   const layoutConfig = (currentConfig ?? resume) as ResumeConfig;
@@ -254,9 +260,9 @@ function Canvas({
   const measureNodes = useMemo(
     () => layoutModules.map((module) => ({
       module,
-      node: buildModuleNode(module, layoutGlobalStyle, { selectable: isEditMode && quickSelectEnabled }),
+      node: buildModuleNode(module, layoutGlobalStyle, { selectable: resumeFieldGuideActive }),
     })).filter((item): item is { module: LayoutModule; node: ReactElement } => Boolean(item.node)),
-    [layoutModules, layoutGlobalStyle, isEditMode, quickSelectEnabled],
+    [layoutModules, layoutGlobalStyle, resumeFieldGuideActive],
   );
 
   const buildPagination = useMemoizedFn(() => {
@@ -397,7 +403,7 @@ function Canvas({
     const sideSlot = sideColLayout && info1Module
       ? buildModuleNode({ ...info1Module, index: 0 }, gs, {
           forceSideCol: true,
-          selectable: isEditMode && quickSelectEnabled,
+          selectable: resumeFieldGuideActive,
         })
       : null;
 
@@ -426,6 +432,7 @@ function Canvas({
       return (
         <div
           key={pageIndex + 1}
+          data-resume-canvas-page
           className='overflow-hidden rounded-[2px] border border-[color:var(--editor-shell-border)] shadow-[0_12px_28px_rgba(0,0,0,0.12)]'
         >
           <Page
@@ -515,6 +522,10 @@ function Canvas({
   }, [measureNodes, scheduleMeasuredPagination]);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const panelFieldHighlight = usePanelFieldCanvasHighlight(
+    containerRef,
+    isEditMode && fieldEditMode === 'panel',
+  );
   const [scale, setScale] = useState(1);
   const { open: previewOpen, closing: previewClosing, openPreview, closePreview } =
     useCanvasPreviewOverlayState();
@@ -631,16 +642,14 @@ function Canvas({
   });
   const importLoading = resumeImportStore.loading;
   useEffect(() => {
-    if (importLoading || previewOpen) clearSelectableHover();
-  }, [importLoading, previewOpen, clearSelectableHover]);
+    if (importLoading || previewOpen || !resumeFieldGuideActive) clearSelectableHover();
+  }, [importLoading, previewOpen, resumeFieldGuideActive, clearSelectableHover]);
   // ponytail: 预览时卸交互；pages 只挂 overlay，避免双份 DOM
-  const quickSelectActive = isEditMode && quickSelectEnabled && !importLoading && !previewOpen;
+  const quickSelectActive = resumeFieldGuideActive && !importLoading && !previewOpen;
 
   const floatActionsEl = isEditMode && !previewOpen ? (
     <CanvasFloatActions
       backupReady={backupReady}
-      quickSelectEnabled={quickSelectEnabled}
-      onToggleQuickSelect={() => setQuickSelectEnabled((value) => !value)}
       locale={locale}
       langSwitchTitle={locale === 'zh' ? tc('langSwitchToEn') : tc('langSwitchToZh')}
       langSwitchAria={locale === 'zh' ? tc('langSwitchAriaToEn') : tc('langSwitchAriaToZh')}
@@ -673,6 +682,7 @@ function Canvas({
           <ModuleOperation
             stageRef={canvasStageRef}
             onModuleActivated={onOpenResumePanel}
+            fieldEditMode={fieldEditMode}
           >
             {pages}
           </ModuleOperation>
@@ -691,6 +701,14 @@ function Canvas({
         onMouseMove={quickSelectActive ? (event) => updateSelectableHover(event.clientX, event.clientY) : undefined}
         onMouseLeave={quickSelectActive ? clearSelectableHover : undefined}
       >
+      <InlineFieldEditProvider containerRef={containerRef} enabled={fieldEditMode === 'inline'}>
+      {fieldEditMode === 'panel' ? (
+        <CanvasFieldHighlight
+          containerRef={containerRef}
+          anchorEl={panelFieldHighlight.anchorEl}
+          itemKey={panelFieldHighlight.itemKey ?? undefined}
+        />
+      ) : null}
       <ResumeFontCdn font={globalStyle.resumeFont} />
       <div
         aria-hidden='true'
@@ -752,6 +770,7 @@ function Canvas({
 
       {isEditMode ? previewOverlay : null}
 
+      </InlineFieldEditProvider>
       </div>
 
       {isEditMode ? <ResumeImportOverlay /> : null}

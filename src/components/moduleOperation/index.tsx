@@ -23,6 +23,13 @@ import {
   scrollElementIntoScrollParent,
 } from '@/utils/scrollIntoScrollParent';
 import { useCanvasScale } from '@/views/edit/components/canvas/canvasScaleContext';
+import { useOptionalInlineFieldEdit } from '@/components/inlineFieldPopover/InlineFieldEditProvider';
+import {
+  parseItemTargetFromItemId,
+} from '@/lib/inlineFieldEdit/parseItemTarget';
+import {
+  focusPanelByParsedTarget,
+} from '@/lib/inlineFieldEdit/focusPanelField';
 import { PAGE_STACK_GAP_PX } from '@/views/edit/components/canvas/pageStackGap';
 import bracketStyles from './bracket.module.css';
 import { RESUME_MODULE_ID_ATTR } from './constants';
@@ -62,138 +69,6 @@ function afterReorder(fn: () => void) {
   });
 }
 
-function resolveModuleIdFromItemId(itemId: string, moduleIds: string[]): string | null {
-  let hit: string | null = null;
-  for (const id of moduleIds) {
-    if (itemId === id || itemId.startsWith(`${id}_`)) {
-      if (!hit || id.length > hit.length) hit = id;
-    }
-  }
-  return hit;
-}
-
-type ParsedItemTarget = {
-  moduleId: string;
-  optionIndex: number | null;
-  field: string | null;
-  fieldPath: string | null;
-};
-
-function parseItemTargetFromItemId(
-  itemId: string,
-  moduleIds: string[],
-): ParsedItemTarget | null {
-  const segments = itemId.split('_').filter(Boolean);
-  if (!segments.length) return null;
-
-  const first = segments[0];
-  const moduleId = moduleIds.includes(first)
-    ? first
-    : resolveModuleIdFromItemId(itemId, moduleIds);
-  if (!moduleId) return null;
-
-  const rest =
-    moduleId === first
-      ? segments.slice(1)
-      : itemId.startsWith(`${moduleId}_`)
-        ? itemId
-          .slice(moduleId.length + 1)
-          .split('_')
-          .filter(Boolean)
-        : [];
-
-  if (!rest.length) {
-    return { moduleId, optionIndex: null, field: null, fieldPath: null };
-  }
-
-  const second = rest[0];
-  if (/^\d+$/.test(second)) {
-    const tail = rest.slice(1);
-    return {
-      moduleId,
-      optionIndex: Number(second),
-      field: tail[0] ?? null,
-      fieldPath: tail.length ? tail.join('_') : null,
-    };
-  }
-
-  return {
-    moduleId,
-    optionIndex: null,
-    field: second,
-    fieldPath: rest.join('_'),
-  };
-}
-
-function focusPanelByParsedTarget(itemId: string, target: ParsedItemTarget) {
-  if (moduleActiveStore.getModuleActive !== target.moduleId) {
-    moduleActiveStore.setModuleActive(target.moduleId);
-  }
-  requestAnimationFrame(() => focusPanelFieldByItemId(itemId));
-}
-
-function focusPanelFieldByItemId(itemId: string) {
-  const sel = `[data-panel-item-id="${itemId}"]`;
-  const placeCaretToEnd = (el: HTMLElement) => {
-    if (!el.isContentEditable) return;
-    const selApi = window.getSelection();
-    if (!selApi) return;
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    range.collapse(false);
-    selApi.removeAllRanges();
-    selApi.addRange(range);
-  };
-  const openAntdPopupIfNeeded = (holder: HTMLElement, target: HTMLElement) => {
-    const root = target.closest('.ant-select,.ant-picker,.ant-cascader') as HTMLElement | null
-      ?? holder.querySelector('.ant-select,.ant-picker,.ant-cascader');
-    if (!root) return;
-    const trigger =
-      (root.querySelector('.ant-select-selector') as HTMLElement | null)
-      ?? (root.querySelector('.ant-picker-input input') as HTMLElement | null)
-      ?? (root.querySelector('.ant-select-selection-search-input') as HTMLElement | null)
-      ?? (root.querySelector('input') as HTMLElement | null)
-      ?? root;
-    if (typeof trigger.focus === 'function') trigger.focus();
-    trigger.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
-    trigger.click();
-  };
-
-  const tryFocus = () => {
-    const holder = document.querySelector(sel) as HTMLElement | null;
-    if (!holder) return false;
-
-    window.setTimeout(() => {
-      scrollElementIntoScrollParent(holder, 'smooth', { align: 'center' });
-
-      const target =
-        holder.matches('input,textarea,[contenteditable="true"]')
-          ? holder
-          : (holder.querySelector(
-            'input,textarea,[contenteditable="true"],.ql-editor,.ant-select-selection-search-input',
-          ) as HTMLElement | null) ?? holder;
-      if (typeof target.focus === 'function') target.focus();
-      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-        const len = target.value.length;
-        target.setSelectionRange(len, len);
-      } else {
-        placeCaretToEnd(target);
-      }
-      openAntdPopupIfNeeded(holder, target);
-    }, 200);
-
-    return true;
-  };
-  if (tryFocus()) return;
-  let retries = 30;
-  const tick = () => {
-    if (tryFocus() || retries <= 0) return;
-    retries -= 1;
-    window.setTimeout(tick, 80);
-  };
-  window.setTimeout(tick, 80);
-}
-
 type ToolbarBox = {
   top: number;
   visible: boolean;
@@ -212,12 +87,16 @@ function ModuleOperation({
   children,
   stageRef,
   onModuleActivated,
+  fieldEditMode = 'panel',
 }: {
   children: React.ReactNode;
   stageRef: RefObject<HTMLDivElement | null>;
   onModuleActivated?: () => void;
+  /** panel=简历编辑菜单：聚焦右侧面板；inline=其他菜单：canvas 就地编辑 */
+  fieldEditMode?: 'panel' | 'inline';
 }) {
   const tm = useTranslations('Edit.moduleOperation');
+  const inlineFieldEdit = useOptionalInlineFieldEdit();
   const { confirm, contextHolder } = useResponsiveConfirm();
   const { removeModuleFromConfig, reorderFlattenedModules } = useModuleHandle();
   const hostRef = useRef<HTMLDivElement>(null);
@@ -402,9 +281,14 @@ function ModuleOperation({
       );
       if (parsed) {
         moduleActiveStore.setModuleActive(parsed.moduleId);
-        onModuleActivated?.();
-        // 延迟一帧，让面板 tab 切换的 React 更新先完成
-        requestAnimationFrame(() => focusPanelByParsedTarget(itemId, parsed));
+        if (fieldEditMode === 'panel') {
+          onModuleActivated?.();
+          inlineFieldEdit?.close();
+          requestAnimationFrame(() => focusPanelByParsedTarget(itemId, parsed));
+        } else if (itemNode instanceof HTMLElement && inlineFieldEdit) {
+          e.stopPropagation();
+          inlineFieldEdit.open({ itemId, anchorEl: itemNode });
+        }
       }
       return;
     }

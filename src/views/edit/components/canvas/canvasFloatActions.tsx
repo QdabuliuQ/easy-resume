@@ -7,13 +7,10 @@ import {
   SunOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
-import { Selected } from '@icon-park/react';
 import { Popover, Tooltip } from 'antd';
 
 type CanvasFloatActionsProps = {
   backupReady: boolean;
-  quickSelectEnabled: boolean;
-  onToggleQuickSelect: () => void;
   locale: string;
   langSwitchTitle: string;
   langSwitchAria: string;
@@ -34,8 +31,6 @@ type CanvasFloatActionsProps = {
 export default function CanvasFloatActions(props: CanvasFloatActionsProps) {
   const {
     backupReady,
-    quickSelectEnabled,
-    onToggleQuickSelect,
     locale,
     langSwitchTitle,
     langSwitchAria,
@@ -82,23 +77,6 @@ export default function CanvasFloatActions(props: CanvasFloatActionsProps) {
           </span>
         </Tooltip>
       )}
-      <Tooltip
-        title={quickSelectEnabled
-          ? (locale === 'zh' ? '快捷选中：开启' : 'Quick select: on')
-          : (locale === 'zh' ? '快捷选中：关闭' : 'Quick select: off')}
-        placement='left'
-      >
-        <button
-          type='button'
-          onClick={onToggleQuickSelect}
-          className={`canvas-float-btn ${quickSelectEnabled ? 'text-emerald-500' : ''}`}
-          aria-label={quickSelectEnabled
-            ? (locale === 'zh' ? '关闭快捷选中编辑' : 'Disable quick select edit')
-            : (locale === 'zh' ? '开启快捷选中编辑' : 'Enable quick select edit')}
-        >
-          <Selected theme='outline' size='17' fill='currentColor' />
-        </button>
-      </Tooltip>
       <Tooltip title={langSwitchTitle} placement='left'>
         <button
           type='button'

@@ -1,5 +1,6 @@
 import { useMemoizedFn } from 'ahooks';
 import { useState, type RefObject } from 'react';
+import { HIGHLIGHT_OUTSET_X } from '@/lib/inlineFieldEdit/computePopoverPosition';
 
 export type CanvasHoverRect = {
   left: number;
@@ -53,10 +54,11 @@ export function useSelectableGuideHover({
       return;
     }
 
+    const halfX = HIGHLIGHT_OUTSET_X / 2;
     const nextRect = {
-      left: targetRect.left - containerRect.left + containerEl.scrollLeft,
+      left: targetRect.left - containerRect.left + containerEl.scrollLeft - halfX,
       top: targetRect.top - containerRect.top + containerEl.scrollTop,
-      width: targetRect.width,
+      width: targetRect.width + HIGHLIGHT_OUTSET_X,
       height: targetRect.height,
     };
 
