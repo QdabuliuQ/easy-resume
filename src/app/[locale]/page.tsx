@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { fetchGithubRepoStars } from '@/lib/githubRepoStars';
 import { buildHomeMetadata } from '@/lib/pageMetadata';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import HomeClient from '../home-client';
@@ -16,6 +15,6 @@ export async function generateMetadata({
 
 export default async function Page({ params }: { params: { locale: string } }) {
   setRequestLocale(params.locale);
-  const githubStars = await fetchGithubRepoStars();
-  return <HomeClient githubStars={githubStars} />;
+  // ponytail: 不阻塞首屏等 GitHub API；stars 由客户端补
+  return <HomeClient />;
 }

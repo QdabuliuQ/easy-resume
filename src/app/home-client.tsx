@@ -113,11 +113,13 @@ type HighlightBlock = {
   bullets: [string, string];
 };
 
-export default function HomeClient({ githubStars = null }: { githubStars?: number | null }) {
+export default function HomeClient({ githubStars: githubStarsProp = null }: { githubStars?: number | null }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const [githubStars, setGithubStars] = useState<number | null>(githubStarsProp ?? null);
+  const [showMasonry, setShowMasonry] = useState(false);
   const locale = useLocale();
   const t = useTranslations('Home');
   const [langOpen, setLangOpen] = useState(false);
@@ -181,6 +183,34 @@ export default function HomeClient({ githubStars = null }: { githubStars?: numbe
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    if (githubStars != null) return;
+    let canceled = false;
+    void fetch('https://api.github.com/repos/QdabuliuQ/easy-resume', {
+      headers: { Accept: 'application/vnd.github+json' },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { stargazers_count?: unknown } | null) => {
+        if (canceled || !data) return;
+        const n = data.stargazers_count;
+        if (typeof n === 'number' && Number.isFinite(n) && n >= 0) setGithubStars(n);
+      })
+      .catch(() => undefined);
+    return () => {
+      canceled = true;
+    };
+  }, [githubStars]);
+
+  useEffect(() => {
+    const show = () => setShowMasonry(true);
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(show, { timeout: 2800 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const timer = globalThis.setTimeout(show, 900);
+    return () => globalThis.clearTimeout(timer);
+  }, []);
+
   const headerShellClass =
     'pointer-events-none fixed left-0 top-0 z-50 w-full pt-[calc(env(safe-area-inset-top,0px)+12px)] xl:left-1/2 xl:w-1/2 xl:px-5';
   const navClass = useMemo(
@@ -219,7 +249,7 @@ export default function HomeClient({ githubStars = null }: { githubStars?: numbe
             className={`flex min-w-0 flex-1 cursor-pointer items-center gap-2 overflow-hidden rounded-lg ${focusRing}`}
           >
             <span className='relative inline-flex h-10 w-10 shrink-0'>
-              <Image src={logo} alt={t('logoAlt')} fill sizes='40px' className='object-contain p-0.5' />
+              <Image src={logo} alt={t('logoAlt')} fill sizes='40px' className='object-contain p-0.5' priority />
             </span>
             <span className='min-w-0 truncate leading-tight'>
               <span className='block truncate text-sm font-semibold tracking-[0.12em] text-fg/90'>{t('brandName')}</span>
@@ -290,7 +320,11 @@ export default function HomeClient({ githubStars = null }: { githubStars?: numbe
       </header>
 
       <aside className='fixed left-0 top-0 z-[2] hidden h-[100vh] w-1/2 overflow-hidden border-r border-fg/[0.08] bg-[rgb(var(--surface-fg-rgb)/0.02)] xl:block'>
-        <TemplateMasonry reduceMotion={reduceMotion} />
+        {showMasonry ? (
+          <TemplateMasonry reduceMotion={reduceMotion} />
+        ) : (
+          <div className='h-full w-full bg-fg/[0.03]' aria-hidden />
+        )}
       </aside>
 
       <div className='relative isolate z-[1] min-h-screen w-full xl:ml-auto xl:w-1/2'>

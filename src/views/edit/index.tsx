@@ -1,4 +1,5 @@
 'use client';
+import dynamic from 'next/dynamic';
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSearchParams } from 'next/navigation';
@@ -14,10 +15,11 @@ import Container from './components/container';
 import EditShellReveal from './components/editShellReveal';
 import Header from './components/header';
 import Menu from './components/menu/index';
-import AiInterviewPage from './components/aiInterview';
 import ResumeConfigCanvasPreviewHost from './components/resumeConfigCanvasPreviewHost';
 import ResumeFontCdn from './components/canvas/resumeFontCdn';
 import EditTour from './components/editTour';
+
+const AiInterviewPage = dynamic(() => import('./components/aiInterview'), { ssr: false });
 
 const DEFAULT_MENU_KEY = 'resume';
 
@@ -49,7 +51,7 @@ function Edit() {
   );
 
   useEffect(() => {
-    const id = window.setTimeout(() => prefetchRichTextEditor(), 1200);
+    const id = window.setTimeout(() => prefetchRichTextEditor(), 4000);
     return () => clearTimeout(id);
   }, []);
 

@@ -58,20 +58,21 @@ export function useResumeExport() {
       });
     };
 
-    runWarmup();
+    // ponytail: 首屏稳定后再预热导出，避免和编辑器 JS/字体抢带宽
+    let idleId = 0;
+    const delay = globalThis.setTimeout(() => {
+      if ('requestIdleCallback' in window) {
+        idleId = window.requestIdleCallback(runWarmup, { timeout: 12_000 });
+      } else {
+        idleId = globalThis.setTimeout(runWarmup, 8000) as unknown as number;
+      }
+    }, 5000);
 
-    if ('requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(runWarmup, { timeout: 1200 });
-      return () => {
-        canceled = true;
-        window.cancelIdleCallback(id);
-      };
-    }
-
-    const timer = globalThis.setTimeout(runWarmup, 300);
     return () => {
       canceled = true;
-      globalThis.clearTimeout(timer);
+      globalThis.clearTimeout(delay);
+      if ('cancelIdleCallback' in window && idleId) window.cancelIdleCallback(idleId);
+      else if (idleId) globalThis.clearTimeout(idleId);
     };
   }, []);
 
