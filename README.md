@@ -7,6 +7,10 @@
 </p>
 
 <p align="center">
+  模块化在线简历编辑器 · 所见即所得 · 本地导出 · 云端同步 · AI 辅助
+</p>
+
+<p align="center">
   <a href="https://resume.qdabuliuq.cn/"><strong>🌐 在线预览</strong></a>
 </p>
 
@@ -27,20 +31,47 @@
   <img src="https://img.qdabuliuq.cn/easy-resume/preview.webp" width="800" alt="青松简历项目预览">
 </p>
 
-**禁止：** Cloudflare 给主站配置 `resume.qdabuliuq.cn/api/* → Worker`（会导致登录 404）。  
-**正确：** 主站 Nginx 全部反代到本机 Next `:3010`；Worker 只用独立域名。
+## 简介
 
-国内若 `workers.dev` 超时，生产用已绑的 `api.resume.qdabuliuq.cn`，仍不要绑主站 `/api/*`。
+**青松简历（EasyResume）** 是一款面向求职者的在线简历编辑器。支持模块化编辑与实时画布预览，无需登录即可本地编辑与导出；登录后可云端同步、分享链接，并接入 AI 润色、评分与对话改稿。
 
 ## ✨ 功能概览
 
-- 简历模块编辑（个人信息、工作经历、项目、教育、技能、证书等）
-- 画布预览与网格布局（`react-grid-layout`）
-- Quill 富文本与 HTML 安全处理（DOMPurify）
-- 服务端渲染简历 HTML，PDF/PNG 导出 API
-- AI 相关能力（润色、评分、导入等）
-- **GitHub 登录**（NextAuth）+ **云端简历**同步（Cloudflare Workers + D1）
-- **运维后台**（`/zh/admin`）：用户与简历列表、预览、删除
+### 编辑与排版
+
+- 模块化简历：个人信息、工作经历、项目、教育、技能、证书等
+- 画布实时预览，拖拽网格布局（`react-grid-layout`）
+- Quill 富文本编辑，HTML 经 DOMPurify 安全处理
+- 多模板、主题色、字体、页边距等全局样式
+- 中英文界面（`next-intl`）
+
+### 导出
+
+| 格式 | 方式 | 说明 |
+|------|------|------|
+| PDF（高质量） | 服务端 Puppeteer | 还原度最高，需 Chromium |
+| PDF（快速） | 浏览器本地 | pdfkit，无需服务端浏览器 |
+| PDF（图片版） | 浏览器本地 | 整页截图合成 |
+| DOCX | 浏览器本地 | Beta，嵌入预览字体 |
+| 图片 | 浏览器本地 | PNG |
+| JSON | 浏览器本地 | 配置备份 |
+
+### AI 能力
+
+| 能力 | 模型 | 说明 |
+|------|------|------|
+| AI 润色 | SenseNova | 工作/项目等描述流式润色 |
+| AI 评分 | DeepSeek | 多维度评分与改进建议 |
+| AI 帮改 | DeepSeek | 对话式改稿 |
+| AI 模拟面试 | DeepSeek | 基于简历的面试练习 |
+| 简历识别 | 百度 OCR + LLM | PDF/图片导入填入 |
+
+### 账号与云端
+
+- GitHub / QQ 登录（NextAuth）
+- 云端简历同步与多份管理（Cloudflare Workers + D1）
+- 分享链接（只读预览）
+- 运维后台（`/zh/admin`）：用户与简历管理
 
 ## 🛠️ 技术栈
 
@@ -48,25 +79,26 @@
 |------|------|
 | 框架 | Next.js 14、React 19、TypeScript |
 | UI | Ant Design 5、Tailwind CSS 4 |
-| 状态 | MobX、mobx-react |
-| 编辑器 / 布局 | Quill、@dnd-kit、react-grid-layout |
-| 导出 | Puppeteer |
-| 登录 | Auth.js / next-auth（GitHub OAuth） |
-| 云端数据 | Cloudflare Workers + D1（见 `cf-api/`） |
-| 规范 | ESLint 9、Prettier、Husky、Commitlint |
+| 状态 | MobX |
+| 编辑 / 布局 | Quill、@dnd-kit、react-grid-layout |
+| 导出 | Puppeteer（服务端 PDF）、pdfkit / docx / snapdom（浏览器本地） |
+| AI | LangChain、DeepSeek、SenseNova |
+| 登录 | Auth.js / next-auth |
+| 云端数据 | Cloudflare Workers + D1（`cf-api/`） |
+| 测试 / 规范 | Vitest、ESLint、Prettier、Husky |
 
 ## 💻 环境要求
 
-- **Node.js** ≥ 18.17（见 `package.json` `engines`）
-- **PDF/PNG**：生产环境需可用的 Chromium；默认期望可执行文件为 `/usr/bin/chromium-browser`，或通过环境变量指定（见下表）
-- **云端同步（可选）**：本地另起 `cf-api` Worker（`wrangler dev --local`），或指向已部署的 Worker URL
+- **Node.js** ≥ 18.17
+- **PDF（高质量）**：生产环境需 Chromium（`PUPPETEER_EXECUTABLE_PATH` 或默认 `/usr/bin/chromium-browser`）
+- **云端同步（可选）**：本地 `cf-api` Worker 或已部署的 Worker URL
 
 ## 🚀 快速开始
 
 ```bash
+git clone https://github.com/QdabuliuQ/easy-resume.git
+cd easy-resume
 npm install
-# 若出现 React / Next  peer 依赖冲突，可使用：
-# npm install --legacy-peer-deps
 
 cp .env.local.example .env.local
 # 按需填写 AI Key；云同步再填 AUTH_* / CF_API_* / ADMIN_*
@@ -74,36 +106,36 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
-开发服务器默认由 Next 分配端口；本地访问路径形如：`http://localhost:3000/zh/edit`（端口以终端输出为准）。
+本地访问：`http://localhost:3000/zh/edit`（端口以终端输出为准）。
 
-云端 API 本地联调（另开终端）：
+### 云端 API 本地联调
+
+另开终端：
 
 ```bash
 cd cf-api
-cp .dev.vars.example .dev.vars   # 填写 ADMIN_SECRET / CF_API_SECRET
+cp .dev.vars.example .dev.vars
 npm install
 npx wrangler d1 execute easy-resume --local --file=./schema.sql   # 首次
 npx wrangler dev --local --port 8787
 ```
 
-根目录 `.env.local` 中设置：
+根目录 `.env.local`：
 
 ```bash
 CF_API_BASE_URL=http://127.0.0.1:8787
-CF_API_SECRET=与.dev.vars相同   # 或不设，回退 ADMIN_SECRET
+CF_API_SECRET=与.dev.vars相同
 ADMIN_SECRET=与.dev.vars相同
 ```
 
-详细步骤见 [cf-api/README.md](./cf-api/README.md)。
+详见 [cf-api/README.md](./cf-api/README.md)。
 
-生产构建与启动：
+### 生产构建
 
 ```bash
 npm run build
-npm run start
+npm run start   # 端口 3010
 ```
-
-`start` 脚本固定监听 **3010** 端口。
 
 ## 📜 常用脚本
 
@@ -115,74 +147,81 @@ npm run start
 | `npm run test` | Vitest 单元测试 |
 | `npm run lint` | ESLint |
 | `npm run lint:pritter` | Prettier 格式化 `src/` |
-| `npm run prepare` | 安装 Husky（`npm install` 后自动执行） |
 
 ## 🔐 环境变量
 
-在项目根目录创建 `.env.local`（勿提交密钥到仓库）。完整注释见 `.env.local.example`。
+在项目根目录创建 `.env.local`（勿提交密钥）。完整注释见 `.env.local.example`。
 
-### 本地开发（AI / 导出）
+### AI
 
 | 变量 | 必填 | 说明 |
 |------|------|------|
-| `DEEPSEEK_API_KEY` | 否 | DeepSeek（AI 评分、对话修改、模拟面试） |
-| `SENSENOVA_API_KEY` | 否 | 商汤 SenseNova（AI 润色） |
-| `BAIDU_OCR_API_KEY` / `BAIDU_OCR_SECRET_KEY` | 否 | 百度 OCR（简历导入） |
-| `PUPPETEER_EXECUTABLE_PATH` | 否 | 导出用浏览器路径；开发未设时用 Puppeteer 自带 Chromium |
+| `DEEPSEEK_API_KEY` | 否 | AI 评分、帮改、模拟面试 |
+| `SENSENOVA_API_KEY` | 否 | AI 润色 |
+| `BAIDU_OCR_API_KEY` / `BAIDU_OCR_SECRET_KEY` | 否 | 简历 PDF/图片识别 |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 否 | AI 限流与缓存 |
 
-### GitHub 登录 + 云端简历 + 后台
+### 登录 + 云端 + 后台
 
 | 变量 | 说明 |
 |------|------|
 | `AUTH_SECRET` | NextAuth 密钥（`openssl rand -base64 32`） |
-| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | GitHub OAuth App；回调 `/api/auth/callback/github` |
+| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | GitHub OAuth；回调 `/api/auth/callback/github` |
+| `AUTH_QQ_ID` / `AUTH_QQ_SECRET` | QQ 互联（可选） |
 | `AUTH_TRUST_HOST` | 反代下建议 `true` |
-| `CF_API_BASE_URL` | **Worker 根地址**（生产：`https://api.resume.qdabuliuq.cn`；本地：`http://127.0.0.1:8787`）。**不要**填主站域名 |
-| `CF_API_SECRET` | Next→CF 服务端密钥（Header `X-CF-Key`）；不设则回退 `ADMIN_SECRET` |
-| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | 后台账号密码（路径 `/zh/admin`，走主站） |
-| `ADMIN_SECRET` | 后台 cookie 签名 + 调 CF 管理接口（`X-Admin-Key`）；需与 Worker 侧一致 |
+| `CF_API_BASE_URL` | Worker 根地址（**不要**填主站域名） |
+| `CF_API_SECRET` | Next→CF 服务端密钥（`X-CF-Key`） |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | 后台登录（`/zh/admin`） |
+| `ADMIN_SECRET` | 后台 cookie 签名 + CF 管理接口 |
 
-> 浏览器**只**访问主站；密钥不下发前端。  
-> Worker 密钥：本地 `cf-api/.dev.vars`，线上 `wrangler secret put`。
-
-### 部署专用
+### 部署
 
 | 变量 | 说明 |
 |------|------|
-| `RESUME_PROJECT_ROOT` | 项目在服务器上的绝对路径 |
-| `NEXT_PUBLIC_SITE_URL` | 站点对外根 URL；**需在 `npm run build` 前配置** |
-| `EXPORT_BASE_URL` | Puppeteer 打开导出页；默认生产 `http://127.0.0.1:3010` |
+| `NEXT_PUBLIC_SITE_URL` | 站点对外 URL；**需在 `npm run build` 前配置** |
+| `EXPORT_BASE_URL` | Puppeteer 导出页地址（默认 `http://127.0.0.1:3010`） |
 | `PUPPETEER_EXECUTABLE_PATH` | 生产 Chromium 路径 |
-| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 可选，AI 限流与缓存 |
+| `RESUME_PROJECT_ROOT` | 服务器项目绝对路径 |
 
-## 📂 目录结构（摘要）
+## 📂 目录结构
 
 ```
 src/
-  app/           # App Router：页面、Layout、API（含 /api/auth、/api/resume/cloud、/api/admin）
-  components/    # 通用组件（含 auth）
-  views/edit/    # 编辑器主界面
-  views/admin/   # 运维后台壳
-  modules/       # 简历各模块渲染
-  mobx/          # 全局状态（含 cloudResumeStore）
-  lib/           # 工具（含 cfApi、adminAuth）
-  json/          # 默认简历与模板
-cf-api/          # Cloudflare Workers + D1 API（详见该目录 README）
-public/          # 静态资源
-tests/           # Vitest
+  app/              # App Router：页面、API
+  views/edit/       # 编辑器主界面
+  views/admin/      # 运维后台
+  modules/          # 简历模块渲染（预览画布）
+  components/       # 通用组件
+  mobx/             # 全局状态
+  lib/              # 工具（导出、AI、字体等）
+  json/             # 默认简历与模板
+cf-api/             # Cloudflare Workers + D1
+public/fonts/       # 简历字体
+tests/              # Vitest
 ```
 
-## 🔒 安全要点（云同步）
+## 🔒 部署与安全
 
-- **双地址隔离**：登录在主站；数据在 Worker（见上文）
-- 用户简历：Next session 注入 `uid`，再带 `X-CF-Key` 调 CF
-- CF 直连无密钥 → 401；无 `/api/admin/login`（故意没有）
+**Cloudflare 路由（重要）**
+
+- **禁止**：主站 `resume.qdabuliuq.cn/api/* → Worker`（会导致登录 404）
+- **正确**：主站 Nginx 全部反代到 Next `:3010`；Worker 用独立域名（如 `api.resume.qdabuliuq.cn`）
+
+**安全要点**
+
+- 浏览器只访问主站；`CF_API_SECRET` / `ADMIN_SECRET` 不下发前端
+- Next 从 session 注入 `uid`，再带 `X-CF-Key` 调 CF
+- CF 直连无密钥 → 401
 - 后台登录有失败次数限制
 
-## 🐳 Docker 部署
+## 🐳 Docker
 
 ```bash
 docker-compose up -d
 ```
 
 访问：`http://localhost:3010/zh`
+
+## 📄 许可
+
+[MIT](./LICENSE)
