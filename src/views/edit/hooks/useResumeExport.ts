@@ -1,13 +1,35 @@
 'use client';
 
 import { useLocale, useMessages, useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 
 let snapClientPromise: Promise<typeof import('@/lib/clientSnapResumeImage')> | null = null;
 let docxClientPromise: Promise<typeof import('@/lib/clientDocxExport')> | null = null;
+let exportBusy = false;
+const exportBusySubs = new Set<() => void>();
+
+function setExportBusy(next: boolean) {
+  if (exportBusy === next) return;
+  exportBusy = next;
+  exportBusySubs.forEach((cb) => cb());
+}
+
+/** Header 等非导出区订阅，避免首屏加载 useResumeExport 整包 */
+export function useExportBusy(): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      exportBusySubs.add(cb);
+      return () => {
+        exportBusySubs.delete(cb);
+      };
+    },
+    () => exportBusy,
+    () => false,
+  );
+}
 
 function loadSnapClient() {
   if (!snapClientPromise) {
@@ -23,20 +45,8 @@ function loadDocxClient() {
   return docxClientPromise;
 }
 
-export function useResumeExport() {
-  const message = useAppMessage();
-  const t = useTranslations('Edit.header');
-  const locale = useLocale();
-  const messages = useMessages();
-  const [pdfLoading, setPdfLoading] = useState(false);
-  const [pdfkitLoading, setPdfkitLoading] = useState(false);
-  const [imagePdfLoading, setImagePdfLoading] = useState(false);
-  const [imageLoading, setImageLoading] = useState(false);
-  const [docxLoading, setDocxLoading] = useState(false);
-  const name = configStore.getConfig?.name ?? defaultResume.name;
-  const exporting =
-    pdfLoading || pdfkitLoading || imagePdfLoading || imageLoading || docxLoading;
-
+/** 导出菜单 mount 后再预热，避免 Header 首屏抢带宽 */
+export function useResumeExportWarmup(): void {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     let canceled = false;
@@ -58,7 +68,6 @@ export function useResumeExport() {
       });
     };
 
-    // ponytail: 首屏稳定后再预热导出，避免和编辑器 JS/字体抢带宽
     let idleId = 0;
     const delay = globalThis.setTimeout(() => {
       if ('requestIdleCallback' in window) {
@@ -75,6 +84,26 @@ export function useResumeExport() {
       else if (idleId) globalThis.clearTimeout(idleId);
     };
   }, []);
+}
+
+export function useResumeExport() {
+  const message = useAppMessage();
+  const t = useTranslations('Edit.header');
+  const locale = useLocale();
+  const messages = useMessages();
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfkitLoading, setPdfkitLoading] = useState(false);
+  const [imagePdfLoading, setImagePdfLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [docxLoading, setDocxLoading] = useState(false);
+  const name = configStore.getConfig?.name ?? defaultResume.name;
+  const exporting =
+    pdfLoading || pdfkitLoading || imagePdfLoading || imageLoading || docxLoading;
+
+  useEffect(() => {
+    setExportBusy(exporting);
+    return () => setExportBusy(false);
+  }, [exporting]);
 
   const snapshotForExport = () => {
     const raw = configStore.getConfig;

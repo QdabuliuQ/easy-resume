@@ -1,8 +1,9 @@
 'use client';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { memo, useMemo, useRef, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { signIn, useSession } from 'next-auth/react';
 import { Button, Dropdown, Input, Tooltip } from 'antd';
@@ -16,32 +17,40 @@ import {
   UndoOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Copy, Download, FilePdf, ImageFiles, FileCode, FileWord, Save, Share } from '@icon-park/react';
+import { Copy, Save, Share } from '@icon-park/react';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
 import qqIcon from '@/assets/qq.png';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { cloudResumeStore, configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 import { logo } from '@/lib/brandAssets';
-import { useResumeExport } from '@/views/edit/hooks/useResumeExport';
+import { useExportBusy } from '@/views/edit/hooks/useResumeExport';
 import { useEditHistory } from '@/views/edit/hooks/useEditHistory';
 import ShareResumeModal from '@/views/edit/components/header/ShareResumeModal';
+import { actionBtnCls, actionIconSpin, ICON_PRIMARY, ICON_MUTED } from './headerActionStyles';
 
-const ICON_PRIMARY = 'var(--color-primary)';
-const ICON_MUTED = 'rgb(var(--surface-fg-rgb) / 0.55)';
-const actionBtnCls = [
-  'inline-flex min-h-9 cursor-pointer select-none items-center justify-center gap-1 rounded-xl px-3 py-2',
-  'border border-[color-mix(in_srgb,var(--color-primary)_32%,transparent)]',
-  'bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--editor-shell-panel-strong))]',
-  'text-[12px] font-medium leading-snug text-[color:var(--color-primary)] whitespace-nowrap',
-  'transition-[transform,background-color,border-color,color,box-shadow] duration-200 ease-out',
-  'hover:border-[color-mix(in_srgb,var(--color-primary)_42%,transparent)]',
-  'hover:bg-[color-mix(in_srgb,var(--color-primary)_16%,var(--editor-shell-panel-strong))]',
-  'active:scale-[0.98]',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_42%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-panel)]',
-  'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
-  'motion-reduce:transition-none motion-reduce:active:scale-100',
-].join(' ');
+let headerExportMenuPromise: Promise<typeof import('./HeaderExportMenu')> | null = null;
+
+function prefetchHeaderExportMenu() {
+  if (!headerExportMenuPromise) {
+    headerExportMenuPromise = import('./HeaderExportMenu');
+  }
+  return headerExportMenuPromise;
+}
+
+const HeaderExportMenu = dynamic(() => prefetchHeaderExportMenu().then((m) => m.default), {
+  ssr: false,
+});
+
+function HeaderExportMenuPlaceholder() {
+  const t = useTranslations('Edit.header');
+  return (
+    <button type='button' aria-label={t('exportLabel')} className={actionBtnCls}>
+      <span className='inline-block size-[18px] rounded-sm bg-[color-mix(in_srgb,var(--color-primary)_25%,transparent)]' aria-hidden />
+      {t('exportLabel')}
+    </button>
+  );
+}
 /** 次要操作（创建副本等）：弱化样式，避免被当成「保存」 */
 const quietBtnCls = [
   'inline-flex min-h-9 cursor-pointer select-none items-center justify-center gap-1 rounded-xl px-2.5 py-2',
@@ -74,12 +83,8 @@ const loginIconCls =
   'inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-primary-gradient-start),var(--color-primary))] text-white shadow-[0_2px_8px_color-mix(in_srgb,var(--color-primary)_32%,transparent),inset_0_1px_0_rgb(255_255_255/0.35)]';
 const loginArrowCls = (open: boolean) =>
   `text-[10px] text-[color:color-mix(in_srgb,var(--color-primary)_72%,transparent)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`;
-const actionIconSpin =
-  'inline-block size-4 animate-spin rounded-full border-2 border-[color-mix(in_srgb,var(--color-primary-gradient-start)_35%,transparent)] border-t-[var(--color-primary)]';
 const historyBtnCls =
   'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-fg/[0.1] bg-surface/[0.04] text-fg/55 transition-colors enabled:cursor-pointer enabled:hover:border-fg/[0.16] enabled:hover:bg-surface/[0.08] enabled:hover:text-fg/88 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-fg/[0.1] disabled:hover:bg-surface/[0.04] disabled:hover:text-fg/55';
-const arrowCls = (open: boolean) =>
-  `text-[10px] opacity-80 transition-transform duration-200 ${open ? 'rotate-180' : ''}`;
 
 function Header() {
   const t = useTranslations('Edit.header');
@@ -90,24 +95,12 @@ function Header() {
   const authLoading = status === 'loading';
   const [authBusy, setAuthBusy] = useState(false);
   const { canUndo, canRedo, undo, redo } = useEditHistory();
-  const {
-    exportPdf,
-    exportPdfkit,
-    exportImagePdf,
-    exportImage,
-    exportJson,
-    exportDocx,
-    pdfLoading,
-    pdfkitLoading,
-    imagePdfLoading,
-    imageLoading,
-    exporting,
-  } = useResumeExport();
+  const exporting = useExportBusy();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
-  const [exportOpen, setExportOpen] = useState(false);
+  const [exportMenuReady, setExportMenuReady] = useState(false);
   const ignoreNextBlur = useRef(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
   const actionsDisabled = exporting;
@@ -206,60 +199,6 @@ function Header() {
     }
     setShareOpen(true);
   };
-  const exportMenuItems = useMemo(
-    () => [
-      {
-        key: 'pdf',
-        disabled: actionsDisabled,
-        icon: <FilePdf theme='outline' size={16} fill={ICON_PRIMARY} />,
-        label: t('exportPdf'),
-        onClick: () => void exportPdf(),
-      },
-      {
-        key: 'pdfkit',
-        disabled: actionsDisabled,
-        icon: <FilePdf theme='outline' size={16} fill={ICON_PRIMARY} />,
-        label: t('exportPdfkit'),
-        onClick: () => void exportPdfkit(),
-      },
-      {
-        key: 'imagePdf',
-        disabled: actionsDisabled,
-        icon: <FilePdf theme='outline' size={16} fill={ICON_PRIMARY} />,
-        label: t('exportImagePdf'),
-        onClick: () => void exportImagePdf(),
-      },
-      {
-        key: 'docx',
-        disabled: actionsDisabled,
-        icon: <FileWord theme='outline' size={16} fill={ICON_PRIMARY} />,
-        label: (
-          <span className='inline-flex items-center gap-1.5'>
-            {t('exportDocx')}
-            <span className='rounded border border-fg/15 px-1 py-px text-[10px] font-medium leading-tight text-fg/45'>
-              {t('exportDocxBeta')}
-            </span>
-          </span>
-        ),
-        onClick: () => void exportDocx(),
-      },
-      {
-        key: 'image',
-        disabled: actionsDisabled,
-        icon: <ImageFiles theme='outline' size={16} fill={ICON_PRIMARY} />,
-        label: t('exportImage'),
-        onClick: () => void exportImage(),
-      },
-      {
-        key: 'json',
-        disabled: actionsDisabled,
-        icon: <FileCode theme='outline' size={16} fill={ICON_PRIMARY} />,
-        label: t('exportJson'),
-        onClick: exportJson,
-      },
-    ],
-    [actionsDisabled, exportDocx, exportImage, exportImagePdf, exportJson, exportPdf, exportPdfkit, t],
-  );
   return (
     <div className='relative flex h-full items-center justify-between gap-4 px-4 md:px-5'>
       <div className='flex min-h-0 min-w-0 flex-1 items-center gap-2'>
@@ -443,34 +382,20 @@ function Header() {
             </button>
           </span>
         </Tooltip>
-        <Dropdown
-          menu={{ items: exportMenuItems }}
-          trigger={['hover']}
-          mouseEnterDelay={0.08}
-          mouseLeaveDelay={0.12}
-          disabled={actionsDisabled}
-          placement='bottomRight'
-          open={exportOpen}
-          onOpenChange={(open) => {
-            if (!actionsDisabled) setExportOpen(open);
+        <span
+          className='inline-flex'
+          tabIndex={0}
+          onPointerEnter={() => {
+            void prefetchHeaderExportMenu();
+            setExportMenuReady(true);
+          }}
+          onFocus={() => {
+            void prefetchHeaderExportMenu();
+            setExportMenuReady(true);
           }}
         >
-          <button
-            type='button'
-            disabled={actionsDisabled}
-            aria-label={t('exportLabel')}
-            aria-expanded={exportOpen}
-            className={actionBtnCls}
-          >
-            {pdfLoading || pdfkitLoading || imagePdfLoading || imageLoading ? (
-              <span className={actionIconSpin} aria-hidden />
-            ) : (
-              <Download theme='outline' size={18} fill={ICON_PRIMARY} />
-            )}
-            {actionsDisabled ? t('exporting') : t('exportLabel')}
-            {!actionsDisabled ? <DownOutlined className={arrowCls(exportOpen)} /> : null}
-          </button>
-        </Dropdown>
+          {exportMenuReady ? <HeaderExportMenu /> : <HeaderExportMenuPlaceholder />}
+        </span>
         {showSaveAs ? (
           <Tooltip title={signedIn ? t('saveAsHint') : t('saveNeedLogin')}>
             <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>

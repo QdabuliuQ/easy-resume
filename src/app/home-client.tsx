@@ -17,6 +17,7 @@ import {
   type KeyboardEvent,
 } from 'react';
 import { logo, PHOTOS, PHOTO_SIZES } from '@/lib/brandAssets';
+import { prefetchEditPage } from '@/lib/prefetchEditPage';
 import {
   getServerThemeSnapshot,
   getThemeSnapshot,
@@ -234,6 +235,10 @@ export default function HomeClient({ githubStars: githubStarsProp = null }: { gi
   const pushPath = (path: string) => () => router.push(path);
   const openGh = () =>
     window.open('https://github.com/QdabuliuQ/easy-resume', '_blank', 'noopener,noreferrer');
+  const prefetchEdit = () => {
+    router.prefetch('/edit');
+    prefetchEditPage();
+  };
   const startEdit = pushPath('/edit');
 
   return (
@@ -347,6 +352,8 @@ export default function HomeClient({ githubStars: githubStarsProp = null }: { gi
                 tabIndex={0}
                 onClick={startEdit}
                 onKeyDown={navKey(startEdit)}
+                onPointerEnter={prefetchEdit}
+                onFocus={prefetchEdit}
                 className={`inline-flex h-12 min-w-[158px] cursor-pointer items-center justify-center rounded-xl px-6 text-sm font-semibold text-white shadow-[0_16px_40px_rgb(var(--surface-fg-rgb)/0.12)] ${focusRing}`}
                 style={{ background: 'var(--gradient-primary)' }}
               >
@@ -452,6 +459,8 @@ export default function HomeClient({ githubStars: githubStarsProp = null }: { gi
               tabIndex={0}
               onClick={startEdit}
               onKeyDown={navKey(startEdit)}
+              onPointerEnter={prefetchEdit}
+              onFocus={prefetchEdit}
               className={`mt-6 inline-flex h-11 min-w-[148px] cursor-pointer items-center justify-center rounded-full bg-white px-8 text-sm font-semibold text-[rgb(30_26_33/0.92)] shadow-[0_12px_28px_rgb(0_0_0/0.14)] ${focusRing}`}
             >
               {t('closingCta')}
