@@ -41,7 +41,7 @@ function MobileEditInner() {
   const [exportOpen, setExportOpen] = useState(false);
   const [templateOpen, setTemplateOpen] = useState(false);
   const interviewLiveRef = useRef(false);
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
   const isInterview = menuActiveKey === 'ai-interview';
 
   useLayoutEffect(() => {
@@ -121,7 +121,6 @@ function MobileEditInner() {
 
   return (
     <>
-      {contextHolder}
       <div className='mobile-edit-shell relative flex h-[100dvh] w-full flex-col overflow-hidden bg-[var(--editor-shell-bg)] text-[var(--text-strong)]'>
         <div className='relative z-[1] flex min-h-0 flex-1 flex-col'>
           <MobileEditHeader />

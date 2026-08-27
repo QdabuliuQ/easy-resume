@@ -16,7 +16,7 @@ import {
 
 function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
   const message = useAppMessage();
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
   const tm = useTranslations('Edit.mobile');
   const tr = useTranslations('Edit.resumeTemplate');
   const cards = useMemo(
@@ -66,7 +66,6 @@ function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
 
   return (
     <>
-      {contextHolder}
       <div className='fixed inset-0 z-[200] flex flex-col bg-[var(--editor-shell-bg)]'>
         <div className='flex shrink-0 items-center justify-between border-b border-fg/10 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]'>
           <span className='text-sm font-semibold text-fg/90'>{tm('navTemplates')}</span>

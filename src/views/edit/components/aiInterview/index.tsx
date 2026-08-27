@@ -160,7 +160,7 @@ export default observer(function AiInterviewPage({
   onLiveChange?: (live: boolean) => void;
 } = {}) {
   const message = useAppMessage();
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
   const { status, data: session } = useSession();
   const signedIn = status === 'authenticated' && Boolean(session?.user?.uid);
   const isDev = process.env.NODE_ENV !== 'production';
@@ -437,7 +437,6 @@ export default observer(function AiInterviewPage({
 
   return (
     <div className='flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden'>
-      {contextHolder}
       <div className='min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-5'>
         <div className='mx-auto flex w-full max-w-[720px] flex-col gap-5'>
           {phase === 'session' || phase === 'report' ? (

@@ -96,9 +96,8 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
       onActiveKeyChange('resume');
     }
   }, [signedIn, activeKey, onActiveKeyChange]);
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
   const {
-    contextHolder: resumeImportContextHolder,
     fileRef: resumeImportFileRef,
     onFileChange: onResumeImportFileChange,
     confirmThenPick: confirmThenPickResumeImport,
@@ -218,8 +217,6 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
   const interviewLocked = !signedIn && process.env.NODE_ENV === 'production';
   return (
     <>
-      {contextHolder}
-      {resumeImportContextHolder}
       <div className='relative flex h-full min-h-0 w-[96px] shrink-0 flex-col px-2.5 py-3'>
         <input
           ref={resumeImportFileRef}

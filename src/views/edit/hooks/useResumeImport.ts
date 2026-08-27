@@ -45,7 +45,7 @@ function patchInfo1Avatar<T extends { pages?: { modules?: { type: string; option
 export function useResumeImport() {
   const message = useAppMessage();
   const t = useTranslations('Edit.header');
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
   const fileRef = useRef<HTMLInputElement>(null);
   const clearedBaseRef = useRef<ReturnType<typeof clearImportedPagesInConfig> | null>(null);
   const preservedAvatarRef = useRef<string | undefined>(undefined);
@@ -147,7 +147,6 @@ export function useResumeImport() {
   };
 
   return {
-    contextHolder,
     fileRef,
     onFileChange,
     confirmThenPick,

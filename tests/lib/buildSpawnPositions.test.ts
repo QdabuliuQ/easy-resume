@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildSpawnPositions } from '@/lib/homeV2/buildSpawnPositions';
-import { clampResumeTilt, MAX_RESUME_TILT } from '@/lib/homeV2/resumeTiltLimits';
+import { buildSpawnPositions } from '@/lib/home/buildSpawnPositions';
+import { clampResumeTilt, MAX_RESUME_TILT } from '@/lib/home/resumeTiltLimits';
 
 describe('resumeTiltLimits', () => {
   it('keeps tilt under 90° and blocks upside-down', () => {

@@ -1,4 +1,4 @@
-import { MAX_RESUME_TILT } from '@/lib/homeV2/resumeTiltLimits';
+import { MAX_RESUME_TILT } from '@/lib/home/resumeTiltLimits';
 
 export type SpawnPoint = {
   x: number;

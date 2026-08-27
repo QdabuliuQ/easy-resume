@@ -1,4 +1,4 @@
-import { parseTransformAngle, parseTransformTranslate } from '@/lib/homeV2/parseTransformAngle';
+import { parseTransformAngle, parseTransformTranslate } from '@/lib/home/parseTransformAngle';
 
 export function computeExpandedTarget(
   pw: number,

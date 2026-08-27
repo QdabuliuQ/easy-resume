@@ -14,13 +14,6 @@ import { memo, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from
 export const PHYSICS_CARD_WIDTH = 128;
 /** mt-1(4px) + leading-4(16px) */
 export const PHYSICS_CARD_TITLE_H = 20;
-const TITLE_H = PHYSICS_CARD_TITLE_H;
-
-export function measurePhysicsCardShellH(el: HTMLElement, fallback: number) {
-  const cardRoot = el.querySelector('[data-physics-card-root]') as HTMLElement | null;
-  if (!cardRoot) return fallback;
-  return Math.round(cardRoot.getBoundingClientRect().height) || fallback;
-}
 
 export function getPhysicsCardMetrics(template: ResumeTemplateItem) {
   const gs = mergeGlobalStylePaper(
@@ -38,14 +31,14 @@ export function getPhysicsCardMetrics(template: ResumeTemplateItem) {
     pwStr,
     phStr,
     bodyW: PHYSICS_CARD_WIDTH,
-    bodyH: previewH + TITLE_H,
+    bodyH: previewH + PHYSICS_CARD_TITLE_H,
     previewH,
   };
 }
 
 function CardLoading() {
   return (
-    <div className='absolute inset-0 flex items-center justify-center bg-fg/[0.04]' aria-hidden>
+    <div className='absolute inset-0 flex items-center justify-center' aria-hidden>
       <span className='h-4 w-4 animate-spin rounded-full border-2 border-fg/12 border-t-fg/45' />
     </div>
   );
@@ -97,10 +90,10 @@ export default memo(function PhysicsTemplateCard({
   }, [pw, cardWidth]);
 
   return (
-    <div className='select-none' data-physics-card-root style={{ width: cardWidth }}>
+    <div className='cursor-pointer select-none [&_*]:cursor-pointer [&_*]:select-none' data-physics-card-root style={{ width: cardWidth }}>
       <div
         ref={wrapRef}
-        className={`relative overflow-hidden bg-white shadow-[0_4px_16px_rgb(0_0_0/0.1)]${previewHoverSlot ? ' group/preview' : ''}`}
+        className={`relative overflow-hidden cursor-pointer select-none shadow-[0_4px_16px_rgb(0_0_0/0.1)] [&_*]:cursor-pointer [&_*]:select-none${previewHoverSlot ? ' group/preview' : ''}`}
         data-resume-preview
         style={{ height: previewH, colorScheme: 'light' }}
         aria-busy={!painted}

@@ -37,7 +37,7 @@ function MobilePreviewOverlay({ onClose }: { onClose: () => void }) {
           <CloseOutlined />
         </button>
       </div>
-      <div className='min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain bg-[var(--editor-shell-bg)] [-webkit-overflow-scrolling:touch]'>
+      <div className='min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain bg-[var(--editor-shell-bg)] [-webkit-overflow-scrolling:touch] select-none [&_*]:select-none'>
         <MobileResumePreview />
       </div>
     </div>

@@ -25,7 +25,7 @@ import { RESUME_PAGE_SIZE_OPTIONS } from '@/lib/resumePageSize';
 
 function Global() {
   const tg = useTranslations('Edit.globalPanel');
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
   const global = configStore.getConfig?.globalStyle;
   const [form] = Form.useForm();
   const headerStyleOptions = useMemo(
@@ -155,7 +155,6 @@ function Global() {
 
   return (
     <>
-      {contextHolder}
       <div className='[&_.ant-color-picker-trigger]:!w-full [&_.ant-color-picker-trigger_.ant-color-picker-clear]:!w-full [&_.ant-color-picker-trigger_.ant-color-picker-clear::after]:!w-full [&_.ant-color-picker-trigger_.ant-color-picker-clear::after]:rotate-[354deg] [&_.ant-color-picker-trigger_.ant-color-picker-color-block]:!w-full [&_.react-grid-placeholder]:!bg-transparent'>
       {global && (
         <Form form={form} variant='filled' layout='vertical'>

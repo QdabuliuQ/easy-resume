@@ -78,6 +78,8 @@ export default {
     previewToolbar: 'Preview body color',
     templatePreviewFallback: 'Template preview',
     previewSuffix: 'preview',
+    prevTemplate: 'Previous resume',
+    nextTemplate: 'Next resume',
     swatches: [
       { label: 'Black', color: '#525252' },
       { label: 'Red', color: '#f07575' },

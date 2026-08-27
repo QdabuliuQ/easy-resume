@@ -1,6 +1,6 @@
 'use client';
 import type { ReactNode } from 'react';
-import { Modal, type ModalFuncProps } from 'antd';
+import { App, Modal, type ModalFuncProps } from 'antd';
 import type { HookAPI } from 'antd/es/modal/useModal';
 import { useMobileEdit } from '@/views/edit/mobile/context';
 
@@ -35,7 +35,7 @@ function toAntd(opts: ResponsiveConfirmOptions): ModalFuncProps {
 export function responsiveConfirm(
   mobile: boolean,
   opts: ResponsiveConfirmOptions,
-  modal?: HookAPI
+  modal?: HookAPI,
 ) {
   if (mobile) {
     const api = modal ?? Modal;
@@ -67,12 +67,10 @@ export function responsiveConfirm(
 
 export function useResponsiveConfirm() {
   const mobile = useMobileEdit();
-  const [modal, contextHolder] = Modal.useModal();
+  const { modal } = App.useApp();
   return {
     mobile,
     modal,
-    confirm: (opts: ResponsiveConfirmOptions) =>
-      responsiveConfirm(mobile, opts, modal),
-    contextHolder,
+    confirm: (opts: ResponsiveConfirmOptions) => responsiveConfirm(mobile, opts, modal),
   };
 }

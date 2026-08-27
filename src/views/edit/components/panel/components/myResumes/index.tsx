@@ -39,7 +39,7 @@ type ResumeItem = {
 function MyResumes() {
   const t = useTranslations('Edit.myResumes');
   const message = useAppMessage();
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
   const { data: session, status } = useSession();
   const user = session?.user;
   const name = user?.name || user?.login || t('guest');
@@ -144,7 +144,6 @@ function MyResumes() {
 
   return (
     <div className='space-y-3'>
-      {contextHolder}
       <div className={`${panelShellClass} flex items-center gap-3`}>
         {avatar ? (
           <Image

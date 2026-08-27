@@ -5,21 +5,18 @@ import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { memo, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
-import { signIn, useSession } from 'next-auth/react';
-import { Button, Dropdown, Input, Tooltip } from 'antd';
+import { useSession } from 'next-auth/react';
+import { Button, Input, Tooltip } from 'antd';
 import {
   CheckCircleFilled,
-  DownOutlined,
   EditOutlined,
-  GithubOutlined,
   LoadingOutlined,
   RedoOutlined,
   UndoOutlined,
-  UserOutlined,
 } from '@ant-design/icons';
 import { Copy, Save, Share } from '@icon-park/react';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
-import qqIcon from '@/assets/qq.png';
+import LoginDropdownButton from '@/components/auth/LoginDropdownButton';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { cloudResumeStore, configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
@@ -63,26 +60,7 @@ const quietBtnCls = [
   'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
   'motion-reduce:transition-none motion-reduce:active:scale-100',
 ].join(' ');
-/** 登录 CTA：嵌套 chip（主题色图标块 + 轻壳），对齐 Soft Depth / Raycast */
-const loginBtnCls = [
-  'inline-flex h-9 cursor-pointer select-none items-center gap-2 rounded-full py-0 pl-1 pr-3',
-  'border border-[color-mix(in_srgb,var(--color-primary)_28%,transparent)]',
-  'bg-[color-mix(in_srgb,var(--color-primary)_10%,var(--editor-shell-panel-strong))]',
-  'text-[12px] font-semibold leading-none tracking-[0.01em] text-[color:var(--color-primary)] whitespace-nowrap outline-none',
-  'shadow-[inset_0_1px_0_rgb(255_255_255/0.06)]',
-  'transition-[transform,background-color,border-color,box-shadow] duration-200 ease-out',
-  'hover:border-[color-mix(in_srgb,var(--color-primary)_42%,transparent)]',
-  'hover:bg-[color-mix(in_srgb,var(--color-primary)_14%,var(--editor-shell-panel-strong))]',
-  'hover:shadow-[0_6px_16px_color-mix(in_srgb,var(--color-primary)_18%,transparent),inset_0_1px_0_rgb(255_255_255/0.08)]',
-  'active:scale-[0.98]',
-  'focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_55%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-bg)]',
-  'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
-  'motion-reduce:transition-none motion-reduce:active:scale-100',
-].join(' ');
-const loginIconCls =
-  'inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-primary-gradient-start),var(--color-primary))] text-white shadow-[0_2px_8px_color-mix(in_srgb,var(--color-primary)_32%,transparent),inset_0_1px_0_rgb(255_255_255/0.35)]';
-const loginArrowCls = (open: boolean) =>
-  `text-[10px] text-[color:color-mix(in_srgb,var(--color-primary)_72%,transparent)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`;
+
 const historyBtnCls =
   'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-fg/[0.1] bg-surface/[0.04] text-fg/55 transition-colors enabled:cursor-pointer enabled:hover:border-fg/[0.16] enabled:hover:bg-surface/[0.08] enabled:hover:text-fg/88 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-fg/[0.1] disabled:hover:bg-surface/[0.04] disabled:hover:text-fg/55';
 
@@ -93,13 +71,11 @@ function Header() {
   const { status } = useSession();
   const signedIn = status === 'authenticated';
   const authLoading = status === 'loading';
-  const [authBusy, setAuthBusy] = useState(false);
   const { canUndo, canRedo, undo, redo } = useEditHistory();
   const exporting = useExportBusy();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
   const [exportMenuReady, setExportMenuReady] = useState(false);
   const ignoreNextBlur = useRef(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
@@ -109,40 +85,6 @@ function Header() {
   const saving = cloudResumeStore.saving;
   const resumeId = cloudResumeStore.resumeId;
   const canShare = signedIn && Boolean(resumeId);
-  const signInWith = async (provider: 'github' | 'qq') => {
-    if (authBusy) return;
-    setAuthBusy(true);
-    try {
-      await signIn(provider, { redirectTo: window.location.href, redirect: true });
-    } finally {
-      setAuthBusy(false);
-    }
-  };
-  const loginMenuItems = [
-    {
-      key: 'github',
-      disabled: authBusy,
-      icon: <GithubOutlined className='text-[14px]' />,
-      label: ta('signInGithubShort'),
-      onClick: () => void signInWith('github'),
-    },
-    {
-      key: 'qq',
-      disabled: authBusy,
-      icon: (
-        <Image
-          src={qqIcon}
-          alt=''
-          width={14}
-          height={14}
-          className='object-contain'
-          aria-hidden
-        />
-      ),
-      label: ta('signInQqShort'),
-      onClick: () => void signInWith('qq'),
-    },
-  ];
   const commit = () => {
     const trimmed = draft.trim();
     const base =
@@ -316,34 +258,7 @@ function Header() {
         ) : signedIn ? (
           <GithubAuthButton variant='compact' />
         ) : (
-          <Dropdown
-            menu={{ items: loginMenuItems }}
-            trigger={['hover']}
-            mouseEnterDelay={0.08}
-            mouseLeaveDelay={0.12}
-            disabled={authBusy}
-            placement='bottomRight'
-            open={loginOpen}
-            onOpenChange={setLoginOpen}
-          >
-            <button
-              type='button'
-              disabled={authBusy}
-              aria-label={ta('signIn')}
-              aria-expanded={loginOpen}
-              className={loginBtnCls}
-            >
-              <span className={loginIconCls} aria-hidden>
-                {authBusy ? (
-                  <LoadingOutlined className='text-[12px]' />
-                ) : (
-                  <UserOutlined className='text-[12px]' />
-                )}
-              </span>
-              {ta('signIn')}
-              {!authBusy ? <DownOutlined className={loginArrowCls(loginOpen)} /> : null}
-            </button>
-          </Dropdown>
+          <LoginDropdownButton />
         )}
         {showSave ? (
           <Tooltip title={signedIn ? undefined : t('saveNeedLogin')}>

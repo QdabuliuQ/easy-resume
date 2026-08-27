@@ -1,14 +1,19 @@
 'use client';
 
 import { resumeTemplates } from '@/json/resumeTemplates';
-import { buildSpawnPositions } from '@/lib/homeV2/buildSpawnPositions';
+import { buildSpawnPositions } from '@/lib/home/buildSpawnPositions';
 import {
   captureExpandFromLayout,
   captureExpandFromPhysics,
-} from '@/lib/homeV2/expandedResumeLayout';
-import { clampResumeTilt, MAX_RESUME_TILT } from '@/lib/homeV2/resumeTiltLimits';
+} from '@/lib/home/expandedResumeLayout';
+import { clampResumeTilt, MAX_RESUME_TILT } from '@/lib/home/resumeTiltLimits';
+import {
+  getPhysicsPaused,
+  setPhysicsPause,
+  subscribePhysicsPause,
+} from '@/lib/home/physicsPauseStore';
 import Matter from 'matter-js';
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type MouseEvent } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import PhysicsTemplateCard, { getPhysicsCardMetrics } from './PhysicsTemplateCard';
 import ResumeExpandOverlay, { type ExpandAnchor } from './ResumeExpandOverlay';
 
@@ -20,20 +25,6 @@ const OVERLAY_DISMISS_MS = 100;
 const FIXED_DT = 1000 / 60;
 const DEFAULT_OPACITY = 1;
 const DIMMED_OPACITY = 0.32;
-
-function subscribeReduceMotion(onStoreChange: () => void) {
-  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-  mq.addEventListener('change', onStoreChange);
-  return () => mq.removeEventListener('change', onStoreChange);
-}
-
-function getReduceMotion() {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
-function getServerReduceMotion() {
-  return false;
-}
 
 type BodyPair = {
   body: Matter.Body | null;
@@ -104,16 +95,16 @@ function buildBounds(viewW: number, viewH: number) {
   };
 }
 
-const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop() {
+const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: { reduceMotion: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const expandedRef = useRef<number | null>(null);
-  const physicsPausedRef = useRef(false);
+  const physicsPausedRef = useRef(getPhysicsPaused());
+  const loopRef = useRef<{ raf: number; disposed: boolean; tick: () => void } | null>(null);
   const pairsRef = useRef<BodyPair[]>([]);
   const dismissTimerRef = useRef<number | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<ExpandAnchor | null>(null);
-  const reduceMotion = useSyncExternalStore(subscribeReduceMotion, getReduceMotion, getServerReduceMotion);
   const metrics = useMemo(() => resumeTemplates.map((t) => getPhysicsCardMetrics(t)), []);
   const rowStride = useMemo(() => {
     const maxH = metrics.reduce((m, x) => Math.max(m, x.bodyH), 180);
@@ -125,8 +116,6 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop() {
     const container = containerRef.current;
     if (!container) return;
 
-    let raf = 0;
-    let disposed = false;
     const engine = Engine.create({
       gravity: { x: 0, y: 1.45, scale: 0.001 },
     });
@@ -178,41 +167,97 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop() {
 
       const spawns = buildSpawnPositions(resumeTemplates.length, viewW, rowStride);
       spawns.forEach((spawn, i) => {
-        if (physicsPausedRef.current) return;
         spawnBody(i, spawn);
       });
+      // ponytail: pause freezes velocity only — never skip spawn, or ResizeObserver remount while paused leaves body:null forever
+      if (physicsPausedRef.current) {
+        freezePhysicsBodies(pairs);
+      } else {
+        syncDom(pairs, itemRefs);
+      }
     };
 
     mount();
 
     const ro = new ResizeObserver(() => {
-      cancelAnimationFrame(raf);
+      const loop = loopRef.current;
+      if (loop?.raf) cancelAnimationFrame(loop.raf);
       mount();
-      raf = requestAnimationFrame(tick);
+      if (!physicsPausedRef.current && loop && !loop.disposed) {
+        loop.raf = requestAnimationFrame(tick);
+      }
     });
     ro.observe(container);
 
     const tick = () => {
-      if (disposed) return;
-      if (!physicsPausedRef.current) {
-        Engine.update(engine, FIXED_DT);
-        for (const pair of pairs) {
-          if (pair?.body) uprightClamp(pair.body);
-        }
-        syncDom(pairs, itemRefs);
+      const loop = loopRef.current;
+      if (!loop || loop.disposed) return;
+      if (physicsPausedRef.current) {
+        loop.raf = 0;
+        return;
       }
-      raf = requestAnimationFrame(tick);
+      Engine.update(engine, FIXED_DT);
+      for (const pair of pairs) {
+        if (pair?.body) uprightClamp(pair.body);
+      }
+      syncDom(pairs, itemRefs);
+      loop.raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
+
+    const loop = { raf: 0, disposed: false, tick };
+    loopRef.current = loop;
+    if (!physicsPausedRef.current) {
+      loop.raf = requestAnimationFrame(tick);
+    }
 
     return () => {
-      disposed = true;
-      cancelAnimationFrame(raf);
+      loop.disposed = true;
+      loopRef.current = null;
+      if (loop.raf) cancelAnimationFrame(loop.raf);
       ro.disconnect();
       Composite.clear(engine.world, false);
       Engine.clear(engine);
     };
   }, [metrics, reduceMotion, rowStride]);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    // HMR / unclean overlay unmount can leave expand stuck in the module store
+    setPhysicsPause('expand', false);
+    const syncPause = () => {
+      const wasPaused = physicsPausedRef.current;
+      physicsPausedRef.current = getPhysicsPaused();
+      const loop = loopRef.current;
+      if (physicsPausedRef.current) {
+        freezePhysicsBodies(pairsRef.current);
+        if (loop?.raf) {
+          cancelAnimationFrame(loop.raf);
+          loop.raf = 0;
+        }
+        return;
+      }
+      if (wasPaused && loop && !loop.disposed && !loop.raf) {
+        loop.raf = requestAnimationFrame(loop.tick);
+      }
+    };
+    syncPause();
+    const unsub = subscribePhysicsPause(syncPause);
+    return () => {
+      setPhysicsPause('expand', false);
+      unsub();
+    };
+  }, [reduceMotion]);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const onVisibility = () => setPhysicsPause('hidden', document.hidden);
+    onVisibility();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      setPhysicsPause('hidden', false);
+    };
+  }, [reduceMotion]);
 
   const itemShellClass =
     'absolute left-0 top-0 origin-center overflow-hidden cursor-pointer transition-opacity duration-200 ease-out will-change-transform';
@@ -230,64 +275,101 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop() {
 
   const clearHover = () => setHoveredId(null);
 
-  const pausePhysics = useCallback((paused: boolean) => {
-    physicsPausedRef.current = paused;
-    if (paused) freezePhysicsBodies(pairsRef.current);
-  }, []);
+  const captureItemFrame = useCallback(
+    (i: number) => {
+      const el = itemRefs.current[i];
+      if (!el) return null;
+      const template = resumeTemplates[i]!;
+      const { bodyW, bodyH } = getPhysicsCardMetrics(template);
+      const container = containerRef.current;
+      return reduceMotion
+        ? captureExpandFromLayout(el, bodyW, bodyH)
+        : captureExpandFromPhysics(
+            el.style.transform,
+            bodyW,
+            bodyH,
+            container
+              ? { left: container.getBoundingClientRect().left, top: container.getBoundingClientRect().top }
+              : undefined,
+          );
+    },
+    [reduceMotion],
+  );
 
-  const openExpand = useCallback((i: number) => {
-    if (expandedRef.current !== null) return;
-    const el = itemRefs.current[i];
-    if (!el) return;
-    pausePhysics(true);
-    expandedRef.current = i;
-    setHoveredId(null);
-    const template = resumeTemplates[i]!;
-    const { bodyW, bodyH } = getPhysicsCardMetrics(template);
-    const container = containerRef.current;
-    const fromFrame = reduceMotion
-      ? captureExpandFromLayout(el, bodyW, bodyH)
-      : captureExpandFromPhysics(
-          el.style.transform,
-          bodyW,
-          bodyH,
-          container
-            ? { left: container.getBoundingClientRect().left, top: container.getBoundingClientRect().top }
-            : undefined,
-        );
-    setExpanded({ index: i, fromFrame });
-  }, [pausePhysics, reduceMotion]);
+  const openExpand = useCallback(
+    (i: number) => {
+      if (expandedRef.current !== null) return;
+      const fromFrame = captureItemFrame(i);
+      if (!fromFrame) return;
+      setPhysicsPause('expand', true);
+      expandedRef.current = i;
+      setHoveredId(null);
+      setExpanded({ index: i, fromFrame });
+    },
+    [captureItemFrame],
+  );
 
   const hideOriginalForClone = useCallback(() => {
     const i = expandedRef.current;
     if (i == null) return;
     const el = itemRefs.current[i];
     if (!el) return;
+    el.style.transition = 'none';
     el.style.opacity = '0';
     el.style.pointerEvents = 'none';
   }, []);
 
-  const handleExpandClosed = useCallback(() => {
+  const navigateExpand = useCallback((nextIndex: number) => {
+    const prevIndex = expandedRef.current;
+    if (prevIndex === null || prevIndex === nextIndex) return;
+    if (nextIndex < 0 || nextIndex >= resumeTemplates.length) return;
+    const prevEl = itemRefs.current[prevIndex];
+    if (prevEl) {
+      prevEl.style.transition = 'none';
+      prevEl.style.removeProperty('opacity');
+      prevEl.style.removeProperty('pointer-events');
+      void prevEl.offsetHeight;
+      prevEl.style.removeProperty('transition');
+    }
+    const fromFrame = captureItemFrame(nextIndex);
+    if (!fromFrame) return;
+    expandedRef.current = nextIndex;
+    const nextEl = itemRefs.current[nextIndex];
+    if (nextEl) {
+      nextEl.style.transition = 'none';
+      nextEl.style.opacity = '0';
+      nextEl.style.pointerEvents = 'none';
+    }
+    setExpanded({ index: nextIndex, fromFrame });
+  }, [captureItemFrame]);
+
+  const handleExpandClosed = useCallback(({ hideClone }: { hideClone: () => void }) => {
+    hideClone();
     const i = expandedRef.current;
     if (i != null) {
       const el = itemRefs.current[i];
       if (el) {
-        el.style.opacity = '';
-        el.style.pointerEvents = '';
+        el.style.transition = 'none';
+        el.style.removeProperty('opacity');
+        el.style.removeProperty('pointer-events');
+        void el.offsetHeight;
+        el.style.removeProperty('transition');
       }
     }
-    pausePhysics(false);
+    setPhysicsPause('expand', false);
     if (dismissTimerRef.current) window.clearTimeout(dismissTimerRef.current);
     dismissTimerRef.current = window.setTimeout(() => {
       dismissTimerRef.current = null;
       expandedRef.current = null;
       setExpanded(null);
     }, OVERLAY_DISMISS_MS);
-  }, [pausePhysics]);
+  }, []);
 
   useEffect(() => () => {
     if (dismissTimerRef.current) window.clearTimeout(dismissTimerRef.current);
   }, []);
+
+  const staticItemClass = 'cursor-pointer transition-opacity duration-200 ease-out';
 
   const renderItem = (template: (typeof resumeTemplates)[number], i: number, shellClass: string, extraStyle?: CSSProperties) => (
     <div
@@ -308,68 +390,39 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop() {
     </div>
   );
 
+  const expandedOverlay = expanded ? (
+    <ResumeExpandOverlay
+      anchor={expanded}
+      template={resumeTemplates[expanded.index]!}
+      totalCount={resumeTemplates.length}
+      reduceMotion={reduceMotion}
+      onHideOriginal={hideOriginalForClone}
+      onNavigate={navigateExpand}
+      onClosed={handleExpandClosed}
+    />
+  ) : null;
+
   if (reduceMotion) {
     return (
       <>
-        <div
-          ref={containerRef}
-          className='absolute inset-0 overflow-hidden'
-          onMouseLeave={clearHover}
-        >
+        <div ref={containerRef} className='absolute inset-0 overflow-hidden' onMouseLeave={clearHover}>
           <div className='flex h-full flex-wrap content-end gap-3 p-4 pb-6'>
-            {resumeTemplates.map((template, i) => (
-              <div
-                key={template.id}
-                data-physics-item
-                ref={(el) => {
-                  itemRefs.current[i] = el;
-                }}
-                className='cursor-pointer transition-opacity duration-200 ease-out'
-                style={itemShellStyle(template.id, i)}
-                onMouseEnter={() => {
-                  if (expandedRef.current === null) setHoveredId(template.id);
-                }}
-                onMouseLeave={(e) => clearHoverUnlessSibling(e, clearHover)}
-                onClick={() => openExpand(i)}
-              >
-                <PhysicsTemplateCard template={template} />
-              </div>
-            ))}
+            {resumeTemplates.map((template, i) => renderItem(template, i, staticItemClass))}
           </div>
         </div>
-        {expanded ? (
-          <ResumeExpandOverlay
-            anchor={expanded}
-            template={resumeTemplates[expanded.index]!}
-            reduceMotion={reduceMotion}
-            onHideOriginal={hideOriginalForClone}
-            onClosed={handleExpandClosed}
-          />
-        ) : null}
+        {expandedOverlay}
       </>
     );
   }
 
   return (
     <>
-      <div
-        ref={containerRef}
-        className='absolute inset-0 overflow-hidden'
-        onMouseLeave={clearHover}
-      >
+      <div ref={containerRef} className='absolute inset-0 overflow-hidden' onMouseLeave={clearHover}>
         {resumeTemplates.map((template, i) =>
           renderItem(template, i, itemShellClass, { visibility: 'hidden' }),
         )}
       </div>
-      {expanded ? (
-        <ResumeExpandOverlay
-          anchor={expanded}
-          template={resumeTemplates[expanded.index]!}
-          reduceMotion={reduceMotion}
-          onHideOriginal={hideOriginalForClone}
-          onClosed={handleExpandClosed}
-        />
-      ) : null}
+      {expandedOverlay}
     </>
   );
 });

@@ -76,6 +76,8 @@ export default {
     previewToolbar: '预览正文颜色',
     templatePreviewFallback: '模板预览',
     previewSuffix: '预览',
+    prevTemplate: '上一份简历',
+    nextTemplate: '下一份简历',
     swatches: [
       { label: '黑色', color: '#525252' },
       { label: '红', color: '#fc4949' },

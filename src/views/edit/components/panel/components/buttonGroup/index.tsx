@@ -32,7 +32,7 @@ function ButtonGroup(props: {
   flush?: boolean;
 }) {
   const tb = useTranslations('Edit.buttonGroup');
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
   const askDelete = () =>
     confirm({
       title: tb('confirmDeleteTitle'),
@@ -45,7 +45,6 @@ function ButtonGroup(props: {
   if (props.flush) {
     return (
       <>
-        {contextHolder}
         <div className={flushWrapClass}>
           <div className={flushClusterClass}>
             {props.showUp && (
@@ -104,7 +103,6 @@ function ButtonGroup(props: {
 
   return (
     <>
-      {contextHolder}
       <div className='mt-3 flex w-full items-center justify-between rounded-xl border border-fg/[0.06] bg-[var(--panel-inset-bg)] px-3 py-2'>
         <div className='flex items-center gap-[10px]'>
           {props.showUp && (

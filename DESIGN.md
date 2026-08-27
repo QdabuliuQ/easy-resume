@@ -206,7 +206,7 @@ Full-bleed tool demo with light/dark split slider, soft 16px radius, Preview Dep
 - **Do** lift tool surfaces with structural shadows; keep ease-out motion under ~800ms for entrances.
 - **Do** honor `prefers-reduced-motion` by jumping to final opacity/transform states.
 - **Do** keep light-theme ink as Ink Plum (#1e1a21), never `#000`.
-- **Do** allow experiment pages (`/home-v2`) to diverge while stable `/` stays rollback-safe.
+- **Do** keep the homepage (`/`) as the primary marketing surface; major layout changes ship there directly.
 
 ### Don't:
 - **Don't** ship 紫粉渐变通用 SaaS 落地页.

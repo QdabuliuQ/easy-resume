@@ -74,7 +74,7 @@ export const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
 function ResumeTemplate() {
   const message = useAppMessage();
   const tr = useTranslations('Edit.resumeTemplate');
-  const { confirm, modal, mobile, contextHolder } = useResponsiveConfirm();
+  const { confirm, modal, mobile } = useResponsiveConfirm();
   const [templates, setTemplates] = useState<ResumeTemplateItem[]>([]);
   useEffect(() => {
     let cancelled = false;
@@ -188,7 +188,6 @@ function ResumeTemplate() {
 
   return (
     <>
-      {contextHolder}
       <div className='relative flex h-full min-h-0 flex-col gap-3 overflow-auto px-0.5 pt-0.5 text-left'>
         {!templateCards.length ? (
           <ResumeTemplateSkeleton />

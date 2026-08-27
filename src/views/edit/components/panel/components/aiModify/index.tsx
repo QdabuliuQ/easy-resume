@@ -316,7 +316,7 @@ const MemoChatMessageRow = memo(ChatMessageRow);
 function AiModify() {
   const ta = useTranslations('Edit.aiModify');
   const { message: messageApi } = App.useApp();
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
   const [messages, setMessages] = useState<ChatItem[]>(() =>
     typeof window === 'undefined' ? [] : loadAiModifyChatMessages(),
   );
@@ -657,7 +657,6 @@ function AiModify() {
   );
   return (
     <div className={panelShellClass}>
-      {contextHolder}
       {messages.length > 0 ? (
         <div className='flex shrink-0 justify-end border-b border-fg/[0.06] px-3 py-1.5'>
           <button

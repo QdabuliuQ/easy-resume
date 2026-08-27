@@ -5,8 +5,8 @@ import {
   computeExpandedTarget,
   frameCenter,
   frameFromCenter,
-} from '@/lib/homeV2/expandedResumeLayout';
-import { parseTransformTranslate } from '@/lib/homeV2/parseTransformAngle';
+} from '@/lib/home/expandedResumeLayout';
+import { parseTransformTranslate } from '@/lib/home/parseTransformAngle';
 
 const BODY_W = 128;
 const BODY_H = 201;

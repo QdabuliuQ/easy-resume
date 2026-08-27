@@ -71,7 +71,7 @@ export default function CanvasPreviewOverlay({
 
   return createPortal(
     <div
-      className={`${closing ? 'canvas-preview-overlay-exit-animate' : 'canvas-preview-overlay-animate'} canvas-preview-shell fixed inset-0 z-[1400] flex min-h-0 flex-col backdrop-blur-sm`}
+      className={`${closing ? 'canvas-preview-overlay-exit-animate' : 'canvas-preview-overlay-animate'} canvas-preview-shell fixed inset-0 z-[1400] flex min-h-0 flex-col select-none backdrop-blur-sm [&_*]:select-none`}
     >
       <div className='canvas-preview-toolbar flex items-center justify-between px-5 py-3.5'>
         <span className='text-[13px] font-medium'>{title}</span>

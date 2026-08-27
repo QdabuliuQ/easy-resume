@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseTransformAngle, parseTransformTranslate } from '@/lib/homeV2/parseTransformAngle';
+import { parseTransformAngle, parseTransformTranslate } from '@/lib/home/parseTransformAngle';
 
 describe('parseTransformAngle', () => {
   it('reads rotate rad from transform string', () => {

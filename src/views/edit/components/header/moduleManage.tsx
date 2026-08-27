@@ -265,7 +265,7 @@ function ModuleManageInner({
   const message = useAppMessage();
   const t = useTranslations('Edit.moduleManage');
   const th = useTranslations('Edit.header');
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
   const [popOpen, setPopOpen] = useState(false);
   const { removeModuleFromConfig, reorderFlattenedModules } = useModuleHandle();
 
@@ -328,7 +328,6 @@ function ModuleManageInner({
 
   return (
     <>
-      {contextHolder}
       {inline ? (
         <div className={className}>{list}</div>
       ) : (

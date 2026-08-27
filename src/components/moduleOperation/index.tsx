@@ -97,7 +97,7 @@ function ModuleOperation({
 }) {
   const tm = useTranslations('Edit.moduleOperation');
   const inlineFieldEdit = useOptionalInlineFieldEdit();
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
   const { removeModuleFromConfig, reorderFlattenedModules } = useModuleHandle();
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasScale = useCanvasScale();
@@ -314,7 +314,6 @@ function ModuleOperation({
 
   return (
     <>
-      {contextHolder}
       {showToolbar ? (
         <div
           style={{

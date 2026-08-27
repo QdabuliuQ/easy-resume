@@ -32,7 +32,7 @@ function Edit() {
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
   const [shellRevealReady, setShellRevealReady] = useState(false);
   const interviewLiveRef = useRef(false);
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
   const resumeFont = normResumeFont(configStore.mergedGlobalStyle.resumeFont);
   const isInterview = menuActiveKey === 'ai-interview';
 
@@ -93,7 +93,6 @@ function Edit() {
 
   return (
     <div className='editor-shell-bg relative flex h-screen w-screen flex-col overflow-hidden text-[var(--text-strong)]'>
-      {contextHolder}
       <ResumeFontCdn font={resumeFont} />
       <EditShellReveal revealReady={shellRevealReady}>
         <div className='relative z-[1] flex min-h-0 flex-1 flex-col gap-3 p-3 md:p-4'>

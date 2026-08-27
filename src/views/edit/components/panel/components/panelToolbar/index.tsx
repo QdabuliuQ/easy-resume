@@ -10,7 +10,7 @@ import { useModuleHandle } from '@/hooks/module';
 function PanelToolbar({ moduleId }: { moduleId: string }) {
   const tp = useTranslations('Edit.panelToolbar');
   const { removeModuleFromConfig } = useModuleHandle();
-  const { confirm, contextHolder } = useResponsiveConfirm();
+  const { confirm } = useResponsiveConfirm();
 
   const onDelete = useMemoizedFn((e: MouseEvent) => {
     e.stopPropagation();
@@ -26,7 +26,6 @@ function PanelToolbar({ moduleId }: { moduleId: string }) {
 
   return (
     <>
-      {contextHolder}
       <div className='flex shrink-0 items-center gap-3'>
         <button
           type='button'
