@@ -91,7 +91,7 @@ function LoginDropdownButton({ trigger = ['hover'] }: Props) {
       placement='bottomRight'
       open={loginOpen}
       onOpenChange={setLoginOpen}
-      classNames={{ root: '[&_.ant-dropdown-menu]:!bg-[var(--antd-popup-bg)]' }}
+      overlayClassName='[&_.ant-dropdown-menu]:!bg-[var(--antd-popup-bg)]'
     >
       <button
         type='button'
