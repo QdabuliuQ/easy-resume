@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import '../index.css';
 import { AuthSessionProvider } from '@/components/auth/AuthSessionProvider';
+import { ChunkLoadRecovery } from '@/components/chunkLoadRecovery';
 import { ServiceWorkerRegister } from '@/components/serviceWorkerRegister';
 import {
   BYTEGOOFY_PUSH_SCRIPT_SRC,
@@ -52,6 +53,7 @@ export default function RootLayout({
       <body className='min-h-screen overflow-x-clip bg-background antialiased'>
         <AuthSessionProvider>
           <ServiceWorkerRegister />
+          <ChunkLoadRecovery />
           {children}
         </AuthSessionProvider>
       </body>
