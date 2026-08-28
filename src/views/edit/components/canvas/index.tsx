@@ -418,6 +418,7 @@ function Canvas({
           <Fragment key={`${slot.module.id}-${slot.offsetY}-${slot.viewHeight}`}>
             {slot.gapBefore > 0 ? <div style={{ height: slot.gapBefore }} aria-hidden /> : null}
             <div
+              data-resume-module-offset-y={slot.offsetY}
               style={resumeModuleSlotStyle({
                 viewHeight: slot.viewHeight,
                 offsetY: slot.offsetY,

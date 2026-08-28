@@ -551,7 +551,7 @@ function RichTextEditor({
           aria-live="polite"
           aria-label={tr('aiPolish')}
         >
-          <div className="mb-2 flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2">
             {polishing ? (
               <div className={`flex min-w-0 flex-1 items-center gap-1.5 text-[13px] font-medium ${styles.polishAccentText}`}>
                 <span
@@ -577,7 +577,7 @@ function RichTextEditor({
             ) : null}
           </div>
           {polishResultHtml ? (
-            <div className={`${styles.polishPreview} ${styles.polishPreviewBox} mb-2 max-h-[240px] overflow-y-auto rounded-md px-3 py-2`}>
+            <div className={`${styles.polishPreview} ${styles.polishPreviewBox} mt-2 mb-2 max-h-[240px] overflow-y-auto rounded-md px-3 py-2`}>
               <QuillHtmlPreview html={polishResultHtml} />
             </div>
           ) : null}

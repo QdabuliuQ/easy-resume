@@ -128,7 +128,7 @@ certificate.options：
   - date: string(YYYY-MM-DD) — 获证日期
 
 时间字段统一：job/project/education 用 startDate + endDate，禁止 time[]、studyTime[]。
-富文本 html：仅允许 <b> <i> <u> <ul> <li>；禁止 <ol> <script> 等。
+富文本 html：仅允许 <b> <i> <u> <s> <p> <ul> <ol> <li> <a> <span style="color:…">；禁止 <script> <style> <iframe> 等。
 
 模块增删：
 - 可对话新增类型：certificate|job|project|education|skill|other（简历尚无该 type 时 add_module）

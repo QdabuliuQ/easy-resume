@@ -16,10 +16,10 @@ describe('normalizePlainHtmlListsForQuill', () => {
     expect(normalizePlainHtmlListsForQuill(quill)).toBe(quill);
   });
 
-  it('converts plain ol/li from LLM to Quill bullet list', () => {
+  it('converts plain ol/li from LLM to Quill ordered list', () => {
     const raw = '<ol><li><b>前端</b> Vue3</li><li><b>工程化</b> Vite</li></ol>';
     const out = normalizePlainHtmlListsForQuill(raw);
-    expect(out).toContain('data-list="bullet"');
+    expect(out).toContain('data-list="ordered"');
     expect(out).toContain('class="ql-ui"');
     expect(out).not.toMatch(/<li(?![^>]*data-list)/);
   });
@@ -58,7 +58,7 @@ describe('sanitizeRichTextHtml', () => {
 
   it('normalizes plain ol on server path', () => {
     const out = sanitizeRichTextHtml('<ol><li>条目一</li><li>条目二</li></ol>');
-    expect(out).toContain('data-list="bullet"');
+    expect(out).toContain('data-list="ordered"');
     expect(out).toContain('ql-ui');
   });
 

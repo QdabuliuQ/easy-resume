@@ -63,6 +63,11 @@ function moduleSlotEl(root: HTMLElement): HTMLElement {
   return p;
 }
 
+function moduleSlotOffsetY(slot: HTMLElement): number {
+  const offset = Number(slot.getAttribute('data-resume-module-offset-y'));
+  return Number.isFinite(offset) && offset > 0 ? offset : 0;
+}
+
 function afterReorder(fn: () => void) {
   requestAnimationFrame(() => {
     requestAnimationFrame(fn);
@@ -146,15 +151,28 @@ function ModuleOperation({
         return;
       }
       const stageRect = stage.getBoundingClientRect();
-      const firstSlot = moduleSlotEl(roots[0]).getBoundingClientRect();
-      const lastSlot = moduleSlotEl(roots[roots.length - 1]).getBoundingClientRect();
+      const slots = roots.map(moduleSlotEl);
+      const firstSlot = slots[0].getBoundingClientRect();
+      const lastSlot = slots[slots.length - 1].getBoundingClientRect();
       const s =
         canvasScale > 0 && Number.isFinite(canvasScale) ? canvasScale : 1;
+      const pagePadding = Number(configStore.mergedGlobalStyle.padding ?? 0);
+      const pageCount = new Set(
+        slots
+          .map((slot) => slot.closest('[data-resume-canvas-page]'))
+          .filter(Boolean),
+      ).size;
+      const pageBreaks = Math.max(0, pageCount - 1);
+      const offsetY = moduleSlotOffsetY(slots[slots.length - 1]);
+      const crossPageExtra =
+        pageBreaks > 0
+          ? pageBreaks * (pagePadding * 2 + PAGE_STACK_GAP_PX) + offsetY
+          : 0;
       const next: ToolbarBox = {
         top: (firstSlot.top - stageRect.top) / s,
         visible: true,
         motion: source === 'active' ? 'smooth' : 'snap',
-        moduleHeight: Math.max(0, (lastSlot.bottom - firstSlot.top) / s),
+        moduleHeight: Math.max(0, (lastSlot.bottom - firstSlot.top + crossPageExtra) / s),
       };
       setToolbarBox((prev) => {
         const samePos =

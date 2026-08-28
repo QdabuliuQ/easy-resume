@@ -9,7 +9,11 @@ describe('descriptionFormat', () => {
   it('includes allowed tags aligned with polish feature', () => {
     expect(RICH_TEXT_ALLOWED_TAGS_PROMPT).toContain('<b>');
     expect(RICH_TEXT_ALLOWED_TAGS_PROMPT).toContain('<ul>');
-    expect(RICH_TEXT_ALLOWED_TAGS_PROMPT).toContain('禁止 <ol>');
+    expect(RICH_TEXT_ALLOWED_TAGS_PROMPT).toContain('<ol>');
+    expect(RICH_TEXT_ALLOWED_TAGS_PROMPT).toContain('<s>');
+    expect(RICH_TEXT_ALLOWED_TAGS_PROMPT).toContain('<a href');
+    expect(RICH_TEXT_ALLOWED_TAGS_PROMPT).toContain('color:');
+    expect(RICH_TEXT_ALLOWED_TAGS_PROMPT).not.toContain('禁止 <ol>');
   });
 
   it('includes STAR rules per scene', () => {
@@ -21,5 +25,6 @@ describe('descriptionFormat', () => {
   it('modify chat rules cover module description fields', () => {
     expect(MODIFY_CHAT_DESCRIPTION_RULES).toContain('items[].description');
     expect(MODIFY_CHAT_DESCRIPTION_RULES).toContain('options.description');
+    expect(MODIFY_CHAT_DESCRIPTION_RULES).toContain('禁止在结果中重复');
   });
 });

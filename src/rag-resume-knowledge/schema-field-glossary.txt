@@ -110,9 +110,9 @@ field: items[].name | 类型: string | 含义: 证书名称
 field: items[].date | 类型: string | 格式: YYYY-MM-DD | 含义: 获证日期
 
 ## 富文本 html 约束
-rule: description 仅允许标签 <b> <i> <u> <ul> <li>
-rule: 禁止 <ol> <script> <style> <iframe> 及 on* 事件
-rule: 工作经历/项目描述优先 ul+li 列表；b 加粗关键词，i 技术栈，u 量化数据
+rule: description 仅允许标签 <b> <i> <u> <s> <p> <ul> <ol> <li> <a> <span style="color:…">
+rule: 禁止 <script> <style> <iframe> 及 on* 事件
+rule: 工作经历/项目描述可用 ul/ol 列表；b 加粗关键词，i 技术栈，u 量化数据，s 删除线，span color 标色，a 外链
 
 ## 结构修改约束
 rule: 禁止增删 pages；禁止修改 module.type 与 module.id

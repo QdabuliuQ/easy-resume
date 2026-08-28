@@ -45,7 +45,7 @@ export function normalizePlainHtmlListsForQuill(html: string): string {
       }
       const nextOl = document.createElement('ol');
       for (const li of items) {
-        nextOl.appendChild(toQuillListItem(li, 'bullet'));
+        nextOl.appendChild(toQuillListItem(li, 'ordered'));
       }
       ol.replaceWith(nextOl);
     }
@@ -61,7 +61,7 @@ export function normalizePlainHtmlListsForQuill(html: string): string {
     if (/data-list\s*=/.test(inner)) {
       return `<ol>${collapseListInterItemWhitespace(inner)}</ol>`;
     }
-    return `<ol>${normalizeListItemHtml(inner, 'bullet')}</ol>`;
+    return `<ol>${normalizeListItemHtml(inner, 'ordered')}</ol>`;
   });
   return collapseListInterItemWhitespace(out);
 }
