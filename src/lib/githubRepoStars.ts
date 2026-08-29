@@ -1,7 +1,9 @@
-const REPO = 'QdabuliuQ/easy-resume';
+export const GITHUB_REPO = 'QdabuliuQ/easy-resume';
+export const GITHUB_REPO_URL = `https://github.com/${GITHUB_REPO}`;
+export const GITHUB_NEW_ISSUE_URL = `${GITHUB_REPO_URL}/issues/new`;
 
 export async function fetchGithubRepoStars(
-  repo = REPO,
+  repo = GITHUB_REPO,
 ): Promise<number | null> {
   try {
     const res = await fetch(`https://api.github.com/repos/${repo}`, {

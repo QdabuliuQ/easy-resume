@@ -3,6 +3,7 @@ export default {
   navHome: 'Home',
   navGh: 'Open source on GitHub',
   navGhShort: 'Source',
+  navFeedback: 'Report a bug',
   themeToLight: 'Switch to light mode',
   themeToDark: 'Switch to dark mode',
   themeToSystem: 'Use system theme',

@@ -3,18 +3,19 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { memo, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSession } from 'next-auth/react';
 import { Button, Input, Tooltip } from 'antd';
 import {
   CheckCircleFilled,
+  DownOutlined,
   EditOutlined,
   LoadingOutlined,
   RedoOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { Copy, Save, Share } from '@icon-park/react';
+import { Copy, Download, Save, Share } from '@icon-park/react';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
 import LoginDropdownButton from '@/components/auth/LoginDropdownButton';
 import { useAppMessage } from '@/hooks/useAppMessage';
@@ -24,7 +25,7 @@ import { logo } from '@/lib/brandAssets';
 import { useExportBusy } from '@/views/edit/hooks/useResumeExport';
 import { useEditHistory } from '@/views/edit/hooks/useEditHistory';
 import ShareResumeModal from '@/views/edit/components/header/ShareResumeModal';
-import { actionBtnCls, actionIconSpin, ICON_PRIMARY, ICON_MUTED } from './headerActionStyles';
+import { actionBtnCls, actionIconSpin, arrowCls, ICON_PRIMARY, ICON_MUTED } from './headerActionStyles';
 
 let headerExportMenuPromise: Promise<typeof import('./HeaderExportMenu')> | null = null;
 
@@ -43,8 +44,9 @@ function HeaderExportMenuPlaceholder() {
   const t = useTranslations('Edit.header');
   return (
     <button type='button' aria-label={t('exportLabel')} className={actionBtnCls}>
-      <span className='inline-block size-[18px] rounded-sm bg-[color-mix(in_srgb,var(--color-primary)_25%,transparent)]' aria-hidden />
+      <Download theme='outline' size={17} fill={ICON_PRIMARY} />
       {t('exportLabel')}
+      <DownOutlined className={arrowCls(false)} />
     </button>
   );
 }
@@ -85,6 +87,17 @@ function Header() {
   const saving = cloudResumeStore.saving;
   const resumeId = cloudResumeStore.resumeId;
   const canShare = signedIn && Boolean(resumeId);
+
+  useEffect(() => {
+    let cancelled = false;
+    void prefetchHeaderExportMenu().then(() => {
+      if (!cancelled) setExportMenuReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const commit = () => {
     const trimmed = draft.trim();
     const base =

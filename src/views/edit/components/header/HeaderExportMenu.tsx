@@ -105,7 +105,7 @@ function HeaderExportMenu() {
         {loading ? (
           <span className={actionIconSpin} aria-hidden />
         ) : (
-          <Download theme='outline' size={18} fill={ICON_PRIMARY} />
+          <Download theme='outline' size={17} fill={ICON_PRIMARY} />
         )}
         {actionsDisabled ? t('exporting') : t('exportLabel')}
         {!actionsDisabled ? <DownOutlined className={arrowCls(exportOpen)} /> : null}

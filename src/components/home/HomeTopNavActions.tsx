@@ -8,8 +8,10 @@ import { LoadingOutlined } from '@ant-design/icons';
 import { useSession } from 'next-auth/react';
 import LoginDropdownButton from '@/components/auth/LoginDropdownButton';
 import { useResolvedTheme } from '@/hooks/useResolvedTheme';
+import { GITHUB_NEW_ISSUE_URL } from '@/lib/githubRepoStars';
 import { homeFocusRing } from '@/lib/home/homeA11y';
 import { toggleAppTheme } from '@/lib/themeStore';
+import { BugOutlined } from '@ant-design/icons';
 import { memo, useRef, useState } from 'react';
 
 const GithubAuthButton = dynamic(() => import('@/components/auth/GithubAuthButton'), {
@@ -82,6 +84,18 @@ export default memo(function HomeTopNavActions() {
 
   return (
     <div className='flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2.5'>
+      <button
+        type='button'
+        onClick={() => window.open(GITHUB_NEW_ISSUE_URL, '_blank', 'noopener,noreferrer')}
+        aria-label={t('navFeedback')}
+        title={t('navFeedback')}
+        className={`inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-fg/14 bg-fg/[0.05] text-fg/68 transition-colors duration-200 hover:bg-fg/[0.09] hover:text-fg/88 sm:w-auto sm:gap-1.5 sm:px-3 ${homeFocusRing}`}
+      >
+        <BugOutlined className='text-[15px]' />
+        <span className='hidden max-w-[7rem] truncate text-xs font-medium sm:inline'>
+          {t('navFeedback')}
+        </span>
+      </button>
       <Popover
         arrow={false}
         trigger={['hover', 'click']}

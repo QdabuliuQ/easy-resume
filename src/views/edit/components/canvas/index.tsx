@@ -52,6 +52,7 @@ import { RESUME_MODULE_HEADER_ATTR } from '@/components/moduleOperation/constant
 import { CanvasScaleContext } from './canvasScaleContext';
 import { PAGE_STACK_GAP_PX } from './pageStackGap';
 import { normResumeFont, waitResumeFontsLoaded } from '@/lib/resumeFont';
+import { GITHUB_NEW_ISSUE_URL, GITHUB_REPO_URL } from '@/lib/githubRepoStars';
 import ResumeFontCdn from './resumeFontCdn';
 import CanvasModuleFragment from './moduleFragment';
 import SelectableGuideLines from './selectableGuideLines';
@@ -666,7 +667,8 @@ function Canvas({
       }}
       onOpenGeneralSettings={onOpenGeneralSettings}
       onBackHome={() => router.push('/')}
-      onOpenGithub={() => window.open('https://github.com/QdabuliuQ/easy-resume', '_blank', 'noopener,noreferrer')}
+      onOpenGithub={() => window.open(GITHUB_REPO_URL, '_blank', 'noopener,noreferrer')}
+      onOpenFeedback={() => window.open(GITHUB_NEW_ISSUE_URL, '_blank', 'noopener,noreferrer')}
       onOpenPreview={openPreview}
       tc={tc}
     />

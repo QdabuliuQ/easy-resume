@@ -1,4 +1,5 @@
 import {
+  BugOutlined,
   CheckCircleOutlined,
   EyeOutlined,
   GithubOutlined,
@@ -24,6 +25,7 @@ type CanvasFloatActionsProps = {
   onOpenGeneralSettings?: () => void;
   onBackHome: () => void;
   onOpenGithub: () => void;
+  onOpenFeedback: () => void;
   onOpenPreview: () => void;
   tc: (key: string) => string;
 };
@@ -44,6 +46,7 @@ export default function CanvasFloatActions(props: CanvasFloatActionsProps) {
     onOpenGeneralSettings,
     onBackHome,
     onOpenGithub,
+    onOpenFeedback,
     onOpenPreview,
     tc,
   } = props;
@@ -161,6 +164,17 @@ export default function CanvasFloatActions(props: CanvasFloatActionsProps) {
           aria-label={tc('githubAria')}
         >
           <GithubOutlined className='text-[17px]' />
+        </button>
+      </Tooltip>
+
+      <Tooltip title={tc('feedbackTooltip')} placement='left'>
+        <button
+          type='button'
+          onClick={onOpenFeedback}
+          className='canvas-float-btn'
+          aria-label={tc('feedbackAria')}
+        >
+          <BugOutlined className='text-[17px]' />
         </button>
       </Tooltip>
 

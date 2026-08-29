@@ -9,6 +9,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { memo, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { PHOTOS, PHOTO_SIZES } from '@/lib/brandAssets';
+import { GITHUB_REPO_URL } from '@/lib/githubRepoStars';
 import { prefetchEditPage } from '@/lib/prefetchEditPage';
 import { homeFocusRing, homeNavKey } from '@/lib/home/homeA11y';
 import { setPhysicsPause } from '@/lib/home/physicsPauseStore';
@@ -429,7 +430,7 @@ export default function HomeHorizontalScroll({ reduceMotion, githubStars }: Prop
   const faq = t.raw('faq') as { q: string; a: string }[];
 
   const openGh = () =>
-    window.open('https://github.com/QdabuliuQ/easy-resume', '_blank', 'noopener,noreferrer');
+    window.open(GITHUB_REPO_URL, '_blank', 'noopener,noreferrer');
   const prefetchEdit = () => {
     router.prefetch('/edit');
     prefetchEditPage();
