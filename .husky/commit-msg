@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Cursor 会往 commit message 注入 Co-authored-by: Cursor；提交前剥掉
+node "$(dirname -- "$0")/../scripts/strip-cursor-coauthor.mjs" "$1"

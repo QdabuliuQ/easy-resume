@@ -2,22 +2,65 @@
 
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { useEffect, useLayoutEffect, useRef, useState, type ComponentProps } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { ConfigProvider, Spin } from 'antd';
 import { logo } from '@/lib/brandAssets';
 
-const shareSpinTheme = { token: { colorPrimary: '#0e9c8d' } };
-const ShareSpin = (props: ComponentProps<typeof Spin>) => (
-  <ConfigProvider theme={shareSpinTheme}>
-    <Spin {...props} />
-  </ConfigProvider>
-);
+const pulse = 'animate-pulse bg-fg/[0.08] motion-reduce:animate-none';
+
+function ShareResumeSkeleton() {
+  return (
+    <div
+      className='w-full max-w-[720px] overflow-hidden rounded-lg bg-white shadow-[0_8px_30px_rgb(0_0_0/0.08)]'
+      role='status'
+      aria-busy='true'
+    >
+      <div className='space-y-6 p-6 sm:p-8' aria-hidden>
+        <div className='flex items-start gap-4'>
+          <div className={`size-16 shrink-0 rounded-full sm:size-[72px] ${pulse}`} />
+          <div className='min-w-0 flex-1 space-y-2.5 pt-1'>
+            <div className={`h-5 w-36 rounded-md ${pulse}`} />
+            <div className={`h-3.5 w-48 max-w-full rounded-md ${pulse}`} />
+            <div className={`h-3 w-40 max-w-full rounded-md ${pulse}`} />
+          </div>
+        </div>
+        <div className='space-y-2'>
+          <div className={`h-3.5 w-20 rounded-md ${pulse}`} />
+          <div className={`h-3 w-full rounded-md ${pulse}`} />
+          <div className={`h-3 w-[92%] rounded-md ${pulse}`} />
+          <div className={`h-3 w-[78%] rounded-md ${pulse}`} />
+        </div>
+        {[0, 1].map((section) => (
+          <div key={section} className='space-y-3'>
+            <div className={`h-3.5 w-24 rounded-md ${pulse}`} />
+            <div className='space-y-2 rounded-lg border border-fg/[0.06] p-3'>
+              <div className='flex justify-between gap-3'>
+                <div className={`h-3.5 w-28 rounded-md ${pulse}`} />
+                <div className={`h-3 w-20 rounded-md ${pulse}`} />
+              </div>
+              <div className={`h-3 w-full rounded-md ${pulse}`} />
+              <div className={`h-3 w-[88%] rounded-md ${pulse}`} />
+              <div className={`h-3 w-[70%] rounded-md ${pulse}`} />
+            </div>
+          </div>
+        ))}
+        <div className='space-y-2'>
+          <div className={`h-3.5 w-16 rounded-md ${pulse}`} />
+          <div className='flex flex-wrap gap-2'>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} className={`h-7 w-16 rounded-full ${pulse}`} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const ResumeImageExportPage = dynamic(
   () => import('@/views/export/resumeImageExportPage'),
-  { ssr: false, loading: () => <ShareSpin tip='…' /> },
+  { ssr: false, loading: () => <ShareResumeSkeleton /> },
 );
 
 type Status = 'loading' | 'ok' | 'expired' | 'invalid';
@@ -93,7 +136,6 @@ function ShareResumeFrame({ config }: { config: unknown }) {
           style={{
             transform: `scale(${scale})`,
             width: size.w,
-            // transform 不占布局；未测到高度前先可见，避免空白
             ...(size.h ? undefined : { minHeight: 200 }),
           }}
         >
@@ -158,9 +200,10 @@ export default function ShareResumeView({ token }: { token: string }) {
       </Link>
       <main className='mx-auto flex w-full flex-col items-center px-3 pb-8 pt-16 sm:px-6'>
         {status === 'loading' ? (
-          <div className='flex min-h-[40vh] items-center justify-center'>
-            <ShareSpin tip={t('loading')} size='large' />
-          </div>
+          <>
+            <span className='sr-only'>{t('loading')}</span>
+            <ShareResumeSkeleton />
+          </>
         ) : null}
         {status === 'expired' || status === 'invalid' ? (
           <div className='flex min-h-[50vh] w-full max-w-md flex-col items-center justify-center gap-3 text-center'>

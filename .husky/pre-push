@@ -1,6 +1,25 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+ROOT="$(dirname -- "$0")/.."
+STRIP_JS="$ROOT/scripts/strip-cursor-coauthor.mjs"
+
+# 1) 提交时去掉 Cursor 署名（commit-msg 已处理）；推送前再兜底改写尚未推送的本地提交
+if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
+  BASE="$(git merge-base HEAD '@{u}')"
+else
+  BASE="$(git rev-parse origin/main 2>/dev/null || true)"
+fi
+
+if [ -n "$BASE" ] && git log --format=%B "$BASE"..HEAD 2>/dev/null | grep -qi '^Co-authored-by:[[:space:]]*Cursor'; then
+  echo "pre-push: stripping Cursor co-author from local commits…"
+  export FILTER_BRANCH_SQUELCH_WARNING=1
+  git filter-branch -f --msg-filter "node \"$STRIP_JS\"" "$BASE"..HEAD
+  git for-each-ref --format='%(refname)' refs/original/ 2>/dev/null | while read -r ref; do
+    git update-ref -d "$ref" 2>/dev/null || true
+  done
+fi
+
 # Next 14「Collecting page data」偶发 PageNotFoundError（竞态），失败再编一次
 npm run build || {
   echo "pre-push: build failed once, retrying…"
