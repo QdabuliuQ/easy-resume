@@ -177,7 +177,7 @@ export default {
     exportDesc: '编辑完成后，可在此导出 PDF（高质量 / 快速）、PDF（图片版）、图片或 JSON 备份，方便投递与存档。',
   },
   canvas: {
-    textPreview: '文本预览',
+    textPreview: '简历预览',
     closePreview: '关闭预览',
     backupOnTooltip: '已启用本地备份，修改后将写入「简历名称.json」',
     backupOnAria: '备份已启用',

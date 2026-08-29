@@ -10,7 +10,7 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons';
 import { DeleteOne } from '@icon-park/react';
-import { Button } from 'antd';
+import { Button, Tooltip } from 'antd';
 import { observer } from 'mobx-react';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
@@ -213,6 +213,7 @@ function MyResumes() {
           <ul className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
             {list.map((item, index) => {
               const active = activeId === item.id;
+              const displayName = item.name || t('unnamed');
               return (
                 <li key={item.id} className='min-w-0'>
                   <div
@@ -223,15 +224,19 @@ function MyResumes() {
                     }`}
                   >
                     <div className='flex items-center justify-between gap-2 border-b border-fg/[0.06] bg-surface/[0.03] px-3 py-2'>
-                      <span className='inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2 py-0.5 text-[10px] font-medium text-fg/62'>
+                      <span className='inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2 py-0.5 text-[10px] font-medium text-fg/62'>
                         {active ? (
                           <CheckCircleFilled className='text-[10px] text-[var(--color-primary)]' />
                         ) : null}
                         {String(index + 1).padStart(2, '0')}
                       </span>
-                      <span className='truncate text-[12px] font-semibold text-fg/88'>
-                        {item.name || t('unnamed')}
-                      </span>
+                      <Tooltip title={displayName} mouseEnterDelay={0.2} placement='top'>
+                        <span className='min-w-0 flex-1 overflow-hidden text-right'>
+                          <span className='block truncate text-[12px] font-semibold text-fg/88'>
+                            {displayName}
+                          </span>
+                        </span>
+                      </Tooltip>
                     </div>
                     <div className='flex justify-center overflow-hidden bg-[rgb(var(--surface-fg-rgb)/0.04)]'>
                       <div className='pointer-events-none max-h-[220px] overflow-hidden'>

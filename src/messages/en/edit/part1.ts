@@ -178,7 +178,7 @@ export default {
     exportDesc: 'When you are done editing, export as PDF (high quality or fast), PDF (image), image, or JSON backup for applications and safekeeping.',
   },
   canvas: {
-    textPreview: 'Text preview',
+    textPreview: 'Resume preview',
     closePreview: 'Close preview',
     backupOnTooltip: 'Local backup on—changes sync to “resume name.json”.',
     backupOnAria: 'Backup enabled',
