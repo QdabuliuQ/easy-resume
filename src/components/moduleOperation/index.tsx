@@ -31,8 +31,10 @@ import {
   focusPanelByParsedTarget,
 } from '@/lib/inlineFieldEdit/focusPanelField';
 import { PAGE_STACK_GAP_PX } from '@/views/edit/components/canvas/pageStackGap';
+import { moduleSlotEl } from '@/lib/resumeModuleSlotDom';
 import bracketStyles from './bracket.module.css';
 import { RESUME_MODULE_ID_ATTR } from './constants';
+import { moduleBracketHeightFromSpanCssPx } from './moduleBracketHeight';
 
 const TOOLBAR_LEFT_PX = -67;
 const BRACKET_W_PX = 6;
@@ -53,19 +55,6 @@ function findModuleRoots(host: HTMLElement, id: string): HTMLElement[] {
   return Array.from(
     host.querySelectorAll(`[${RESUME_MODULE_ID_ATTR}="${CSS.escape(id)}"]`),
   ) as HTMLElement[];
-}
-
-/** 槽位节点：续页时模块外包一层 translateY */
-function moduleSlotEl(root: HTMLElement): HTMLElement {
-  const p = root.parentElement;
-  if (!p) return root;
-  if (p.style.transform.includes('translateY')) return p.parentElement ?? p;
-  return p;
-}
-
-function moduleSlotOffsetY(slot: HTMLElement): number {
-  const offset = Number(slot.getAttribute('data-resume-module-offset-y'));
-  return Number.isFinite(offset) && offset > 0 ? offset : 0;
 }
 
 function afterReorder(fn: () => void) {
@@ -156,23 +145,17 @@ function ModuleOperation({
       const lastSlot = slots[slots.length - 1].getBoundingClientRect();
       const s =
         canvasScale > 0 && Number.isFinite(canvasScale) ? canvasScale : 1;
-      const pagePadding = Number(configStore.mergedGlobalStyle.padding ?? 0);
-      const pageCount = new Set(
-        slots
-          .map((slot) => slot.closest('[data-resume-canvas-page]'))
-          .filter(Boolean),
-      ).size;
-      const pageBreaks = Math.max(0, pageCount - 1);
-      const offsetY = moduleSlotOffsetY(slots[slots.length - 1]);
-      const crossPageExtra =
-        pageBreaks > 0
-          ? pageBreaks * (pagePadding * 2 + PAGE_STACK_GAP_PX) + offsetY
-          : 0;
+      // 跨页用首→末屏幕跨度（已含页间距/页边距）；勿再叠加 padding/gap，否则会重复拉长
+      const moduleHeight = moduleBracketHeightFromSpanCssPx(
+        firstSlot.top,
+        lastSlot.bottom,
+        s,
+      );
       const next: ToolbarBox = {
         top: (firstSlot.top - stageRect.top) / s,
         visible: true,
         motion: source === 'active' ? 'smooth' : 'snap',
-        moduleHeight: Math.max(0, (lastSlot.bottom - firstSlot.top + crossPageExtra) / s),
+        moduleHeight,
       };
       setToolbarBox((prev) => {
         const samePos =

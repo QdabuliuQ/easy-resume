@@ -1,6 +1,7 @@
 import { useMemoizedFn } from 'ahooks';
 import { useState, type RefObject } from 'react';
 import { HIGHLIGHT_OUTSET_X } from '@/lib/inlineFieldEdit/computePopoverPosition';
+import { visibleSelectableUnionRect } from '@/lib/resumeModuleSlotDom';
 
 export type CanvasHoverRect = {
   left: number;
@@ -47,19 +48,19 @@ export function useSelectableGuideHover({
       return;
     }
 
-    const containerRect = containerEl.getBoundingClientRect();
-    const targetRect = targetEl.getBoundingClientRect();
-    if (targetRect.width <= 0 || targetRect.height <= 0) {
+    const union = visibleSelectableUnionRect(stageEl, targetEl);
+    if (!union) {
       setHoverRect(null);
       return;
     }
 
+    const containerRect = containerEl.getBoundingClientRect();
     const halfX = HIGHLIGHT_OUTSET_X / 2;
     const nextRect = {
-      left: targetRect.left - containerRect.left + containerEl.scrollLeft - halfX,
-      top: targetRect.top - containerRect.top + containerEl.scrollTop,
-      width: targetRect.width + HIGHLIGHT_OUTSET_X,
-      height: targetRect.height,
+      left: union.left - containerRect.left + containerEl.scrollLeft - halfX,
+      top: union.top - containerRect.top + containerEl.scrollTop,
+      width: union.width + HIGHLIGHT_OUTSET_X,
+      height: union.height,
     };
 
     setHoverRect((prev) => {
