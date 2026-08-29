@@ -13,7 +13,7 @@ import {
 } from '@ant-design/icons';
 import { Copy, SaveOne, Share } from '@icon-park/react';
 import { observer } from 'mobx-react';
-import { signIn, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useLocale, useTranslations } from 'next-intl';
 import { memo, useId, useRef, useState } from 'react';
 import { Button, Dropdown, Input, Tooltip } from 'antd';
@@ -24,6 +24,7 @@ import { cloudResumeStore, configStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 import { localePath } from '@/lib/device';
 import { logo } from '@/lib/brandAssets';
+import { signInPreservingResume } from '@/lib/signInPreservingResume';
 import { useEditHistory } from '@/views/edit/hooks/useEditHistory';
 import ShareResumeModal from '@/views/edit/components/header/ShareResumeModal';
 
@@ -53,7 +54,7 @@ function MobileEditHeader() {
     if (authBusy) return;
     setAuthBusy(true);
     try {
-      await signIn(provider, { redirectTo: window.location.href, redirect: true });
+      await signInPreservingResume(provider);
     } finally {
       setAuthBusy(false);
     }

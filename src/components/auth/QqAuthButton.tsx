@@ -2,10 +2,11 @@
 
 import { LoadingOutlined } from '@ant-design/icons';
 import Image from 'next/image';
-import { signIn, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import qqIcon from '@/assets/qq.png';
+import { signInPreservingResume } from '@/lib/signInPreservingResume';
 
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_58%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-bg)]';
@@ -39,7 +40,7 @@ export default function QqAuthButton({ variant = 'home' }: Props) {
     if (busy) return;
     setBusy(true);
     try {
-      await signIn('qq', { redirectTo: window.location.href, redirect: true });
+      await signInPreservingResume('qq');
     } finally {
       setBusy(false);
     }

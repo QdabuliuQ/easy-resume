@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
+import { consumeResumeAuthDraft } from '@/lib/resumeAuthDraft';
 import { configStore, editHistoryStore } from '@/mobx';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import Container from '../components/container';
@@ -45,6 +46,13 @@ function MobileEditInner() {
   const isInterview = menuActiveKey === 'ai-interview';
 
   useLayoutEffect(() => {
+    const draft = consumeResumeAuthDraft();
+    if (draft) {
+      editHistoryStore.clear();
+      configStore.setConfig(draft, { source: 'reset' });
+      resetAiModifyChatSession();
+      return;
+    }
     const raw = searchParams.get('template');
     if (raw != null && raw !== '') {
       const n = Number.parseInt(raw, 10);

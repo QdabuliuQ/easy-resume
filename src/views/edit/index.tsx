@@ -7,6 +7,7 @@ import { prefetchRichTextEditor } from '@/components/richTextEditor/lazy';
 import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
+import { consumeResumeAuthDraft } from '@/lib/resumeAuthDraft';
 import { normResumeFont } from '@/lib/resumeFont';
 import { configStore, editHistoryStore } from '@/mobx';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
@@ -60,6 +61,13 @@ function Edit() {
   }, []);
 
   useLayoutEffect(() => {
+    const draft = consumeResumeAuthDraft();
+    if (draft) {
+      editHistoryStore.clear();
+      configStore.setConfig(draft, { source: 'reset' });
+      resetAiModifyChatSession();
+      return;
+    }
     const raw = searchParams.get('template');
     const color = searchParams.get('color');
     if (raw != null && raw !== '') {

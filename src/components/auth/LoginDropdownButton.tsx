@@ -4,10 +4,10 @@ import Image from 'next/image';
 import { Dropdown } from 'antd';
 import type { MenuProps } from 'antd';
 import { DownOutlined, GithubOutlined, LoadingOutlined, UserOutlined } from '@ant-design/icons';
-import { signIn } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { memo, useMemo, useState } from 'react';
 import qqIcon from '@/assets/qq.png';
+import { signInPreservingResume } from '@/lib/signInPreservingResume';
 
 export const loginBtnCls = [
   'inline-flex h-9 cursor-pointer select-none items-center gap-2 rounded-full py-0 pl-1 pr-3',
@@ -44,7 +44,7 @@ function LoginDropdownButton({ trigger = ['hover'] }: Props) {
     if (authBusy) return;
     setAuthBusy(true);
     try {
-      await signIn(provider, { redirectTo: window.location.href, redirect: true });
+      await signInPreservingResume(provider);
     } finally {
       setAuthBusy(false);
     }

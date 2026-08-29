@@ -3,9 +3,10 @@
 import Image from 'next/image';
 import { GithubOutlined, LoadingOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Popover } from 'antd';
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { signInPreservingResume } from '@/lib/signInPreservingResume';
 
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--color-primary)_58%,transparent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--editor-shell-bg)]';
@@ -24,7 +25,7 @@ export default function GithubAuthButton({ variant = 'home' }: Props) {
     if (busy) return;
     setBusy(true);
     try {
-      await signIn('github', { redirectTo: window.location.href, redirect: true });
+      await signInPreservingResume('github');
     } finally {
       setBusy(false);
     }
