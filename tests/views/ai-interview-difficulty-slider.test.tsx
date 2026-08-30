@@ -1,10 +1,25 @@
 import { createEvent, fireEvent, render, screen } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
 import { describe, expect, it, vi } from 'vitest';
+import part2 from '@/messages/zh/edit/part2';
 import DifficultySlider from '@/views/edit/components/aiInterview/DifficultySlider';
+
+const messages = { Edit: { aiInterview: part2.aiInterview } };
+
+function renderSlider(
+  value: 'easy' | 'medium' | 'hard',
+  onChange: (v: 'easy' | 'medium' | 'hard') => void = () => {},
+) {
+  return render(
+    <NextIntlClientProvider locale='zh' messages={messages}>
+      <DifficultySlider value={value} onChange={onChange} />
+    </NextIntlClientProvider>,
+  );
+}
 
 describe('DifficultySlider', () => {
   it('renders three difficulty labels', () => {
-    render(<DifficultySlider value='medium' onChange={() => {}} />);
+    renderSlider('medium');
     expect(screen.getByText('简单')).toBeInTheDocument();
     expect(screen.getByText('中等')).toBeInTheDocument();
     expect(screen.getByText('困难')).toBeInTheDocument();
@@ -13,7 +28,7 @@ describe('DifficultySlider', () => {
 
   it('clicking label changes difficulty', () => {
     const onChange = vi.fn();
-    render(<DifficultySlider value='medium' onChange={onChange} />);
+    renderSlider('medium', onChange);
     fireEvent.click(screen.getByText('困难'));
     expect(onChange).toHaveBeenCalledWith('hard');
     fireEvent.click(screen.getByText('简单'));
@@ -22,7 +37,7 @@ describe('DifficultySlider', () => {
 
   it('supports keyboard arrows on slider', () => {
     const onChange = vi.fn();
-    render(<DifficultySlider value='medium' onChange={onChange} />);
+    renderSlider('medium', onChange);
     const slider = screen.getByRole('slider');
     fireEvent.keyDown(slider, { key: 'ArrowRight' });
     expect(onChange).toHaveBeenCalledWith('hard');
@@ -32,7 +47,7 @@ describe('DifficultySlider', () => {
 
   it('pointer drag on track snaps to nearest level', () => {
     const onChange = vi.fn();
-    render(<DifficultySlider value='medium' onChange={onChange} />);
+    renderSlider('medium', onChange);
     const slider = screen.getByRole('slider');
     Object.defineProperty(slider, 'getBoundingClientRect', {
       configurable: true,

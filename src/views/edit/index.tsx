@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { prefetchRichTextEditor } from '@/components/richTextEditor/lazy';
 import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
@@ -29,6 +30,7 @@ const AiInterviewPage = dynamic(() => import('./components/aiInterview'), {
 const DEFAULT_MENU_KEY = 'resume';
 
 function Edit() {
+  const t = useTranslations('Edit.aiInterview');
   const searchParams = useSearchParams();
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
   const [shellRevealReady, setShellRevealReady] = useState(false);
@@ -41,10 +43,10 @@ function Edit() {
     (key: string) => {
       if (menuActiveKey === 'ai-interview' && key !== 'ai-interview' && interviewLiveRef.current) {
         confirm({
-          title: '确认退出面试？',
-          content: '退出后本场进度将丢失，无法恢复。',
-          okText: '确认退出',
-          cancelText: '继续面试',
+          title: t('leaveTitle'),
+          content: t('leaveContent'),
+          okText: t('leaveOk'),
+          cancelText: t('leaveCancel'),
           danger: true,
           onOk: () => setMenuActiveKey(key),
         });
@@ -52,7 +54,7 @@ function Edit() {
       }
       setMenuActiveKey(key);
     },
-    [menuActiveKey, confirm],
+    [menuActiveKey, confirm, t],
   );
 
   useEffect(() => {

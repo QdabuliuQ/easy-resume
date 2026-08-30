@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { memo, useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
@@ -36,6 +37,7 @@ const MobileTemplateOverlay = dynamic(() => import('./templateOverlay'), {
 const DEFAULT_MENU_KEY = 'resume';
 
 function MobileEditInner() {
+  const t = useTranslations('Edit.aiInterview');
   const searchParams = useSearchParams();
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -77,10 +79,10 @@ function MobileEditInner() {
     ) => {
       if (menuActiveKey === 'ai-interview' && key !== 'ai-interview' && interviewLiveRef.current) {
         confirm({
-          title: '确认退出面试？',
-          content: '退出后本场进度将丢失，无法恢复。',
-          okText: '确认退出',
-          cancelText: '继续面试',
+          title: t('leaveTitle'),
+          content: t('leaveContent'),
+          okText: t('leaveOk'),
+          cancelText: t('leaveCancel'),
           danger: true,
           onOk: () => setMenuActiveKey(key),
         });
@@ -88,7 +90,7 @@ function MobileEditInner() {
       }
       setMenuActiveKey(key);
     },
-    [menuActiveKey, confirm],
+    [menuActiveKey, confirm, t],
   );
 
   const onBottomNav = (key: MobileBottomKey) => {

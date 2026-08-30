@@ -1,19 +1,7 @@
 'use client';
-import { useCallback, useRef } from 'react';
+import { useTranslations } from 'next-intl';
+import { useCallback, useMemo, useRef } from 'react';
 import type { InterviewDifficulty } from '@/lib/ai/interview/types';
-
-const LEVELS: Array<{ value: InterviewDifficulty; label: string; hint: string }> = [
-  { value: 'easy', label: '简单', hint: '引导式提问，适合热身' },
-  { value: 'medium', label: '中等', hint: '平衡深挖过程与结果' },
-  { value: 'hard', label: '困难', hint: '高压追问 ownership 与复盘' },
-];
-
-function indexOf(v: InterviewDifficulty) {
-  return Math.max(
-    0,
-    LEVELS.findIndex((l) => l.value === v),
-  );
-}
 
 type DifficultySliderProps = {
   value: InterviewDifficulty;
@@ -21,8 +9,28 @@ type DifficultySliderProps = {
 };
 
 export default function DifficultySlider({ value, onChange }: DifficultySliderProps) {
+  const t = useTranslations('Edit.aiInterview');
   const trackRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
+
+  const levels = useMemo(
+    () =>
+      [
+        { value: 'easy' as const, label: t('difficultyEasy'), hint: t('difficultyEasyHint') },
+        { value: 'medium' as const, label: t('difficultyMedium'), hint: t('difficultyMediumHint') },
+        { value: 'hard' as const, label: t('difficultyHard'), hint: t('difficultyHardHint') },
+      ] as const,
+    [t],
+  );
+
+  const indexOf = useCallback(
+    (v: InterviewDifficulty) =>
+      Math.max(
+        0,
+        levels.findIndex((l) => l.value === v),
+      ),
+    [levels],
+  );
 
   const pickFromClientX = useCallback(
     (clientX: number) => {
@@ -31,11 +39,11 @@ export default function DifficultySlider({ value, onChange }: DifficultySliderPr
       const rect = el.getBoundingClientRect();
       const width = rect.width || 1;
       const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / width));
-      const idx = Math.min(LEVELS.length - 1, Math.max(0, Math.round(ratio * (LEVELS.length - 1))));
-      const next = LEVELS[idx]!.value;
+      const idx = Math.min(levels.length - 1, Math.max(0, Math.round(ratio * (levels.length - 1))));
+      const next = levels[idx]!.value;
       if (next !== value) onChange(next);
     },
-    [onChange, value],
+    [onChange, value, levels],
   );
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -61,8 +69,8 @@ export default function DifficultySlider({ value, onChange }: DifficultySliderPr
   };
 
   const idx = indexOf(value);
-  const thumbPct = (idx / (LEVELS.length - 1)) * 100;
-  const current = LEVELS[idx]!;
+  const thumbPct = (idx / (levels.length - 1)) * 100;
+  const current = levels[idx]!;
 
   return (
     <div className='space-y-3'>
@@ -70,18 +78,18 @@ export default function DifficultySlider({ value, onChange }: DifficultySliderPr
         ref={trackRef}
         role='slider'
         aria-valuemin={0}
-        aria-valuemax={LEVELS.length - 1}
+        aria-valuemax={levels.length - 1}
         aria-valuenow={idx}
         aria-valuetext={current.label}
-        aria-label='面试难度'
+        aria-label={t('difficultyAria')}
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
             e.preventDefault();
-            onChange(LEVELS[Math.max(0, idx - 1)]!.value);
+            onChange(levels[Math.max(0, idx - 1)]!.value);
           } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
             e.preventDefault();
-            onChange(LEVELS[Math.min(LEVELS.length - 1, idx + 1)]!.value);
+            onChange(levels[Math.min(levels.length - 1, idx + 1)]!.value);
           }
         }}
         onPointerDown={onPointerDown}
@@ -96,7 +104,7 @@ export default function DifficultySlider({ value, onChange }: DifficultySliderPr
           style={{ width: `calc((100% - 1.5rem) * ${thumbPct / 100})` }}
         />
         <div className='pointer-events-none absolute inset-x-3 top-1/2 flex -translate-y-1/2 justify-between'>
-          {LEVELS.map((l) => (
+          {levels.map((l) => (
             <span
               key={l.value}
               className={`size-2.5 rounded-full border transition-colors duration-200 ${
@@ -113,7 +121,7 @@ export default function DifficultySlider({ value, onChange }: DifficultySliderPr
         />
       </div>
       <div className='flex justify-between px-0.5'>
-        {LEVELS.map((l) => {
+        {levels.map((l) => {
           const on = l.value === value;
           return (
             <button

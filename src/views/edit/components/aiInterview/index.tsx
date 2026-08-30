@@ -3,6 +3,7 @@ import { AudioOutlined, LoadingOutlined } from '@ant-design/icons';
 import { Input, Spin } from 'antd';
 import { observer } from 'mobx-react';
 import { useSession } from 'next-auth/react';
+import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   interviewAbandon,
@@ -62,11 +63,14 @@ function DimScore({ label, value }: { label: string; value: number }) {
   );
 }
 
-const DIM_LABELS = ['与简历一致性', '细节深度', '表达结构', '岗位匹配'] as const;
-
 function ReportStatusChip({ step }: { step: 0 | 1 | 2 }) {
+  const t = useTranslations('Edit.aiInterview');
   const copy =
-    step === 0 ? '正在生成报告…' : step === 1 ? '正在撰写总评…' : '正在整理改进建议…';
+    step === 0
+      ? t('reportGenerating')
+      : step === 1
+        ? t('reportWritingSummary')
+        : t('reportWritingActions');
   const pct = step === 0 ? 28 : step === 1 ? 62 : 88;
   return (
     <div
@@ -87,17 +91,17 @@ function ReportStatusChip({ step }: { step: 0 | 1 | 2 }) {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <p className='text-[11px] leading-relaxed text-fg/45'>
-        生成开始后会计费；离开本页会中断本场面试，无法取消已产生的扣费。
-      </p>
+      <p className='text-[11px] leading-relaxed text-fg/45'>{t('reportBillingHint')}</p>
     </div>
   );
 }
 
 function DimScoreSkeleton() {
+  const t = useTranslations('Edit.aiInterview');
+  const labels = [t('dimConsistency'), t('dimDetail'), t('dimStructure'), t('dimRoleFit')];
   return (
     <div className='grid gap-2.5 sm:grid-cols-2' aria-hidden>
-      {DIM_LABELS.map((label) => (
+      {labels.map((label) => (
         <div
           key={label}
           className='ui-hint-shimmer relative rounded-xl border border-fg/[0.07] bg-fg/[0.025] px-3.5 py-3.5'
@@ -128,9 +132,12 @@ function SummarySkeleton() {
 }
 
 function ActionsSkeleton() {
+  const t = useTranslations('Edit.aiInterview');
   return (
     <div aria-hidden>
-      <h3 className='mb-3 text-[13px] font-semibold tracking-[-0.01em] text-fg/40'>改进建议</h3>
+      <h3 className='mb-3 text-[13px] font-semibold tracking-[-0.01em] text-fg/40'>
+        {t('actionsTitle')}
+      </h3>
       <ol className='overflow-hidden rounded-2xl border border-fg/[0.08] bg-fg/[0.02] divide-y divide-fg/[0.06]'>
         {[0, 1, 2].map((i) => (
           <li key={i} className='flex gap-3 px-4 py-3.5'>
@@ -159,11 +166,14 @@ export default observer(function AiInterviewPage({
 }: {
   onLiveChange?: (live: boolean) => void;
 } = {}) {
+  const t = useTranslations('Edit.aiInterview');
+  const locale = useLocale();
   const message = useAppMessage();
   const { confirm } = useResponsiveConfirm();
   const { status, data: session } = useSession();
   const signedIn = status === 'authenticated' && Boolean(session?.user?.uid);
   const isDev = process.env.NODE_ENV !== 'production';
+  const dateLocale = locale === 'zh' ? 'zh-CN' : 'en-US';
 
   const [phase, setPhase] = useState<Phase>('prepare');
   const [source, setSource] = useState<ResumeSource>('cloud');
@@ -224,14 +234,14 @@ export default observer(function AiInterviewPage({
       return;
     }
     confirm({
-      title: '确认退出面试？',
-      content: '退出后本场进度将丢失，无法恢复。',
-      okText: '确认退出',
-      cancelText: '继续面试',
+      title: t('leaveTitle'),
+      content: t('leaveContent'),
+      okText: t('leaveOk'),
+      cancelText: t('leaveCancel'),
       danger: true,
       onOk: () => resetSession(),
     });
-  }, [live, confirm, resetSession]);
+  }, [live, confirm, resetSession, t]);
 
   const streamReport = useCallback(
     async (sid: string) => {
@@ -269,12 +279,12 @@ export default observer(function AiInterviewPage({
         if (report) setFinalReport(report);
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') return;
-        message.error(e instanceof Error ? e.message : '报告生成失败');
+        message.error(e instanceof Error ? e.message : t('reportFail'));
       } finally {
         setReportStreaming(false);
       }
     },
-    [message],
+    [message, t],
   );
 
   useEffect(() => {
@@ -332,11 +342,11 @@ export default observer(function AiInterviewPage({
           list?: ResumeListItem[];
           error?: string;
         } | null;
-        if (!res.ok) throw new Error(data?.error || '加载简历列表失败');
+        if (!res.ok) throw new Error(data?.error || t('loadListFail'));
         if (!cancelled) setList(Array.isArray(data?.list) ? data!.list! : []);
       })
       .catch((e) => {
-        if (!cancelled) message.error(e instanceof Error ? e.message : '加载失败');
+        if (!cancelled) message.error(e instanceof Error ? e.message : t('loadFail'));
       })
       .finally(() => {
         if (!cancelled) setListLoading(false);
@@ -344,7 +354,7 @@ export default observer(function AiInterviewPage({
     return () => {
       cancelled = true;
     };
-  }, [signedIn, message, listEpoch]);
+  }, [signedIn, message, listEpoch, t]);
 
   const buildBody = useCallback(() => {
     if (source === 'cloud' && resumeId) return { resumeId };
@@ -357,7 +367,7 @@ export default observer(function AiInterviewPage({
   const startInterview = useCallback(async () => {
     const body = buildBody();
     if (!body) {
-      message.warning(isDev ? '请先选择简历来源' : '请先选择一份云端简历');
+      message.warning(isDev ? t('pickSourceDev') : t('pickSource'));
       return;
     }
     setBusy(true);
@@ -373,11 +383,11 @@ export default observer(function AiInterviewPage({
       setAnswerText('');
       setPhase('session');
     } catch (e) {
-      message.error(e instanceof Error ? e.message : '开始失败');
+      message.error(e instanceof Error ? e.message : t('startFail'));
     } finally {
       setBusy(false);
     }
-  }, [buildBody, message, questionCount, difficulty, isDev]);
+  }, [buildBody, message, questionCount, difficulty, isDev, t]);
 
   const submitAnswer = useCallback(
     async (skipped?: boolean) => {
@@ -397,12 +407,12 @@ export default observer(function AiInterviewPage({
         setProgress(res.progress);
         setAnswerText('');
       } catch (e) {
-        message.error(e instanceof Error ? e.message : '提交失败');
+        message.error(e instanceof Error ? e.message : t('submitFail'));
       } finally {
         setBusy(false);
       }
     },
-    [sessionId, question, answerText, streamReport, message],
+    [sessionId, question, answerText, streamReport, message, t],
   );
 
   const endEarly = useCallback(async () => {
@@ -412,20 +422,27 @@ export default observer(function AiInterviewPage({
       await interviewEnd(sessionId);
       await streamReport(sessionId);
     } catch (e) {
-      message.error(e instanceof Error ? e.message : '结束失败');
+      message.error(e instanceof Error ? e.message : t('endFail'));
     } finally {
       setBusy(false);
     }
-  }, [sessionId, streamReport, message]);
+  }, [sessionId, streamReport, message, t]);
 
   const canEnter = signedIn || isDev;
   const sourceLabel = useMemo(() => {
     if (source === 'cloud' && resumeId) {
       return list.find((x) => x.id === resumeId)?.name || resumeId;
     }
-    if (source === 'draft') return '当前编辑器草稿';
-    return '未选择';
-  }, [source, resumeId, list]);
+    if (source === 'draft') return t('sourceEditorDraft');
+    return t('sourceNone');
+  }, [source, resumeId, list, t]);
+
+  const difficultyLabel =
+    difficulty === 'easy'
+      ? t('difficultyEasy')
+      : difficulty === 'hard'
+        ? t('difficultyHard')
+        : t('difficultyMedium');
 
   const showSourceTabs = signedIn && isDev;
   const segBtn = (on: boolean) =>
@@ -443,14 +460,14 @@ export default observer(function AiInterviewPage({
             <header className='flex items-center justify-between gap-3 px-0.5'>
               <div className='min-w-0'>
                 <h2 className='text-[15px] font-semibold tracking-[-0.02em] text-fg/90'>
-                  {phase === 'report' ? '面试总结' : 'AI 面试'}
+                  {phase === 'report' ? t('reportTitle') : t('title')}
                 </h2>
                 <p className='mt-0.5 truncate text-[11px] text-fg/45'>
                   {phase === 'report'
                     ? reportStreaming
-                      ? '正在生成报告…'
-                      : '模拟练习，仅供参考'
-                    : '模拟练习，语音或文字作答'}
+                      ? t('reportGenerating')
+                      : t('reportHint')
+                    : t('sessionHint')}
                 </p>
               </div>
               <button
@@ -458,24 +475,24 @@ export default observer(function AiInterviewPage({
                 onClick={requestLeaveInterview}
                 className='shrink-0 rounded-lg px-2.5 py-1.5 text-[12px] font-medium text-fg/50 transition-colors hover:bg-fg/[0.05] hover:text-fg/80'
               >
-                返回准备
+                {t('backPrepare')}
               </button>
             </header>
           ) : (
             <PanelHero
               className='!mb-0'
-              eyebrow='PRACTICE'
-              title='AI 面试'
-              description='按简历内容深挖提问，语音作答，结束后生成流式报告。'
-              chip='模拟练习'
+              eyebrow={t('practiceEyebrow')}
+              title={t('title')}
+              description={t('heroDesc')}
+              chip={t('chipPractice')}
             />
           )}
 
           {!canEnter ? (
             <div className={`${shellClass} px-5 py-8 text-center`}>
-              <p className='text-[14px] font-medium text-fg/82'>请先登录后再使用 AI 面试</p>
+              <p className='text-[14px] font-medium text-fg/82'>{t('needLoginTitle')}</p>
               <p className='mx-auto mt-1.5 max-w-[32ch] text-[12px] leading-relaxed text-fg/52'>
-                登录后可选择云端已保存简历开始练习。
+                {t('needLoginDesc')}
               </p>
             </div>
           ) : null}
@@ -484,16 +501,16 @@ export default observer(function AiInterviewPage({
             <>
               <section className={`${shellClass} p-4 md:p-5`}>
                 <div className='mb-3 flex items-center justify-between gap-2'>
-                  <h3 className='text-[13px] font-semibold text-fg/88'>简历来源</h3>
+                  <h3 className='text-[13px] font-semibold text-fg/88'>{t('resumeSource')}</h3>
                   <span className='truncate text-[11px] text-fg/42'>{sourceLabel}</span>
                 </div>
                 {showSourceTabs ? (
                   <div className='mb-4 flex flex-wrap gap-1 rounded-xl bg-fg/[0.04] p-1'>
                     <button type='button' className={segBtn(source === 'cloud')} onClick={() => setSource('cloud')}>
-                      云端已保存
+                      {t('sourceCloud')}
                     </button>
                     <button type='button' className={segBtn(source === 'draft')} onClick={() => setSource('draft')}>
-                      当前草稿
+                      {t('sourceDraft')}
                     </button>
                   </div>
                 ) : null}
@@ -505,8 +522,8 @@ export default observer(function AiInterviewPage({
                     </div>
                   ) : list.length === 0 ? (
                     <div className='rounded-xl border border-dashed border-fg/[0.12] bg-[var(--panel-inset-bg)] px-4 py-6 text-center'>
-                      <p className='text-[13px] font-medium text-fg/78'>暂无云端简历</p>
-                      <p className='mt-1 text-[11px] text-fg/48'>请先在「我的简历」保存后再来开始面试。</p>
+                      <p className='text-[13px] font-medium text-fg/78'>{t('emptyCloudTitle')}</p>
+                      <p className='mt-1 text-[11px] text-fg/48'>{t('emptyCloudDesc')}</p>
                     </div>
                   ) : (
                     <div className='grid max-h-[240px] gap-2 overflow-y-auto sm:grid-cols-2'>
@@ -524,13 +541,13 @@ export default observer(function AiInterviewPage({
                             }`}
                           >
                             <div className='truncate text-[13px] font-semibold text-fg/90'>
-                              {item.name || '未命名简历'}
+                              {item.name || t('unnamedResume')}
                             </div>
                             <div className='mt-1 text-[11px] tabular-nums text-fg/42'>
                               {item.update_at
                                 ? new Date(
                                     item.update_at < 1e12 ? item.update_at * 1000 : item.update_at,
-                                  ).toLocaleString('zh-CN', { hour12: false })
+                                  ).toLocaleString(dateLocale, { hour12: false })
                                 : item.id}
                             </div>
                           </button>
@@ -542,7 +559,7 @@ export default observer(function AiInterviewPage({
 
                 {source === 'draft' ? (
                   <div className='rounded-xl border border-fg/[0.08] bg-fg/[0.03] px-4 py-3 text-[12px] leading-relaxed text-fg/58'>
-                    本地调试模式：将使用当前编辑器中的简历草稿开场。
+                    {t('sourceDraftHint')}
                   </div>
                 ) : null}
               </section>
@@ -550,32 +567,36 @@ export default observer(function AiInterviewPage({
               <section className={settingsShellClass}>
                 <div className='mb-4 flex items-end justify-between gap-3'>
                   <div>
-                    <p className={fieldLabelClass}>Session</p>
+                    <p className={fieldLabelClass}>{t('sessionEyebrow')}</p>
                     <h3 className='mt-1 text-[15px] font-semibold tracking-[-0.015em] text-fg/92'>
-                      面试设置
+                      {t('settingsTitle')}
                     </h3>
                   </div>
                   <p className='text-right text-[11px] leading-snug text-fg/42'>
-                    <span className='tabular-nums text-fg/70'>{questionCount}</span> 题
-                    <span className='mx-1 text-fg/25'>·</span>
-                    <span className='text-fg/62'>
-                      {difficulty === 'easy' ? '简单' : difficulty === 'hard' ? '困难' : '中等'}
+                    <span className='tabular-nums text-fg/70'>
+                      {t('questionUnit', { n: questionCount })}
                     </span>
+                    <span className='mx-1 text-fg/25'>·</span>
+                    <span className='text-fg/62'>{difficultyLabel}</span>
                   </p>
                 </div>
 
                 <div className='space-y-5'>
                   <div>
                     <div className='mb-2.5 flex items-baseline justify-between gap-2'>
-                      <span className={fieldLabelClass}>题量</span>
+                      <span className={fieldLabelClass}>{t('questionCountLabel')}</span>
                       <span className='text-[11px] text-fg/40'>
-                        {INTERVIEW_Q_MIN}–{INTERVIEW_Q_MAX}，默认 {INTERVIEW_Q_DEFAULT}
+                        {t('questionCountHint', {
+                          min: INTERVIEW_Q_MIN,
+                          max: INTERVIEW_Q_MAX,
+                          default: INTERVIEW_Q_DEFAULT,
+                        })}
                       </span>
                     </div>
                     <div
                       className='grid grid-cols-6 gap-1.5 rounded-xl bg-fg/[0.035] p-1.5'
                       role='radiogroup'
-                      aria-label='题量'
+                      aria-label={t('questionCountAria')}
                     >
                       {Q_OPTIONS.map((n) => {
                         const on = questionCount === n;
@@ -598,16 +619,14 @@ export default observer(function AiInterviewPage({
                       })}
                     </div>
                     <p className='mt-2 text-[11px] leading-relaxed text-fg/42'>
-                      {questionCount <= 6
-                        ? '短场：适合开场热身，覆盖核心经历。'
-                        : '加长场：适合投递前深挖，覆盖面更广。'}
+                      {questionCount <= 6 ? t('questionHintShort') : t('questionHintLong')}
                     </p>
                   </div>
 
                   <div>
                     <div className='mb-2.5 flex items-baseline justify-between gap-2'>
-                      <span className={fieldLabelClass}>难度</span>
-                      <span className='text-[11px] text-fg/40'>横向拖拽或点击标签</span>
+                      <span className={fieldLabelClass}>{t('difficultyLabel')}</span>
+                      <span className='text-[11px] text-fg/40'>{t('difficultyHint')}</span>
                     </div>
                     <DifficultySlider value={difficulty} onChange={setDifficulty} />
                   </div>
@@ -615,7 +634,7 @@ export default observer(function AiInterviewPage({
               </section>
 
               <div className='flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between'>
-                <p className='text-[11px] leading-relaxed text-fg/40'>模拟练习，仅供参考，不构成录用评估。</p>
+                <p className='text-[11px] leading-relaxed text-fg/40'>{t('disclaimer')}</p>
                 <button
                   type='button'
                   className={primaryBtnClass}
@@ -625,10 +644,10 @@ export default observer(function AiInterviewPage({
                   {busy ? (
                     <>
                       <LoadingOutlined spin />
-                      出题中…
+                      {t('starting')}
                     </>
                   ) : (
-                    '开始面试'
+                    t('start')
                   )}
                 </button>
               </div>
@@ -651,7 +670,7 @@ export default observer(function AiInterviewPage({
                     aria-valuemin={1}
                     aria-valuemax={progress.total}
                     aria-valuenow={progress.index + 1}
-                    aria-label='面试进度'
+                    aria-label={t('progressAria')}
                   >
                     {Array.from({ length: Math.max(progress.total, 1) }, (_, i) => {
                       const done = i < progress.index;
@@ -677,7 +696,7 @@ export default observer(function AiInterviewPage({
                   onClick={() => void endEarly()}
                   disabled={busy}
                 >
-                  提前结束
+                  {t('endEarly')}
                 </button>
               </div>
 
@@ -690,7 +709,7 @@ export default observer(function AiInterviewPage({
                   }}
                 />
                 <p className='text-[11px] font-medium leading-snug text-fg/48'>
-                  <span className='text-[var(--color-primary)]'>针对</span>
+                  <span className='text-[var(--color-primary)]'>{t('against')}</span>
                   <span className='mx-1.5 text-fg/20'>/</span>
                   <span className='text-fg/70'>{question.anchor.label}</span>
                   <span className='ml-1.5 rounded-md bg-fg/[0.05] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-fg/42'>
@@ -714,7 +733,7 @@ export default observer(function AiInterviewPage({
                   onChange={(e) => setAnswerText(e.target.value)}
                   rows={7}
                   maxLength={INTERVIEW_ANSWER_MAX_CHARS}
-                  placeholder='语音转写会出现在这里，也可手动微调后再提交'
+                  placeholder={t('answerPlaceholder')}
                   disabled={busy}
                   variant='borderless'
                   className='!bg-transparent !px-4 !py-3.5 !text-[14px] !leading-relaxed !text-fg/90 placeholder:!text-fg/35'
@@ -738,10 +757,10 @@ export default observer(function AiInterviewPage({
                       }
                     />
                     {voice.phase === 'recording'
-                      ? '停止录音'
+                      ? t('stopRecording')
                       : voice.phase === 'transcribing'
-                        ? '识别中…'
-                        : '语音作答'}
+                        ? t('transcribing')
+                        : t('voiceAnswer')}
                   </button>
                   <span className='ml-auto tabular-nums text-[11px] text-fg/40'>
                     {answerText.length} / {INTERVIEW_ANSWER_MAX_CHARS}
@@ -752,7 +771,7 @@ export default observer(function AiInterviewPage({
                     onClick={() => void submitAnswer(true)}
                     disabled={busy}
                   >
-                    跳过
+                    {t('skip')}
                   </button>
                   <button
                     type='button'
@@ -763,10 +782,10 @@ export default observer(function AiInterviewPage({
                     {busy ? (
                       <>
                         <LoadingOutlined spin />
-                        提交中…
+                        {t('submitting')}
                       </>
                     ) : (
-                      '提交回答'
+                      t('submitAnswer')
                     )}
                   </button>
                 </div>
@@ -785,10 +804,10 @@ export default observer(function AiInterviewPage({
               <div>
                 {dimensions ? (
                   <div className='grid gap-2.5 sm:grid-cols-2'>
-                    <DimScore label='与简历一致性' value={dimensions.resumeConsistency} />
-                    <DimScore label='细节深度' value={dimensions.detailDepth} />
-                    <DimScore label='表达结构' value={dimensions.structure} />
-                    <DimScore label='岗位匹配' value={dimensions.roleFit} />
+                    <DimScore label={t('dimConsistency')} value={dimensions.resumeConsistency} />
+                    <DimScore label={t('dimDetail')} value={dimensions.detailDepth} />
+                    <DimScore label={t('dimStructure')} value={dimensions.structure} />
+                    <DimScore label={t('dimRoleFit')} value={dimensions.roleFit} />
                   </div>
                 ) : (
                   <DimScoreSkeleton />
@@ -803,7 +822,9 @@ export default observer(function AiInterviewPage({
                       'linear-gradient(180deg, var(--color-primary-gradient-start), var(--color-primary))',
                   }}
                 />
-                <h3 className='text-[13px] font-semibold tracking-[-0.01em] text-fg/88'>总评</h3>
+                <h3 className='text-[13px] font-semibold tracking-[-0.01em] text-fg/88'>
+                  {t('summaryTitle')}
+                </h3>
                 {summary ? (
                   <p className='mt-3 w-full whitespace-pre-wrap text-[15px] leading-[1.7] tracking-[-0.01em] text-fg/88 text-pretty'>
                     {summary}
@@ -821,24 +842,28 @@ export default observer(function AiInterviewPage({
 
               {actionTexts.length > 0 || finalReport?.actionItems?.length ? (
                 <div>
-                  <h3 className='mb-3 text-[13px] font-semibold tracking-[-0.01em] text-fg/88'>改进建议</h3>
+                  <h3 className='mb-3 text-[13px] font-semibold tracking-[-0.01em] text-fg/88'>
+                    {t('actionsTitle')}
+                  </h3>
                   <ol className='space-y-0 divide-y divide-fg/[0.06] overflow-hidden rounded-2xl border border-fg/[0.08] bg-fg/[0.02]'>
-                    {(finalReport?.actionItems?.map((a) => a.text) || actionTexts).map((t, i, arr) => (
-                      <li key={i} className='flex gap-3 px-4 py-3.5'>
-                        <span className='mt-0.5 w-5 shrink-0 text-[12px] font-semibold tabular-nums text-[var(--color-primary)]'>
-                          {String(i + 1).padStart(2, '0')}
-                        </span>
-                        <span className='min-w-0 text-[13px] leading-relaxed text-fg/80 text-pretty'>
-                          {t}
-                          {reportStreaming && !finalReport && i === arr.length - 1 ? (
-                            <span
-                              className='ml-0.5 inline-block h-[1em] w-[2px] translate-y-[1px] animate-pulse bg-[var(--color-primary)] align-baseline motion-reduce:animate-none'
-                              aria-hidden
-                            />
-                          ) : null}
-                        </span>
-                      </li>
-                    ))}
+                    {(finalReport?.actionItems?.map((a) => a.text) || actionTexts).map(
+                      (text, i, arr) => (
+                        <li key={i} className='flex gap-3 px-4 py-3.5'>
+                          <span className='mt-0.5 w-5 shrink-0 text-[12px] font-semibold tabular-nums text-[var(--color-primary)]'>
+                            {String(i + 1).padStart(2, '0')}
+                          </span>
+                          <span className='min-w-0 text-[13px] leading-relaxed text-fg/80 text-pretty'>
+                            {text}
+                            {reportStreaming && !finalReport && i === arr.length - 1 ? (
+                              <span
+                                className='ml-0.5 inline-block h-[1em] w-[2px] translate-y-[1px] animate-pulse bg-[var(--color-primary)] align-baseline motion-reduce:animate-none'
+                                aria-hidden
+                              />
+                            ) : null}
+                          </span>
+                        </li>
+                      ),
+                    )}
                   </ol>
                 </div>
               ) : reportStreaming ? (
@@ -847,11 +872,13 @@ export default observer(function AiInterviewPage({
 
               {finalReport?.inconsistencies?.length ? (
                 <div className='rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-4'>
-                  <h3 className='text-[13px] font-semibold text-amber-200/90'>与简历不一致</h3>
+                  <h3 className='text-[13px] font-semibold text-amber-200/90'>
+                    {t('inconsistenciesTitle')}
+                  </h3>
                   <ul className='mt-2.5 space-y-2'>
-                    {finalReport.inconsistencies.map((t, i) => (
+                    {finalReport.inconsistencies.map((text, i) => (
                       <li key={i} className='text-[13px] leading-relaxed text-fg/72 text-pretty'>
-                        {t}
+                        {text}
                       </li>
                     ))}
                   </ul>
@@ -859,7 +886,7 @@ export default observer(function AiInterviewPage({
               ) : null}
 
               <div className='flex flex-col gap-2 border-t border-fg/[0.06] pt-4 sm:flex-row sm:items-center sm:justify-between'>
-                <p className='text-[11px] leading-relaxed text-fg/40'>模拟练习，仅供参考，不构成录用评估。</p>
+                <p className='text-[11px] leading-relaxed text-fg/40'>{t('disclaimer')}</p>
                 <button
                   type='button'
                   className={`${primaryBtnClass} sm:shrink-0`}
@@ -869,10 +896,10 @@ export default observer(function AiInterviewPage({
                   {reportStreaming ? (
                     <>
                       <LoadingOutlined spin />
-                      生成中…
+                      {t('generating')}
                     </>
                   ) : (
-                    '再练一次'
+                    t('practiceAgain')
                   )}
                 </button>
               </div>
