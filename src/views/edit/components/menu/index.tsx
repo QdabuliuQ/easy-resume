@@ -54,9 +54,10 @@ const TILE_IMPORT = [
 type MenuProps = {
   activeKey: string;
   onActiveKeyChange: (key: string) => void;
+  templateMode?: boolean;
 };
 
-export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProps) {
+export default observer(function Menu({ activeKey, onActiveKeyChange, templateMode = false }: MenuProps) {
   const message = useAppMessage();
   const t = useTranslations('Edit.menu');
   const { status, data: session } = useSession();
@@ -64,15 +65,21 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
   const importResumeMenu = useMemo(() => ({ label: t('importResume'), key: 'import-resume' as const }), [t]);
   const importMenu = useMemo(() => ({ label: t('importTemplate'), key: 'import-template' as const }), [t]);
   const panelMenuItems = useMemo(() => {
-    const items: { label: string; key: string }[] = [
-      { label: t('resumeTemplate'), key: 'resume-template' },
-      { label: t('myResumes'), key: 'my-resumes' },
-      { label: t('resume'), key: 'resume' },
-      { label: t('pageSettings'), key: 'page-settings' },
-      { label: t('generalSettings'), key: 'general-settings' },
-    ];
+    const items: { label: string; key: string }[] = templateMode
+      ? [
+          { label: t('resume'), key: 'resume' },
+          { label: t('pageSettings'), key: 'page-settings' },
+          { label: t('generalSettings'), key: 'general-settings' },
+        ]
+      : [
+          { label: t('resumeTemplate'), key: 'resume-template' },
+          { label: t('myResumes'), key: 'my-resumes' },
+          { label: t('resume'), key: 'resume' },
+          { label: t('pageSettings'), key: 'page-settings' },
+          { label: t('generalSettings'), key: 'general-settings' },
+        ];
     return items;
-  }, [t]);
+  }, [t, templateMode]);
   const aiTitles = useMemo(
     () =>
       ({
@@ -238,7 +245,7 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
         <div className='relative flex min-h-0 flex-1 flex-col'>
           <div className='flex min-h-0 flex-1 flex-col items-center overflow-y-auto overscroll-contain [scrollbar-width:thin]'>
             <div className='flex w-full flex-col items-center gap-2'>
-              {panelMenuItems.slice(0, 3).map((item) => renderMenuItem(item))}
+              {panelMenuItems.slice(0, templateMode ? 1 : 3).map((item) => renderMenuItem(item))}
               <AiToolsMenuItem
                 activeKey={activeKey}
                 label={t('aiTools')}
@@ -252,12 +259,12 @@ export default observer(function Menu({ activeKey, onActiveKeyChange }: MenuProp
                   onActiveKeyChange(key);
                 }}
               />
-              {panelMenuItems.slice(3).map((item) => renderMenuItem(item))}
+              {panelMenuItems.slice(templateMode ? 1 : 3).map((item) => renderMenuItem(item))}
             </div>
           </div>
           <div className='relative mt-3 flex shrink-0 flex-col items-center gap-2 pt-1'>
-            {renderMenuItem(importResumeMenu)}
-            {renderMenuItem(importMenu)}
+            {templateMode ? null : renderMenuItem(importResumeMenu)}
+            {templateMode ? null : renderMenuItem(importMenu)}
           </div>
         </div>
       </div>

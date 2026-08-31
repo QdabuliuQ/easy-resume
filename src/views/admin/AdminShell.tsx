@@ -5,6 +5,7 @@ import {
   HomeOutlined,
   LogoutOutlined,
   TeamOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons';
 import { Button, Form, Input, Layout, Menu, Spin, Typography, theme } from 'antd';
 import Link from 'next/link';
@@ -155,10 +156,13 @@ export default function AdminShell({
   const pathname = usePathname() || '';
   const router = useRouter();
   const { token } = theme.useToken();
+  const isTemplateEditor =
+    pathname.includes('/admin/templates/') && pathname.endsWith('/edit');
 
   const selected = useMemo(() => {
     if (pathname.includes('/admin/users')) return ['users'];
     if (pathname.includes('/admin/resumes')) return ['resumes'];
+    if (pathname.includes('/admin/templates')) return ['templates'];
     return ['dashboard'];
   }, [pathname]);
 
@@ -214,6 +218,12 @@ export default function AdminShell({
               label: '简历',
               onClick: () => router.push(`/${locale}/admin/resumes`),
             },
+            {
+              key: 'templates',
+              icon: <AppstoreOutlined />,
+              label: '模板',
+              onClick: () => router.push(`/${locale}/admin/templates`),
+            },
           ]}
         />
       </Sider>
@@ -228,7 +238,7 @@ export default function AdminShell({
             paddingInline: 24,
           }}
         >
-          <Typography.Text type='secondary'>数据来自 Cloudflare D1</Typography.Text>
+          <Typography.Text type='secondary'>模板来自本地 JSON，用户数据来自 Cloudflare</Typography.Text>
           <div className='flex items-center gap-3'>
             <Typography.Text>{adminName}</Typography.Text>
             <Link href={`/${locale}`}>
@@ -241,7 +251,11 @@ export default function AdminShell({
             </Button>
           </div>
         </Header>
-        <Content className='min-h-0 flex-1 overflow-auto p-6'>{children}</Content>
+        <Content
+          className={`min-h-0 flex-1 ${isTemplateEditor ? 'overflow-hidden p-0' : 'overflow-auto p-6'}`}
+        >
+          {children}
+        </Content>
       </Layout>
     </Layout>
   );

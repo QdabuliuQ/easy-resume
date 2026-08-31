@@ -13,28 +13,28 @@ const HeroTypingTitle = memo(function HeroTypingTitle({
   className?: string;
 }) {
   const elRef = useRef<HTMLSpanElement>(null);
+  const first = lines[0] ?? '';
   useEffect(() => {
     const el = elRef.current;
     if (!el) return;
     let iv: number | undefined;
     if (reduceMotion) {
       let idx = 0;
-      el.textContent = lines[0];
+      el.textContent = lines[0] ?? '';
       iv = window.setInterval(() => {
         idx = (idx + 1) % lines.length;
-        el.textContent = lines[idx];
+        el.textContent = lines[idx] ?? '';
       }, 2800);
       return () => {
         if (iv !== undefined) window.clearInterval(iv);
       };
     }
-    el.textContent = '';
     const typed = new Typed(el, {
       strings: lines,
       typeSpeed: 46,
       backSpeed: 30,
       backDelay: 2280,
-      startDelay: 120,
+      startDelay: 80,
       loop: true,
       smartBackspace: false,
       showCursor: true,
@@ -48,7 +48,9 @@ const HeroTypingTitle = memo(function HeroTypingTitle({
   }, [reduceMotion, lines]);
   return (
     <h1 className={className}>
-      <span ref={elRef} className='inline align-top' />
+      <span ref={elRef} className='inline align-top'>
+        {first}
+      </span>
     </h1>
   );
 });

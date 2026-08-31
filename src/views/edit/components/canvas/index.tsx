@@ -196,6 +196,7 @@ type CanvasProps = {
   onOpenResumePanel?: () => void;
   onLayoutReady?: () => void;
   mode?: 'edit' | 'preview';
+  templateMode?: boolean;
 };
 
 function Canvas({
@@ -204,6 +205,7 @@ function Canvas({
   onOpenResumePanel,
   onLayoutReady,
   mode = 'edit',
+  templateMode = false,
 }: CanvasProps) {
   const isEditMode = mode === 'edit';
   const fieldEditMode = menuActiveKey === 'resume' ? 'panel' : 'inline';
@@ -649,7 +651,7 @@ function Canvas({
   // ponytail: 预览时卸交互；pages 只挂 overlay，避免双份 DOM
   const quickSelectActive = resumeFieldGuideActive && !importLoading && !previewOpen;
 
-  const floatActionsEl = isEditMode && !previewOpen ? (
+  const floatActionsEl = isEditMode && !templateMode && !previewOpen ? (
     <CanvasFloatActions
       backupReady={backupReady}
       locale={locale}
@@ -771,12 +773,12 @@ function Canvas({
 
       {floatActionsEl}
 
-      {isEditMode ? previewOverlay : null}
+      {isEditMode && !templateMode ? previewOverlay : null}
 
       </InlineFieldEditProvider>
       </div>
 
-      {isEditMode ? <ResumeImportOverlay /> : null}
+      {isEditMode && !templateMode ? <ResumeImportOverlay /> : null}
     </div>
   );
 }

@@ -182,6 +182,7 @@ export async function waitResumeFontsLoaded(
 }
 
 const snapFontPreloaded = new Set<string>();
+const snapFontBufCache = new Map<string, ArrayBuffer>();
 const uiFontReady = new Set<ResumeExportFontId>();
 
 async function loadFontFaceFromUrl(
@@ -204,27 +205,30 @@ async function loadFontFaceFromUrl(
 export async function preloadResumeFontsForSnap(
   origin: string,
   font: ResumeFontId,
+  targetDoc: Document = document,
 ): Promise<void> {
   const fid = resumeFontForExport(font);
   const family = resumePrimaryFontFamily(fid);
   const entries = resumeSnapLocalFonts(origin, fid);
   await Promise.all(
     entries.map(async (f) => {
-      const key = `${family}-${f.weight}`;
-      if (snapFontPreloaded.has(key)) return;
-      const res = await fetch(f.src);
-      if (!res.ok) throw new Error(`font fetch failed: ${f.src}`);
-      const buf = await res.arrayBuffer();
-      const face = new FontFace(family, buf, {
+      let buf = snapFontBufCache.get(f.src);
+      if (!buf) {
+        const res = await fetch(f.src);
+        if (!res.ok) throw new Error(`font fetch failed: ${f.src}`);
+        buf = await res.arrayBuffer();
+        snapFontBufCache.set(f.src, buf);
+      }
+      const face = new FontFace(family, buf.slice(0), {
         weight: String(f.weight),
         style: f.style,
       });
       await face.load();
-      document.fonts.add(face);
-      snapFontPreloaded.add(key);
+      targetDoc.fonts.add(face);
     }),
   );
-  await waitResumeFontsLoaded(font);
+  const weights = [400, 700] as const;
+  await Promise.all(weights.map((w) => targetDoc.fonts.load(`${w} 16px "${family}"`)));
 }
 
 /**

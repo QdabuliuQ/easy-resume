@@ -66,7 +66,13 @@ const quietBtnCls = [
 const historyBtnCls =
   'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-fg/[0.1] bg-surface/[0.04] text-fg/55 transition-colors enabled:cursor-pointer enabled:hover:border-fg/[0.16] enabled:hover:bg-surface/[0.08] enabled:hover:text-fg/88 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-fg/[0.1] disabled:hover:bg-surface/[0.04] disabled:hover:text-fg/55';
 
-function Header() {
+export type HeaderProps = {
+  templateMode?: boolean;
+  templateSaving?: boolean;
+  onTemplateSave?: () => void;
+};
+
+function Header({ templateMode = false, templateSaving = false, onTemplateSave }: HeaderProps) {
   const t = useTranslations('Edit.header');
   const ta = useTranslations('Auth');
   const message = useAppMessage();
@@ -158,10 +164,10 @@ function Header() {
     <div className='relative flex h-full items-center justify-between gap-4 px-4 md:px-5'>
       <div className='flex min-h-0 min-w-0 flex-1 items-center gap-2'>
         <Link
-          href='/'
+          href={templateMode ? '/admin/templates' : '/'}
           prefetch={false}
           className='flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg outline-none ring-[var(--text-strong)]/35 transition-opacity hover:opacity-90 focus-visible:ring-2'
-          aria-label={t('backHome')}
+          aria-label={templateMode ? '返回模板管理' : t('backHome')}
         >
           <Image
             src={logo}
@@ -246,7 +252,18 @@ function Header() {
         className='flex shrink-0 flex-wrap items-center justify-end gap-2'
         data-edit-tour='header-export'
       >
-        {!showSave ? (
+        {templateMode ? (
+          <button
+            type='button'
+            disabled={templateSaving || actionsDisabled}
+            onClick={onTemplateSave}
+            className={actionBtnCls}
+          >
+            {templateSaving ? <span className={actionIconSpin} aria-hidden /> : <Save theme='outline' size={18} fill={ICON_PRIMARY} />}
+            {templateSaving ? '保存中…' : '保存模板'}
+          </button>
+        ) : null}
+        {!templateMode && !showSave ? (
           <Tooltip title={t('saveAsHint')}>
             <span
               className='hidden items-center gap-1.5 rounded-lg border border-[color-mix(in_srgb,var(--color-primary)_42%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_16%,transparent)] px-2.5 py-1.5 text-[12px] font-semibold text-[color:var(--color-primary)] sm:inline-flex'
@@ -261,19 +278,19 @@ function Header() {
             </span>
           </Tooltip>
         ) : null}
-        {authLoading ? (
+        {!templateMode && authLoading ? (
           <span
             className='inline-flex h-9 w-9 items-center justify-center rounded-xl border border-fg/14 bg-fg/[0.05] text-fg/55'
             aria-label={ta('loading')}
           >
             <LoadingOutlined className='text-[14px]' />
           </span>
-        ) : signedIn ? (
+        ) : !templateMode && signedIn ? (
           <GithubAuthButton variant='compact' />
-        ) : (
+        ) : !templateMode ? (
           <LoginDropdownButton />
-        )}
-        {showSave ? (
+        ) : null}
+        {!templateMode && showSave ? (
           <Tooltip title={signedIn ? undefined : t('saveNeedLogin')}>
             <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
               <button
@@ -292,7 +309,7 @@ function Header() {
             </span>
           </Tooltip>
         ) : null}
-        <Tooltip
+        {!templateMode ? <Tooltip
           title={
             !signedIn ? t('shareNeedLogin') : !resumeId ? t('shareNeedSave') : undefined
           }
@@ -309,8 +326,8 @@ function Header() {
               {t('share')}
             </button>
           </span>
-        </Tooltip>
-        <span
+        </Tooltip> : null}
+        {!templateMode ? <span
           className='inline-flex'
           tabIndex={0}
           onPointerEnter={() => {
@@ -323,8 +340,8 @@ function Header() {
           }}
         >
           {exportMenuReady ? <HeaderExportMenu /> : <HeaderExportMenuPlaceholder />}
-        </span>
-        {showSaveAs ? (
+        </span> : null}
+        {!templateMode && showSaveAs ? (
           <Tooltip title={signedIn ? t('saveAsHint') : t('saveNeedLogin')}>
             <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
               <button

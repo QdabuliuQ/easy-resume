@@ -10,3 +10,5 @@ export const RESUME_HEADER_MARK_ATTR = 'data-resume-header-mark';
 export const RESUME_INFO1_ATTR = 'data-resume-info1';
 /** info1 每一行的布局盒标记，用于 DOCX 按行定位和设置对齐方式 */
 export const RESUME_INFO1_ROW_ATTR = 'data-resume-info1-row';
+/** 经历/教育等左右分栏行头，snap 导出前用于精准摊平 flex */
+export const RESUME_ITEM_ROW_ATTR = 'data-resume-item-row';

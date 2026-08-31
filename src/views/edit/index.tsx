@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic';
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useMessages, useTranslations } from 'next-intl';
 import { prefetchRichTextEditor } from '@/components/richTextEditor/lazy';
 import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
@@ -21,6 +21,7 @@ import ResumeConfigCanvasPreviewHost from './components/resumeConfigCanvasPrevie
 import ResumeFontCdn from './components/canvas/resumeFontCdn';
 import EditTour from './components/editTour';
 import { AiInterviewSkeleton } from './components/panel/components/settingsSkeletons';
+import { captureAndUploadTemplatePreview } from '@/lib/templatePreviewClient';
 
 const AiInterviewPage = dynamic(() => import('./components/aiInterview'), {
   ssr: false,
@@ -29,11 +30,20 @@ const AiInterviewPage = dynamic(() => import('./components/aiInterview'), {
 
 const DEFAULT_MENU_KEY = 'resume';
 
-function Edit() {
+type EditProps = {
+  templateMode?: boolean;
+  templateId?: string;
+  embedded?: boolean;
+};
+
+function Edit({ templateMode = false, templateId, embedded = false }: EditProps) {
   const t = useTranslations('Edit.aiInterview');
+  const locale = useLocale();
+  const messages = useMessages();
   const searchParams = useSearchParams();
   const [menuActiveKey, setMenuActiveKey] = useState(DEFAULT_MENU_KEY);
   const [shellRevealReady, setShellRevealReady] = useState(false);
+  const [templateSaving, setTemplateSaving] = useState(false);
   const interviewLiveRef = useRef(false);
   const { confirm } = useResponsiveConfirm();
   const resumeFont = normResumeFont(configStore.mergedGlobalStyle.resumeFont);
@@ -63,6 +73,19 @@ function Edit() {
   }, []);
 
   useLayoutEffect(() => {
+    if (templateMode && templateId) {
+      editHistoryStore.clear();
+      configStore.setConfig(JSON.parse(JSON.stringify(defaultResume)), { source: 'reset' });
+      void fetch(`/api/admin/templates/${encodeURIComponent(templateId)}`, { cache: 'no-store' })
+        .then(async (res) => {
+          const data = await res.json();
+          if (!res.ok || !data?.config) throw new Error(data?.error || '模板加载失败');
+          editHistoryStore.clear();
+          configStore.setConfig(data.config, { source: 'reset' });
+        })
+        .catch((error) => console.error('[TemplateEditor] load failed', error));
+      return;
+    }
     const draft = consumeResumeAuthDraft();
     if (draft) {
       editHistoryStore.clear();
@@ -94,7 +117,38 @@ function Edit() {
       editHistoryStore.clear();
       configStore.setConfig(config, { source: 'reset' });
     }
-  }, [searchParams]);
+  }, [searchParams, templateMode, templateId]);
+
+  const saveTemplate = useCallback(() => {
+    if (!templateMode || !templateId || templateSaving || !configStore.getConfig) return;
+    setTemplateSaving(true);
+    void fetch(`/api/admin/templates/${encodeURIComponent(templateId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ config: configStore.getConfig }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || '模板保存失败');
+        try {
+          await captureAndUploadTemplatePreview({
+            templateId,
+            config: configStore.getConfig,
+            locale,
+            messages: messages as Record<string, unknown>,
+            exportPages: configStore.getExportPages,
+            firstPageOnly: true,
+          });
+          window.alert('模板和预览图已保存');
+        } catch (error) {
+          window.alert(
+            `模板已保存，但预览图上传失败：${error instanceof Error ? error.message : '未知错误'}`,
+          );
+        }
+      })
+      .catch((error) => window.alert(error instanceof Error ? error.message : '模板保存失败'))
+      .finally(() => setTemplateSaving(false));
+  }, [locale, messages, templateId, templateMode, templateSaving]);
 
   useLayoutEffect(() => {
     const id = requestAnimationFrame(() => setShellRevealReady(true));
@@ -102,7 +156,9 @@ function Edit() {
   }, []);
 
   return (
-    <div className='editor-shell-bg relative flex h-screen w-screen flex-col overflow-hidden text-[var(--text-strong)]'>
+    <div
+      className={`editor-shell-bg relative flex flex-col overflow-hidden text-[var(--text-strong)] ${embedded ? 'h-full w-full' : 'h-screen w-screen'}`}
+    >
       <ResumeFontCdn font={resumeFont} />
       <EditShellReveal revealReady={shellRevealReady}>
         <div className='relative z-[1] flex min-h-0 flex-1 flex-col gap-3 p-3 md:p-4'>
@@ -111,7 +167,11 @@ function Edit() {
             className='editor-shell-card editor-shell-card-strong rounded-[26px] px-2 md:px-3'
           >
             <div className='h-[62px] w-full'>
-              <Header />
+            <Header
+              templateMode={templateMode}
+              templateSaving={templateSaving}
+              onTemplateSave={saveTemplate}
+            />
             </div>
           </div>
           <div className='flex min-h-0 flex-1 gap-3'>
@@ -119,7 +179,11 @@ function Edit() {
               data-edit-reveal='left'
               className='editor-shell-card h-full min-h-0 overflow-visible rounded-[28px]'
             >
-              <Menu activeKey={menuActiveKey} onActiveKeyChange={changeMenuKey} />
+              <Menu
+                activeKey={menuActiveKey}
+                onActiveKeyChange={changeMenuKey}
+                templateMode={templateMode}
+              />
             </div>
             {isInterview ? (
               <div
@@ -146,6 +210,7 @@ function Edit() {
                 >
                   <Canvas
                     menuActiveKey={menuActiveKey}
+                    templateMode={templateMode}
                     onOpenGeneralSettings={() => changeMenuKey('general-settings')}
                     onOpenResumePanel={() => changeMenuKey('resume')}
                   />
@@ -155,7 +220,7 @@ function Edit() {
           </div>
         </div>
       </EditShellReveal>
-      <EditTour ready={shellRevealReady} />
+      {!templateMode ? <EditTour ready={shellRevealReady} /> : null}
       <ResumeConfigCanvasPreviewHost />
     </div>
   );

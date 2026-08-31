@@ -8,10 +8,12 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { memo, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import HeroTypingTitle from '@/components/home/HeroTypingTitle';
 import { PHOTOS, PHOTO_SIZES } from '@/lib/brandAssets';
 import { GITHUB_REPO_URL } from '@/lib/githubRepoStars';
 import { prefetchEditPage } from '@/lib/prefetchEditPage';
 import { homeFocusRing, homeNavKey } from '@/lib/home/homeA11y';
+import { prefetchHomeTemplateCatalog } from '@/lib/home/templateHomeCatalog';
 import { setPhysicsPause } from '@/lib/home/physicsPauseStore';
 import { useResolvedTheme } from '@/hooks/useResolvedTheme';
 
@@ -21,14 +23,19 @@ const SCROLL_SCRUB_SETTLE_MS = 280;
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-const HeroTypingTitle = dynamic(() => import('@/components/home/HeroTypingTitle'), {
-  ssr: false,
-});
-
 const TemplatePhysicsDrop = dynamic(() => import('@/components/home/TemplatePhysicsDrop'), {
   ssr: false,
   loading: () => <div className='home-physics' aria-hidden />,
 });
+
+if (typeof window !== 'undefined') {
+  prefetchHomeTemplateCatalog();
+  const preconnect = document.createElement('link');
+  preconnect.rel = 'preconnect';
+  preconnect.href = 'https://img.qdabuliuq.cn';
+  preconnect.crossOrigin = 'anonymous';
+  document.head.appendChild(preconnect);
+}
 
 function HomePhysicsLayer({ reduceMotion }: { reduceMotion: boolean }) {
   return (

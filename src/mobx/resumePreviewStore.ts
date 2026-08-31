@@ -1,12 +1,13 @@
 import { makeAutoObservable } from 'mobx';
 import { PREVIEW_EXIT_MS } from '@/views/edit/components/canvas/canvasPreviewOverlay';
 
-/** 模板 / 我的简历 → 复用画布文本预览壳 */
+/** 模板 / 我的简历 → 复用画布文本预览壳；有 previewImage 时优先展示图 */
 class ResumePreviewStore {
   open = false;
   closing = false;
   title = '';
   config: unknown | null = null;
+  previewImage = '';
   private closeTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
@@ -20,10 +21,11 @@ class ResumePreviewStore {
     }
   }
 
-  openWithConfig(config: unknown, title: string) {
-    if (!config) return;
+  openWithConfig(config: unknown, title: string, previewImage?: string) {
+    if (!config && !previewImage?.trim()) return;
     this.clearTimer();
-    this.config = config;
+    this.config = config ?? null;
+    this.previewImage = previewImage?.trim() || '';
     this.title = title;
     this.closing = false;
     this.open = true;
@@ -36,6 +38,7 @@ class ResumePreviewStore {
       this.open = false;
       this.closing = false;
       this.config = null;
+      this.previewImage = '';
       this.title = '';
       this.closeTimer = null;
     }, PREVIEW_EXIT_MS);

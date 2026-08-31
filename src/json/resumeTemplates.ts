@@ -1,6 +1,8 @@
 export type ResumeTemplateItem = {
   id: string;
   title: string;
+  /** 后台 Snapdom 首页预览图（七牛 CDN） */
+  previewImage?: string;
   config: {
     name: string;
     globalStyle: Record<string, unknown>;

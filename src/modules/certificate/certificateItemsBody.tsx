@@ -1,3 +1,4 @@
+import { RESUME_ITEM_ROW_ATTR } from '@/components/moduleOperation/constants';
 import type { GlobalStyle } from '../utils/common.type';
 import SafeText from '../shared/safeText';
 
@@ -29,6 +30,7 @@ export default function CertificateItemsBody({
             key={`${index}-${name}-${date}`}
             className='flex min-w-0 w-full justify-between gap-2 text-black not-last:mb-[5px]'
             style={{ fontSize: `${globalStyle.fontSize}px` }}
+            {...{ [RESUME_ITEM_ROW_ATTR]: '' }}
           >
             <div className='min-w-0 flex-[6] break-words'>
               <SafeText text={name} selectable={selectable} dataItemId={`${moduleId}_${index}_name`} />

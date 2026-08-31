@@ -12,12 +12,15 @@ import { renderResumePageModules } from '@/views/edit/components/canvas/renderRe
 export type ResumeImageExportPageProps = {
   config: unknown;
   assetOrigin?: string;
+  /** full：整份打平；firstPage：仅首页模块。均为定高 A4 纸面，非 continuous 长图 */
+  mode?: 'full' | 'firstPage';
 };
 
-/** 图片导出：单 Page、continuous、高度随内容；由 clientSnap 挂载后截图 */
+/** 图片导出：由 clientSnap 挂载后截图（固定纸张比例，默认 A4） */
 export default function ResumeImageExportPage({
   config,
   assetOrigin = '',
+  mode = 'full',
 }: ResumeImageExportPageProps) {
   const cfg = config as Record<string, unknown>;
   const gs = useMemo(
@@ -29,27 +32,29 @@ export default function ResumeImageExportPage({
     [cfg],
   );
   const printGs = useMemo(
-    () => ({ ...gs, resumeFont: resumeFontForExport(gs.resumeFont) }),
+    () => ({ ...gs, resumeFont: resumeFontForExport(gs.resumeFont), pageSize: 'A4' as const }),
     [gs],
   );
   const origin =
     assetOrigin || (typeof window !== 'undefined' ? window.location.origin : '');
-  const modules = flattenModules(cfg);
+  const firstPageOnly = mode === 'firstPage';
+  const modules = firstPageOnly
+    ? ((cfg?.pages as { modules?: unknown[] }[] | undefined)?.[0]?.modules ?? [])
+    : flattenModules(cfg);
   const { main, sideSlot } = renderResumePageModules(modules, printGs, {
     isFirstPage: true,
   });
   return (
-    <>
+    <div style={{ colorScheme: 'light', width: 'fit-content' }}>
       <ExportPrintFonts font={gs.resumeFont} assetOrigin={origin} />
       <Page
         {...printGs}
-        continuous
         firstPage
-        snapTarget
+        exportPage
         sideSlot={sideSlot}
       >
         {main}
       </Page>
-    </>
+    </div>
   );
 }

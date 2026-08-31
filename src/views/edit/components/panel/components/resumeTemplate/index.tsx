@@ -4,9 +4,11 @@ import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useMemoizedFn } from 'ahooks';
 import { useTranslations } from 'next-intl';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import ResumePageSkeleton from '@/components/resume/ResumePageSkeleton';
 import defaultResume from '@/json/resume.defaults';
 import type { ResumeTemplateItem } from '@/json/resumeTemplates';
+import { panelListThumbUrl } from '@/lib/cdnThumbUrl';
 import { loadResumeTemplates } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
@@ -33,6 +35,15 @@ export const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
   scale: number;
 }) {
   const config = configProp ?? template?.config;
+  const previewImage = template?.previewImage?.trim() || '';
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [imgReady, setImgReady] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
+  const [useOriginal, setUseOriginal] = useState(false);
+  const thumbSrc = useMemo(() => {
+    if (!previewImage) return '';
+    return useOriginal ? previewImage : panelListThumbUrl(previewImage);
+  }, [previewImage, useOriginal]);
   const gs = useMemo(
     () => mergeGlobalStylePaper(defaultResume.globalStyle as GlobalStyle, config?.globalStyle ?? {}),
     [config]
@@ -44,15 +55,67 @@ export const TemplateFirstPagePreview = memo(function TemplateFirstPagePreview({
     const page = config?.pages?.[0];
     return page?.modules ?? [];
   }, [config]);
+  const needLive = !previewImage || imgFailed;
   const { main, sideSlot } = useMemo(
-    () => renderResumePageModules(modules as unknown[], gs, { isFirstPage: true }),
-    [modules, gs],
+    () =>
+      needLive
+        ? renderResumePageModules(modules as unknown[], gs, { isFirstPage: true })
+        : { main: null, sideSlot: null },
+    [modules, gs, needLive],
   );
+
+  useEffect(() => {
+    setImgReady(false);
+    setImgFailed(false);
+    setUseOriginal(false);
+  }, [previewImage, template?.id]);
+
+  useLayoutEffect(() => {
+    const img = imgRef.current;
+    if (!thumbSrc || imgFailed || !img) return;
+    if (img.complete && img.naturalWidth > 0) setImgReady(true);
+  }, [thumbSrc, imgFailed]);
+
   if (!config) return null;
+  const boxStyle = { width: pw * scale, height: ph * scale, colorScheme: 'light' as const };
+  if (previewImage && !imgFailed) {
+    return (
+      <div
+        className='relative isolate shrink-0 overflow-hidden rounded-md bg-white text-left shadow-sm ring-1 ring-black/6'
+        style={boxStyle}
+        aria-busy={!imgReady}
+      >
+        <div
+          className={`absolute inset-0 z-0 transition-opacity duration-300 motion-reduce:transition-none${imgReady ? ' pointer-events-none opacity-0' : ' opacity-100'}`}
+          aria-hidden={imgReady}
+        >
+          <ResumePageSkeleton />
+        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          ref={imgRef}
+          src={thumbSrc}
+          alt={template?.title || ''}
+          draggable={false}
+          decoding='async'
+          className={`relative z-[1] h-full w-full object-cover object-top transition-opacity duration-300 motion-reduce:transition-none${imgReady ? ' opacity-100' : ' opacity-0'}`}
+          onLoad={() => setImgReady(true)}
+          onError={() => {
+            if (!useOriginal && previewImage) {
+              setImgReady(false);
+              setUseOriginal(true);
+              return;
+            }
+            setImgFailed(true);
+          }}
+        />
+      </div>
+    );
+  }
   return (
     <div
       className='relative isolate shrink-0 overflow-hidden rounded-md bg-white text-left text-[#333] leading-normal font-normal shadow-sm ring-1 ring-black/6'
-      style={{ width: pw * scale, height: ph * scale, colorScheme: 'light' }}
+      style={boxStyle}
     >
       <div
         style={{
@@ -216,6 +279,7 @@ function ResumeTemplate() {
                       resumePreviewStore.openWithConfig(
                         t.config,
                         `${tr('previewTitle')} · ${t.title}`,
+                        t.previewImage,
                       )
                     }
                     className='inline-flex h-7 flex-1 cursor-pointer items-center justify-center gap-1 rounded-md border border-fg/[0.12] bg-surface/[0.04] px-2 text-[11px] font-medium text-fg/72 transition-colors hover:border-fg/[0.18] hover:bg-surface/[0.08] hover:text-fg/88'

@@ -84,11 +84,13 @@ export default function CanvasPreviewOverlay({
           <CloseOutlined className='text-[12px]' />
         </button>
       </div>
-      <div className='min-h-0 flex-1 overflow-auto px-5 py-5'>
-        <div
-          className={`${closing ? 'canvas-preview-content-exit-animate' : 'canvas-preview-content-animate'} mx-auto flex w-fit flex-col gap-[30px]`}
-        >
-          {children}
+      <div className='min-h-0 flex-1 overflow-auto p-5'>
+        <div className='flex min-h-full w-full items-center justify-center'>
+          <div
+            className={`${closing ? 'canvas-preview-content-exit-animate' : 'canvas-preview-content-animate'} max-w-full`}
+          >
+            {children}
+          </div>
         </div>
       </div>
     </div>,

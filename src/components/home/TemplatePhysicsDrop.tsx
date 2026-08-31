@@ -1,6 +1,6 @@
 'use client';
 
-import { resumeTemplates } from '@/json/resumeTemplates';
+import type { ResumeTemplateItem } from '@/json/resumeTemplates';
 import { buildSpawnPositions } from '@/lib/home/buildSpawnPositions';
 import {
   captureExpandFromLayout,
@@ -12,8 +12,11 @@ import {
   setPhysicsPause,
   subscribePhysicsPause,
 } from '@/lib/home/physicsPauseStore';
+import { buildHomePlaceholderTemplates } from '@/lib/home/templateHomePlaceholders';
+import { getHomeTemplateCatalog } from '@/lib/home/templateHomeCatalog';
+import { prefetchHomeExpandThumb } from '@/lib/cdnThumbUrl';
 import Matter from 'matter-js';
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import PhysicsTemplateCard, { getPhysicsCardMetrics } from './PhysicsTemplateCard';
 import ResumeExpandOverlay, { type ExpandAnchor } from './ResumeExpandOverlay';
 
@@ -23,8 +26,9 @@ const WALL = 80;
 const GROUND_INSET = 12;
 const OVERLAY_DISMISS_MS = 100;
 const FIXED_DT = 1000 / 60;
-const DEFAULT_OPACITY = 1;
 const DIMMED_OPACITY = 0.32;
+/** ponytail: 拖拽缩放窗口时 ResizeObserver 连发，防抖后再 remount */
+const RESIZE_DEBOUNCE_MS = 200;
 
 type BodyPair = {
   body: Matter.Body | null;
@@ -47,7 +51,11 @@ function uprightClamp(body: Matter.Body) {
   Body.setAngularVelocity(body, Math.max(-1.15, Math.min(1.15, av)));
 }
 
-function syncDom(pairs: BodyPair[], itemRefs: { current: (HTMLDivElement | null)[] }) {
+function syncDom(
+  pairs: BodyPair[],
+  itemRefs: { current: (HTMLDivElement | null)[] },
+  hoverIndex: number | null,
+) {
   for (let i = 0; i < pairs.length; i++) {
     const el = itemRefs.current[i];
     const pair = pairs[i];
@@ -55,20 +63,32 @@ function syncDom(pairs: BodyPair[], itemRefs: { current: (HTMLDivElement | null)
     const { x, y } = pair.body.position;
     const angle = pair.body.angle;
     el.style.visibility = 'visible';
+    if (hoverIndex === null) {
+      el.style.opacity = '1';
+    } else {
+      el.style.opacity = i === hoverIndex ? '1' : String(DIMMED_OPACITY);
+    }
+    el.style.pointerEvents = 'auto';
     el.style.transform = `translate3d(${x - pair.w / 2}px, ${y - pair.h / 2}px, 0) rotate(${angle}rad)`;
   }
 }
 
-function clearHoverUnlessSibling(
-  e: MouseEvent<HTMLDivElement>,
-  onClear: () => void,
+function applyItemHoverVisual(
+  itemRefs: { current: (HTMLDivElement | null)[] },
+  hoverIndex: number | null,
 ) {
-  const next = e.relatedTarget;
-  if (next instanceof Node && e.currentTarget.parentElement?.contains(next)) {
-    const shell = (next as Element).closest('[data-physics-item]');
-    if (shell) return;
+  for (let i = 0; i < itemRefs.current.length; i++) {
+    const el = itemRefs.current[i];
+    if (!el) continue;
+    if (hoverIndex === null) {
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('z-index');
+      continue;
+    }
+    const active = i === hoverIndex;
+    el.style.opacity = active ? '1' : String(DIMMED_OPACITY);
+    el.style.zIndex = active ? '30' : '1';
   }
-  onClear();
 }
 
 function freezePhysicsBodies(pairs: BodyPair[]) {
@@ -103,16 +123,27 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: 
   const loopRef = useRef<{ raf: number; disposed: boolean; tick: () => void } | null>(null);
   const pairsRef = useRef<BodyPair[]>([]);
   const dismissTimerRef = useRef<number | null>(null);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const hoveredIndexRef = useRef<number | null>(null);
+  const [templates, setTemplates] = useState(buildHomePlaceholderTemplates);
   const [expanded, setExpanded] = useState<ExpandAnchor | null>(null);
-  const metrics = useMemo(() => resumeTemplates.map((t) => getPhysicsCardMetrics(t)), []);
+  const metrics = useMemo(() => templates.map((t) => getPhysicsCardMetrics(t)), [templates]);
   const rowStride = useMemo(() => {
     const maxH = metrics.reduce((m, x) => Math.max(m, x.bodyH), 180);
     return maxH + 28;
   }, [metrics]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void getHomeTemplateCatalog().then((list) => {
+      if (!cancelled && list.length) setTemplates(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useLayoutEffect(() => {
-    if (reduceMotion) return;
+    if (reduceMotion || !templates.length) return;
     const container = containerRef.current;
     if (!container) return;
 
@@ -124,7 +155,7 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: 
     const staticBodies: Matter.Body[] = [];
 
     const spawnBody = (i: number, spawn: ReturnType<typeof buildSpawnPositions>[number]) => {
-      const template = resumeTemplates[i]!;
+      const template = templates[i]!;
       const { bodyW, bodyH } = metrics[i] ?? getPhysicsCardMetrics(template);
       const body = Bodies.rectangle(spawn.x, spawn.y, bodyW, bodyH, {
         restitution: 0.32,
@@ -151,41 +182,60 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: 
       const viewH = container.clientHeight;
       if (viewW <= 0 || viewH <= 0) return;
 
-      resumeTemplates.forEach((_, i) => {
+      templates.forEach((_, i) => {
         pairs[i] = {
           body: null,
-          w: metrics[i]?.bodyW ?? getPhysicsCardMetrics(resumeTemplates[i]!).bodyW,
-          h: metrics[i]?.bodyH ?? getPhysicsCardMetrics(resumeTemplates[i]!).bodyH,
+          w: metrics[i]?.bodyW ?? getPhysicsCardMetrics(templates[i]!).bodyW,
+          h: metrics[i]?.bodyH ?? getPhysicsCardMetrics(templates[i]!).bodyH,
         };
         const el = itemRefs.current[i];
-        if (el) el.style.visibility = 'hidden';
+        if (el) {
+          el.style.opacity = '0';
+          el.style.pointerEvents = 'none';
+        }
       });
 
       const { bounds } = buildBounds(viewW, viewH);
       staticBodies.push(...bounds);
       World.add(engine.world, bounds);
 
-      const spawns = buildSpawnPositions(resumeTemplates.length, viewW, rowStride);
+      const spawns = buildSpawnPositions(templates.length, viewW, rowStride);
       spawns.forEach((spawn, i) => {
         spawnBody(i, spawn);
       });
-      // ponytail: pause freezes velocity only — never skip spawn, or ResizeObserver remount while paused leaves body:null forever
+      // 始终 sync 一次；暂停只冻速度，避免 DOM 一直 hidden 导致不拉预览图
+      syncDom(pairs, itemRefs, hoveredIndexRef.current);
       if (physicsPausedRef.current) {
         freezePhysicsBodies(pairs);
-      } else {
-        syncDom(pairs, itemRefs);
       }
     };
 
     mount();
+    let lastViewW = container.clientWidth;
+    let lastViewH = container.clientHeight;
+    let resizeTimer: ReturnType<typeof setTimeout> | undefined;
 
-    const ro = new ResizeObserver(() => {
+    const remountIfSizeChanged = () => {
+      const viewW = container.clientWidth;
+      const viewH = container.clientHeight;
+      if (viewW <= 0 || viewH <= 0) return;
+      if (viewW === lastViewW && viewH === lastViewH) return;
+      lastViewW = viewW;
+      lastViewH = viewH;
       const loop = loopRef.current;
       if (loop?.raf) cancelAnimationFrame(loop.raf);
       mount();
       if (!physicsPausedRef.current && loop && !loop.disposed) {
         loop.raf = requestAnimationFrame(tick);
       }
+    };
+
+    const ro = new ResizeObserver(() => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        resizeTimer = undefined;
+        remountIfSizeChanged();
+      }, RESIZE_DEBOUNCE_MS);
     });
     ro.observe(container);
 
@@ -200,7 +250,7 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: 
       for (const pair of pairs) {
         if (pair?.body) uprightClamp(pair.body);
       }
-      syncDom(pairs, itemRefs);
+      syncDom(pairs, itemRefs, hoveredIndexRef.current);
       loop.raf = requestAnimationFrame(tick);
     };
 
@@ -214,11 +264,12 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: 
       loop.disposed = true;
       loopRef.current = null;
       if (loop.raf) cancelAnimationFrame(loop.raf);
+      if (resizeTimer) clearTimeout(resizeTimer);
       ro.disconnect();
       Composite.clear(engine.world, false);
       Engine.clear(engine);
     };
-  }, [metrics, reduceMotion, rowStride]);
+  }, [metrics, reduceMotion, rowStride, templates]);
 
   useEffect(() => {
     if (reduceMotion) return;
@@ -260,26 +311,43 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: 
   }, [reduceMotion]);
 
   const itemShellClass =
-    'absolute left-0 top-0 origin-center overflow-hidden cursor-pointer transition-opacity duration-200 ease-out will-change-transform';
+    'absolute left-0 top-0 origin-center overflow-hidden cursor-pointer transition-opacity duration-200 ease-out';
 
-  const itemShellStyle = (templateId: string, i: number) => {
-    const isHovered = hoveredId === templateId;
-    const dimmed = hoveredId !== null && !isHovered;
-    return {
-      width: metrics[i]?.bodyW,
-      height: metrics[i]?.bodyH,
-      opacity: dimmed ? DIMMED_OPACITY : DEFAULT_OPACITY,
-      zIndex: isHovered ? 30 : 1,
-    };
-  };
+  const itemShellStyle = (i: number) => ({
+    width: metrics[i]?.bodyW,
+    height: metrics[i]?.bodyH,
+    zIndex: 1,
+  });
 
-  const clearHover = () => setHoveredId(null);
+  const clearHover = useCallback(() => {
+    hoveredIndexRef.current = null;
+    for (let i = 0; i < itemRefs.current.length; i++) {
+      const el = itemRefs.current[i];
+      if (!el) continue;
+      el.style.opacity = '1';
+      el.style.removeProperty('z-index');
+    }
+  }, []);
+
+  const onItemPointerEnter = useCallback((i: number) => {
+    if (expandedRef.current !== null) return;
+    hoveredIndexRef.current = i;
+    applyItemHoverVisual(itemRefs, i);
+    const url = templates[i]?.previewImage?.trim();
+    if (url) prefetchHomeExpandThumb(url);
+  }, [templates]);
+
+  const onItemPointerLeave = useCallback((e: PointerEvent<HTMLDivElement>) => {
+    const next = e.relatedTarget;
+    if (next instanceof Element && next.closest('[data-physics-item]')) return;
+    clearHover();
+  }, [clearHover]);
 
   const captureItemFrame = useCallback(
     (i: number) => {
       const el = itemRefs.current[i];
-      if (!el) return null;
-      const template = resumeTemplates[i]!;
+      const template = templates[i];
+      if (!el || !template?.config) return null;
       const { bodyW, bodyH } = getPhysicsCardMetrics(template);
       const container = containerRef.current;
       return reduceMotion
@@ -293,7 +361,7 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: 
               : undefined,
           );
     },
-    [reduceMotion],
+    [reduceMotion, templates],
   );
 
   const openExpand = useCallback(
@@ -303,10 +371,10 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: 
       if (!fromFrame) return;
       setPhysicsPause('expand', true);
       expandedRef.current = i;
-      setHoveredId(null);
+      clearHover();
       setExpanded({ index: i, fromFrame });
     },
-    [captureItemFrame],
+    [captureItemFrame, clearHover],
   );
 
   const hideOriginalForClone = useCallback(() => {
@@ -322,7 +390,7 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: 
   const navigateExpand = useCallback((nextIndex: number) => {
     const prevIndex = expandedRef.current;
     if (prevIndex === null || prevIndex === nextIndex) return;
-    if (nextIndex < 0 || nextIndex >= resumeTemplates.length) return;
+    if (nextIndex < 0 || nextIndex >= templates.length) return;
     const prevEl = itemRefs.current[prevIndex];
     if (prevEl) {
       prevEl.style.transition = 'none';
@@ -367,11 +435,12 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: 
 
   useEffect(() => () => {
     if (dismissTimerRef.current) window.clearTimeout(dismissTimerRef.current);
-  }, []);
+    clearHover();
+  }, [clearHover]);
 
   const staticItemClass = 'cursor-pointer transition-opacity duration-200 ease-out';
 
-  const renderItem = (template: (typeof resumeTemplates)[number], i: number, shellClass: string, extraStyle?: CSSProperties) => (
+  const renderItem = (template: ResumeTemplateItem, i: number, shellClass: string, extraStyle?: CSSProperties) => (
     <div
       key={template.id}
       data-physics-item
@@ -379,35 +448,35 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: 
         itemRefs.current[i] = el;
       }}
       className={shellClass}
-      style={{ ...itemShellStyle(template.id, i), ...extraStyle }}
-      onMouseEnter={() => {
-        if (expandedRef.current === null) setHoveredId(template.id);
-      }}
-      onMouseLeave={(e) => clearHoverUnlessSibling(e, clearHover)}
+      style={{ ...itemShellStyle(i), ...extraStyle }}
+      onPointerEnter={() => onItemPointerEnter(i)}
+      onPointerLeave={onItemPointerLeave}
       onClick={() => openExpand(i)}
     >
       <PhysicsTemplateCard template={template} />
     </div>
   );
 
-  const expandedOverlay = expanded ? (
-    <ResumeExpandOverlay
-      anchor={expanded}
-      template={resumeTemplates[expanded.index]!}
-      totalCount={resumeTemplates.length}
-      reduceMotion={reduceMotion}
-      onHideOriginal={hideOriginalForClone}
-      onNavigate={navigateExpand}
-      onClosed={handleExpandClosed}
-    />
-  ) : null;
+  const expandedTemplate = expanded ? templates[expanded.index] : undefined;
+  const expandedOverlay =
+    expanded && expandedTemplate ? (
+      <ResumeExpandOverlay
+        anchor={expanded}
+        template={expandedTemplate}
+        totalCount={templates.length}
+        reduceMotion={reduceMotion}
+        onHideOriginal={hideOriginalForClone}
+        onNavigate={navigateExpand}
+        onClosed={handleExpandClosed}
+      />
+    ) : null;
 
   if (reduceMotion) {
     return (
       <>
         <div ref={containerRef} className='absolute inset-0 overflow-hidden' onMouseLeave={clearHover}>
           <div className='flex h-full flex-wrap content-end gap-3 p-4 pb-6'>
-            {resumeTemplates.map((template, i) => renderItem(template, i, staticItemClass))}
+            {templates.map((template, i) => renderItem(template, i, staticItemClass))}
           </div>
         </div>
         {expandedOverlay}
@@ -418,8 +487,8 @@ const TemplatePhysicsDrop = memo(function TemplatePhysicsDrop({ reduceMotion }: 
   return (
     <>
       <div ref={containerRef} className='absolute inset-0 overflow-hidden' onMouseLeave={clearHover}>
-        {resumeTemplates.map((template, i) =>
-          renderItem(template, i, itemShellClass, { visibility: 'hidden' }),
+        {templates.map((template, i) =>
+          renderItem(template, i, itemShellClass, { opacity: 0, pointerEvents: 'none' }),
         )}
       </div>
       {expandedOverlay}

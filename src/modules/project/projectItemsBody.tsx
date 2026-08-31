@@ -1,3 +1,4 @@
+import { RESUME_ITEM_ROW_ATTR } from '@/components/moduleOperation/constants';
 import SelectableRichDescription from '@/components/selectableRichDescription';
 import { formatResumeDateRange } from '@/utils/resumeDateDisplay';
 import type { GlobalStyle } from '../utils/common.type';
@@ -40,7 +41,7 @@ export default function ProjectItemsBody({
             className='min-w-0 w-full text-black not-last:mb-[10px]'
             style={{ fontSize: `${fontSize}px` }}
           >
-            <div className='mb-[5px] flex min-w-0 justify-between gap-2'>
+            <div className='mb-[5px] flex min-w-0 justify-between gap-2' {...{ [RESUME_ITEM_ROW_ATTR]: '' }}>
               <div className='min-w-0 flex-[5] break-words font-bold'>
                 <SafeText text={name} selectable={selectable} dataItemId={`${moduleId}_${index}_name`} />
               </div>

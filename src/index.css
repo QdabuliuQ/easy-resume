@@ -109,6 +109,20 @@
   }
 }
 
+@keyframes resume-skeleton-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.22;
+  }
+}
+
+.resume-skeleton-breathe {
+  animation: resume-skeleton-breathe 1.6s ease-in-out infinite;
+}
+
 .ui-hint-shimmer {
   overflow: hidden;
 }
@@ -241,6 +255,11 @@
   .ui-hint-shimmer::after {
     animation: none;
     opacity: 0;
+  }
+
+  .resume-skeleton-breathe {
+    animation: none;
+    opacity: 0.55;
   }
 
   .ai-tools-flyout-enter,

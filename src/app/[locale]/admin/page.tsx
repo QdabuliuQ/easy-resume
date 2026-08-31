@@ -6,6 +6,7 @@ import {
   ReloadOutlined,
   TeamOutlined,
   UserAddOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons';
 import { Avatar, Button, Card, Col, Empty, Row, Space, Statistic, Table, Typography } from 'antd';
 import Link from 'next/link';
@@ -152,6 +153,11 @@ export default function AdminDashboardPage() {
               <Link href={`/${locale}/admin/resumes`} className='block'>
                 <Button block icon={<FileTextOutlined />}>
                   简历列表
+                </Button>
+              </Link>
+              <Link href={`/${locale}/admin/templates`} className='block'>
+                <Button block icon={<AppstoreOutlined />}>
+                  模板管理
                 </Button>
               </Link>
             </Space>

@@ -1,3 +1,4 @@
+import { RESUME_ITEM_ROW_ATTR } from '@/components/moduleOperation/constants';
 import SelectableRichDescription from '@/components/selectableRichDescription';
 import { formatResumeDateRange } from '@/utils/resumeDateDisplay';
 import { normalizeResumeCityDisplay } from '@/utils/resumeCityDisplay';
@@ -52,7 +53,7 @@ export default function EducationItemsBody({
             key={`${index}-${school}-${startDate}-${endDate}`}
             className='min-w-0 w-full text-black not-last:mb-[10px]'
           >
-            <div className='mb-[5px] flex min-w-0 justify-between gap-2'>
+            <div className='mb-[5px] flex min-w-0 justify-between gap-2' {...{ [RESUME_ITEM_ROW_ATTR]: '' }}>
               <div className='flex min-w-0 flex-[7] flex-wrap items-center gap-x-[10px] gap-y-1'>
                 <SafeText
                   text={school}
@@ -92,7 +93,7 @@ export default function EducationItemsBody({
               )}
             </div>
             {(major || degree || academy) && (
-              <div className='mb-[5px] flex min-w-0 justify-between gap-2'>
+              <div className='mb-[5px] flex min-w-0 justify-between gap-2' {...{ [RESUME_ITEM_ROW_ATTR]: '' }}>
                 <div className='flex min-w-0 flex-[7] flex-wrap items-center gap-x-[10px] break-words'>
                   {major && (
                     <SafeText

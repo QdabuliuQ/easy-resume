@@ -4,8 +4,9 @@ import { CloseOutlined, EyeOutlined } from '@ant-design/icons';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useTranslations } from 'next-intl';
-import { memo, useEffect, useMemo } from 'react';
-import { resumeTemplates } from '@/json/resumeTemplates';
+import { memo, useEffect, useMemo, useState } from 'react';
+import type { ResumeTemplateItem } from '@/json/resumeTemplates';
+import { loadResumeTemplates } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { configStore, editHistoryStore, moduleActiveStore } from '@/mobx';
 import { resumePreviewStore } from '@/mobx/resumePreviewStore';
@@ -19,13 +20,25 @@ function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
   const { confirm } = useResponsiveConfirm();
   const tm = useTranslations('Edit.mobile');
   const tr = useTranslations('Edit.resumeTemplate');
+  const [templates, setTemplates] = useState<ResumeTemplateItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void loadResumeTemplates().then((list) => {
+      if (!cancelled) setTemplates(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const cards = useMemo(
     () =>
-      resumeTemplates.map((template, index) => ({
+      templates.map((template, index) => ({
         ...template,
         orderLabel: tr('orderLabel', { n: String(index + 1).padStart(2, '0') }),
       })),
-    [tr],
+    [templates, tr],
   );
 
   useEffect(() => {
@@ -36,7 +49,7 @@ function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
     };
   }, []);
 
-  const applyTemplate = (tpl: (typeof resumeTemplates)[number]) => {
+  const applyTemplate = (tpl: ResumeTemplateItem) => {
     editHistoryStore.clear();
     configStore.setConfig(JSON.parse(JSON.stringify(tpl.config)), { source: 'reset' });
     moduleActiveStore.setModuleActive('global');
@@ -44,7 +57,7 @@ function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
     message.success(tr('appliedOk'));
     onClose();
   };
-  const onPick = (tpl: (typeof resumeTemplates)[number]) => {
+  const onPick = (tpl: ResumeTemplateItem) => {
     confirm({
       title: tr('replaceTitle'),
       content: (
@@ -97,6 +110,7 @@ function MobileTemplateOverlay({ onClose }: { onClose: () => void }) {
                         resumePreviewStore.openWithConfig(
                           t.config,
                           `${tr('previewTitle')} · ${t.title}`,
+                          t.previewImage,
                         )
                       }
                       className='inline-flex h-7 flex-1 items-center justify-center gap-0.5 rounded-md border border-fg/12 text-[10px] font-medium text-fg/70'

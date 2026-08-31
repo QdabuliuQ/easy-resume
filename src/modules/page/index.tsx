@@ -19,8 +19,10 @@ type PageProps = GlobalStyle & {
   firstPage?: boolean;
   /** 图片导出：单页长图，高度随内容撑开 */
   continuous?: boolean;
-  /** 浏览器 snapDOM 截图锚点 */
+  /** 浏览器 snapDOM 截图锚点（强制 px 宽高） */
   snapTarget?: boolean;
+  /** 导出截图锚点，版心仍用 mm，与画布一致 */
+  exportPage?: boolean;
 };
 
 export default memo(function Page(props: PageProps) {
@@ -36,7 +38,9 @@ export default memo(function Page(props: PageProps) {
     children,
     continuous = false,
     snapTarget = false,
+    exportPage = false,
   } = props;
+  const markExportPage = snapTarget || exportPage;
   const snapWidth = snapTarget ? `${Math.round(cssLengthToPx(width))}px` : width;
   const snapHeight = snapTarget ? `${Math.round(cssLengthToPx(height))}px` : height;
   const layout = normResumePageLayout(layoutRaw);
@@ -45,14 +49,12 @@ export default memo(function Page(props: PageProps) {
     ? '100%'
     : resumePageContentInnerWidthCss(snapWidth, layout, pagePadding);
   const innerHeight = `calc(${snapHeight} - ${resumePageInnerHeightDeductionPx({ padding: pagePadding, layout })}px)`;
-  const snapMinH = snapTarget && continuous;
   const normalizedFont = resumeFontForExport(resumeFont);
   const contentShell = (
     <div
       style={{
         width: innerWidth,
         height: continuous ? 'auto' : innerHeight,
-        minHeight: snapMinH ? innerHeight : undefined,
         overflow: continuous ? 'visible' : 'hidden',
       }}
     >
@@ -61,13 +63,13 @@ export default memo(function Page(props: PageProps) {
   );
   return (
     <div
-      data-resume-export-page={snapTarget ? '' : undefined}
-      className={snapTarget ? 'png-page' : undefined}
+      data-resume-export-page={markExportPage ? '' : undefined}
+      data-resume-export-continuous={markExportPage && continuous ? '' : undefined}
+      className={markExportPage ? 'png-page' : undefined}
       style={{
         position: 'relative',
         width: snapWidth,
         height: continuous ? 'auto' : snapHeight,
-        minHeight: snapMinH ? snapHeight : undefined,
         backgroundColor,
         color,
         fontSize: `${props.fontSize}px`,
