@@ -26,7 +26,7 @@ type Opts = {
 };
 
 const HOST_STYLE =
-  'position:fixed;left:0;top:0;z-index:11000;overflow:visible;opacity:1;pointer-events:none;width:max-content;height:max-content;background:#fff;';
+  'position:fixed;left:-100000px;top:0;z-index:-1;overflow:visible;opacity:0;visibility:hidden;pointer-events:none;width:max-content;height:max-content;background:#fff;';
 
 let docxWarmPromise: Promise<void> | null = null;
 
