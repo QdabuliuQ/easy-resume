@@ -132,6 +132,253 @@ export function prepareRichTextLineHeightForSnap(root: HTMLElement, gs: GlobalSt
   });
 }
 
+function indentKey(el: HTMLElement): string {
+  return Array.from(el.classList).find((c) => c.startsWith('ql-indent-')) ?? '';
+}
+
+function indentLevel(el: HTMLElement): number {
+  const k = indentKey(el);
+  if (!k) return 0;
+  const n = Number(k.replace('ql-indent-', ''));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function topChildUnder(editor: Element, el: HTMLElement): HTMLElement | null {
+  let n: HTMLElement | null = el;
+  while (n && n.parentElement !== editor) n = n.parentElement;
+  return n;
+}
+
+/** Quill 在 .ql-editor 上挂 counter；p/h 会 counter-set 打断编号 */
+function hasQuillCounterResetBetween(
+  earlier: HTMLElement,
+  later: HTMLElement,
+  editor: Element,
+): boolean {
+  const kids = Array.from(editor.children);
+  const a = topChildUnder(editor, earlier);
+  const b = topChildUnder(editor, later);
+  if (!a || !b) return false;
+  const ia = kids.indexOf(a);
+  const ib = kids.indexOf(b);
+  if (ia < 0 || ib < 0 || ia >= ib) return false;
+  for (let i = ia + 1; i < ib; i += 1) {
+    const t = (kids[i] as HTMLElement).tagName;
+    if (t === 'P' || t === 'PRE' || t === 'BLOCKQUOTE' || /^H[1-6]$/.test(t)) return true;
+  }
+  return false;
+}
+
+/** Quill：indent%3 → decimal / lower-alpha / lower-roman */
+function toLowerAlpha(n: number): string {
+  let x = Math.max(1, n);
+  let s = '';
+  while (x > 0) {
+    x -= 1;
+    s = String.fromCharCode(97 + (x % 26)) + s;
+    x = Math.floor(x / 26);
+  }
+  return s;
+}
+
+function toLowerRoman(n: number): string {
+  const vals = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+  const syms = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i'];
+  let x = Math.max(1, Math.min(n, 3999));
+  let s = '';
+  for (let i = 0; i < vals.length; i += 1) {
+    while (x >= vals[i]!) {
+      s += syms[i]!;
+      x -= vals[i]!;
+    }
+  }
+  return s;
+}
+
+export function formatQuillOrderedMarker(index: number, indent: number): string {
+  const n = Math.max(1, index);
+  const style = ((indent % 3) + 3) % 3;
+  if (style === 1) return `${toLowerAlpha(n)}. `;
+  if (style === 2) return `${toLowerRoman(n)}. `;
+  return `${n}. `;
+}
+
+function collectQuillListItems(li: HTMLElement): HTMLElement[] {
+  const useDataList = li.hasAttribute('data-list');
+  const editor =
+    li.closest('.ql-editor') ?? li.closest('.resume-quill-embed') ?? null;
+  if (editor) {
+    return useDataList
+      ? Array.from(editor.querySelectorAll<HTMLElement>('li[data-list]'))
+      : Array.from(editor.querySelectorAll<HTMLElement>('ol > li'));
+  }
+  const list = li.parentElement;
+  const host = list?.parentElement;
+  if (host && list && (list.tagName === 'OL' || list.tagName === 'UL')) {
+    const lists = Array.from(host.children).filter(
+      (c) => c.tagName === 'OL' || c.tagName === 'UL',
+    );
+    if (lists.length > 1) {
+      return lists.flatMap((l) =>
+        Array.from(l.children).filter((c): c is HTMLElement => {
+          if (!(c instanceof HTMLElement) || c.tagName !== 'LI') return false;
+          return useDataList ? c.hasAttribute('data-list') : true;
+        }),
+      );
+    }
+  }
+  if (list) {
+    return Array.from(list.children).filter((c): c is HTMLElement => {
+      if (!(c instanceof HTMLElement) || c.tagName !== 'LI') return false;
+      return useDataList ? c.hasAttribute('data-list') : true;
+    });
+  }
+  return [li];
+}
+
+/**
+ * Quill 扁平 li + ql-indent；CSS counter 挂在 .ql-editor。
+ * 同级连续计数；遇到更浅缩进则嵌套计数器重置。
+ */
+export function quillOrderedListIndex(li: HTMLElement): number {
+  const myIndent = indentLevel(li);
+  const useDataList = li.hasAttribute('data-list');
+  const all = collectQuillListItems(li);
+  const at = all.indexOf(li);
+  if (at < 0) return 1;
+
+  const editor =
+    li.closest('.ql-editor') ?? li.closest('.resume-quill-embed') ?? null;
+
+  let n = 0;
+  for (let i = at; i >= 0; i -= 1) {
+    if (
+      editor &&
+      i < at &&
+      hasQuillCounterResetBetween(all[i]!, all[i + 1]!, editor)
+    ) {
+      break;
+    }
+    const cur = all[i]!;
+    const ind = indentLevel(cur);
+    if (ind < myIndent) break;
+    if (ind !== myIndent) continue;
+    if (useDataList) {
+      if (cur.getAttribute('data-list') === 'ordered') n += 1;
+    } else if (cur.parentElement?.tagName === 'OL') {
+      n += 1;
+    }
+  }
+  return Math.max(1, n);
+}
+
+export function quillOrderedListMarker(li: HTMLElement): string {
+  return formatQuillOrderedMarker(quillOrderedListIndex(li), indentLevel(li));
+}
+
+function ensureSnapMarkerStyle(doc: Document) {
+  if (doc.getElementById('resume-snap-marker-style')) return;
+  const style = doc.createElement('style');
+  style.id = 'resume-snap-marker-style';
+  style.textContent =
+    '[data-resume-snap-marker]::before,[data-resume-snap-marker]::after{content:none!important}';
+  doc.head.appendChild(style);
+}
+
+/** 实心圆用 inline style，避免 snapdom 丢伪元素 / 缺 • 字形 */
+function appendSnapDisc(doc: Document, host: HTMLElement, ink: string) {
+  const disc = doc.createElement('span');
+  disc.setAttribute('data-resume-snap-marker', '');
+  disc.setAttribute('data-resume-snap-disc', '');
+  disc.setAttribute('aria-hidden', 'true');
+  disc.style.cssText = [
+    'display:inline-block',
+    'width:0.22em',
+    'height:0.22em',
+    'margin:0 0.4em 0 0',
+    'border-radius:50%',
+    `background-color:${ink}`,
+    'vertical-align:0.2em',
+    'flex-shrink:0',
+  ].join(';');
+  host.appendChild(disc);
+}
+
+function resolveSnapInk(el: HTMLElement): string {
+  try {
+    const c = getComputedStyle(el).color;
+    if (c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent') return c;
+  } catch {
+    /* ignore */
+  }
+  return '#333333';
+}
+
+function materializeQuillUiMarker(li: HTMLElement, ui: HTMLElement) {
+  const kind = li.getAttribute('data-list');
+  ui.textContent = '';
+  ui.setAttribute('data-resume-snap-marker', '');
+  // inline-block + 微上移：与汉字行盒光学对齐（baseline 时数字偏下）
+  ui.style.display = 'inline-block';
+  ui.style.verticalAlign = '0.12em';
+  ui.style.lineHeight = 'inherit';
+  if (kind === 'ordered') {
+    ui.textContent = quillOrderedListMarker(li);
+    ui.style.marginRight = '0.25em';
+    return;
+  }
+  if (kind === 'checked') {
+    ui.textContent = '[x] ';
+    return;
+  }
+  if (kind === 'unchecked') {
+    ui.textContent = '[ ] ';
+    return;
+  }
+  appendSnapDisc(li.ownerDocument, ui, resolveSnapInk(li));
+}
+
+/**
+ * snapdom 不渲染 Quill `.ql-ui::before` / 原生 list-style 圆点，且部分字库无 •。
+ * 导出前物化标记（圆点用 CSS 圆，有序用数字文本）。
+ */
+export function prepareQuillListMarkersForSnap(root: HTMLElement) {
+  const doc = root.ownerDocument;
+  ensureSnapMarkerStyle(doc);
+
+  root.querySelectorAll<HTMLElement>('li[data-list]').forEach((li) => {
+    if (li.querySelector(':scope > [data-resume-snap-disc], :scope > .ql-ui[data-resume-snap-marker]')) {
+      return;
+    }
+    let ui = li.querySelector(':scope > .ql-ui') as HTMLElement | null;
+    if (!ui) {
+      ui = doc.createElement('span');
+      ui.className = 'ql-ui';
+      li.insertBefore(ui, li.firstChild);
+    }
+    materializeQuillUiMarker(li, ui);
+  });
+
+  root.querySelectorAll<HTMLElement>('.ql-editor li:not([data-list])').forEach((li) => {
+    if (li.querySelector(':scope > [data-resume-snap-marker]')) return;
+    const ordered = li.parentElement?.tagName === 'OL';
+    const marker = doc.createElement('span');
+    marker.setAttribute('data-resume-snap-marker', '');
+    marker.style.display = 'inline-block';
+    marker.style.verticalAlign = '0.12em';
+    marker.style.lineHeight = 'inherit';
+    if (ordered) {
+      marker.textContent = quillOrderedListMarker(li);
+      marker.style.marginRight = '0.25em';
+    } else {
+      appendSnapDisc(doc, marker, resolveSnapInk(li));
+    }
+    li.insertBefore(marker, li.firstChild);
+    li.style.listStyle = 'none';
+    li.style.listStyleType = 'none';
+  });
+}
+
 /**
  * 模块标题在 snap 下易逐字折行（含 Type5 箭头条：标题在 div 文本节点里，不是 span）。
  * 强制标题叶节点 nowrap，行内 flex 不换行。
@@ -184,5 +431,6 @@ export function prepareResumeSnapSubtree(root: HTMLElement, gs: GlobalStyle) {
   prepareInfo1RowsForSnap(root);
   prepareItemHeaderRowsForSnap(root);
   prepareRichTextLineHeightForSnap(root, gs);
+  prepareQuillListMarkersForSnap(root);
   prepareModuleHeadersForSnap(root);
 }

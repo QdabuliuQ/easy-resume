@@ -11,11 +11,16 @@
   white-space: pre-wrap;
 }
 
-/* 预览/导出无 .ql-snow 包裹，需显式蓝色，避免继承简历主题色 */
+/* 预览/导出无 .ql-snow 包裹时链接仍需下划线；颜色勿强盖，否则「颜色用在 link」会错 */
 .resume-quill-embed .ql-editor a,
 .rte-quill-sync .ql-editor a {
-  color: #06c;
   text-decoration: underline;
+  text-decoration-color: currentColor;
+}
+/* :where 零特异性：不压过 a 的 inline color / .ql-color-* */
+:where(.resume-quill-embed .ql-editor, .rte-quill-sync .ql-editor)
+  a:not([style*='color']):not([class*='ql-color-']) {
+  color: #06c;
 }
 .resume-quill-embed .ql-editor s,
 .resume-quill-embed .ql-editor strike,

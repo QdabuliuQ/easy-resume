@@ -112,7 +112,12 @@
 }
 
 .host :global(.ql-editor a) {
-  color: #38bdf8 !important;
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+}
+/* 勿 !important 盖住用户给链接上的颜色 */
+.host :global(.ql-editor a:not([style*='color']):not([class*='ql-color-'])) {
+  color: #38bdf8;
 }
 
 .host :global(.ql-editor.ql-blank::before) {

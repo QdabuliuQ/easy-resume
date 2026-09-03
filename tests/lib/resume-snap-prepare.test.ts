@@ -9,6 +9,7 @@ import {
   prepareInfo1RowsForSnap,
   prepareItemHeaderRowsForSnap,
   prepareModuleHeadersForSnap,
+  prepareQuillListMarkersForSnap,
   prepareRichTextLineHeightForSnap,
 } from '@/lib/resumeSnapPrepare';
 import type { GlobalStyle } from '@/modules/utils/common.type';
@@ -124,5 +125,110 @@ describe('prepareModuleHeadersForSnap', () => {
     expect(chip).toBeTruthy();
     expect(chip.style.whiteSpace).toBe('nowrap');
     expect(chip.style.minWidth).toBe('max-content');
+  });
+});
+
+describe('prepareQuillListMarkersForSnap', () => {
+  it('materializes Quill bullet as CSS disc and ordered as digits', () => {
+    const root = document.createElement('div');
+    root.innerHTML = `
+      <div class="ql-editor">
+        <ol>
+          <li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>前端 Vue3</li>
+          <li data-list="ordered"><span class="ql-ui" contenteditable="false"></span>第一项</li>
+          <li data-list="ordered"><span class="ql-ui" contenteditable="false"></span>第二项</li>
+        </ol>
+      </div>
+    `;
+    prepareQuillListMarkersForSnap(root);
+    const bulletUi = root.querySelector('li[data-list="bullet"] > .ql-ui') as HTMLElement;
+    const disc = bulletUi.querySelector('[data-resume-snap-disc]') as HTMLElement;
+    expect(disc).toBeTruthy();
+    expect(disc.style.borderRadius).toBe('50%');
+    expect(disc.style.backgroundColor).toBeTruthy();
+    expect(disc.style.width).toBe('0.22em');
+    const ordered = root.querySelectorAll('li[data-list="ordered"] > .ql-ui');
+    expect(ordered[0]?.textContent).toBe('1. ');
+    expect(ordered[1]?.textContent).toBe('2. ');
+  });
+
+  it('numbers consecutive one-li-per-ol Quill lists 1. 2. 3.', () => {
+    const root = document.createElement('div');
+    root.innerHTML = `
+      <div class="ql-editor">
+        <ol><li data-list="ordered"><span class="ql-ui" contenteditable="false"></span>熟练 HTML</li></ol>
+        <ol><li data-list="ordered"><span class="ql-ui" contenteditable="false"></span>熟悉 Vue</li></ol>
+        <ol><li data-list="ordered"><span class="ql-ui" contenteditable="false"></span>掌握 Vite</li></ol>
+      </div>
+    `;
+    prepareQuillListMarkersForSnap(root);
+    const texts = Array.from(
+      root.querySelectorAll('li[data-list="ordered"] > .ql-ui'),
+    ).map((el) => el.textContent);
+    expect(texts).toEqual(['1. ', '2. ', '3. ']);
+  });
+
+  it('resets ordered index after intervening paragraph', () => {
+    const root = document.createElement('div');
+    root.innerHTML = `
+      <div class="ql-editor">
+        <ol><li data-list="ordered"><span class="ql-ui"></span>A</li></ol>
+        <ol><li data-list="ordered"><span class="ql-ui"></span>B</li></ol>
+        <p>分隔</p>
+        <ol><li data-list="ordered"><span class="ql-ui"></span>C</li></ol>
+      </div>
+    `;
+    prepareQuillListMarkersForSnap(root);
+    const texts = Array.from(
+      root.querySelectorAll('li[data-list="ordered"] > .ql-ui'),
+    ).map((el) => el.textContent);
+    expect(texts).toEqual(['1. ', '2. ', '1. ']);
+  });
+
+  it('formats nested ordered as 1. a. i. like Quill preview', () => {
+    const root = document.createElement('div');
+    root.innerHTML = `
+      <div class="ql-editor">
+        <ol>
+          <li data-list="ordered"><span class="ql-ui"></span>熟练 HTML</li>
+          <li data-list="ordered" class="ql-indent-1"><span class="ql-ui"></span>熟悉 Vue3</li>
+          <li data-list="ordered" class="ql-indent-1"><span class="ql-ui"></span>熟悉 React</li>
+          <li data-list="ordered" class="ql-indent-2"><span class="ql-ui"></span>栈复用</li>
+          <li data-list="ordered"><span class="ql-ui"></span>掌握 Vite</li>
+          <li data-list="ordered"><span class="ql-ui"></span>具备低代码</li>
+        </ol>
+      </div>
+    `;
+    prepareQuillListMarkersForSnap(root);
+    const texts = Array.from(
+      root.querySelectorAll('li[data-list="ordered"] > .ql-ui'),
+    ).map((el) => el.textContent);
+    expect(texts).toEqual(['1. ', 'a. ', 'b. ', 'i. ', '2. ', '3. ']);
+  });
+
+  it('formats nested one-li-per-ol the same as merged ol', () => {
+    const root = document.createElement('div');
+    root.innerHTML = `
+      <div class="ql-editor">
+        <ol><li data-list="ordered"><span class="ql-ui"></span>L1</li></ol>
+        <ol><li data-list="ordered" class="ql-indent-1"><span class="ql-ui"></span>L2a</li></ol>
+        <ol><li data-list="ordered" class="ql-indent-1"><span class="ql-ui"></span>L2b</li></ol>
+        <ol><li data-list="ordered" class="ql-indent-2"><span class="ql-ui"></span>L3</li></ol>
+        <ol><li data-list="ordered"><span class="ql-ui"></span>L1b</li></ol>
+      </div>
+    `;
+    prepareQuillListMarkersForSnap(root);
+    const texts = Array.from(
+      root.querySelectorAll('li[data-list="ordered"] > .ql-ui'),
+    ).map((el) => el.textContent);
+    expect(texts).toEqual(['1. ', 'a. ', 'b. ', 'i. ', '2. ']);
+  });
+
+  it('adds disc for plain ul/li without data-list', () => {
+    const root = document.createElement('div');
+    root.innerHTML = `<div class="ql-editor"><ul><li>负责企业中台</li><li>性能优化</li></ul></div>`;
+    prepareQuillListMarkersForSnap(root);
+    const discs = root.querySelectorAll('[data-resume-snap-disc]');
+    expect(discs.length).toBe(2);
   });
 });

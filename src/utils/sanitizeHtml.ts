@@ -105,6 +105,55 @@ function collapseListInterItemWhitespace(html: string): string {
   return html.replace(/(<\/li>)\s+(?=<li\b)/gi, '$1');
 }
 
+function isBlankTextNode(n: Node): boolean {
+  return n.nodeType === Node.TEXT_NODE && !(n.textContent ?? '').trim();
+}
+
+function meaningfulChildren(el: Element): ChildNode[] {
+  return Array.from(el.childNodes).filter((n) => !isBlankTextNode(n));
+}
+
+/**
+ * Quill 常把 color 包在 link 外：`<span style="color"><a>`，预览里 a 的默认蓝会盖住继承色。
+ * 把颜色提升到 `<a>` 上，保证编辑器 / 预览 / 导出一致。
+ */
+export function normalizeRichTextLinkColors(html: string): string {
+  if (!html?.trim() || typeof document === 'undefined') return html;
+  const root = document.createElement('div');
+  root.innerHTML = html;
+
+  for (const span of Array.from(root.querySelectorAll('span'))) {
+    const color = span.style?.color?.trim();
+    const colorClass = Array.from(span.classList).find((c) => c.startsWith('ql-color-'));
+    if (!color && !colorClass) continue;
+    const kids = meaningfulChildren(span);
+    if (kids.length !== 1 || !(kids[0] instanceof HTMLAnchorElement)) continue;
+    const a = kids[0];
+    if (color && !a.style.color) a.style.color = color;
+    if (colorClass && !Array.from(a.classList).some((c) => c.startsWith('ql-color-'))) {
+      a.classList.add(colorClass);
+    }
+    span.replaceWith(a);
+  }
+
+  for (const a of Array.from(root.querySelectorAll('a'))) {
+    if (a.style.color || Array.from(a.classList).some((c) => c.startsWith('ql-color-'))) continue;
+    const kids = meaningfulChildren(a);
+    if (kids.length !== 1 || !(kids[0] instanceof HTMLElement)) continue;
+    const span = kids[0];
+    if (span.tagName !== 'SPAN') continue;
+    const color = span.style?.color?.trim();
+    const colorClass = Array.from(span.classList).find((c) => c.startsWith('ql-color-'));
+    if (!color && !colorClass) continue;
+    if (color) a.style.color = color;
+    if (colorClass) a.classList.add(colorClass);
+    while (span.firstChild) a.insertBefore(span.firstChild, span);
+    span.remove();
+  }
+
+  return root.innerHTML;
+}
+
 function mergeSiblingOls(container: Element): void {
   let prev: HTMLOListElement | null = null;
   for (const child of Array.from(container.children)) {
@@ -205,7 +254,9 @@ export function sanitizeRichTextHtml(html: string): string {
     });
   }
   return stripForeignRichTextStyles(
-    ensureAnchorsOpenBlank(normalizePlainHtmlListsForQuill(safe)),
+    ensureAnchorsOpenBlank(
+      normalizeRichTextLinkColors(normalizePlainHtmlListsForQuill(safe)),
+    ),
   );
 }
 export function unwrapFencedHtml(s: string): string {

@@ -24,6 +24,7 @@ import {
   type ClipBox,
   type LineRect,
 } from '@/lib/pdfkitExport/layout';
+import { quillOrderedListMarker } from '@/lib/resumeSnapPrepare';
 import type {
   PdfkitFillRun,
   PdfkitImageRun,
@@ -315,23 +316,6 @@ function imageToDataUrl(img: HTMLImageElement): string | null {
   }
 }
 
-function indentKey(el: HTMLElement): string {
-  return Array.from(el.classList).find((c) => c.startsWith('ql-indent-')) ?? '';
-}
-
-function orderedIndex(li: HTMLElement): number {
-  const indent = indentKey(li);
-  let n = 0;
-  let cur: Element | null = li;
-  while (cur) {
-    if (cur instanceof HTMLElement && cur.getAttribute('data-list') === 'ordered') {
-      if (indentKey(cur) === indent) n += 1;
-    }
-    cur = cur.previousElementSibling;
-  }
-  return Math.max(1, n);
-}
-
 function resolveQlUiBeforeText(el: HTMLElement, content: string): string | null {
   const literal = parseCssBeforeContent(content);
   if (literal != null && literal.length > 0) return literal;
@@ -341,7 +325,7 @@ function resolveQlUiBeforeText(el: HTMLElement, content: string): string | null 
   if (kind === 'bullet') return '•';
   if (kind === 'checked') return '☑';
   if (kind === 'unchecked') return '☐';
-  if (kind === 'ordered') return `${orderedIndex(li)}. `;
+  if (kind === 'ordered') return quillOrderedListMarker(li);
   return null;
 }
 

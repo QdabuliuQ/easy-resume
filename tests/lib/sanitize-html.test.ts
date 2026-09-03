@@ -75,4 +75,22 @@ describe('sanitizeRichTextHtml', () => {
     const out = sanitizeRichTextHtml('<p>hello  world</p>');
     expect(out).toMatch(/hello {2}world/);
   });
+
+  it('promotes color from wrapping span onto the link', () => {
+    const out = sanitizeRichTextHtml(
+      '<p><span style="color: rgb(230, 0, 0);"><a href="https://example.com">红链</a></span></p>',
+    );
+    expect(out).toMatch(/<a[^>]*style="[^"]*color:\s*rgb\(230,\s*0,\s*0\)/);
+    expect(out).toContain('href="https://example.com"');
+    expect(out).toContain('红链');
+    expect(out).not.toMatch(/<span[^>]*color[^>]*>\s*<a/);
+  });
+
+  it('promotes color from inner span onto the link', () => {
+    const out = sanitizeRichTextHtml(
+      '<p><a href="https://example.com"><span style="color: rgb(255, 153, 0);">橙链</span></a></p>',
+    );
+    expect(out).toMatch(/<a[^>]*style="[^"]*color:\s*rgb\(255,\s*153,\s*0\)/);
+    expect(out).toContain('橙链');
+  });
 });
