@@ -1,5 +1,5 @@
 /**
- * POST /api/ai/resume-import — PDF/图片简历识别（SSE 流式返回 pages）
+ * POST /api/ai/resume-import — PDF/图片简历导入（SSE 流式返回 pages）
  *
  * 响应（text/event-stream）：
  *   data: {"phase":"extract","status":"..."}  — 提取阶段
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
         } catch (e) {
           const message = e instanceof Error ? e.message : '未知错误';
           log.step('parse_failed', { error: message });
-          push({ error: `简历识别失败：${message}` });
+          push({ error: `简历导入失败：${message}` });
         } finally {
           controller.close();
         }

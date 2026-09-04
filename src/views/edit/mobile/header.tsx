@@ -20,7 +20,7 @@ import { Button, Dropdown, Input, Tooltip } from 'antd';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
 import qqIcon from '@/assets/qq.png';
 import { useAppMessage } from '@/hooks/useAppMessage';
-import { cloudResumeStore, configStore } from '@/mobx';
+import { cloudResumeStore, configStore, resumeImportStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 import { localePath } from '@/lib/device';
 import { logo } from '@/lib/brandAssets';
@@ -49,6 +49,8 @@ function MobileEditHeader() {
   const saving = cloudResumeStore.saving;
   const resumeId = cloudResumeStore.resumeId;
   const canShare = signedIn && Boolean(resumeId);
+  const importBusy = resumeImportStore.loading;
+  const saveDisabled = importBusy || saving || !signedIn;
   const saveGradId = `mhdr-sg${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const signInWith = async (provider: 'github' | 'qq') => {
     if (authBusy) return;
@@ -170,13 +172,21 @@ function MobileEditHeader() {
           )}
         </div>
         {showSave ? (
-          <Tooltip title={signedIn ? undefined : t('saveNeedLogin')}>
-            <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
+          <Tooltip
+            title={
+              importBusy
+                ? t('importBusy')
+                : signedIn
+                  ? undefined
+                  : t('saveNeedLogin')
+            }
+          >
+            <span className={`inline-flex ${signedIn && !importBusy ? '' : 'cursor-not-allowed'}`}>
               <Button
                 type='default'
                 size='small'
                 loading={saving}
-                disabled={!signedIn}
+                disabled={saveDisabled}
                 icon={
                   saving ? undefined : (
                     <SaveOne theme='outline' size={16} fill={`url(#${saveGradId})`} />
@@ -220,13 +230,21 @@ function MobileEditHeader() {
           </span>
         </Tooltip>
         {showSaveAs ? (
-          <Tooltip title={signedIn ? t('saveAsHint') : t('saveNeedLogin')}>
-            <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
+          <Tooltip
+            title={
+              importBusy
+                ? t('importBusy')
+                : signedIn
+                  ? t('saveAsHint')
+                  : t('saveNeedLogin')
+            }
+          >
+            <span className={`inline-flex ${signedIn && !importBusy ? '' : 'cursor-not-allowed'}`}>
               <Button
                 type='text'
                 size='small'
                 loading={saving}
-                disabled={!signedIn}
+                disabled={saveDisabled}
                 icon={
                   saving ? undefined : (
                     <Copy theme='outline' size={16} fill='currentColor' />

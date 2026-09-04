@@ -220,7 +220,7 @@ export async function checkSpeechRateLimit(
   return { allowed: true };
 }
 
-/** 简历文件识别：1 分钟最多 2 次（按 IP）。未配置 Upstash 时跳过限流。 */
+/** 简历文件导入：1 分钟最多 2 次（按 IP）。未配置 Upstash 时跳过限流。 */
 export async function checkResumeImportRateLimit(
   ipHash: string,
 ): Promise<RateLimitDenied | { allowed: true }> {

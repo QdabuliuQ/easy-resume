@@ -1,8 +1,10 @@
 'use client';
 
 import { AppstoreOutlined, ExportOutlined, EyeOutlined } from '@ant-design/icons';
+import { observer } from 'mobx-react';
 import { useTranslations } from 'next-intl';
 import { memo } from 'react';
+import { resumeImportStore } from '@/mobx';
 
 export type MobileBottomKey = 'preview' | 'export' | 'templates';
 
@@ -20,6 +22,8 @@ function MobileBottomNav({
   onChange: (key: MobileBottomKey) => void;
 }) {
   const t = useTranslations('Edit.mobile');
+  const th = useTranslations('Edit.header');
+  const importBusy = resumeImportStore.loading;
   const labels: Record<MobileBottomKey, string> = {
     preview: t('navPreview'),
     export: t('navExport'),
@@ -30,12 +34,24 @@ function MobileBottomNav({
       <div className='grid grid-cols-3'>
         {ITEMS.map(({ key, icon: Icon }) => {
           const on = activeKey === key;
+          const disabled = key === 'export' && importBusy;
           return (
             <button
               key={key}
               type='button'
-              onClick={() => onChange(key)}
-              className={`flex cursor-pointer flex-col items-center gap-0.5 py-2 text-[10px] font-medium ${on ? 'text-[var(--color-primary)]' : 'text-fg/48'}`}
+              disabled={disabled}
+              title={disabled ? th('importBusy') : undefined}
+              onClick={() => {
+                if (disabled) return;
+                onChange(key);
+              }}
+              className={`flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium ${
+                disabled
+                  ? 'cursor-not-allowed text-fg/28'
+                  : on
+                    ? 'cursor-pointer text-[var(--color-primary)]'
+                    : 'cursor-pointer text-fg/48'
+              }`}
             >
               <Icon className='text-[20px]' />
               <span>{labels[key]}</span>
@@ -47,4 +63,4 @@ function MobileBottomNav({
   );
 }
 
-export default memo(MobileBottomNav);
+export default memo(observer(MobileBottomNav));

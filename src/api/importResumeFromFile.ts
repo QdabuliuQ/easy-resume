@@ -50,7 +50,7 @@ async function readResumeImportSse(
     if (evt && 'done' in evt && evt.done) finalPages = evt.pages;
     else if (evt && 'pages' in evt && evt.pages) finalPages = evt.pages;
   }
-  if (!finalPages?.length) throw new Error('简历识别失败');
+  if (!finalPages?.length) throw new Error('简历导入失败');
   return finalPages;
 }
 
@@ -73,13 +73,13 @@ export async function importResumeFromFile(
     }
     if (ct.includes('application/json')) {
       const data = (await res.json().catch(() => null)) as ApiError | null;
-      throw new Error(data?.error || res.statusText || '简历识别失败');
+      throw new Error(data?.error || res.statusText || '简历导入失败');
     }
     const text = (await res.text().catch(() => '')) || '';
     if (/413|Request Entity Too Large/i.test(text)) {
       throw new Error('文件过大，服务器拒绝接收（请压缩后重试，PDF≤10MB、图片≤5MB）');
     }
-    throw new Error(text || res.statusText || '简历识别失败');
+    throw new Error(text || res.statusText || '简历导入失败');
   }
   if (!res.body) throw new Error('无响应体');
   return readResumeImportSse(res.body, onEvent);

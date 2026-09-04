@@ -3,7 +3,7 @@
 import { useLocale, useMessages, useTranslations } from 'next-intl';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useAppMessage } from '@/hooks/useAppMessage';
-import { configStore } from '@/mobx';
+import { configStore, resumeImportStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 
 let snapClientPromise: Promise<typeof import('@/lib/clientSnapResumeImage')> | null = null;
@@ -120,8 +120,16 @@ export function useResumeExport() {
     const base = (name || t('resumeDefaultName')).trim() || t('resumeDefaultName');
     return base.replace(/[/\\?%*:|"<>]/g, '_').slice(0, 80);
   };
+  const canStartExport = () => {
+    if (typeof window === 'undefined' || exporting) return false;
+    if (resumeImportStore.loading) {
+      message.warning(t('importBusy'));
+      return false;
+    }
+    return true;
+  };
   const exportPdf = async () => {
-    if (typeof window === 'undefined' || exporting) return;
+    if (!canStartExport()) return;
     if (!navigator.onLine) {
       message.warning(t('offlineNeedNetworkBackupJson'));
       return;
@@ -162,7 +170,7 @@ export function useResumeExport() {
     }
   };
   const exportPdfkit = async () => {
-    if (typeof window === 'undefined' || exporting) return;
+    if (!canStartExport()) return;
     setPdfkitLoading(true);
     const hide = message.loading(t('exportPdfkitLoading'), 0);
     try {
@@ -184,7 +192,7 @@ export function useResumeExport() {
     }
   };
   const exportImagePdf = async () => {
-    if (typeof window === 'undefined' || exporting) return;
+    if (!canStartExport()) return;
     setImagePdfLoading(true);
     const hide = message.loading(t('exportImagePdfLoading'), 0);
     try {
@@ -206,7 +214,7 @@ export function useResumeExport() {
     }
   };
   const exportImage = async () => {
-    if (typeof window === 'undefined' || exporting) return;
+    if (!canStartExport()) return;
     if (!navigator.onLine) {
       message.warning(t('offlineNeedNetworkBackupJson'));
       return;
@@ -232,6 +240,7 @@ export function useResumeExport() {
     }
   };
   const exportJson = () => {
+    if (!canStartExport()) return;
     try {
       const cfg = snapshotForExport();
       const safe = safeName();
@@ -249,7 +258,7 @@ export function useResumeExport() {
     }
   };
   const exportDocx = async () => {
-    if (typeof window === 'undefined' || exporting) return;
+    if (!canStartExport()) return;
     setDocxLoading(true);
     const hide = message.loading(t('exportDocxLoading'), 0);
     try {

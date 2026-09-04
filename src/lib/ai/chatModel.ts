@@ -34,7 +34,7 @@ function createOpenAiModel(opts: {
   });
 }
 
-/** DeepSeek 官方 API：AI 评分、对话修改、模拟面试、简历识别等 */
+/** DeepSeek 官方 API：AI 评分、对话修改、模拟面试、简历导入等 */
 export function createDeepSeekModel(opts?: {
   temperature?: number;
   jsonMode?: boolean;

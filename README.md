@@ -64,7 +64,7 @@
 | AI 评分 | DeepSeek | 多维度评分与改进建议 |
 | AI 帮改 | DeepSeek | 对话式改稿 |
 | AI 模拟面试 | DeepSeek | 基于简历的面试练习 |
-| 简历识别 | 百度 OCR + LLM | PDF/图片导入填入 |
+| 简历导入 | 百度 OCR + LLM | PDF/图片导入填入 |
 
 ### 账号与云端
 
@@ -158,7 +158,7 @@ npm run start   # 端口 3010
 |------|------|------|
 | `DEEPSEEK_API_KEY` | 否 | AI 评分、帮改、模拟面试 |
 | `SENSENOVA_API_KEY` | 否 | AI 润色 |
-| `BAIDU_OCR_API_KEY` / `BAIDU_OCR_SECRET_KEY` | 否 | 简历 PDF/图片识别 |
+| `BAIDU_OCR_API_KEY` / `BAIDU_OCR_SECRET_KEY` | 否 | 简历 PDF/图片导入 |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 否 | AI 限流与缓存 |
 
 ### 登录 + 云端 + 后台

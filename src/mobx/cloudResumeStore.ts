@@ -1,6 +1,7 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { configStore } from '@/mobx/configStore';
 import editHistoryStore from '@/mobx/editHistoryStore';
+import resumeImportStore from '@/mobx/resumeImportStore';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 
 const STORAGE_KEY = 'easy-resume-cloud-id';
@@ -96,6 +97,7 @@ class CloudResumeStore {
 
   scheduleAutosave() {
     if (!this.resumeId) return;
+    if (resumeImportStore.loading) return;
     this.clearTimer();
     this.timer = setTimeout(() => {
       this.timer = null;
@@ -141,6 +143,7 @@ class CloudResumeStore {
    * 仅已保存简历可用。
    */
   async saveAs(opts?: { name?: string }): Promise<{ ok: boolean; error?: string }> {
+    if (resumeImportStore.loading) return { ok: false, error: '正在导入简历，请稍后再保存' };
     if (!this.resumeId) return { ok: false, error: '当前简历尚未保存' };
     const content = configStore.getConfig;
     if (!content) return { ok: false, error: '无简历内容' };
@@ -203,6 +206,9 @@ class CloudResumeStore {
   }
 
   async save(opts?: { silent?: boolean }): Promise<{ ok: boolean; error?: string }> {
+    if (resumeImportStore.loading) {
+      return { ok: false, error: '正在导入简历，请稍后再保存' };
+    }
     const content = configStore.getConfig;
     if (!content) return { ok: false, error: '无简历内容' };
     const silent = opts?.silent === true;

@@ -9,7 +9,7 @@ import defaultResume from '@/json/resume.defaults';
 import { loadResumeTemplateByIndex } from '@/lib/loadResumeTemplates';
 import { resetAiModifyChatSession } from '@/lib/aiModifyChatSessionStorage';
 import { consumeResumeAuthDraft } from '@/lib/resumeAuthDraft';
-import { configStore, editHistoryStore } from '@/mobx';
+import { configStore, editHistoryStore, resumeImportStore } from '@/mobx';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import Container from '../components/container';
 import ResumeConfigCanvasPreviewHost from '../components/resumeConfigCanvasPreviewHost';
@@ -99,6 +99,7 @@ function MobileEditInner() {
       return;
     }
     if (key === 'export') {
+      if (resumeImportStore.loading) return;
       setExportOpen(true);
       return;
     }

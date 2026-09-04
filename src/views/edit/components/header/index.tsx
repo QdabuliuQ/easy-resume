@@ -19,7 +19,7 @@ import { Copy, Download, Save, Share } from '@icon-park/react';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
 import LoginDropdownButton from '@/components/auth/LoginDropdownButton';
 import { useAppMessage } from '@/hooks/useAppMessage';
-import { cloudResumeStore, configStore } from '@/mobx';
+import { cloudResumeStore, configStore, resumeImportStore } from '@/mobx';
 import defaultResume from '@/json/resume.defaults';
 import { logo } from '@/lib/brandAssets';
 import { useExportBusy } from '@/views/edit/hooks/useResumeExport';
@@ -40,14 +40,23 @@ const HeaderExportMenu = dynamic(() => prefetchHeaderExportMenu().then((m) => m.
   ssr: false,
 });
 
-function HeaderExportMenuPlaceholder() {
+function HeaderExportMenuPlaceholder({ disabled = false }: { disabled?: boolean }) {
   const t = useTranslations('Edit.header');
   return (
-    <button type='button' aria-label={t('exportLabel')} className={actionBtnCls}>
-      <Download theme='outline' size={17} fill={ICON_PRIMARY} />
-      {t('exportLabel')}
-      <DownOutlined className={arrowCls(false)} />
-    </button>
+    <Tooltip title={disabled ? t('importBusy') : undefined}>
+      <span className='inline-flex'>
+        <button
+          type='button'
+          disabled={disabled}
+          aria-label={t('exportLabel')}
+          className={actionBtnCls}
+        >
+          <Download theme='outline' size={17} fill={ICON_PRIMARY} />
+          {t('exportLabel')}
+          <DownOutlined className={arrowCls(false)} />
+        </button>
+      </span>
+    </Tooltip>
   );
 }
 /** 次要操作（创建副本等）：弱化样式，避免被当成「保存」 */
@@ -81,18 +90,20 @@ function Header({ templateMode = false, templateSaving = false, onTemplateSave }
   const authLoading = status === 'loading';
   const { canUndo, canRedo, undo, redo } = useEditHistory();
   const exporting = useExportBusy();
+  const importBusy = resumeImportStore.loading;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
   const [exportMenuReady, setExportMenuReady] = useState(false);
   const ignoreNextBlur = useRef(false);
   const name = configStore.getConfig?.name ?? defaultResume.name;
-  const actionsDisabled = exporting;
+  const actionsDisabled = exporting || importBusy;
   const showSave = cloudResumeStore.showSaveButton;
   const showSaveAs = cloudResumeStore.showSaveAsButton;
   const saving = cloudResumeStore.saving;
   const resumeId = cloudResumeStore.resumeId;
   const canShare = signedIn && Boolean(resumeId);
+  const saveDisabled = actionsDisabled || saving || !signedIn;
 
   useEffect(() => {
     let cancelled = false;
@@ -291,13 +302,21 @@ function Header({ templateMode = false, templateSaving = false, onTemplateSave }
           <LoginDropdownButton />
         ) : null}
         {!templateMode && showSave ? (
-          <Tooltip title={signedIn ? undefined : t('saveNeedLogin')}>
-            <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
+          <Tooltip
+            title={
+              importBusy
+                ? t('importBusy')
+                : signedIn
+                  ? undefined
+                  : t('saveNeedLogin')
+            }
+          >
+            <span className={`inline-flex ${signedIn && !importBusy ? '' : 'cursor-not-allowed'}`}>
               <button
                 type='button'
-                disabled={actionsDisabled || saving || !signedIn}
+                disabled={saveDisabled}
                 onClick={() => void onSave()}
-                className={`${signedIn ? '' : 'pointer-events-none'} ${actionBtnCls}`}
+                className={`${signedIn && !importBusy ? '' : 'pointer-events-none'} ${actionBtnCls}`}
               >
                 {saving ? (
                   <span className={actionIconSpin} aria-hidden />
@@ -339,17 +358,25 @@ function Header({ templateMode = false, templateSaving = false, onTemplateSave }
             setExportMenuReady(true);
           }}
         >
-          {exportMenuReady ? <HeaderExportMenu /> : <HeaderExportMenuPlaceholder />}
+          {exportMenuReady ? <HeaderExportMenu /> : <HeaderExportMenuPlaceholder disabled={importBusy} />}
         </span> : null}
         {!templateMode && showSaveAs ? (
-          <Tooltip title={signedIn ? t('saveAsHint') : t('saveNeedLogin')}>
-            <span className={`inline-flex ${signedIn ? '' : 'cursor-not-allowed'}`}>
+          <Tooltip
+            title={
+              importBusy
+                ? t('importBusy')
+                : signedIn
+                  ? t('saveAsHint')
+                  : t('saveNeedLogin')
+            }
+          >
+            <span className={`inline-flex ${signedIn && !importBusy ? '' : 'cursor-not-allowed'}`}>
               <button
                 type='button'
-                disabled={actionsDisabled || saving || !signedIn}
+                disabled={saveDisabled}
                 onClick={() => void onSaveAs()}
                 aria-label={t('saveAs')}
-                className={`${signedIn ? '' : 'pointer-events-none'} ${quietBtnCls}`}
+                className={`${signedIn && !importBusy ? '' : 'pointer-events-none'} ${quietBtnCls}`}
               >
                 {saving ? (
                   <LoadingOutlined className='text-[13px]' />

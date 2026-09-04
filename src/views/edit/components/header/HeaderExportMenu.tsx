@@ -2,9 +2,11 @@
 
 import { DownOutlined } from '@ant-design/icons';
 import { Download, FileCode, FilePdf, FileWord, ImageFiles } from '@icon-park/react';
-import { Dropdown } from 'antd';
+import { Dropdown, Tooltip } from 'antd';
+import { observer } from 'mobx-react';
 import { useTranslations } from 'next-intl';
 import { memo, useMemo, useState } from 'react';
+import { resumeImportStore } from '@/mobx';
 import { useResumeExport, useResumeExportWarmup } from '@/views/edit/hooks/useResumeExport';
 import { actionBtnCls, actionIconSpin, arrowCls, ICON_PRIMARY } from './headerActionStyles';
 
@@ -25,8 +27,9 @@ function HeaderExportMenu() {
     docxLoading,
     exporting,
   } = useResumeExport();
+  const importBusy = resumeImportStore.loading;
   const [exportOpen, setExportOpen] = useState(false);
-  const actionsDisabled = exporting;
+  const actionsDisabled = exporting || importBusy;
   const exportMenuItems = useMemo(
     () => [
       {
@@ -83,35 +86,39 @@ function HeaderExportMenu() {
   );
   const loading = pdfLoading || pdfkitLoading || imagePdfLoading || imageLoading || docxLoading;
   return (
-    <Dropdown
-      menu={{ items: exportMenuItems }}
-      trigger={['hover']}
-      mouseEnterDelay={0.08}
-      mouseLeaveDelay={0.12}
-      disabled={actionsDisabled}
-      placement='bottomRight'
-      open={exportOpen}
-      onOpenChange={(open) => {
-        if (!actionsDisabled) setExportOpen(open);
-      }}
-    >
-      <button
-        type='button'
-        disabled={actionsDisabled}
-        aria-label={t('exportLabel')}
-        aria-expanded={exportOpen}
-        className={actionBtnCls}
-      >
-        {loading ? (
-          <span className={actionIconSpin} aria-hidden />
-        ) : (
-          <Download theme='outline' size={17} fill={ICON_PRIMARY} />
-        )}
-        {actionsDisabled ? t('exporting') : t('exportLabel')}
-        {!actionsDisabled ? <DownOutlined className={arrowCls(exportOpen)} /> : null}
-      </button>
-    </Dropdown>
+    <Tooltip title={importBusy ? t('importBusy') : undefined}>
+      <span className='inline-flex'>
+        <Dropdown
+          menu={{ items: exportMenuItems }}
+          trigger={['hover']}
+          mouseEnterDelay={0.08}
+          mouseLeaveDelay={0.12}
+          disabled={actionsDisabled}
+          placement='bottomRight'
+          open={exportOpen}
+          onOpenChange={(open) => {
+            if (!actionsDisabled) setExportOpen(open);
+          }}
+        >
+          <button
+            type='button'
+            disabled={actionsDisabled}
+            aria-label={t('exportLabel')}
+            aria-expanded={exportOpen}
+            className={actionBtnCls}
+          >
+            {loading ? (
+              <span className={actionIconSpin} aria-hidden />
+            ) : (
+              <Download theme='outline' size={17} fill={ICON_PRIMARY} />
+            )}
+            {exporting ? t('exporting') : t('exportLabel')}
+            {!actionsDisabled ? <DownOutlined className={arrowCls(exportOpen)} /> : null}
+          </button>
+        </Dropdown>
+      </span>
+    </Tooltip>
   );
 }
 
-export default memo(HeaderExportMenu);
+export default memo(observer(HeaderExportMenu));
