@@ -56,7 +56,6 @@ function forcePagePaperSize(el: HTMLElement, gs: GlobalStyle) {
 }
 
 function assertSnapSize(el: HTMLElement, min = 200) {
-  // offset* 不受父 iframe 屏外位移影响；rect 作兜底
   const w = Math.max(el.offsetWidth, Math.round(el.getBoundingClientRect().width));
   const h = Math.max(el.offsetHeight, Math.round(el.getBoundingClientRect().height));
   if (w < min || h < min) {
@@ -190,7 +189,7 @@ async function snapElementToRasterBlob(
   assertSnapSize(el);
   await waitResumeSnapReady(el);
   prepareResumeSnapSubtree(el, gs);
-  // prepare 改了 font-family / 行高，再等 iframe 字体与布局稳定
+  // prepare 改了 font-family / 行高，再等字体与布局稳定
   try {
     await el.ownerDocument.fonts.ready;
   } catch {
@@ -285,47 +284,19 @@ export function prepareConfigForSnapExport(
   );
 }
 
-/** iframe 隔离后台 Modal / 全局样式；屏外隐藏，宽高仍驱动内部布局 */
-function openResumeSnapFrame(paperW: number, paperH: number, origin: string) {
-  const iframe = document.createElement('iframe');
-  iframe.setAttribute('data-resume-snap-iframe', '');
-  iframe.setAttribute('title', 'resume-snap');
-  iframe.setAttribute('aria-hidden', 'true');
-  iframe.tabIndex = -1;
-  iframe.style.cssText = [
-    'position:fixed',
-    'left:-100000px',
-    'top:0',
-    `width:${paperW}px`,
-    `height:${Math.max(paperH + 80, 1200)}px`,
-    'border:0',
-    'margin:0',
-    'padding:0',
-    'opacity:0',
-    'pointer-events:none',
-    'visibility:hidden',
-    'z-index:-1',
-    'background:#fff',
-  ].join(';');
-  document.body.appendChild(iframe);
-  const doc = iframe.contentDocument;
-  if (!doc) throw new Error('无法创建截图沙箱');
-  doc.open();
-  doc.write(
-    `<!DOCTYPE html><html><head><base href="${origin}/"><meta charset="utf-8"/></head><body style="margin:0;padding:0;background:#fff;"><div id="snap-root"></div></body></html>`,
-  );
-  doc.close();
-  for (const node of Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))) {
-    doc.head.appendChild(node.cloneNode(true));
-  }
-  doc.documentElement.className = document.documentElement.className;
-  doc.documentElement.dataset.theme = 'light';
-  delete doc.documentElement.dataset.prefersColorScheme;
-  doc.documentElement.style.colorScheme = 'light';
-  const rootEl = doc.getElementById('snap-root');
-  if (!rootEl) throw new Error('截图沙箱根节点缺失');
-  return { iframe, doc, rootEl };
-}
+/** 屏外 host：复用主文档样式，强制浅色；宽高由内容撑开 */
+const SNAP_HOST_STYLE = [
+  'position:fixed',
+  'left:-100000px',
+  'top:0',
+  'z-index:-1',
+  'overflow:visible',
+  'opacity:1',
+  'pointer-events:none',
+  'width:max-content',
+  'background:#fff',
+  'color-scheme:light',
+].join(';');
 
 async function withResumeSnapMount<T>(
   opts: {
@@ -339,20 +310,29 @@ async function withResumeSnapMount<T>(
   },
   run: (pageEls: HTMLElement[]) => Promise<T>,
 ): Promise<T> {
-  const { width, height } = globalStylePageDimensions(opts.gs);
+  const { width } = globalStylePageDimensions(opts.gs);
   const paperW = Math.max(320, Math.round(cssLengthToPx(width)));
-  const paperH = Math.max(320, Math.round(cssLengthToPx(height)));
-  const { iframe, doc, rootEl } = openResumeSnapFrame(paperW, paperH, opts.origin);
-  const fontStyle = doc.createElement('style');
+  const host = document.createElement('div');
+  host.setAttribute('data-resume-image-export-host', '');
+  host.setAttribute('aria-hidden', 'true');
+  host.dataset.theme = 'light';
+  host.style.cssText = SNAP_HOST_STYLE;
+  document.body.appendChild(host);
+
+  const fontStyle = document.createElement('style');
+  fontStyle.setAttribute('data-resume-snap-font', '');
   fontStyle.textContent = resumeExportFontFacesCss(opts.origin, opts.gs.resumeFont);
-  doc.head.appendChild(fontStyle);
-  await preloadResumeFontsForSnap(opts.origin, opts.gs.resumeFont ?? 'system', doc);
-  const root = createRoot(rootEl);
+  host.appendChild(fontStyle);
+
+  await preloadResumeFontsForSnap(opts.origin, opts.gs.resumeFont ?? 'system');
+  const mount = document.createElement('div');
+  host.appendChild(mount);
+  const root = createRoot(mount);
   try {
     flushSync(() => {
       root.render(
         <NextIntlClientProvider locale={opts.locale} messages={opts.messages}>
-          <div style={{ width: paperW, background: '#fff' }}>
+          <div style={{ width: paperW, background: '#fff', colorScheme: 'light' }}>
             {opts.render === 'print' ? (
               <ResumePrintView
                 config={opts.config}
@@ -373,28 +353,14 @@ async function withResumeSnapMount<T>(
       );
     });
     await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
-    const pageEls = Array.from(
-      iframe.contentDocument?.querySelectorAll<HTMLElement>('[data-resume-export-page]') ?? [],
-    );
+    const pageEls = Array.from(host.querySelectorAll<HTMLElement>('[data-resume-export-page]'));
     if (!pageEls.length) throw new Error('导出 Page 未渲染');
     for (const el of pageEls) forcePagePaperSize(el, opts.gs);
     await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
-    // 仅 continuous 长图撑高 iframe；定高纸面（PDF 分页 / 缩略图）保持原框
-    const continuousEls = pageEls.filter((el) => el.hasAttribute('data-resume-export-continuous'));
-    if (continuousEls.length) {
-      const contentH = Math.max(
-        ...continuousEls.map((el) => Math.ceil(el.scrollHeight || el.offsetHeight || 0)),
-        0,
-      );
-      if (contentH > 0) {
-        iframe.style.height = `${Math.max(paperH + 80, contentH + 48, 1200)}px`;
-        await new Promise<void>((r) => requestAnimationFrame(() => r()));
-      }
-    }
     return await run(pageEls);
   } finally {
     root.unmount();
-    iframe.remove();
+    host.remove();
   }
 }
 
