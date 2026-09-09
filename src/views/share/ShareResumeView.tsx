@@ -139,7 +139,7 @@ function ShareResumeFrame({ config }: { config: unknown }) {
             ...(size.h ? undefined : { minHeight: 200 }),
           }}
         >
-          <ResumeImageExportPage config={config} />
+          <ResumeImageExportPage config={config} continuous />
         </div>
       </div>
     </div>

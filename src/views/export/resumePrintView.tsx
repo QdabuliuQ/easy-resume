@@ -210,6 +210,7 @@ export default function ResumePrintView({
           key='continuous'
           config={cfg}
           assetOrigin={assetOrigin}
+          continuous
         />,
       ];
     }

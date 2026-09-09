@@ -12,15 +12,21 @@ import { renderResumePageModules } from '@/views/edit/components/canvas/renderRe
 export type ResumeImageExportPageProps = {
   config: unknown;
   assetOrigin?: string;
-  /** full：整份打平；firstPage：仅首页模块。均为定高 A4 纸面，非 continuous 长图 */
+  /** full：整份打平；firstPage：仅首页模块 */
   mode?: 'full' | 'firstPage';
+  /**
+   * 高度随内容撑开（导出 JPEG 长图 / 分享预览）。
+   * 默认 false，避免影响 PDF 分页、模板缩略图等定高纸面路径。
+   */
+  continuous?: boolean;
 };
 
-/** 图片导出：由 clientSnap 挂载后截图（固定纸张比例，默认 A4） */
+/** 图片导出 / 分享预览：由 clientSnap 或分享页挂载 */
 export default function ResumeImageExportPage({
   config,
   assetOrigin = '',
   mode = 'full',
+  continuous = false,
 }: ResumeImageExportPageProps) {
   const cfg = config as Record<string, unknown>;
   const gs = useMemo(
@@ -51,6 +57,7 @@ export default function ResumeImageExportPage({
         {...printGs}
         firstPage
         exportPage
+        continuous={continuous}
         sideSlot={sideSlot}
       >
         {main}

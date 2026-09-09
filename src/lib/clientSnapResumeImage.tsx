@@ -365,6 +365,7 @@ async function withResumeSnapMount<T>(
                 config={opts.config}
                 assetOrigin={opts.origin}
                 mode={opts.mode ?? 'full'}
+                continuous={(opts.mode ?? 'full') === 'full'}
               />
             )}
           </div>
@@ -378,6 +379,18 @@ async function withResumeSnapMount<T>(
     if (!pageEls.length) throw new Error('导出 Page 未渲染');
     for (const el of pageEls) forcePagePaperSize(el, opts.gs);
     await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+    // 仅 continuous 长图撑高 iframe；定高纸面（PDF 分页 / 缩略图）保持原框
+    const continuousEls = pageEls.filter((el) => el.hasAttribute('data-resume-export-continuous'));
+    if (continuousEls.length) {
+      const contentH = Math.max(
+        ...continuousEls.map((el) => Math.ceil(el.scrollHeight || el.offsetHeight || 0)),
+        0,
+      );
+      if (contentH > 0) {
+        iframe.style.height = `${Math.max(paperH + 80, contentH + 48, 1200)}px`;
+        await new Promise<void>((r) => requestAnimationFrame(() => r()));
+      }
+    }
     return await run(pageEls);
   } finally {
     root.unmount();
