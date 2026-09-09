@@ -55,6 +55,10 @@ describe('prepareItemHeaderRowsForSnap', () => {
     expect(left.style.display).toBe('block');
     expect(left.style.minWidth).toBe('0');
     expect(left.style.flex).toBe('1 1 0%');
+    expect(left.style.wordBreak).toBe('keep-all');
+    expect(left.style.overflowWrap).toBe('normal');
+    const major = left.querySelector('[data-item-id="edu_0_major"]') as HTMLElement;
+    expect(major.style.whiteSpace).toBe('nowrap');
     expect(right.style.flexShrink).toBe('0');
     expect(right.style.whiteSpace).toBe('nowrap');
   });

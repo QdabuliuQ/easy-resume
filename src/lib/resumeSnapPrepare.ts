@@ -74,14 +74,18 @@ function hardenItemHeaderRow(row: HTMLElement) {
   left.style.minWidth = '0';
   left.style.flex = '1 1 0%';
   left.style.maxWidth = '100%';
-  left.style.overflowWrap = 'anywhere';
-  left.style.wordBreak = 'break-word';
+  // anywhere/break-word 会把「计算机科学与技术」拆到「术」单独掉行首
+  left.style.overflowWrap = 'normal';
+  left.style.wordBreak = 'keep-all';
   if (left.classList.contains('flex') || left.classList.contains('flex-wrap')) {
     left.style.display = 'block';
     Array.from(left.children).forEach((c) => {
       const child = c as HTMLElement;
       child.style.display = 'inline';
       child.style.verticalAlign = 'baseline';
+      child.style.whiteSpace = 'nowrap';
+      child.style.wordBreak = 'keep-all';
+      child.style.overflowWrap = 'normal';
       if (!child.style.marginRight) child.style.marginRight = '10px';
     });
   }
