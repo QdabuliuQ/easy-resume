@@ -210,6 +210,9 @@ export async function preloadResumeFontsForSnap(
   const fid = resumeFontForExport(font);
   const family = resumePrimaryFontFamily(fid);
   const entries = resumeSnapLocalFonts(origin, fid);
+  // ponytail: never register export FontFaces on the editor document — same family
+  // name replaces unicode-range UI faces and flashes the canvas.
+  const isolate = targetDoc !== document;
   await Promise.all(
     entries.map(async (f) => {
       let buf = snapFontBufCache.get(f.src);
@@ -219,14 +222,19 @@ export async function preloadResumeFontsForSnap(
         buf = await res.arrayBuffer();
         snapFontBufCache.set(f.src, buf);
       }
+      if (!isolate) return;
+      const key = `${family}-${f.weight}-isolated`;
+      if (snapFontPreloaded.has(key)) return;
       const face = new FontFace(family, buf.slice(0), {
         weight: String(f.weight),
         style: f.style,
       });
       await face.load();
       targetDoc.fonts.add(face);
+      snapFontPreloaded.add(key);
     }),
   );
+  if (!isolate) return;
   const weights = [400, 700] as const;
   await Promise.all(weights.map((w) => targetDoc.fonts.load(`${w} 16px "${family}"`)));
 }

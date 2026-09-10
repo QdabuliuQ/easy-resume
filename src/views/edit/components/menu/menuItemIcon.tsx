@@ -1,11 +1,9 @@
-import {
-  AppstoreOutlined,
-  FileTextOutlined,
-  ProfileOutlined,
-  SettingOutlined,
-  SlidersOutlined,
-  UploadOutlined,
-} from '@ant-design/icons';
+import AppstoreOutlined from '@ant-design/icons/AppstoreOutlined';
+import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
+import ProfileOutlined from '@ant-design/icons/ProfileOutlined';
+import SettingOutlined from '@ant-design/icons/SettingOutlined';
+import SlidersOutlined from '@ant-design/icons/SlidersOutlined';
+import UploadOutlined from '@ant-design/icons/UploadOutlined';
 import { EditTwo, Magic, Peoples, Scanning } from '@icon-park/react';
 import AiToolsIcon from './AiToolsIcon';
 

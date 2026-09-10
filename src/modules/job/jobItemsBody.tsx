@@ -6,6 +6,7 @@ import type { GlobalStyle } from '../utils/common.type';
 import SafeText from '../shared/safeText';
 
 export interface JobItemLike {
+  id?: string;
   company?: string;
   post?: string;
   department?: string;
@@ -33,6 +34,8 @@ export default function JobItemsBody({
   return (
     <div className='min-w-0 w-full'>
       {items.map((item, index) => {
+        const hasStableId = typeof item.id === 'string' && item.id.trim().length > 0;
+        const itemId = hasStableId ? item.id!.trim() : String(index);
         const company = typeof item.company === 'string' ? item.company : '';
         const post = typeof item.post === 'string' ? item.post : '';
         const department = typeof item.department === 'string' ? item.department : '';
@@ -48,20 +51,20 @@ export default function JobItemsBody({
 
         return (
           <div
-            key={`${index}-${company}-${startDate}-${endDate}`}
+            key={itemId}
             className='min-w-0 w-full text-black not-last:mb-[10px]'
             style={{ fontSize: fontSize + 'px' }}
           >
             <div className='mb-[5px] flex min-w-0 justify-between gap-2' {...{ [RESUME_ITEM_ROW_ATTR]: '' }}>
               <div className='min-w-0 flex-[5] break-words font-bold'>
-                <SafeText text={company} selectable={selectable} dataItemId={`${moduleId}_${index}_company`} />
+                <SafeText text={company} selectable={selectable} dataItemId={`${moduleId}_${itemId}_company`} />
               </div>
               {dateText && (
                 <div className='shrink-0 text-right whitespace-nowrap'>
                   <SafeText
                     text={dateText}
                     selectable={selectable}
-                    dataItemId={`${moduleId}_${index}_date`}
+                    dataItemId={`${moduleId}_${itemId}_date`}
                   />
                 </div>
               )}
@@ -69,19 +72,19 @@ export default function JobItemsBody({
             {(post || department || city) && (
               <div className='mb-[5px] flex min-w-0 justify-between gap-2' {...{ [RESUME_ITEM_ROW_ATTR]: '' }}>
                 <div className='min-w-0 flex-[6] break-words'>
-                  <SafeText text={post} selectable={selectable} dataItemId={`${moduleId}_${index}_post`} />
+                  <SafeText text={post} selectable={selectable} dataItemId={`${moduleId}_${itemId}_post`} />
                   <SafeText
                     text={department}
                     selectable={selectable}
                     className={post && department ? 'ml-1' : undefined}
-                    dataItemId={`${moduleId}_${index}_department`}
+                    dataItemId={`${moduleId}_${itemId}_department`}
                   />
                 </div>
                 <div className='shrink-0 text-right'>
                   <SafeText
                     text={normalizeResumeCityDisplay(city)}
                     selectable={selectable}
-                    dataItemId={`${moduleId}_${index}_city`}
+                    dataItemId={`${moduleId}_${itemId}_city`}
                   />
                 </div>
               </div>
@@ -91,7 +94,7 @@ export default function JobItemsBody({
               fontSize={fontSize}
               lineHeight={lineHeight}
               selectable={selectable}
-              dataItemId={`${moduleId}_${index}_description`}
+              dataItemId={`${moduleId}_${itemId}_description`}
             />
           </div>
         );

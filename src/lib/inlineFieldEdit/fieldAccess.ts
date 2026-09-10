@@ -17,8 +17,13 @@ export function findModuleLoc(moduleId: string): ModuleLoc | null {
   return null;
 }
 
-function itemRecord(module: any, index: number) {
-  return module?.options?.items?.[index] ?? null;
+function itemRecord(module: any, target: ParsedItemTarget) {
+  const items = module?.options?.items;
+  if (!Array.isArray(items)) return null;
+  if (target.itemId) {
+    return items.find((item: any) => item?.id === target.itemId) ?? null;
+  }
+  return target.optionIndex == null ? null : items[target.optionIndex] ?? null;
 }
 
 export function readInlineField(
@@ -42,7 +47,7 @@ export function readInlineField(
     return module.options?.description ?? '';
   }
 
-  const item = target.optionIndex == null ? null : itemRecord(module, target.optionIndex);
+  const item = itemRecord(module, target);
   if (!item) return '';
 
   if (kind === 'date') {
@@ -71,41 +76,34 @@ export function writeInlineField(
 ) {
   const source = configStore.getConfig;
   if (!source) return;
-  const config = JSON.parse(JSON.stringify(source));
-  const module = config.pages[loc.page].modules[loc.module];
+  const module = source.pages?.[loc.page]?.modules?.[loc.module];
   const field = target.field;
-  if (!field) return;
+  if (!field || !module) return;
 
   if (moduleType === 'info1') {
-    if (kind === 'salary' && Array.isArray(value)) {
-      module.options.expectedSalary = value;
-    } else {
-      module.options[field] = value;
-    }
-    configStore.setConfig({ ...config, pages: [...config.pages] });
+    configStore.updateModuleField(module.id, kind === 'salary' ? 'expectedSalary' : field, value);
     return;
   }
 
   if (moduleType === 'skill' || moduleType === 'other') {
-    module.options.description = value;
-    configStore.setConfig({ ...config, pages: [...config.pages] });
+    configStore.updateModuleField(module.id, 'description', value);
     return;
   }
 
-  const item = target.optionIndex == null ? null : itemRecord(module, target.optionIndex);
-  if (!item) return;
-
+  const item = itemRecord(module, target);
+  if (!item || !item.id) return;
   if (kind === 'date') {
-    item.date = value;
+    configStore.updateModuleField(module.id, ['items', item.id, 'date'], value);
   } else if (kind === 'dateRange') {
     const v = value as { startDate?: string; endDate?: string };
-    item.startDate = v.startDate ?? '';
-    item.endDate = v.endDate ?? '';
+    configStore.updateModuleField(module.id, ['items', item.id], (current) => ({
+      ...(current as Record<string, unknown>),
+      startDate: v.startDate ?? '',
+      endDate: v.endDate ?? '',
+    }));
   } else if (kind === 'cascader' && field === 'city') {
-    item.city = Array.isArray(value) ? value.join(' - ') : value;
+    configStore.updateModuleField(module.id, ['items', item.id, 'city'], Array.isArray(value) ? value.join(' - ') : value);
   } else {
-    item[field] = value;
+    configStore.updateModuleField(module.id, ['items', item.id, field], value);
   }
-
-  configStore.setConfig({ ...config, pages: [...config.pages] });
 }

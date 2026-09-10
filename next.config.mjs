@@ -17,6 +17,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   experimental: {
+    optimizePackageImports: ['antd', '@ant-design/icons'],
     instrumentationHook: true,
     serverComponentsExternalPackages: [
       'puppeteer',

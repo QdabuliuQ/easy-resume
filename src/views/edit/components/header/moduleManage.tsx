@@ -1,5 +1,7 @@
 'use client';
-import { DeleteOutlined, LockOutlined, RightOutlined } from '@ant-design/icons';
+import DeleteOutlined from '@ant-design/icons/DeleteOutlined';
+import LockOutlined from '@ant-design/icons/LockOutlined';
+import RightOutlined from '@ant-design/icons/RightOutlined';
 import {
   DndContext,
   type DragEndEvent,

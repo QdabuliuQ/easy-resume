@@ -1,6 +1,6 @@
 'use client';
 import FormItem from '@/components/formItem';
-import { FileDoneOutlined } from '@ant-design/icons';
+import FileDoneOutlined from '@ant-design/icons/FileDoneOutlined';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { Col, Empty, Form, Input, Row } from 'antd';
 import { useAppMessage } from '@/hooks/useAppMessage';
@@ -22,47 +22,44 @@ import {
 } from '@/utils/moduleTypeLimits';
 import { useTranslations } from 'next-intl';
 import { ensureResumeModuleItemsId, makeResumeItemId } from '@/utils/createResumeModule';
+import { clonePlain } from '@/utils/clonePlain';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
 function Certificate({ moduleId }: { moduleId?: string } = {}) {
   const message = useAppMessage();
   const tc = useTranslations('Edit.certificate');
-  const { getModule, getModuleIndex } = useModuleHandle();
+  const { getModule } = useModuleHandle();
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<CertificateProps | null>(null);
   const gradId = useId().replace(/:/g, '');
-  const pid = useMemoizedFn((index: number, key: string) => `${moduleActive}_${index}_${key}`);
+  const pid = useMemoizedFn((itemId: string, key: string) => `${moduleActive}_${itemId}_${key}`);
 
   useEffect(() => {
     const m = getModule(moduleActive);
     if (m) {
-      setModule(ensureResumeModuleItemsId(JSON.parse(JSON.stringify(m)) as CertificateProps));
+      setModule(ensureResumeModuleItemsId(clonePlain(m) as CertificateProps));
     } else {
       setModule(null);
     }
   }, [moduleActive, getModule]);
 
   const { run } = useDebounceFn(
-    (mod: CertificateProps) => {
-      const res = getModuleIndex(moduleActive);
-      if (!res) return;
-      const config = JSON.parse(JSON.stringify(configStore.getConfig));
-      if (!config) return;
-      config.pages[res.page].modules[res.module] = JSON.parse(JSON.stringify(mod));
-      configStore.setConfig({
-        ...config,
-        pages: [...config.pages],
-      });
+    (targetModuleId: string, mod: CertificateProps) => {
+      configStore.updateModuleField(targetModuleId, 'items', mod.options.items);
     },
-    { wait: 100 }
+    { wait: 200 }
   );
 
-  const updateModule = useMemoizedFn((mod: CertificateProps) => {
-    const _module = JSON.parse(JSON.stringify(mod));
-    setModule(_module);
-    run(_module);
+  const commitModule = useMemoizedFn((next: CertificateProps) => {
+    setModule(next);
+    run(moduleActive, next);
+  });
+
+  const commitItems = useMemoizedFn((items: CertificateProps['options']['items']) => {
+    if (!module) return;
+    commitModule({ ...module, options: { ...module.options, items } });
   });
 
   const addCertificate = useMemoizedFn(() => {
@@ -71,46 +68,50 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
       message.warning(resumeModuleItemLimitMessage('certificate'));
       return;
     }
-    module.options.items.unshift({
-      id: makeResumeItemId(),
-      name: tc('moduleName'),
-      date: '2020-01-01',
-    });
-    updateModule(module);
+    commitItems([
+      {
+        id: makeResumeItemId(),
+        name: tc('moduleName'),
+        date: '2020-01-01',
+      },
+      ...module.options.items,
+    ]);
   });
 
   const handleChange = useMemoizedFn(
     (index: number, key: string, value: any) => {
       if (!module) return;
-      if (key === 'name') {
-        module.options.items[index][key] = value.target.value;
-      } else if (key === 'date') {
-        module.options.items[index][key] = value.format('YYYY-MM-DD');
-      }
-      updateModule(module);
+      const nextVal =
+        key === 'name'
+          ? value.target.value
+          : key === 'date'
+            ? value.format('YYYY-MM-DD')
+            : value;
+      commitItems(
+        module.options.items.map((item, i) =>
+          i === index ? { ...item, [key]: nextVal } : item,
+        ),
+      );
     }
   );
 
   const handleDelete = useMemoizedFn((index: number) => {
     if (!module) return;
-    module.options.items.splice(index, 1);
-    updateModule(module);
+    commitItems(module.options.items.filter((_, i) => i !== index));
   });
 
   const handleUp = useMemoizedFn((index: number) => {
-    if (!module) return;
-    const item = module.options.items[index];
-    module.options.items[index] = module.options.items[index - 1];
-    module.options.items[index - 1] = item;
-    updateModule(module);
+    if (!module || index <= 0) return;
+    const items = module.options.items.slice();
+    [items[index - 1], items[index]] = [items[index], items[index - 1]];
+    commitItems(items);
   });
 
   const handleDown = useMemoizedFn((index: number) => {
-    if (!module) return;
-    const item = module.options.items[index];
-    module.options.items[index] = module.options.items[index + 1];
-    module.options.items[index + 1] = item;
-    updateModule(module);
+    if (!module || index >= module.options.items.length - 1) return;
+    const items = module.options.items.slice();
+    [items[index], items[index + 1]] = [items[index + 1], items[index]];
+    commitItems(items);
   });
 
   const handleCopy = useMemoizedFn((index: number) => {
@@ -119,10 +120,10 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
       message.warning(resumeModuleItemLimitMessage('certificate'));
       return;
     }
-    const copy = JSON.parse(JSON.stringify(module.options.items[index]));
-    copy.id = makeResumeItemId();
-    module.options.items.splice(index, 0, copy);
-    updateModule(module);
+    const copy = { ...clonePlain(module.options.items[index]), id: makeResumeItemId() };
+    const items = module.options.items.slice();
+    items.splice(index, 0, copy);
+    commitItems(items);
   });
 
   const iconGradId = `certificate-icon-grad-${gradId}`;
@@ -172,8 +173,10 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
-              module.options.title = next;
-              updateModule(module);
+              commitModule({
+                ...module,
+                options: { ...module.options, title: next },
+              });
             }}
           />
         </div>
@@ -192,9 +195,9 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
               <div className='flex max-h-[200px] flex-col gap-1.5 overflow-y-auto'>
                 {module.options.items
                   .slice(0, 12)
-                  .map((item: any, i: number) => (
+                  .map((item: any) => (
                     <div
-                      key={i}
+                      key={item.id}
                       className='break-all text-[13px] text-fg/75'
                     >
                       {item.name || '—'} · {item.date || '—'}
@@ -219,7 +222,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
             <div className='mb-[10px] flex flex-col items-end'>
               {module.options.items.map((item: any, index: number) => (
                 <div
-                  key={index}
+                  key={item.id}
                   className='panel-item-shell flex w-full flex-col items-end'
                 >
                   <Form layout='vertical' className='w-full'>
@@ -239,7 +242,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                           <Input
                             maxLength={30}
                             value={item.name}
-                            data-panel-item-id={pid(index, 'name')}
+                            data-panel-item-id={pid(item.id, 'name')}
                             placeholder={tc('namePh')}
                             onChange={(e) => handleChange(index, 'name', e)}
                           />
@@ -257,7 +260,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
                             />
                           }
                         >
-                          <div data-panel-item-id={pid(index, 'date')}>
+                          <div data-panel-item-id={pid(item.id, 'date')}>
                             <ResponsiveDatePicker
                               style={{ width: '100%' }}
                               value={dayjs(item.date)}

@@ -30,6 +30,19 @@ describe('configStore undo/redo', () => {
   });
 
   describe('setConfig user edits', () => {
+    it('updates a nested item field without replacing unrelated modules', () => {
+      const module = configStore.getConfig.pages
+        .flatMap((page: any) => page.modules)
+        .find((item: any) => item.type === 'job');
+      expect(module).toBeTruthy();
+      const itemId = module.options.items[0]?.id;
+      if (!itemId) return;
+      const beforeOther = configStore.getConfig.pages[0].modules.find((item: any) => item.type !== 'job');
+      expect(configStore.updateModuleField(module.id, ['items', itemId, 'company'], 'Updated')).toBe(true);
+      expect(configStore.getConfig.pages.flatMap((page: any) => page.modules).find((item: any) => item.id === module.id).options.items[0].company).toBe('Updated');
+      expect(configStore.getConfig.pages[0].modules.find((item: any) => item.id === beforeOther.id)).toBe(beforeOther);
+    });
+
     it('undoes and redoes a single edit', () => {
       const base = cloneResume();
       base.name = configStore.getConfig.name;
@@ -238,6 +251,18 @@ describe('configStore undo/redo', () => {
       expect(configStore.historyRevision).toBe(rev + 1);
       configStore.redo();
       expect(configStore.historyRevision).toBe(rev + 2);
+    });
+  });
+
+  describe('patchGlobalStyle', () => {
+    it('patches globalStyle without replacing pages array reference', () => {
+      const pagesBefore = configStore.getConfig.pages;
+      configStore.patchGlobalStyle({ fontSize: 18 }, { immediate: true });
+      expect(configStore.getConfig.globalStyle.fontSize).toBe(18);
+      expect(configStore.getConfig.pages).toBe(pagesBefore);
+      expect(configStore.canUndo).toBe(true);
+      configStore.undo();
+      expect(configStore.mergedGlobalStyle.fontSize).toBe(defaultResume.globalStyle.fontSize);
     });
   });
 });

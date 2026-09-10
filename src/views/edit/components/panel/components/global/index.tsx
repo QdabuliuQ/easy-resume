@@ -61,12 +61,8 @@ function Global() {
   );
 
   const { run: handleChange } = useDebounceFn(
-    (value: number, key: string) => {
-      global[key] = value;
-      configStore.setConfig({
-        ...configStore.getConfig,
-        globalStyle: global,
-      });
+    (value: number | string, key: string) => {
+      configStore.patchGlobalStyle({ [key]: value });
     },
     { wait: 100 }
   );
@@ -221,11 +217,7 @@ function Global() {
                   style={{ width: '100%' }}
                   options={RESUME_PAGE_SIZE_OPTIONS}
                   onChange={(v) => {
-                    global.pageSize = v;
-                    configStore.setConfig({
-                      ...configStore.getConfig,
-                      globalStyle: global,
-                    });
+                    configStore.patchGlobalStyle({ pageSize: v });
                   }}
                 />
               </FormItem>
@@ -240,11 +232,7 @@ function Global() {
                   style={{ width: '100%' }}
                   options={headerStyleOptions}
                   onChange={(v) => {
-                    global.headerType = v;
-                    configStore.setConfig({
-                      ...configStore.getConfig,
-                      globalStyle: global,
-                    });
+                    configStore.patchGlobalStyle({ headerType: v });
                   }}
                 />
               </FormItem>

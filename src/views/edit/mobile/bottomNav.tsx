@@ -1,6 +1,8 @@
 'use client';
 
-import { AppstoreOutlined, ExportOutlined, EyeOutlined } from '@ant-design/icons';
+import AppstoreOutlined from '@ant-design/icons/AppstoreOutlined';
+import ExportOutlined from '@ant-design/icons/ExportOutlined';
+import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import { observer } from 'mobx-react';
 import { useTranslations } from 'next-intl';
 import { memo } from 'react';

@@ -181,12 +181,15 @@ export default function ResumePrintView({
   assetOrigin = '',
   exportMode = 'pdf',
   snapTarget = false,
+  injectFonts = true,
 }: {
   config: unknown;
   assetOrigin?: string;
   exportMode?: 'pdf' | 'image';
   /** 客户端 snap 截图：Page 使用 px 尺寸 */
   snapTarget?: boolean;
+  /** 编辑页离屏导出关闭，避免 @font-face 污染画布 */
+  injectFonts?: boolean;
 }) {
   const cfg = config as Record<string, unknown>;
   const gs = useMemo(() => mergeGs(cfg as { globalStyle?: Partial<GlobalStyle> }), [cfg]);
@@ -211,6 +214,7 @@ export default function ResumePrintView({
           config={cfg}
           assetOrigin={assetOrigin}
           continuous
+          injectFonts={injectFonts}
         />,
       ];
     }
@@ -234,7 +238,7 @@ export default function ResumePrintView({
           effectiveHeight,
           snapTarget,
         );
-  }, [exportMode, cfg, printGs, assetOrigin, info1Side, effectiveHeight, snapTarget]);
+  }, [exportMode, cfg, printGs, assetOrigin, info1Side, effectiveHeight, snapTarget, injectFonts]);
   const bg = gs.backgroundColor ?? '#fff';
   const pageDims = globalStylePageDimensions(gs);
   const pageBreakCss =
@@ -253,7 +257,9 @@ html, body { margin: 0; padding: 0; }
       className='png-page export-print-root'
       style={{ background: bg, margin: 0, padding: 0 }}
     >
-      <ExportPrintFonts font={gs.resumeFont} assetOrigin={assetOrigin} />
+      {injectFonts ? (
+        <ExportPrintFonts font={gs.resumeFont} assetOrigin={assetOrigin} />
+      ) : null}
       {pageBreakCss ? (
         <style dangerouslySetInnerHTML={{ __html: pageBreakCss }} />
       ) : null}

@@ -1,14 +1,12 @@
 'use client';
 import Image from 'next/image';
-import {
-  CheckCircleFilled,
-  CloudDownloadOutlined,
-  CloudOutlined,
-  EyeOutlined,
-  FileTextOutlined,
-  LoadingOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons';
+import CheckCircleFilled from '@ant-design/icons/CheckCircleFilled';
+import CloudDownloadOutlined from '@ant-design/icons/CloudDownloadOutlined';
+import CloudOutlined from '@ant-design/icons/CloudOutlined';
+import EyeOutlined from '@ant-design/icons/EyeOutlined';
+import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
+import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
+import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import { DeleteOne } from '@icon-park/react';
 import { Button, Tooltip } from 'antd';
 import { observer } from 'mobx-react';

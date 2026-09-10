@@ -1,6 +1,8 @@
 'use client';
 
-import { ProfileOutlined, SettingOutlined, SlidersOutlined } from '@ant-design/icons';
+import ProfileOutlined from '@ant-design/icons/ProfileOutlined';
+import SettingOutlined from '@ant-design/icons/SettingOutlined';
+import SlidersOutlined from '@ant-design/icons/SlidersOutlined';
 import { useTranslations } from 'next-intl';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AiToolsIcon from '../components/menu/AiToolsIcon';

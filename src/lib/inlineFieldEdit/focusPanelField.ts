@@ -2,6 +2,7 @@ import { moduleActiveStore } from '@/mobx';
 import { scrollElementIntoScrollParent } from '@/utils/scrollIntoScrollParent';
 import type { ParsedItemTarget } from '@/lib/inlineFieldEdit/parseItemTarget';
 import { focusFieldControlInHolder } from '@/lib/inlineFieldEdit/focusFieldControl';
+import { armSkipPanelModuleSectionScroll } from '@/lib/inlineFieldEdit/selectionScrollGuard';
 
 export function focusPanelFieldByItemId(itemId: string) {
   const sel = `[data-panel-item-id="${CSS.escape(itemId)}"]`;
@@ -28,6 +29,7 @@ export function focusPanelFieldByItemId(itemId: string) {
 }
 
 export function focusPanelByParsedTarget(itemId: string, target: ParsedItemTarget) {
+  armSkipPanelModuleSectionScroll();
   if (moduleActiveStore.getModuleActive !== target.moduleId) {
     moduleActiveStore.setModuleActive(target.moduleId);
   }

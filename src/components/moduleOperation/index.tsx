@@ -30,6 +30,10 @@ import {
 import {
   focusPanelByParsedTarget,
 } from '@/lib/inlineFieldEdit/focusPanelField';
+import {
+  armSkipPanelModuleSectionScroll,
+  markCanvasFieldCentered,
+} from '@/lib/inlineFieldEdit/selectionScrollGuard';
 import { PAGE_STACK_GAP_PX } from '@/views/edit/components/canvas/pageStackGap';
 import { moduleSlotEl } from '@/lib/resumeModuleSlotDom';
 import bracketStyles from './bracket.module.css';
@@ -94,6 +98,7 @@ function ModuleOperation({
   const { confirm } = useResponsiveConfirm();
   const { removeModuleFromConfig, reorderFlattenedModules } = useModuleHandle();
   const hostRef = useRef<HTMLDivElement>(null);
+  const skipNextModuleScrollRef = useRef(false);
   const canvasScale = useCanvasScale();
   const activeId = moduleActiveStore.getModuleActive;
   const [toolbarBox, setToolbarBox] = useState<ToolbarBox>(HIDDEN_TOOLBAR);
@@ -178,7 +183,15 @@ function ModuleOperation({
     if (!host || id === 'global') return;
     const el = findModuleRoot(host, id);
     if (!el) return;
-    afterReorder(() => scrollElementIntoScrollParent(el, 'smooth'));
+    afterReorder(() =>
+      scrollElementIntoScrollParent(el, 'smooth', { align: 'center' }),
+    );
+  });
+
+  const scrollCanvasFieldIntoView = useMemoizedFn((el: HTMLElement) => {
+    afterReorder(() =>
+      scrollElementIntoScrollParent(el, 'smooth', { align: 'center' }),
+    );
   });
 
   const refreshAfterModuleChange = useMemoizedFn(() => {
@@ -263,7 +276,11 @@ function ModuleOperation({
     const prev = prevActiveIdRef.current;
     const next = activeId;
     const hadModule = prev !== 'global';
-    if (next !== 'global' && prev !== next) scrollActiveModuleIntoView();
+    const skipModuleScroll = skipNextModuleScrollRef.current;
+    skipNextModuleScrollRef.current = false;
+    if (next !== 'global' && prev !== next && !skipModuleScroll) {
+      scrollActiveModuleIntoView();
+    }
     if (next === 'global') setToolbarOpacity(0);
     else if (!hadModule) {
       setToolbarOpacity(0);
@@ -281,6 +298,12 @@ function ModuleOperation({
         orderedModules.map((m) => m.id),
       );
       if (parsed) {
+        if (itemNode instanceof HTMLElement) {
+          skipNextModuleScrollRef.current = true;
+          armSkipPanelModuleSectionScroll();
+          markCanvasFieldCentered(itemId);
+          scrollCanvasFieldIntoView(itemNode);
+        }
         moduleActiveStore.setModuleActive(parsed.moduleId);
         if (fieldEditMode === 'panel') {
           onModuleActivated?.();

@@ -1,5 +1,5 @@
 'use client';
-import { DeleteOutlined } from '@ant-design/icons';
+import DeleteOutlined from '@ant-design/icons/DeleteOutlined';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useMemoizedFn } from 'ahooks';
 import { useTranslations } from 'next-intl';

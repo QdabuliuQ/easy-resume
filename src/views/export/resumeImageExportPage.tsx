@@ -19,6 +19,11 @@ export type ResumeImageExportPageProps = {
    * 默认 false，避免影响 PDF 分页、模板缩略图等定高纸面路径。
    */
   continuous?: boolean;
+  /**
+   * 注入完整 @font-face。编辑页离屏导出应关闭，避免同名字体污染画布闪烁；
+   * 分享页 / 服务端打印默认开启。
+   */
+  injectFonts?: boolean;
 };
 
 /** 图片导出 / 分享预览：由 clientSnap 或分享页挂载 */
@@ -27,6 +32,7 @@ export default function ResumeImageExportPage({
   assetOrigin = '',
   mode = 'full',
   continuous = false,
+  injectFonts = true,
 }: ResumeImageExportPageProps) {
   const cfg = config as Record<string, unknown>;
   const gs = useMemo(
@@ -52,7 +58,7 @@ export default function ResumeImageExportPage({
   });
   return (
     <div style={{ colorScheme: 'light', width: 'fit-content' }}>
-      <ExportPrintFonts font={gs.resumeFont} assetOrigin={origin} />
+      {injectFonts ? <ExportPrintFonts font={gs.resumeFont} assetOrigin={origin} /> : null}
       <Page
         {...printGs}
         firstPage

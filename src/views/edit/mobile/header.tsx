@@ -2,15 +2,14 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  DownOutlined,
-  EditOutlined,
-  GithubOutlined,
-  LoadingOutlined,
-  RedoOutlined,
-  UndoOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
+import dynamic from 'next/dynamic';
+import DownOutlined from '@ant-design/icons/DownOutlined';
+import EditOutlined from '@ant-design/icons/EditOutlined';
+import GithubOutlined from '@ant-design/icons/GithubOutlined';
+import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
+import RedoOutlined from '@ant-design/icons/RedoOutlined';
+import UndoOutlined from '@ant-design/icons/UndoOutlined';
+import UserOutlined from '@ant-design/icons/UserOutlined';
 import { Copy, SaveOne, Share } from '@icon-park/react';
 import { observer } from 'mobx-react';
 import { useSession } from 'next-auth/react';
@@ -26,7 +25,11 @@ import { localePath } from '@/lib/device';
 import { logo } from '@/lib/brandAssets';
 import { signInPreservingResume } from '@/lib/signInPreservingResume';
 import { useEditHistory } from '@/views/edit/hooks/useEditHistory';
-import ShareResumeModal from '@/views/edit/components/header/ShareResumeModal';
+
+const ShareResumeModal = dynamic(
+  () => import('@/views/edit/components/header/ShareResumeModal'),
+  { ssr: false },
+);
 
 function MobileEditHeader() {
   const t = useTranslations('Edit.header');
@@ -326,7 +329,7 @@ function MobileEditHeader() {
           className='pointer-events-auto !h-8 !w-8 !min-w-8 !p-0 enabled:cursor-pointer disabled:!cursor-not-allowed'
         />
       </div>
-      {resumeId ? (
+      {shareOpen && resumeId ? (
         <ShareResumeModal
           open={shareOpen}
           resumeId={resumeId}

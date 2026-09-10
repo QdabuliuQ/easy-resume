@@ -67,7 +67,7 @@ export function resolveFieldMeta(
     return null;
   }
 
-  if (target.optionIndex == null) return null;
+  if (target.optionIndex == null && !target.itemId) return null;
 
   if (field === 'date') {
     return moduleType === 'certificate' ? { kind: 'date' } : { kind: 'dateRange' };

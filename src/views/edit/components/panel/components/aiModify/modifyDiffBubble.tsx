@@ -1,5 +1,7 @@
 'use client';
-import { BulbOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
+import BulbOutlined from '@ant-design/icons/BulbOutlined';
+import MinusOutlined from '@ant-design/icons/MinusOutlined';
+import PlusOutlined from '@ant-design/icons/PlusOutlined';
 import { memo, useMemo, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { RichHtmlOrText } from '@/components/resumeQuillHtml';

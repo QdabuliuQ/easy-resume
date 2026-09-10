@@ -44,6 +44,7 @@ import {
 import { resumeModuleSlotStyle } from '@/lib/resumeModuleSlotLayout';
 import { cssLengthToApproxPx } from '@/utils/cssLength';
 import { flattenModules } from '@/utils/resumePages';
+import { clonePlain } from '@/utils/clonePlain';
 import ModuleOperation from '@/components/moduleOperation';
 import { InlineFieldEditProvider } from '@/components/inlineFieldPopover/InlineFieldEditProvider';
 import CanvasFieldHighlight from '@/components/inlineFieldPopover/CanvasFieldHighlight';
@@ -55,8 +56,7 @@ import { normResumeFont, waitResumeFontsLoaded } from '@/lib/resumeFont';
 import { GITHUB_NEW_ISSUE_URL, GITHUB_REPO_URL } from '@/lib/githubRepoStars';
 import ResumeFontCdn from './resumeFontCdn';
 import CanvasModuleFragment from './moduleFragment';
-import SelectableGuideLines from './selectableGuideLines';
-import { useSelectableGuideHover } from './useSelectableGuideHover';
+import CanvasGuideOverlay from './canvasGuideOverlay';
 import CanvasFloatActions from './canvasFloatActions';
 import CanvasPreviewOverlay, {
   useCanvasPreviewOverlayState,
@@ -138,6 +138,31 @@ function mergeGlobalStyle(cfg: ResumeConfig): GlobalStyle {
   );
 }
 
+/** Ignore resume name / unrelated top-level fields so Canvas skips measure rebuild. */
+function resumeLayoutFingerprint(cfg: ResumeConfig | null): string {
+  const c = (cfg ?? resume) as ResumeConfig;
+  const gs = (c.globalStyle ?? {}) as unknown as Record<string, unknown>;
+  return JSON.stringify({
+    gs: {
+      resumeFont: gs.resumeFont,
+      fontSize: gs.fontSize,
+      lineHeight: gs.lineHeight,
+      padding: gs.padding,
+      pageSize: gs.pageSize,
+      layout: gs.layout,
+      moduleMargin: gs.moduleMargin,
+      headerType: gs.headerType,
+      color: gs.color,
+      backgroundColor: gs.backgroundColor,
+    },
+    modules: flattenModules(c).map((m: ResumeModule) => ({
+      id: m.id,
+      type: m.type,
+      options: m.options ?? {},
+    })),
+  });
+}
+
 function moduleGapPx(gs: GlobalStyle, cfg?: ResumeConfig): number {
   const v = Number(gs?.moduleMargin);
   if (Number.isFinite(v) && v >= 0) return v;
@@ -215,6 +240,12 @@ function Canvas({
   const router = useRouter();
   const canvasStageRef = useRef<HTMLDivElement>(null);
   const renderDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const measureGenerationRef = useRef(0);
+  const aliveRef = useRef(true);
+  const measureRafIdsRef = useRef<number[]>([]);
+  const dirtyModuleIdsRef = useRef<Set<string>>(new Set());
+  const previousLayoutModulesRef = useRef<Array<{ id: string; type: string; signature: string }>>([]);
+  const previousLayoutStyleRef = useRef<string | null>(null);
   const layoutReadySentRef = useRef(false);
   const onLayoutReadyRef = useRef(onLayoutReady);
   onLayoutReadyRef.current = onLayoutReady;
@@ -225,7 +256,13 @@ function Canvas({
   const resumeFieldGuideActive = isEditMode && menuActiveKey === 'resume';
 
   const currentConfig = configStore.getConfig as ResumeConfig | null;
-  const layoutConfig = (currentConfig ?? resume) as ResumeConfig;
+  const layoutFingerprint = resumeLayoutFingerprint(currentConfig);
+  const layoutConfig = useMemo(
+    () => (currentConfig ?? resume) as ResumeConfig,
+    // ponytail: fingerprint ignores resume.name so title edits skip measure rebuild
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [layoutFingerprint],
+  );
   const layoutGlobalStyle = useMemo(
     () => mergeGlobalStyle(layoutConfig),
     [layoutConfig],
@@ -268,7 +305,8 @@ function Canvas({
     [layoutModules, layoutGlobalStyle, resumeFieldGuideActive],
   );
 
-  const buildPagination = useMemoizedFn(() => {
+  const buildPagination = useMemoizedFn((generation?: number) => {
+    if (!aliveRef.current || (generation != null && generation !== measureGenerationRef.current)) return;
     const gs = mergeGlobalStyle(layoutConfig);
     const effectiveHeight = pageContentHeightPx(gs);
     const gapPx = moduleGapPx(gs, layoutConfig);
@@ -289,7 +327,7 @@ function Canvas({
       page.slots.push({ module, node, ...opts });
       page.exportModules.push({
         type: module.type,
-        options: JSON.parse(JSON.stringify(module.options ?? {})),
+        options: clonePlain(module.options ?? {}),
         showHeader: true,
         viewHeight: opts.viewHeight,
         offsetY: opts.offsetY,
@@ -452,6 +490,7 @@ function Canvas({
       );
     });
 
+    if (!aliveRef.current || (generation != null && generation !== measureGenerationRef.current)) return;
     setPages(nextPages);
     configStore.setExportPages(layoutPages.map((page) => ({ modules: page.exportModules })));
     if (!layoutReadySentRef.current) {
@@ -466,13 +505,15 @@ function Canvas({
     return measureNodes.every(({ module }) => moduleHeights.current[module.id] != null);
   });
 
-  const syncMeasuredHeights = useMemoizedFn(() => {
+  const syncMeasuredHeights = useMemoizedFn((generation: number) => {
+    if (!aliveRef.current || generation !== measureGenerationRef.current) return;
     const liveIds = new Set(layoutModules.map((module) => module.id));
     for (const id of Object.keys(moduleHeights.current)) {
       if (!liveIds.has(id)) delete moduleHeights.current[id];
     }
 
     for (const { module } of measureNodes) {
+      if (!dirtyModuleIdsRef.current.has(module.id)) continue;
       const el = moduleMeasureEls.current[module.id];
       if (!el) continue;
       const height = readLayoutHeightPx(el);
@@ -483,19 +524,29 @@ function Canvas({
     }
     // ponytail: 未量齐前不 setPages，避免 height≈1 的半成品首屏
     if (!hasAllMeasuredHeights()) return;
-    buildPagination();
+    dirtyModuleIdsRef.current.clear();
+    buildPagination(generation);
   });
 
-  const scheduleMeasuredPagination = useMemoizedFn(() => {
+  const scheduleMeasuredPagination = useMemoizedFn((dirtyIds?: Iterable<string>) => {
+    Array.from(dirtyIds ?? layoutModules.map((module) => module.id)).forEach((id) => {
+      dirtyModuleIdsRef.current.add(id);
+    });
+    const generation = ++measureGenerationRef.current;
     if (renderDebounceTimerRef.current) clearTimeout(renderDebounceTimerRef.current);
     renderDebounceTimerRef.current = setTimeout(() => {
       renderDebounceTimerRef.current = null;
       const runAfterFrames = (left: number) => {
+        if (!aliveRef.current || generation !== measureGenerationRef.current) return;
         if (left <= 0) {
-          syncMeasuredHeights();
+          syncMeasuredHeights(generation);
           return;
         }
-        requestAnimationFrame(() => runAfterFrames(left - 1));
+        const rafId = requestAnimationFrame(() => {
+          measureRafIdsRef.current = measureRafIdsRef.current.filter((id) => id !== rafId);
+          runAfterFrames(left - 1);
+        });
+        measureRafIdsRef.current.push(rafId);
       };
       const font = normResumeFont(layoutGlobalStyle.resumeFont);
       void waitResumeFontsLoaded(font, { weights: [400] })
@@ -513,16 +564,58 @@ function Canvas({
   }, [currentConfig]);
 
   useLayoutEffect(() => {
-    scheduleMeasuredPagination();
-  }, [measureNodes, layoutGlobalStyle.resumeFont, scheduleMeasuredPagination]);
+    const styleSignature = JSON.stringify({
+      resumeFont: layoutGlobalStyle.resumeFont,
+      fontSize: layoutGlobalStyle.fontSize,
+      lineHeight: layoutGlobalStyle.lineHeight,
+      padding: layoutGlobalStyle.padding,
+      pageSize: layoutGlobalStyle.pageSize,
+      layout: layoutGlobalStyle.layout,
+      moduleMargin: layoutGlobalStyle.moduleMargin,
+      headerType: layoutGlobalStyle.headerType,
+    });
+    const currentModules = measureNodes.map(({ module }) => ({
+      id: module.id,
+      type: module.type,
+      signature: JSON.stringify(module.options ?? {}),
+    }));
+    const previousModules = previousLayoutModulesRef.current;
+    const fullMeasure =
+      previousLayoutStyleRef.current == null ||
+      previousLayoutStyleRef.current !== styleSignature ||
+      previousModules.length !== currentModules.length ||
+      previousModules.some((previous, index) => {
+        const current = currentModules[index];
+        return !current || previous.id !== current.id || previous.type !== current.type;
+      });
+    const dirtyIds = new Set(
+      fullMeasure
+        ? currentModules.map((module) => module.id)
+        : currentModules
+            .filter((module, index) => module.signature !== previousModules[index]?.signature)
+            .map((module) => module.id),
+    );
+    previousLayoutModulesRef.current = currentModules;
+    previousLayoutStyleRef.current = styleSignature;
+    scheduleMeasuredPagination(dirtyIds);
+  }, [measureNodes, layoutGlobalStyle, scheduleMeasuredPagination]);
 
   useEffect(() => {
     if (typeof ResizeObserver === 'undefined') return;
     const els = Object.values(moduleMeasureEls.current).filter(Boolean) as HTMLDivElement[];
     if (!els.length) return;
-    const ro = new ResizeObserver(() => scheduleMeasuredPagination());
+    const ro = new ResizeObserver((entries) => {
+      const dirtyIds = new Set<string>();
+      for (const entry of entries) {
+        const id = entry.target.getAttribute('data-resume-measure-module-id');
+        if (id) dirtyIds.add(id);
+      }
+      scheduleMeasuredPagination(dirtyIds);
+    });
     els.forEach((el) => ro.observe(el));
-    return () => ro.disconnect();
+    return () => {
+      ro.disconnect();
+    };
   }, [measureNodes, scheduleMeasuredPagination]);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -546,7 +639,7 @@ function Canvas({
     getServerBackupReady,
   );
 
-  const globalStyle = configStore.mergedGlobalStyle;
+  const globalStyle = layoutGlobalStyle;
   const { width: pw, height: ph } = globalStylePageDimensions(globalStyle);
   const pageWPx = cssLengthToApproxPx(pw);
   const pageHPx = cssLengthToApproxPx(ph);
@@ -555,23 +648,6 @@ function Canvas({
   const contentH = pageCount * pageHPx + Math.max(0, pageCount - 1) * PAGE_STACK_GAP_PX;
   const scaledW = contentW * scale;
   const scaledH = contentH * scale;
-  const [guideViewport, setGuideViewport] = useState({
-    left: 0,
-    top: 0,
-    width: 0,
-    height: 0,
-  });
-
-  const updateGuideViewport = useMemoizedFn(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    setGuideViewport({
-      left: el.scrollLeft,
-      top: el.scrollTop,
-      width: el.clientWidth,
-      height: el.clientHeight,
-    });
-  });
 
   const updateScale = useMemoizedFn(() => {
     const el = containerRef.current;
@@ -604,24 +680,19 @@ function Canvas({
     return () => ro.disconnect();
   }, [updateScale]);
 
-  useLayoutEffect(() => {
-    updateGuideViewport();
-  }, [updateGuideViewport, scale, pages.length]);
-
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const onScroll = () => updateGuideViewport();
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
-  }, [updateGuideViewport]);
-
-  useEffect(() => {
+    aliveRef.current = true;
+    const dirtyModuleIds = dirtyModuleIdsRef.current;
     return () => {
+      aliveRef.current = false;
+      measureGenerationRef.current += 1;
       if (renderDebounceTimerRef.current) {
         clearTimeout(renderDebounceTimerRef.current);
         renderDebounceTimerRef.current = null;
       }
+      measureRafIdsRef.current.forEach((id) => cancelAnimationFrame(id));
+      measureRafIdsRef.current = [];
+      dirtyModuleIds.clear();
     };
   }, []);
 
@@ -640,14 +711,7 @@ function Canvas({
       ))}
     </CanvasPreviewOverlay>
   ) : null;
-  const { hoverRect, updateSelectableHover, clearSelectableHover } = useSelectableGuideHover({
-    containerRef,
-    stageRef: canvasStageRef,
-  });
   const importLoading = resumeImportStore.loading;
-  useEffect(() => {
-    if (importLoading || previewOpen || !resumeFieldGuideActive) clearSelectableHover();
-  }, [importLoading, previewOpen, resumeFieldGuideActive, clearSelectableHover]);
   // ponytail: 预览时卸交互；pages 只挂 overlay，避免双份 DOM
   const quickSelectActive = resumeFieldGuideActive && !importLoading && !previewOpen;
 
@@ -703,8 +767,6 @@ function Canvas({
       <div
         ref={containerRef}
         className={`relative flex h-full w-full min-h-0 flex-col items-center justify-start rounded-md ${importLoading ? 'overflow-hidden touch-none' : 'overflow-auto'}`}
-        onMouseMove={quickSelectActive ? (event) => updateSelectableHover(event.clientX, event.clientY) : undefined}
-        onMouseLeave={quickSelectActive ? clearSelectableHover : undefined}
       >
       <InlineFieldEditProvider containerRef={containerRef} enabled={fieldEditMode === 'inline'}>
       {fieldEditMode === 'panel' ? (
@@ -731,6 +793,7 @@ function Canvas({
           {measureNodes.map(({ module, node }) => (
             <div
               key={`measure-${module.id}`}
+              data-resume-measure-module-id={module.id}
               ref={(el) => {
                 moduleMeasureEls.current[module.id] = el;
               }}
@@ -763,13 +826,11 @@ function Canvas({
         </div>
       </div>
 
-      {quickSelectActive ? (
-        <SelectableGuideLines
-          hoverRect={hoverRect}
-          visible={Boolean(hoverRect)}
-          viewport={guideViewport}
-        />
-      ) : null}
+      <CanvasGuideOverlay
+        containerRef={containerRef}
+        stageRef={canvasStageRef}
+        active={quickSelectActive}
+      />
 
       {floatActionsEl}
 

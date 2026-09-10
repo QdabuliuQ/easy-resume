@@ -1,5 +1,6 @@
 'use client';
-import { AppstoreOutlined, EyeOutlined } from '@ant-design/icons';
+import AppstoreOutlined from '@ant-design/icons/AppstoreOutlined';
+import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useMemoizedFn } from 'ahooks';

@@ -1,6 +1,6 @@
 'use client';
 
-import { DownOutlined } from '@ant-design/icons';
+import DownOutlined from '@ant-design/icons/DownOutlined';
 import { Download, FileCode, FilePdf, FileWord, ImageFiles } from '@icon-park/react';
 import { Dropdown, Tooltip } from 'antd';
 import { observer } from 'mobx-react';

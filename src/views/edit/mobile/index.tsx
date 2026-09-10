@@ -12,7 +12,7 @@ import { consumeResumeAuthDraft } from '@/lib/resumeAuthDraft';
 import { configStore, editHistoryStore, resumeImportStore } from '@/mobx';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import Container from '../components/container';
-import ResumeConfigCanvasPreviewHost from '../components/resumeConfigCanvasPreviewHost';
+import ResumePreviewGate from '../components/resumePreviewGate';
 import { AiInterviewSkeleton } from '../components/panel/components/settingsSkeletons';
 import MobileEditHeader from './header';
 import MobileMainTabs from './mainTabs';
@@ -154,7 +154,7 @@ function MobileEditInner() {
           <MobileExportSheet visible={exportOpen} onClose={() => setExportOpen(false)} />
         ) : null}
         {templateOpen ? <MobileTemplateOverlay onClose={() => setTemplateOpen(false)} /> : null}
-        <ResumeConfigCanvasPreviewHost />
+        <ResumePreviewGate />
       </div>
     </>
   );

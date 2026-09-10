@@ -7,14 +7,12 @@ import { memo, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useSession } from 'next-auth/react';
 import { Button, Input, Tooltip } from 'antd';
-import {
-  CheckCircleFilled,
-  DownOutlined,
-  EditOutlined,
-  LoadingOutlined,
-  RedoOutlined,
-  UndoOutlined,
-} from '@ant-design/icons';
+import CheckCircleFilled from '@ant-design/icons/CheckCircleFilled';
+import DownOutlined from '@ant-design/icons/DownOutlined';
+import EditOutlined from '@ant-design/icons/EditOutlined';
+import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
+import RedoOutlined from '@ant-design/icons/RedoOutlined';
+import UndoOutlined from '@ant-design/icons/UndoOutlined';
 import { Copy, Download, Save, Share } from '@icon-park/react';
 import GithubAuthButton from '@/components/auth/GithubAuthButton';
 import LoginDropdownButton from '@/components/auth/LoginDropdownButton';
@@ -24,8 +22,9 @@ import defaultResume from '@/json/resume.defaults';
 import { logo } from '@/lib/brandAssets';
 import { useExportBusy } from '@/views/edit/hooks/useResumeExport';
 import { useEditHistory } from '@/views/edit/hooks/useEditHistory';
-import ShareResumeModal from '@/views/edit/components/header/ShareResumeModal';
 import { actionBtnCls, actionIconSpin, arrowCls, ICON_PRIMARY, ICON_MUTED } from './headerActionStyles';
+
+const ShareResumeModal = dynamic(() => import('./ShareResumeModal'), { ssr: false });
 
 let headerExportMenuPromise: Promise<typeof import('./HeaderExportMenu')> | null = null;
 
@@ -389,7 +388,7 @@ function Header({ templateMode = false, templateSaving = false, onTemplateSave }
           </Tooltip>
         ) : null}
       </div>
-      {resumeId ? (
+      {shareOpen && resumeId ? (
         <ShareResumeModal
           open={shareOpen}
           resumeId={resumeId}

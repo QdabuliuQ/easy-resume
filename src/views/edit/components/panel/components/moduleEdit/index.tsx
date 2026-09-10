@@ -20,6 +20,7 @@ import {
 import { configStore, moduleActiveStore } from '@/mobx';
 import { moduleType } from '@/modules/utils/constant';
 import { flattenModules } from '@/utils/resumePages';
+import { shouldSkipPanelModuleSectionScroll } from '@/lib/inlineFieldEdit/selectionScrollGuard';
 import { scrollElementIntoScrollParent } from '@/utils/scrollIntoScrollParent';
 import Global from '../global';
 import LazyModulePanel from './lazyModulePanel';
@@ -83,6 +84,8 @@ function ModuleEdit() {
       `[data-module-nav-id="${CSS.escape(activeId)}"]`,
     ) as HTMLElement | null;
     navBtn?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+    if (shouldSkipPanelModuleSectionScroll()) return;
 
     const scrollSection = () => {
       const el = sectionRef.current;

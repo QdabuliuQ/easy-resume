@@ -9,7 +9,6 @@ import { resolveResumeAvatarRefsDeep } from '@/lib/resumeAvatarRef';
 import { mergeGlobalStylePaper } from '@/lib/resumeGlobalStyleMerge';
 import {
   preloadResumeFontsForSnap,
-  resumeExportFontFacesCss,
   resumeFontForExport,
   resumeSnapLocalFonts,
 } from '@/lib/resumeFont';
@@ -319,11 +318,7 @@ async function withResumeSnapMount<T>(
   host.style.cssText = SNAP_HOST_STYLE;
   document.body.appendChild(host);
 
-  const fontStyle = document.createElement('style');
-  fontStyle.setAttribute('data-resume-snap-font', '');
-  fontStyle.textContent = resumeExportFontFacesCss(opts.origin, opts.gs.resumeFont);
-  host.appendChild(fontStyle);
-
+  // 只预取字体字节给 snapdom localFonts；不往主文档注入 @font-face / FontFace
   await preloadResumeFontsForSnap(opts.origin, opts.gs.resumeFont ?? 'system');
   const mount = document.createElement('div');
   host.appendChild(mount);
@@ -339,6 +334,7 @@ async function withResumeSnapMount<T>(
                 assetOrigin={opts.origin}
                 exportMode='pdf'
                 snapTarget
+                injectFonts={false}
               />
             ) : (
               <ResumeImageExportPage
@@ -346,6 +342,7 @@ async function withResumeSnapMount<T>(
                 assetOrigin={opts.origin}
                 mode={opts.mode ?? 'full'}
                 continuous={(opts.mode ?? 'full') === 'full'}
+                injectFonts={false}
               />
             )}
           </div>

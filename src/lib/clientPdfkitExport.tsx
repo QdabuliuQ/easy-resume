@@ -51,6 +51,7 @@ export function warmupPdfkitExportRuntime(resumeFont?: string): void {
 }
 
 async function waitPaint(root: HTMLElement) {
+  const doc = root.ownerDocument;
   const imgs = Array.from(root.querySelectorAll('img'));
   await Promise.all(
     imgs.map((img) => {
@@ -61,7 +62,11 @@ async function waitPaint(root: HTMLElement) {
       });
     }),
   );
-  await document.fonts.ready;
+  try {
+    await doc.fonts.ready;
+  } catch {
+    /* ignore */
+  }
   await new Promise<void>((r) => {
     requestAnimationFrame(() => requestAnimationFrame(() => r()));
   });
@@ -136,6 +141,7 @@ export async function downloadResumePdfkit(opts: Opts): Promise<void> {
               assetOrigin={origin}
               exportMode='pdf'
               snapTarget
+              injectFonts={false}
             />
           </div>
         </NextIntlClientProvider>,

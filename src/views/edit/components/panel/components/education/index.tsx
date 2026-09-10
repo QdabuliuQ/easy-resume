@@ -17,7 +17,7 @@ import {
   Notes,
   BuildingFour,
 } from '@icon-park/react';
-import { ReadOutlined } from '@ant-design/icons';
+import ReadOutlined from '@ant-design/icons/ReadOutlined';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import {
   Cascader,
@@ -50,25 +50,26 @@ import {
 } from '@/utils/moduleTypeLimits';
 import { useTranslations } from 'next-intl';
 import { ensureResumeModuleItemsId, makeResumeItemId } from '@/utils/createResumeModule';
+import { clonePlain } from '@/utils/clonePlain';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
 function Education({ moduleId }: { moduleId?: string } = {}) {
   const message = useAppMessage();
   const te = useTranslations('Edit.education');
-  const { getModule, getModuleIndex } = useModuleHandle();
+  const { getModule } = useModuleHandle();
   const config = configStore.getConfig;
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<EducationProps | null>(null);
   const gradId = useId().replace(/:/g, '');
   const iconGradId = `education-icon-grad-${gradId}`;
-  const pid = useMemoizedFn((index: number, key: string) => `${moduleActive}_${index}_${key}`);
+  const pid = useMemoizedFn((itemId: string, key: string) => `${moduleActive}_${itemId}_${key}`);
 
   useEffect(() => {
     const m = getModule(moduleActive);
     if (m) {
-      const cloned = ensureResumeModuleItemsId(JSON.parse(JSON.stringify(m)) as EducationProps);
+      const cloned = ensureResumeModuleItemsId(clonePlain(m) as EducationProps);
       cloned.options.items = cloned.options.items.map((item: any) => ({
         ...item,
         city:
@@ -85,29 +86,24 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
   }, [moduleActive, getModule, config]);
 
   const { run } = useDebounceFn(
-    (mod: EducationProps) => {
-      const res = getModuleIndex(moduleActive);
-      if (!res) return;
-      const config = JSON.parse(JSON.stringify(configStore.getConfig));
-      if (!config) return;
-      const _module = JSON.parse(JSON.stringify(mod));
-      _module.options.items = _module.options.items.map((item: any) => ({
+    (targetModuleId: string, mod: EducationProps) => {
+      const items = mod.options.items.map((item: any) => ({
         ...item,
         city: Array.isArray(item.city) ? item.city.join(' - ') : item.city,
       }));
-      config.pages[res.page].modules[res.module] = _module;
-      configStore.setConfig({
-        ...config,
-        pages: [...config.pages],
-      });
+      configStore.updateModuleField(targetModuleId, 'items', items);
     },
-    { wait: 100 }
+    { wait: 200 }
   );
 
-  const updateModule = useMemoizedFn((module: EducationProps) => {
-    const _module = JSON.parse(JSON.stringify(module));
-    setModule(_module);
-    run(_module);
+  const commitModule = useMemoizedFn((next: EducationProps) => {
+    setModule(next);
+    run(moduleActive, next);
+  });
+
+  const commitItems = useMemoizedFn((items: EducationProps['options']['items']) => {
+    if (!module) return;
+    commitModule({ ...module, options: { ...module.options, items } });
   });
 
   const handleAdd = useMemoizedFn(() => {
@@ -116,41 +112,40 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
       message.warning(resumeModuleItemLimitMessage('education'));
       return;
     }
-    module.options.items.unshift({
-      id: makeResumeItemId(),
-      school: '',
-      degree: undefined as any,
-      major: '',
-      city: [],
-      tags: [],
-      academy: '',
-      startDate: undefined as any,
-      endDate: undefined as any,
-      description: '',
-    });
-    updateModule(module);
+    commitItems([
+      {
+        id: makeResumeItemId(),
+        school: '',
+        degree: undefined as any,
+        major: '',
+        city: [],
+        tags: [],
+        academy: '',
+        startDate: undefined as any,
+        endDate: undefined as any,
+        description: '',
+      },
+      ...module.options.items,
+    ]);
   });
 
   const handleUp = useMemoizedFn((index: number) => {
-    if (!module) return;
-    const item = module.options.items[index];
-    module.options.items[index] = module.options.items[index - 1];
-    module.options.items[index - 1] = item;
-    updateModule(module);
+    if (!module || index <= 0) return;
+    const items = module.options.items.slice();
+    [items[index - 1], items[index]] = [items[index], items[index - 1]];
+    commitItems(items);
   });
 
   const handleDown = useMemoizedFn((index: number) => {
-    if (!module) return;
-    const item = module.options.items[index];
-    module.options.items[index] = module.options.items[index + 1];
-    module.options.items[index + 1] = item;
-    updateModule(module);
+    if (!module || index >= module.options.items.length - 1) return;
+    const items = module.options.items.slice();
+    [items[index], items[index + 1]] = [items[index + 1], items[index]];
+    commitItems(items);
   });
 
   const handleDelete = useMemoizedFn((index: number) => {
     if (!module) return;
-    module.options.items.splice(index, 1);
-    updateModule(module);
+    commitItems(module.options.items.filter((_, i) => i !== index));
   });
 
   const handleCopy = useMemoizedFn((index: number) => {
@@ -159,16 +154,19 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
       message.warning(resumeModuleItemLimitMessage('education'));
       return;
     }
-    const copy = JSON.parse(JSON.stringify(module.options.items[index]));
-    copy.id = makeResumeItemId();
-    module.options.items.splice(index, 0, copy);
-    updateModule(module);
+    const copy = { ...clonePlain(module.options.items[index]), id: makeResumeItemId() };
+    const items = module.options.items.slice();
+    items.splice(index, 0, copy);
+    commitItems(items);
   });
 
   const handleDescriptionHtml = useMemoizedFn((index: number, html: string) => {
     if (!module) return;
-    module.options.items[index].description = html;
-    updateModule(module);
+    commitItems(
+      module.options.items.map((item, i) =>
+        i === index ? { ...item, description: html } : item,
+      ),
+    );
   });
 
   const intentPostsForPolish = intentPostsFromResumeConfig(configStore.getConfig);
@@ -178,28 +176,35 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
 
   const handleChange = useMemoizedFn((e: any, index: number, key: string) => {
     if (!module) return;
+    let patch: Record<string, unknown> = {};
     if (
       key === 'school' ||
       key === 'major' ||
       key === 'academy'
     ) {
-      module.options.items[index][key] = e.target.value;
+      patch = { [key]: e.target.value };
     } else if (key === 'degree' || key === 'tags') {
-      module.options.items[index][key] = e;
+      patch = { [key]: e };
     } else if (key === 'date') {
       const payload = e as {
         dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null;
         endIsPresent: boolean;
       };
-      module.options.items[index].startDate = payload.dates?.[0]?.format('YYYY-MM') ?? '';
-      module.options.items[index].endDate = resumeRangeEndDateString(
-        payload.dates?.[1],
-        payload.endIsPresent,
-      );
+      patch = {
+        startDate: payload.dates?.[0]?.format('YYYY-MM') ?? '',
+        endDate: resumeRangeEndDateString(
+          payload.dates?.[1],
+          payload.endIsPresent,
+        ),
+      };
     } else if (key === 'city') {
-      module.options.items[index][key] = Array.isArray(e) ? e : [];
+      patch = { city: Array.isArray(e) ? e : [] };
     }
-    updateModule(module);
+    commitItems(
+      module.options.items.map((item, i) =>
+        i === index ? { ...item, ...patch } : item,
+      ),
+    );
   });
 
   return (
@@ -244,8 +249,10 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
-              module.options.title = next;
-              updateModule(module);
+              commitModule({
+                ...module,
+                options: { ...module.options, title: next },
+              });
             }}
           />
         </div>
@@ -262,9 +269,9 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
           ) : (
             <>
               <div className='flex max-h-[240px] flex-col gap-1.5 overflow-y-auto'>
-                {module.options.items.slice(0, 10).map((item: any, i: number) => (
+                {module.options.items.slice(0, 10).map((item: any) => (
                   <div
-                    key={i}
+                    key={item.id}
                     className='break-all text-[13px] text-fg/75'
                   >
                     {item.school || '—'} · {item.major || '—'}{' '}
@@ -294,7 +301,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
           {module.options.items.length > 0 ? (
             module.options.items.map((item: any, index: number) => (
               <div
-                key={index}
+                key={item.id}
                 className='panel-item-shell flex flex-col items-end'
               >
                 <Form layout='vertical' className='w-full'>
@@ -314,7 +321,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.school}
-                          data-panel-item-id={pid(index, 'school')}
+                          data-panel-item-id={pid(item.id, 'school')}
                           placeholder={te('schoolPh')}
                           onChange={(e) => handleChange(e, index, 'school')}
                         />
@@ -332,7 +339,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <div data-panel-item-id={pid(index, 'degree')}>
+                        <div data-panel-item-id={pid(item.id, 'degree')}>
                           <ResponsiveSelect
                             options={degree}
                             value={item.degree}
@@ -357,7 +364,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.major}
-                          data-panel-item-id={pid(index, 'major')}
+                          data-panel-item-id={pid(item.id, 'major')}
                           placeholder={te('majorPh')}
                           onChange={(e) => handleChange(e, index, 'major')}
                         />
@@ -374,7 +381,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         <Cascader
                           options={city}
                           value={item.city}
-                          data-panel-item-id={pid(index, 'city')}
+                          data-panel-item-id={pid(item.id, 'city')}
                           onChange={(e) => handleChange(e, index, 'city')}
                           placeholder={te('cityPh')}
                         />
@@ -388,7 +395,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           <Notes theme='outline' size='15' fill={FORM_ICON_FILL} />
                         }
                       >
-                        <div data-panel-item-id={pid(index, 'tags')}>
+                        <div data-panel-item-id={pid(item.id, 'tags')}>
                           <ResponsiveSelect
                             options={schoolType}
                             value={item.tags}
@@ -414,7 +421,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.academy}
-                          data-panel-item-id={pid(index, 'academy')}
+                          data-panel-item-id={pid(item.id, 'academy')}
                           placeholder={te('collegePh')}
                           onChange={(e) => handleChange(e, index, 'academy')}
                         />
@@ -432,7 +439,7 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <div data-panel-item-id={pid(index, 'date')}>
+                        <div data-panel-item-id={pid(item.id, 'date')}>
                           <ResponsiveRangeDatePicker
                             style={{ width: '100%' }}
                             startDate={item.startDate}
@@ -460,9 +467,9 @@ function Education({ moduleId }: { moduleId?: string } = {}) {
                       >
                         <div className='w-full'>
                           <RichTextEditor
-                            instanceKey={`${moduleActive}-${index}`}
+                            instanceKey={`${moduleActive}-${item.id}`}
                             html={item.description ?? ''}
-                            dataPanelItemId={pid(index, 'description')}
+                            dataPanelItemId={pid(item.id, 'description')}
                             onHtmlChange={(next) =>
                               handleDescriptionHtml(index, next)
                             }

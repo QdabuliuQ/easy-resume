@@ -1,6 +1,7 @@
 export type ParsedItemTarget = {
   moduleId: string;
   optionIndex: number | null;
+  itemId: string | null;
   field: string | null;
   fieldPath: string | null;
 };
@@ -45,7 +46,7 @@ export function parseItemTargetFromItemId(
         : [];
 
   if (!rest.length) {
-    return { moduleId, optionIndex: null, field: null, fieldPath: null };
+    return { moduleId, optionIndex: null, itemId: null, field: null, fieldPath: null };
   }
 
   const second = rest[0];
@@ -54,15 +55,28 @@ export function parseItemTargetFromItemId(
     return {
       moduleId,
       optionIndex: Number(second),
+      itemId: null,
       field: tail[0] ?? null,
       fieldPath: tail.length ? tail.join('_') : null,
     };
   }
 
+  if (rest.length === 1) {
+    return {
+      moduleId,
+      optionIndex: null,
+      itemId: null,
+      field: second,
+      fieldPath: second,
+    };
+  }
+
+  const tail = rest.slice(1);
   return {
     moduleId,
     optionIndex: null,
-    field: second,
-    fieldPath: rest.join('_'),
+    itemId: second,
+    field: tail[0] ?? null,
+    fieldPath: tail.length ? tail.join('_') : null,
   };
 }

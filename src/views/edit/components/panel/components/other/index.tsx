@@ -14,10 +14,11 @@ import { memo, useEffect, useState } from 'react';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
+import { clonePlain } from '@/utils/clonePlain';
 
 function Other({ moduleId }: { moduleId?: string } = {}) {
   const to = useTranslations('Edit.other');
-  const { getModule, getModuleIndex } = useModuleHandle();
+  const { getModule } = useModuleHandle();
   const config = configStore.getConfig;
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
@@ -25,34 +26,27 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
   useEffect(() => {
     const m = getModule(moduleActive);
     if (m) {
-      setModule(JSON.parse(JSON.stringify(m)));
+      setModule(clonePlain(m) as OtherProps);
     } else {
       setModule(null);
     }
   }, [moduleActive, getModule, config]);
   const { run } = useDebounceFn(
-    (mod: OtherProps) => {
-      const res = getModuleIndex(moduleActive);
-      if (!res) return;
-      const config = JSON.parse(JSON.stringify(configStore.getConfig));
-      if (!config) return;
-      config.pages[res.page].modules[res.module] = JSON.parse(JSON.stringify(mod));
-      configStore.setConfig({
-        ...config,
-        pages: [...config.pages],
-      });
+    (targetModuleId: string, mod: OtherProps) => {
+      configStore.updateModuleField(targetModuleId, 'description', mod.options.description);
     },
-    { wait: 100 }
+    { wait: 200 }
   );
-  const updateModule = useMemoizedFn((mod: OtherProps) => {
-    const next = JSON.parse(JSON.stringify(mod));
+  const commitModule = useMemoizedFn((next: OtherProps) => {
     setModule(next);
-    run(next);
+    run(moduleActive, next);
   });
   const updateDescription = useMemoizedFn((html: string) => {
     if (!module) return;
-    module.options.description = html;
-    updateModule(module);
+    commitModule({
+      ...module,
+      options: { ...module.options, description: html },
+    });
   });
   const rawHtml = module?.options.description ?? '';
   const previewText = plainTextFromRichHtml(rawHtml);
@@ -75,8 +69,10 @@ function Other({ moduleId }: { moduleId?: string } = {}) {
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
-              module.options.title = next;
-              updateModule(module);
+              commitModule({
+                ...module,
+                options: { ...module.options, title: next },
+              });
             }}
           />
         </div>

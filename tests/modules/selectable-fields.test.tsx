@@ -56,6 +56,7 @@ describe('selectable field ids', () => {
         globalStyle={makeGlobalStyle()}
         items={[
           {
+            id: 'edu-item-1',
             school: '浙江大学',
             major: '计算机',
             degree: '本科',
@@ -71,28 +72,28 @@ describe('selectable field ids', () => {
     );
 
     expect(
-      document.querySelector('[data-item-id="edu-1_0_school"]')
+      document.querySelector('[data-item-id="edu-1_edu-item-1_school"]')
     ).toBeTruthy();
     expect(
-      document.querySelector('[data-item-id="edu-1_0_major"]')
+      document.querySelector('[data-item-id="edu-1_edu-item-1_major"]')
     ).toBeTruthy();
     expect(
-      document.querySelector('[data-item-id="edu-1_0_degree"]')
+      document.querySelector('[data-item-id="edu-1_edu-item-1_degree"]')
     ).toBeTruthy();
     expect(
-      document.querySelector('[data-item-id="edu-1_0_academy"]')
+      document.querySelector('[data-item-id="edu-1_edu-item-1_academy"]')
     ).toBeTruthy();
     expect(
-      document.querySelector('[data-item-id="edu-1_0_city"]')
+      document.querySelector('[data-item-id="edu-1_edu-item-1_city"]')
     ).toBeTruthy();
     expect(
-      document.querySelector('[data-item-id="edu-1_0_date"]')
+      document.querySelector('[data-item-id="edu-1_edu-item-1_date"]')
     ).toBeTruthy();
 
-    const tagsEl = document.querySelector('[data-item-id="edu-1_0_tags"]');
+    const tagsEl = document.querySelector('[data-item-id="edu-1_edu-item-1_tags"]');
     expect(tagsEl).toBeTruthy();
     expect(tagsEl?.querySelectorAll('span').length).toBe(2);
-    expect(document.querySelector('[data-item-id="edu-1_0_tag_0"]')).toBeNull();
+    expect(document.querySelector('[data-item-id="edu-1_edu-item-1_tag_0"]')).toBeNull();
   });
 
   it('info1: expectedSalary uses _0 and _1 ids', async () => {
@@ -123,6 +124,7 @@ describe('selectable field ids', () => {
         globalStyle={makeGlobalStyle()}
         items={[
           {
+            id: 'job-item-1',
             company: '字节',
             post: '前端',
             department: '商业化',
@@ -136,10 +138,10 @@ describe('selectable field ids', () => {
     );
 
     expect(
-      document.querySelector('[data-item-id="job-1_0_post"]')?.textContent
+      document.querySelector('[data-item-id="job-1_job-item-1_post"]')?.textContent
     ).toContain('前端');
     expect(
-      document.querySelector('[data-item-id="job-1_0_department"]')?.textContent
+      document.querySelector('[data-item-id="job-1_job-item-1_department"]')?.textContent
     ).toContain('商业化');
   });
 });

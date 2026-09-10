@@ -1,5 +1,7 @@
 'use client';
-import { useEffect, useState, type RefObject } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
+import { shouldSkipCanvasFieldCenter } from '@/lib/inlineFieldEdit/selectionScrollGuard';
+import { scrollElementIntoScrollParent } from '@/utils/scrollIntoScrollParent';
 
 const ANT_POPUP_SEL = '.ant-select-dropdown,.ant-picker-dropdown,.ant-cascader-dropdown,.ant-dropdown';
 
@@ -10,6 +12,13 @@ function resolveCanvasField(
   return container.querySelector(
     `[data-item-id="${CSS.escape(itemId)}"]`,
   ) as HTMLElement | null;
+}
+
+function scrollCanvasFieldToCenter(el: HTMLElement | null) {
+  if (!el) return;
+  requestAnimationFrame(() => {
+    scrollElementIntoScrollParent(el, 'smooth', { align: 'center' });
+  });
 }
 
 function panelFieldItemId(el: HTMLElement): string | null {
@@ -32,11 +41,13 @@ export function usePanelFieldCanvasHighlight(
 ) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [itemKey, setItemKey] = useState<string | null>(null);
+  const lastScrolledItemRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!enabled) {
       setAnchorEl(null);
       setItemKey(null);
+      lastScrolledItemRef.current = null;
       return;
     }
 
@@ -46,18 +57,21 @@ export function usePanelFieldCanvasHighlight(
       if (!container || !(active instanceof HTMLElement)) {
         setAnchorEl(null);
         setItemKey(null);
+        lastScrolledItemRef.current = null;
         return;
       }
       if (isAntPopupFocus(active)) return;
       if (!isResumePanelField(active)) {
         setAnchorEl(null);
         setItemKey(null);
+        lastScrolledItemRef.current = null;
         return;
       }
       const itemId = panelFieldItemId(active);
       if (!itemId) {
         setAnchorEl(null);
         setItemKey(null);
+        lastScrolledItemRef.current = null;
         return;
       }
       const canvasField = resolveCanvasField(container, itemId);
@@ -76,6 +90,14 @@ export function usePanelFieldCanvasHighlight(
       const canvasField = resolveCanvasField(container, itemId);
       setAnchorEl(canvasField);
       setItemKey(itemId);
+      if (shouldSkipCanvasFieldCenter(itemId)) {
+        lastScrolledItemRef.current = itemId;
+        return;
+      }
+      if (lastScrolledItemRef.current !== itemId) {
+        lastScrolledItemRef.current = itemId;
+        scrollCanvasFieldToCenter(canvasField);
+      }
     };
 
     const onFocusOut = () => {

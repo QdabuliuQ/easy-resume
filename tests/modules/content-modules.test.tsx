@@ -132,7 +132,7 @@ describe('resume content modules', () => {
     expect(screen.getByText('字节跳动')).toBeInTheDocument();
     expect(screen.getByText('前端工程师')).toBeInTheDocument();
     expect(
-      document.querySelector('[data-item-id="job-1_0_department"]')?.textContent
+      document.querySelector('[data-item-id="job-1_job-item-1_department"]')?.textContent
     ).toContain('商业化');
     expect(screen.getByText('负责简历编辑器性能优化')).toBeInTheDocument();
 

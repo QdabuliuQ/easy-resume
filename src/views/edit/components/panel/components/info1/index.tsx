@@ -1,7 +1,8 @@
 'use client';
 import { observer } from 'mobx-react';
 import { memo, useMemo, useRef, type CSSProperties, type MouseEvent } from 'react';
-import { UserOutlined } from '@ant-design/icons';
+import dynamic from 'next/dynamic';
+import UserOutlined from '@ant-design/icons/UserOutlined';
 import {
   Cascader,
   Col,
@@ -22,7 +23,6 @@ import {
   ethnic,
 } from '@/modules/utils/constant';
 import { useMemoizedFn } from 'ahooks';
-import CropperImage from '@/components/cropperImage';
 import ResponsiveSelect from '@/components/responsiveSelect';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { ResponsiveDatePicker } from '@/components/responsiveDatePicker';
@@ -32,8 +32,11 @@ import { formatIntentCityDisplay, normalizeIntentCityToCascaderValue } from '@/u
 import { configStore, moduleActiveStore } from '@/mobx';
 import dayjs from 'dayjs';
 import InfoLayout from '@/components/infoLayout';
+import { clonePlain } from '@/utils/clonePlain';
 import PanelToolbar from '../panelToolbar';
 import { useTranslations } from 'next-intl';
+
+const CropperImage = dynamic(() => import('@/components/cropperImage'), { ssr: false });
 import {
   AlignLeft,
   Attention,
@@ -120,7 +123,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
     for (const page of config.pages) {
       for (const module of page.modules) {
         if (module.id === mid) {
-          const _module = JSON.parse(JSON.stringify(module));
+          const _module = clonePlain(module);
           for (const key in _module.options) {
             if (Object.prototype.hasOwnProperty.call(_module.options, key)) {
               if (key === 'birthday') {
@@ -289,10 +292,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
   const removeAvatar = useMemoizedFn((e: MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    configStore.setConfigOption(mid, {
-      ...configStore.getConfigOption(mid),
-      avatar: '',
-    });
+    configStore.updateModuleField(mid, 'avatar', '');
   });
 
   const beforeUpload = useMemoizedFn(async (file: File, key: string) => {
@@ -307,19 +307,13 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
       return Upload.LIST_IGNORE;
     }
     cropperRef.current.showModal(await fileToBase64(file), (image: string) => {
-      configStore.setConfigOption(mid, {
-        ...configStore.getConfigOption(mid),
-        [key]: image,
-      });
+      configStore.updateModuleField(mid, key, image);
     });
     return false;
   });
 
   const inputHandler = useMemoizedFn((key: string, value: string) => {
-    configStore.setConfigOption(mid, {
-      ...configStore.getConfigOption(mid),
-      [key]: value,
-    });
+    configStore.updateModuleField(mid, key, value);
   });
 
   const salaryValue = useMemo<[string, string]>(() => {
@@ -342,17 +336,11 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
         ]
       : ['', ''];
     next[index] = value;
-    configStore.setConfigOption(mid, {
-      ...configStore.getConfigOption(mid),
-      expectedSalary: next,
-    });
+    configStore.updateModuleField(mid, 'expectedSalary', next);
   });
 
   const onLayoutChange = useMemoizedFn((layout: string[][]) => {
-    configStore.setConfigOption(mid, {
-      ...configStore.getConfigOption(mid),
-      layout,
-    });
+    configStore.updateModuleField(mid, 'layout', layout);
   });
 
   const previewByLayout = useMemo(() => {
@@ -496,10 +484,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                         label: ti(o.labelKey),
                       }))}
                       onChange={(value) =>
-                        configStore.setConfigOption(mid, {
-                          ...configStore.getConfigOption(mid),
-                          position: value,
-                        })
+                        configStore.updateModuleField(mid, 'position', value)
                       }
                     />
                   </div>
@@ -513,10 +498,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                     <Switch
                       checked={option.showTitle === true}
                       onChange={(checked) =>
-                        configStore.setConfigOption(mid, {
-                          ...configStore.getConfigOption(mid),
-                          showTitle: checked,
-                        })
+                        configStore.updateModuleField(mid, 'showTitle', checked)
                       }
                     />
                   </div>
@@ -607,10 +589,7 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
                         options={item.options}
                         placeholder={`${ti('selectPrefix')}${ti(`fields.${item.key}` as never)}`}
                         onChange={(value) => {
-                          configStore.setConfigOption(mid, {
-                            ...configStore.getConfigOption(mid),
-                            [item.key]: value,
-                          });
+                          configStore.updateModuleField(mid, item.key, value);
                         }}
                       />
                     ) : item.controllerType === 'image' ? (

@@ -3,6 +3,7 @@ import type { GlobalStyle } from '../utils/common.type';
 import SafeText from '../shared/safeText';
 
 export interface CertificateItemLike {
+  id?: string;
   name?: string;
   date?: string;
 }
@@ -23,20 +24,22 @@ export default function CertificateItemsBody({
   return (
     <div className='min-w-0 w-full'>
       {items.map((item, index) => {
+        const hasStableId = typeof item.id === 'string' && item.id.trim().length > 0;
+        const itemId = hasStableId ? item.id!.trim() : String(index);
         const name = typeof item.name === 'string' ? item.name : '';
         const date = typeof item.date === 'string' ? item.date : '';
         return (
           <div
-            key={`${index}-${name}-${date}`}
+            key={itemId}
             className='flex min-w-0 w-full justify-between gap-2 text-black not-last:mb-[5px]'
             style={{ fontSize: `${globalStyle.fontSize}px` }}
             {...{ [RESUME_ITEM_ROW_ATTR]: '' }}
           >
             <div className='min-w-0 flex-[6] break-words'>
-              <SafeText text={name} selectable={selectable} dataItemId={`${moduleId}_${index}_name`} />
+              <SafeText text={name} selectable={selectable} dataItemId={`${moduleId}_${itemId}_name`} />
             </div>
             <div className='shrink-0 whitespace-nowrap text-right'>
-              <SafeText text={date} selectable={selectable} dataItemId={`${moduleId}_${index}_date`} />
+              <SafeText text={date} selectable={selectable} dataItemId={`${moduleId}_${itemId}_date`} />
             </div>
           </div>
         );

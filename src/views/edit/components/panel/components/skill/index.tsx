@@ -6,7 +6,7 @@ import ResumeQuillHtml from '@/components/resumeQuillHtml';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore, moduleActiveStore } from '@/mobx';
 import { SkillProps } from '@/modules/skill';
-import { ThunderboltOutlined } from '@ant-design/icons';
+import ThunderboltOutlined from '@ant-design/icons/ThunderboltOutlined';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import { observer } from 'mobx-react';
 import { useTranslations } from 'next-intl';
@@ -14,10 +14,11 @@ import { memo, useEffect, useId, useState, type CSSProperties } from 'react';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
+import { clonePlain } from '@/utils/clonePlain';
 
 function Skill({ moduleId }: { moduleId?: string } = {}) {
   const ts = useTranslations('Edit.skill');
-  const { getModule, getModuleIndex } = useModuleHandle();
+  const { getModule } = useModuleHandle();
   const config = configStore.getConfig;
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
@@ -28,38 +29,29 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
   useEffect(() => {
     const m = getModule(moduleActive);
     if (m) {
-      setModule(JSON.parse(JSON.stringify(m)));
+      setModule(clonePlain(m) as SkillProps);
     } else {
       setModule(null);
     }
   }, [moduleActive, getModule, config]);
 
   const { run } = useDebounceFn(
-    (mod: SkillProps) => {
-      const res = getModuleIndex(moduleActive);
-      if (!res) return;
-      const config = JSON.parse(JSON.stringify(configStore.getConfig));
-      if (!config) return;
-      config.pages[res.page].modules[res.module] = JSON.parse(
-        JSON.stringify(mod)
-      );
-      configStore.setConfig({
-        ...config,
-        pages: [...config.pages],
-      });
+    (targetModuleId: string, mod: SkillProps) => {
+      configStore.updateModuleField(targetModuleId, 'description', mod.options.description);
     },
-    { wait: 100 }
+    { wait: 200 }
   );
 
-  const updateModule = useMemoizedFn((mod: SkillProps) => {
-    const next = JSON.parse(JSON.stringify(mod));
+  const commitModule = useMemoizedFn((next: SkillProps) => {
     setModule(next);
-    run(next);
+    run(moduleActive, next);
   });
   const updateDescription = useMemoizedFn((text: string) => {
     if (!module) return;
-    module.options.description = text;
-    updateModule(module);
+    commitModule({
+      ...module,
+      options: { ...module.options, description: text },
+    });
   });
 
   const rawHtml = module?.options.description ?? '';
@@ -110,8 +102,10 @@ function Skill({ moduleId }: { moduleId?: string } = {}) {
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
-              module.options.title = next;
-              updateModule(module);
+              commitModule({
+                ...module,
+                options: { ...module.options, title: next },
+              });
             }}
           />
         </div>

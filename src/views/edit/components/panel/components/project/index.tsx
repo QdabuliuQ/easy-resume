@@ -6,7 +6,7 @@ import { polishDescription } from '@/api/polishDescription';
 import { intentPostsFromResumeConfig } from '@/utils/intentPosts';
 import { ProjectProps } from '@/modules/project';
 import { Book, Avatar, Calendar, EditOne } from '@icon-park/react';
-import { ProjectOutlined } from '@ant-design/icons';
+import ProjectOutlined from '@ant-design/icons/ProjectOutlined';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
 import { Col, Empty, Form, Input, Row } from 'antd';
 import { useAppMessage } from '@/hooks/useAppMessage';
@@ -33,6 +33,7 @@ import {
 } from '@/utils/moduleTypeLimits';
 import { useTranslations } from 'next-intl';
 import { ensureResumeModuleItemsId, makeResumeItemId } from '@/utils/createResumeModule';
+import { clonePlain } from '@/utils/clonePlain';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
@@ -48,39 +49,40 @@ const PREVIEW_HTML_CLASS =
 function Project({ moduleId }: { moduleId?: string } = {}) {
   const message = useAppMessage();
   const tp = useTranslations('Edit.project');
-  const { getModule, getModuleIndex } = useModuleHandle();
+  const { getModule } = useModuleHandle();
   const config = configStore.getConfig;
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<ProjectProps | null>(null);
   const gradId = useId().replace(/:/g, '');
   const iconGradId = `project-icon-grad-${gradId}`;
-  const pid = useMemoizedFn((index: number, key: string) => `${moduleActive}_${index}_${key}`);
+  const pid = useMemoizedFn((itemId: string, key: string) => `${moduleActive}_${itemId}_${key}`);
 
   useEffect(() => {
     const m = getModule(moduleActive);
     if (m) {
-      setModule(ensureResumeModuleItemsId(JSON.parse(JSON.stringify(m)) as ProjectProps));
+      setModule(ensureResumeModuleItemsId(clonePlain(m) as ProjectProps));
     } else {
       setModule(null);
     }
   }, [moduleActive, getModule, config]);
 
   const { run } = useDebounceFn(
-    (module: ProjectProps) => {
-      const res = getModuleIndex(moduleActive);
-      if (!res) return;
-      const config = JSON.parse(JSON.stringify(configStore.getConfig));
-      if (!config) return;
-      const _module = JSON.parse(JSON.stringify(module));
-      config.pages[res.page].modules[res.module] = _module;
-      configStore.setConfig({
-        ...config,
-        pages: [...config.pages],
-      });
+    (targetModuleId: string, module: ProjectProps) => {
+      configStore.updateModuleField(targetModuleId, 'items', module.options.items);
     },
-    { wait: 100 }
+    { wait: 200 }
   );
+
+  const commitModule = useMemoizedFn((next: ProjectProps) => {
+    setModule(next);
+    run(moduleActive, next);
+  });
+
+  const commitItems = useMemoizedFn((items: ProjectProps['options']['items']) => {
+    if (!module) return;
+    commitModule({ ...module, options: { ...module.options, items } });
+  });
 
   const handleAdd = useMemoizedFn(() => {
     if (!module) return;
@@ -88,43 +90,36 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
       message.warning(resumeModuleItemLimitMessage('project'));
       return;
     }
-    module.options.items.unshift({
-      id: makeResumeItemId(),
-      name: '',
-      role: '',
-      startDate: undefined as any,
-      endDate: undefined as any,
-      description: '',
-    });
-    updateModule(module);
-  });
-
-  const updateModule = useMemoizedFn((module: ProjectProps) => {
-    const _module = JSON.parse(JSON.stringify(module));
-    setModule(_module);
-    run(_module);
+    commitItems([
+      {
+        id: makeResumeItemId(),
+        name: '',
+        role: '',
+        startDate: undefined as any,
+        endDate: undefined as any,
+        description: '',
+      },
+      ...module.options.items,
+    ]);
   });
 
   const handleUp = useMemoizedFn((index: number) => {
-    if (!module) return;
-    const item = module.options.items[index];
-    module.options.items[index] = module.options.items[index - 1];
-    module.options.items[index - 1] = item;
-    updateModule(module);
+    if (!module || index <= 0) return;
+    const items = module.options.items.slice();
+    [items[index - 1], items[index]] = [items[index], items[index - 1]];
+    commitItems(items);
   });
 
   const handleDown = useMemoizedFn((index: number) => {
-    if (!module) return;
-    const item = module.options.items[index];
-    module.options.items[index] = module.options.items[index + 1];
-    module.options.items[index + 1] = item;
-    updateModule(module);
+    if (!module || index >= module.options.items.length - 1) return;
+    const items = module.options.items.slice();
+    [items[index], items[index + 1]] = [items[index + 1], items[index]];
+    commitItems(items);
   });
 
   const handleDelete = useMemoizedFn((index: number) => {
     if (!module) return;
-    module.options.items.splice(index, 1);
-    updateModule(module);
+    commitItems(module.options.items.filter((_, i) => i !== index));
   });
 
   const handleCopy = useMemoizedFn((index: number) => {
@@ -133,16 +128,19 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
       message.warning(resumeModuleItemLimitMessage('project'));
       return;
     }
-    const copy = JSON.parse(JSON.stringify(module.options.items[index]));
-    copy.id = makeResumeItemId();
-    module.options.items.splice(index, 0, copy);
-    updateModule(module);
+    const copy = { ...clonePlain(module.options.items[index]), id: makeResumeItemId() };
+    const items = module.options.items.slice();
+    items.splice(index, 0, copy);
+    commitItems(items);
   });
 
   const handleDescriptionHtml = useMemoizedFn((index: number, html: string) => {
     if (!module) return;
-    module.options.items[index].description = html;
-    updateModule(module);
+    commitItems(
+      module.options.items.map((item, i) =>
+        i === index ? { ...item, description: html } : item,
+      ),
+    );
   });
 
   type ChangeEvent = React.ChangeEvent<HTMLInputElement>;
@@ -152,18 +150,25 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
   };
   const handleChange = useMemoizedFn((e: ChangeEvent | RangeDatePayload, index: number, key: string) => {
     if (!module) return;
+    let patch: Record<string, unknown> = {};
     if (key === 'name' || key === 'role') {
       const event = e as ChangeEvent;
-      module.options.items[index][key] = event.target.value;
+      patch = { [key]: event.target.value };
     } else if (key === 'date') {
       const payload = e as RangeDatePayload;
-      module.options.items[index].startDate = payload.dates?.[0]?.format('YYYY-MM') ?? '';
-      module.options.items[index].endDate = resumeRangeEndDateString(
-        payload.dates?.[1],
-        payload.endIsPresent,
-      );
+      patch = {
+        startDate: payload.dates?.[0]?.format('YYYY-MM') ?? '',
+        endDate: resumeRangeEndDateString(
+          payload.dates?.[1],
+          payload.endIsPresent,
+        ),
+      };
     }
-    updateModule(module);
+    commitItems(
+      module.options.items.map((item, i) =>
+        i === index ? { ...item, ...patch } : item,
+      ),
+    );
   });
 
   const intentPostsForPolish = intentPostsFromResumeConfig(configStore.getConfig);
@@ -213,8 +218,10 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
-              module.options.title = next;
-              updateModule(module);
+              commitModule({
+                ...module,
+                options: { ...module.options, title: next },
+              });
             }}
           />
         </div>
@@ -232,8 +239,8 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
           ) : (
             <>
               <div className='flex max-h-[280px] flex-col gap-1.5 overflow-y-auto'>
-                {module.options.items.slice(0, 10).map((item: any, i: number) => (
-                  <div key={i} className='break-all text-[13px] text-fg/75'>
+                {module.options.items.slice(0, 10).map((item: any) => (
+                  <div key={item.id} className='break-all text-[13px] text-fg/75'>
                     <div>
                       {item.name || '—'} · {item.role || '—'}{' '}
                       {item.startDate && item.endDate
@@ -269,7 +276,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
           {module.options.items.length > 0 ? (
             module.options.items.map((item: any, index: number) => (
               <div
-                key={index}
+                key={item.id}
                 className='panel-item-shell flex flex-col items-end'
               >
                 <Form layout='vertical' className='w-full'>
@@ -285,7 +292,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.name}
-                          data-panel-item-id={pid(index, 'name')}
+                          data-panel-item-id={pid(item.id, 'name')}
                           placeholder={tp('namePh')}
                           onChange={(e) => handleChange(e, index, 'name')}
                         />
@@ -306,7 +313,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.role}
-                          data-panel-item-id={pid(index, 'role')}
+                          data-panel-item-id={pid(item.id, 'role')}
                           placeholder={tp('rolePh')}
                           onChange={(e) => handleChange(e, index, 'role')}
                         />
@@ -324,7 +331,7 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <div data-panel-item-id={pid(index, 'date')}>
+                        <div data-panel-item-id={pid(item.id, 'date')}>
                           <ResponsiveRangeDatePicker
                             style={{ width: '100%' }}
                             startDate={item.startDate}
@@ -352,9 +359,9 @@ function Project({ moduleId }: { moduleId?: string } = {}) {
                       >
                         <div className='w-full'>
                           <RichTextEditor
-                            instanceKey={`${moduleActive}-${index}`}
+                            instanceKey={`${moduleActive}-${item.id}`}
                             html={item.description ?? ''}
-                            dataPanelItemId={pid(index, 'description')}
+                            dataPanelItemId={pid(item.id, 'description')}
                             onHtmlChange={(next) =>
                               handleDescriptionHtml(index, next)
                             }

@@ -1,5 +1,6 @@
 'use client';
-import { AudioOutlined, LoadingOutlined } from '@ant-design/icons';
+import AudioOutlined from '@ant-design/icons/AudioOutlined';
+import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
 import { Input, Spin } from 'antd';
 import { observer } from 'mobx-react';
 import { useSession } from 'next-auth/react';

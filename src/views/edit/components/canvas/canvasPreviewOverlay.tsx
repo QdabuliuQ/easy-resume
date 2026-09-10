@@ -1,6 +1,6 @@
 'use client';
 
-import { CloseOutlined } from '@ant-design/icons';
+import CloseOutlined from '@ant-design/icons/CloseOutlined';
 import { useMemoizedFn } from 'ahooks';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';

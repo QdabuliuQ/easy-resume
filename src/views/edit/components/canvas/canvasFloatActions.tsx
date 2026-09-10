@@ -1,13 +1,11 @@
-import {
-  BugOutlined,
-  CheckCircleOutlined,
-  EyeOutlined,
-  GithubOutlined,
-  HomeOutlined,
-  MoonOutlined,
-  SunOutlined,
-  WarningOutlined,
-} from '@ant-design/icons';
+import BugOutlined from '@ant-design/icons/BugOutlined';
+import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
+import EyeOutlined from '@ant-design/icons/EyeOutlined';
+import GithubOutlined from '@ant-design/icons/GithubOutlined';
+import HomeOutlined from '@ant-design/icons/HomeOutlined';
+import MoonOutlined from '@ant-design/icons/MoonOutlined';
+import SunOutlined from '@ant-design/icons/SunOutlined';
+import WarningOutlined from '@ant-design/icons/WarningOutlined';
 import { Popover, Tooltip } from 'antd';
 
 type CanvasFloatActionsProps = {

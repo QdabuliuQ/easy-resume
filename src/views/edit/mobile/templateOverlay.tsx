@@ -1,6 +1,7 @@
 'use client';
 
-import { CloseOutlined, EyeOutlined } from '@ant-design/icons';
+import CloseOutlined from '@ant-design/icons/CloseOutlined';
+import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { useTranslations } from 'next-intl';

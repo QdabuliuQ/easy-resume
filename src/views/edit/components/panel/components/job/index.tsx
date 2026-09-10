@@ -39,7 +39,7 @@ import { JobProps } from '@/modules/job';
 import ModulePanelTitleEdit from '../modulePanelTitleEdit';
 import PanelToolbar from '../panelToolbar';
 import dayjs from 'dayjs';
-import { SolutionOutlined } from '@ant-design/icons';
+import SolutionOutlined from '@ant-design/icons/SolutionOutlined';
 import RichTextEditor from '@/components/richTextEditor/lazy';
 import {
   canAddResumeModuleItem,
@@ -47,27 +47,26 @@ import {
 } from '@/utils/moduleTypeLimits';
 import { ensureResumeModuleItemsId, makeResumeItemId } from '@/utils/createResumeModule';
 import { useTranslations } from 'next-intl';
+import { clonePlain } from '@/utils/clonePlain';
 
 const FORM_ICON_FILL = 'var(--panel-form-icon)';
 
 function Job({ moduleId }: { moduleId?: string } = {}) {
   const message = useAppMessage();
   const tj = useTranslations('Edit.job');
-  const { getModule, getModuleIndex } = useModuleHandle();
+  const { getModule } = useModuleHandle();
   const config = configStore.getConfig;
   const moduleActive = moduleId ?? moduleActiveStore.getModuleActive;
   const editOpen = moduleActiveStore.getModuleActive === moduleActive;
   const [module, setModule] = useState<JobProps | null>(null);
   const gradId = useId().replace(/:/g, '');
   const iconGradId = `job-icon-grad-${gradId}`;
-  const pid = useMemoizedFn((index: number, key: string) => `${moduleActive}_${index}_${key}`);
+  const pid = useMemoizedFn((itemId: string, key: string) => `${moduleActive}_${itemId}_${key}`);
 
   useEffect(() => {
     const m = getModule(moduleActive);
     if (m) {
-      const cloned = ensureResumeModuleItemsId(
-        JSON.parse(JSON.stringify(m)) as JobProps,
-      );
+      const cloned = ensureResumeModuleItemsId(clonePlain(m) as JobProps);
       cloned.options.items = cloned.options.items.map((item: any) => ({
         ...item,
         city:
@@ -84,55 +83,56 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
   }, [moduleActive, getModule, config]);
 
   const { run } = useDebounceFn(
-    (mod: JobProps) => {
-      const res = getModuleIndex(moduleActive);
-      if (!res) return;
-      const config = JSON.parse(JSON.stringify(configStore.getConfig));
-      if (!config) return;
-      const _module = JSON.parse(JSON.stringify(mod));
-      _module.options.items = _module.options.items.map((item: any) => ({
+    (targetModuleId: string, mod: JobProps) => {
+      const items = mod.options.items.map((item: any) => ({
         ...item,
         city: Array.isArray(item.city) ? item.city.join(' - ') : item.city,
       }));
-      config.pages[res.page].modules[res.module] = _module;
-      configStore.setConfig({
-        ...config,
-        pages: [...config.pages],
-      });
+      configStore.updateModuleField(targetModuleId, 'items', items);
     },
-    { wait: 100 }
+    { wait: 200 }
   );
 
-  const updateModule = useMemoizedFn((module: JobProps) => {
-    const _module = JSON.parse(JSON.stringify(module));
-    setModule(_module);
-    run(_module);
+  const commitModule = useMemoizedFn((next: JobProps) => {
+    setModule(next);
+    run(moduleActive, next);
+  });
+
+  const commitItems = useMemoizedFn((items: JobProps['options']['items']) => {
+    if (!module) return;
+    commitModule({ ...module, options: { ...module.options, items } });
   });
 
   const handleChange = useMemoizedFn((e: any, index: number, key: string) => {
     if (!module) return;
+    let patch: Record<string, unknown> = {};
     if (key === 'company' || key === 'post' || key === 'department') {
-      module.options.items[index][key] = e.target.value;
+      patch = { [key]: e.target.value };
     } else if (key === 'city') {
-      module.options.items[index][key] = Array.isArray(e) ? e : [];
+      patch = { city: Array.isArray(e) ? e : [] };
     } else if (key === 'date') {
       const payload = e as {
         dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null;
         endIsPresent: boolean;
       };
-      module.options.items[index].startDate = payload.dates?.[0]?.format('YYYY-MM') ?? '';
-      module.options.items[index].endDate = resumeRangeEndDateString(
-        payload.dates?.[1],
-        payload.endIsPresent,
-      );
+      patch = {
+        startDate: payload.dates?.[0]?.format('YYYY-MM') ?? '',
+        endDate: resumeRangeEndDateString(
+          payload.dates?.[1],
+          payload.endIsPresent,
+        ),
+      };
     }
-    updateModule(module);
+    commitItems(
+      module.options.items.map((item, i) =>
+        i === index ? { ...item, ...patch } : item,
+      ),
+    );
   });
 
   const handleDelete = useMemoizedFn((index: number) => {
     if (!module) return;
-    module.options.items.splice(index, 1);
-    updateModule(module);
+    commitItems(module.options.items.filter((_, i) => i !== index));
   });
 
   const handleAdd = useMemoizedFn(() => {
@@ -141,33 +141,33 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
       message.warning(resumeModuleItemLimitMessage('job'));
       return;
     }
-    module.options.items.unshift({
-      id: makeResumeItemId(),
-      company: '',
-      post: '',
-      department: '',
-      city: [],
-      startDate: undefined as any,
-      endDate: undefined as any,
-      description: '',
-    });
-    updateModule(module);
+    commitItems([
+      {
+        id: makeResumeItemId(),
+        company: '',
+        post: '',
+        department: '',
+        city: [],
+        startDate: undefined as any,
+        endDate: undefined as any,
+        description: '',
+      },
+      ...module.options.items,
+    ]);
   });
 
   const handleUp = useMemoizedFn((index: number) => {
-    if (!module) return;
-    const item = module.options.items[index];
-    module.options.items[index] = module.options.items[index - 1];
-    module.options.items[index - 1] = item;
-    updateModule(module);
+    if (!module || index <= 0) return;
+    const items = module.options.items.slice();
+    [items[index - 1], items[index]] = [items[index], items[index - 1]];
+    commitItems(items);
   });
 
   const handleDown = useMemoizedFn((index: number) => {
-    if (!module) return;
-    const item = module.options.items[index];
-    module.options.items[index] = module.options.items[index + 1];
-    module.options.items[index + 1] = item;
-    updateModule(module);
+    if (!module || index >= module.options.items.length - 1) return;
+    const items = module.options.items.slice();
+    [items[index], items[index + 1]] = [items[index + 1], items[index]];
+    commitItems(items);
   });
 
   const handleCopy = useMemoizedFn((index: number) => {
@@ -176,16 +176,19 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
       message.warning(resumeModuleItemLimitMessage('job'));
       return;
     }
-    const copy = JSON.parse(JSON.stringify(module.options.items[index]));
-    copy.id = makeResumeItemId();
-    module.options.items.splice(index, 0, copy);
-    updateModule(module);
+    const copy = { ...clonePlain(module.options.items[index]), id: makeResumeItemId() };
+    const items = module.options.items.slice();
+    items.splice(index, 0, copy);
+    commitItems(items);
   });
 
   const handleDescriptionHtml = useMemoizedFn((index: number, html: string) => {
     if (!module) return;
-    module.options.items[index].description = html;
-    updateModule(module);
+    commitItems(
+      module.options.items.map((item, i) =>
+        i === index ? { ...item, description: html } : item,
+      ),
+    );
   });
 
   const intentPostsForPolish = intentPostsFromResumeConfig(configStore.getConfig);
@@ -235,8 +238,10 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
-              module.options.title = next;
-              updateModule(module);
+              commitModule({
+                ...module,
+                options: { ...module.options, title: next },
+              });
             }}
           />
         </div>
@@ -253,9 +258,9 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
           ) : (
             <>
               <div className='flex max-h-[240px] flex-col gap-1.5 overflow-y-auto'>
-                {module.options.items.slice(0, 10).map((item: any, i: number) => (
+                {module.options.items.slice(0, 10).map((item: any) => (
                   <div
-                    key={i}
+                    key={item.id}
                     className='break-all text-[13px] text-fg/75'
                   >
                     {item.company || '—'} · {item.post || '—'}{' '}
@@ -285,7 +290,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
           {module.options.items.length > 0 ? (
             module.options.items.map((item: any, index: number) => (
               <div
-                key={index}
+                key={item.id}
                 className='panel-item-shell flex flex-col items-end'
               >
                 <Form layout='vertical' className='w-full'>
@@ -305,7 +310,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.company}
-                          data-panel-item-id={pid(index, 'company')}
+                          data-panel-item-id={pid(item.id, 'company')}
                           placeholder={tj('companyPh')}
                           onChange={(e) => handleChange(e, index, 'company')}
                         />
@@ -326,7 +331,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.post}
-                          data-panel-item-id={pid(index, 'post')}
+                          data-panel-item-id={pid(item.id, 'post')}
                           placeholder={tj('rolePh')}
                           onChange={(e) => handleChange(e, index, 'post')}
                         />
@@ -347,7 +352,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         <Input
                           maxLength={30}
                           value={item.department}
-                          data-panel-item-id={pid(index, 'department')}
+                          data-panel-item-id={pid(item.id, 'department')}
                           placeholder={tj('deptPh')}
                           onChange={(e) => handleChange(e, index, 'department')}
                         />
@@ -368,7 +373,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                         <Cascader
                           value={item.city}
                           options={city}
-                          data-panel-item-id={pid(index, 'city')}
+                          data-panel-item-id={pid(item.id, 'city')}
                           placeholder={tj('cityPh')}
                           onChange={(e) => handleChange(e, index, 'city')}
                         />
@@ -386,7 +391,7 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                           />
                         }
                       >
-                        <div data-panel-item-id={pid(index, 'date')}>
+                        <div data-panel-item-id={pid(item.id, 'date')}>
                           <ResponsiveRangeDatePicker
                             style={{ width: '100%' }}
                             startDate={item.startDate}
@@ -410,9 +415,9 @@ function Job({ moduleId }: { moduleId?: string } = {}) {
                       >
                         <div className='w-full'>
                           <RichTextEditor
-                            instanceKey={`${moduleActive}-${index}`}
+                            instanceKey={`${moduleActive}-${item.id}`}
                             html={item.description ?? ''}
-                            dataPanelItemId={pid(index, 'description')}
+                            dataPanelItemId={pid(item.id, 'description')}
                             onHtmlChange={(next) =>
                               handleDescriptionHtml(index, next)
                             }

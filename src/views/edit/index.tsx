@@ -17,9 +17,8 @@ import Container from './components/container';
 import EditShellReveal from './components/editShellReveal';
 import Header from './components/header';
 import Menu from './components/menu/index';
-import ResumeConfigCanvasPreviewHost from './components/resumeConfigCanvasPreviewHost';
+import ResumePreviewGate from './components/resumePreviewGate';
 import ResumeFontCdn from './components/canvas/resumeFontCdn';
-import EditTour from './components/editTour';
 import { AiInterviewSkeleton } from './components/panel/components/settingsSkeletons';
 import { captureAndUploadTemplatePreview } from '@/lib/templatePreviewClient';
 
@@ -28,6 +27,8 @@ const AiInterviewPage = dynamic(() => import('./components/aiInterview'), {
   loading: () => <AiInterviewSkeleton />,
 });
 
+const EditTour = dynamic(() => import('./components/editTour'), { ssr: false });
+
 const DEFAULT_MENU_KEY = 'resume';
 
 type EditProps = {
@@ -35,6 +36,11 @@ type EditProps = {
   templateId?: string;
   embedded?: boolean;
 };
+
+const EditResumeFontCdn = observer(function EditResumeFontCdn() {
+  const resumeFont = normResumeFont(configStore.mergedGlobalStyle.resumeFont);
+  return <ResumeFontCdn font={resumeFont} />;
+});
 
 function Edit({ templateMode = false, templateId, embedded = false }: EditProps) {
   const t = useTranslations('Edit.aiInterview');
@@ -46,7 +52,6 @@ function Edit({ templateMode = false, templateId, embedded = false }: EditProps)
   const [templateSaving, setTemplateSaving] = useState(false);
   const interviewLiveRef = useRef(false);
   const { confirm } = useResponsiveConfirm();
-  const resumeFont = normResumeFont(configStore.mergedGlobalStyle.resumeFont);
   const isInterview = menuActiveKey === 'ai-interview';
 
   const changeMenuKey = useCallback(
@@ -159,7 +164,7 @@ function Edit({ templateMode = false, templateId, embedded = false }: EditProps)
     <div
       className={`editor-shell-bg relative flex flex-col overflow-hidden text-[var(--text-strong)] ${embedded ? 'h-full w-full' : 'h-screen w-screen'}`}
     >
-      <ResumeFontCdn font={resumeFont} />
+      <EditResumeFontCdn />
       <EditShellReveal revealReady={shellRevealReady}>
         <div className='relative z-[1] flex min-h-0 flex-1 flex-col gap-3 p-3 md:p-4'>
           <div
@@ -221,7 +226,7 @@ function Edit({ templateMode = false, templateId, embedded = false }: EditProps)
         </div>
       </EditShellReveal>
       {!templateMode ? <EditTour ready={shellRevealReady} /> : null}
-      <ResumeConfigCanvasPreviewHost />
+      <ResumePreviewGate />
     </div>
   );
 }

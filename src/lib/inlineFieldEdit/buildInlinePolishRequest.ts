@@ -31,10 +31,12 @@ export function buildInlinePolishRequest(
     };
   }
 
-  const idx = target.optionIndex;
-  if (idx == null) return null;
   const items = options?.items as Record<string, unknown>[] | undefined;
-  const item = items?.[idx];
+  const item = target.itemId
+    ? items?.find((candidate) => candidate.id === target.itemId)
+    : target.optionIndex == null
+      ? undefined
+      : items?.[target.optionIndex];
   if (!item) return null;
 
   if (moduleType === 'job') {

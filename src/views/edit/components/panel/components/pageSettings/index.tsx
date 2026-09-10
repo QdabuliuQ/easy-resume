@@ -157,26 +157,10 @@ function PageSettings() {
         (a, b) => a.value - b.value,
       );
   const setGlobalFontSize = (v: number) => {
-    const base = configStore.getConfig
-      ? JSON.parse(JSON.stringify(configStore.getConfig))
-      : JSON.parse(JSON.stringify(defaultResume));
-    base.globalStyle = {
-      ...defaultResume.globalStyle,
-      ...(base.globalStyle ?? {}),
-      fontSize: v,
-    };
-    configStore.setConfig(base);
+    configStore.patchGlobalStyle({ fontSize: v });
   };
   const setGlobalResumeFont = (v: ResumeFontId) => {
-    const base = configStore.getConfig
-      ? JSON.parse(JSON.stringify(configStore.getConfig))
-      : JSON.parse(JSON.stringify(defaultResume));
-    base.globalStyle = {
-      ...defaultResume.globalStyle,
-      ...(base.globalStyle ?? {}),
-      resumeFont: v,
-    };
-    configStore.setConfig(base);
+    configStore.patchGlobalStyle({ resumeFont: v });
   };
   const onResumeFontChange = useMemoizedFn(async (v: ResumeFontId) => {
     if (fontLoading) return;
@@ -196,37 +180,13 @@ function PageSettings() {
     }
   });
   const setGlobalPageSize = (v: ResumePageSize) => {
-    const base = configStore.getConfig
-      ? JSON.parse(JSON.stringify(configStore.getConfig))
-      : JSON.parse(JSON.stringify(defaultResume));
-    base.globalStyle = {
-      ...defaultResume.globalStyle,
-      ...(base.globalStyle ?? {}),
-      pageSize: v,
-    };
-    configStore.setConfig(base);
+    configStore.patchGlobalStyle({ pageSize: v });
   };
   const setGlobalLineHeight = (v: number) => {
-    const base = configStore.getConfig
-      ? JSON.parse(JSON.stringify(configStore.getConfig))
-      : JSON.parse(JSON.stringify(defaultResume));
-    base.globalStyle = {
-      ...defaultResume.globalStyle,
-      ...(base.globalStyle ?? {}),
-      lineHeight: v,
-    };
-    configStore.setConfig(base);
+    configStore.patchGlobalStyle({ lineHeight: v });
   };
   const setGlobalPagePadding = (v: number) => {
-    const base = configStore.getConfig
-      ? JSON.parse(JSON.stringify(configStore.getConfig))
-      : JSON.parse(JSON.stringify(defaultResume));
-    base.globalStyle = {
-      ...defaultResume.globalStyle,
-      ...(base.globalStyle ?? {}),
-      padding: v,
-    };
-    configStore.setConfig(base);
+    configStore.patchGlobalStyle({ padding: v });
   };
   const resumeFontVal = normResumeFont(configStore.mergedGlobalStyle.resumeFont);
   const pageSizeVal = normResumePageSize(configStore.mergedGlobalStyle.pageSize);
@@ -243,59 +203,23 @@ function PageSettings() {
         { label: `${moduleMarginVal}px`, value: moduleMarginVal },
       ].sort((a, b) => a.value - b.value);
   const setGlobalModuleMargin = (v: number) => {
-    const base = configStore.getConfig
-      ? JSON.parse(JSON.stringify(configStore.getConfig))
-      : JSON.parse(JSON.stringify(defaultResume));
-    base.globalStyle = {
-      ...defaultResume.globalStyle,
-      ...(base.globalStyle ?? {}),
-      moduleMargin: v,
-    };
-    configStore.setConfig(base);
+    configStore.patchGlobalStyle({ moduleMargin: v });
   };
   const setGlobalPageLayout = (v: ResumePageLayout) => {
-    const base = configStore.getConfig
-      ? JSON.parse(JSON.stringify(configStore.getConfig))
-      : JSON.parse(JSON.stringify(defaultResume));
-    base.globalStyle = {
-      ...defaultResume.globalStyle,
-      ...(base.globalStyle ?? {}),
-      layout: v,
-    };
-    configStore.setConfig(base);
+    configStore.patchGlobalStyle({ layout: v });
   };
   const setGlobalHeaderType = (v: number) => {
-    const base = configStore.getConfig
-      ? JSON.parse(JSON.stringify(configStore.getConfig))
-      : JSON.parse(JSON.stringify(defaultResume));
-    base.globalStyle = {
-      ...defaultResume.globalStyle,
-      ...(base.globalStyle ?? {}),
-      headerType: v,
-    };
-    configStore.setConfig(base);
+    configStore.patchGlobalStyle({ headerType: v });
   };
   const setGlobalThemeColor = (v: string) => {
-    const base = configStore.getConfig
-      ? JSON.parse(JSON.stringify(configStore.getConfig))
-      : JSON.parse(JSON.stringify(defaultResume));
-    base.globalStyle = {
-      ...defaultResume.globalStyle,
-      ...(base.globalStyle ?? {}),
+    configStore.patchGlobalStyle({
       color: hexForColorInput(v, THEME_COLOR_FALLBACK),
-    };
-    configStore.setConfig(base);
+    });
   };
   const setGlobalBackgroundColor = (v: string) => {
-    const base = configStore.getConfig
-      ? JSON.parse(JSON.stringify(configStore.getConfig))
-      : JSON.parse(JSON.stringify(defaultResume));
-    base.globalStyle = {
-      ...defaultResume.globalStyle,
-      ...(base.globalStyle ?? {}),
+    configStore.patchGlobalStyle({
       backgroundColor: hexForColorInput(v, BG_COLOR_FALLBACK),
-    };
-    configStore.setConfig(base);
+    });
   };
   const mergedGs = configStore.mergedGlobalStyle as GlobalStyle;
   const headerTypeVal = headerTypeNorm(mergedGs.headerType);

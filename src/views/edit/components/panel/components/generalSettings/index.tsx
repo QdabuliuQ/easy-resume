@@ -1,5 +1,8 @@
 'use client';
-import { CheckCircleOutlined, FolderOpenOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
+import FolderOpenOutlined from '@ant-design/icons/FolderOpenOutlined';
+import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
+import WarningOutlined from '@ant-design/icons/WarningOutlined';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useAppMessage } from '@/hooks/useAppMessage';
 import { useTranslations } from 'next-intl';

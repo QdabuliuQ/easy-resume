@@ -1,6 +1,6 @@
 'use client';
 
-import { CloseOutlined } from '@ant-design/icons';
+import CloseOutlined from '@ant-design/icons/CloseOutlined';
 import { useTranslations } from 'next-intl';
 import { memo, useEffect } from 'react';
 import MobileResumePreview from './resumePreview';

@@ -6,6 +6,7 @@ import type { GlobalStyle } from '../utils/common.type';
 import SafeText from '../shared/safeText';
 
 export interface EducationItemLike {
+  id?: string;
   school?: string;
   degree?: string;
   major?: string;
@@ -34,6 +35,8 @@ export default function EducationItemsBody({
   return (
     <div className='min-w-0 w-full' style={{ fontSize: `${fontSize}px` }}>
       {items.map((item, index) => {
+        const hasStableId = typeof item.id === 'string' && item.id.trim().length > 0;
+        const itemId = hasStableId ? item.id!.trim() : String(index);
         const school = typeof item.school === 'string' ? item.school : '';
         const startDate = typeof item.startDate === 'string' ? item.startDate : '';
         const endDate = typeof item.endDate === 'string' ? item.endDate : '';
@@ -50,7 +53,7 @@ export default function EducationItemsBody({
         const description = typeof item.description === 'string' ? item.description : '';
         return (
           <div
-            key={`${index}-${school}-${startDate}-${endDate}`}
+            key={itemId}
             className='min-w-0 w-full text-black not-last:mb-[10px]'
           >
             <div className='mb-[5px] flex min-w-0 justify-between gap-2' {...{ [RESUME_ITEM_ROW_ATTR]: '' }}>
@@ -59,12 +62,12 @@ export default function EducationItemsBody({
                   text={school}
                   selectable={selectable}
                   className='min-w-0 break-words font-bold'
-                  dataItemId={`${moduleId}_${index}_school`}
+                  dataItemId={`${moduleId}_${itemId}_school`}
                 />
                 {tags.length > 0 && (
                   <SafeText
                     selectable={selectable}
-                    dataItemId={`${moduleId}_${index}_tags`}
+                    dataItemId={`${moduleId}_${itemId}_tags`}
                     className='flex shrink-0 flex-wrap items-center'
                   >
                     {tags.map((tag, tagIndex) => {
@@ -87,7 +90,7 @@ export default function EducationItemsBody({
                   <SafeText
                     text={dateText}
                     selectable={selectable}
-                    dataItemId={`${moduleId}_${index}_date`}
+                    dataItemId={`${moduleId}_${itemId}_date`}
                   />
                 </div>
               )}
@@ -99,21 +102,21 @@ export default function EducationItemsBody({
                     <SafeText
                       text={major}
                       selectable={selectable}
-                      dataItemId={`${moduleId}_${index}_major`}
+                      dataItemId={`${moduleId}_${itemId}_major`}
                     />
                   )}
                   {degree && (
                     <SafeText
                       text={degree}
                       selectable={selectable}
-                      dataItemId={`${moduleId}_${index}_degree`}
+                      dataItemId={`${moduleId}_${itemId}_degree`}
                     />
                   )}
                   {academy && (
                     <SafeText
                       text={academy}
                       selectable={selectable}
-                      dataItemId={`${moduleId}_${index}_academy`}
+                      dataItemId={`${moduleId}_${itemId}_academy`}
                     />
                   )}
                 </div>
@@ -121,7 +124,7 @@ export default function EducationItemsBody({
                   <SafeText
                     text={normalizeResumeCityDisplay(city)}
                     selectable={selectable}
-                    dataItemId={`${moduleId}_${index}_city`}
+                    dataItemId={`${moduleId}_${itemId}_city`}
                   />
                 </div>
               </div>
@@ -131,7 +134,7 @@ export default function EducationItemsBody({
               fontSize={fontSize}
               lineHeight={lineHeight}
               selectable={selectable}
-              dataItemId={`${moduleId}_${index}_description`}
+              dataItemId={`${moduleId}_${itemId}_description`}
             />
           </div>
         );

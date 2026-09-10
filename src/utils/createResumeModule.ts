@@ -20,13 +20,17 @@ export function ensureResumeModuleItemsId<T extends { options?: { items?: unknow
 ): T {
   const items = mod?.options?.items;
   if (!Array.isArray(items)) return mod;
+  const used = new Set<string>();
   return {
     ...mod,
     options: {
       ...mod.options,
       items: items.map((item) => {
         const row = item as Record<string, unknown>;
-        return { ...row, id: typeof row.id === 'string' && row.id ? row.id : makeResumeItemId() };
+        const existingId = typeof row.id === 'string' ? row.id.trim() : '';
+        const id = existingId && !used.has(existingId) ? existingId : makeResumeItemId();
+        used.add(id);
+        return { ...row, id };
       }),
     },
   } as T;
