@@ -15,7 +15,7 @@ import {
 } from 'docx';
 import { dataUrlToBytes } from '@/lib/pdfkitExport/draw';
 import { parseCssColor, pxToPt } from '@/lib/pdfkitExport/layout';
-import type { PdfkitFillRun, PdfkitImageRun, PdfkitPage, PdfkitTextRun } from '@/lib/pdfkitExport/types';
+import type { PdfkitDisc, PdfkitFillRun, PdfkitImageRun, PdfkitPage, PdfkitTextRun } from '@/lib/pdfkitExport/types';
 import {
   embedFontsInDocx,
   type DocxEmbedFontFace,
@@ -86,6 +86,79 @@ function roundedColorSvg(color: string, w: number, h: number, radius: number): U
   const rx = Math.max(0, Math.min(radius, Math.min(w, h) / 2));
   const xml = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" rx="${rx}" ry="${rx}" fill="#${hex}"/></svg>`;
   return new TextEncoder().encode(xml);
+}
+
+/** discs → • 文字（Word 可编辑；PDF 仍画矢量圆） */
+export function discToBulletRun(disc: PdfkitDisc): PdfkitTextRun {
+  const fontSize = Math.max(8, disc.r / 0.11);
+  const advance = fontSize * 0.4;
+  const h = fontSize * 1.15;
+  return {
+    text: '•',
+    x: disc.cx - advance / 2,
+    y: disc.cy - h / 2,
+    w: advance,
+    h,
+    fontSize,
+    fontWeight: 400,
+    color: disc.color,
+    letterSpacing: 0,
+    isListMarker: true,
+  };
+}
+
+/**
+ * 列表标记与同行正文合成一个 Frame。
+ * 分开写两个绝对定位框时，Word 字距/基线易和预览错位（尤其多级 a./i./1.）。
+ */
+export function mergeDocxListMarkerRuns(runs: PdfkitTextRun[]): PdfkitTextRun[] {
+  if (runs.length <= 1) return runs;
+  const sorted = [...runs].sort((a, b) => a.y - b.y || a.x - b.x);
+  const used = new Set<number>();
+  const out: PdfkitTextRun[] = [];
+  for (let i = 0; i < sorted.length; i += 1) {
+    if (used.has(i)) continue;
+    const mark = sorted[i]!;
+    if (!mark.isListMarker) {
+      out.push(mark);
+      continue;
+    }
+    const yTol = Math.max(4, mark.fontSize * 0.45);
+    let best = -1;
+    let bestDx = Infinity;
+    for (let j = 0; j < sorted.length; j += 1) {
+      if (j === i || used.has(j)) continue;
+      const body = sorted[j]!;
+      if (body.isListMarker) continue;
+      if (Math.abs(body.y - mark.y) > yTol) continue;
+      const dx = body.x - mark.x;
+      if (dx < -2) continue;
+      if (dx < bestDx) {
+        bestDx = dx;
+        best = j;
+      }
+    }
+    if (best < 0) {
+      out.push(mark);
+      continue;
+    }
+    used.add(best);
+    const body = sorted[best]!;
+    const prefix = `${mark.text.replace(/\s+$/u, '')} `;
+    const prefixW = Number(mark.textWidth) > 0 ? Number(mark.textWidth) : mark.w;
+    const bodyW = Number(body.textWidth) > 0 ? Number(body.textWidth) : body.w;
+    out.push({
+      ...body,
+      text: prefix + body.text,
+      x: mark.x,
+      y: Math.min(mark.y, body.y),
+      w: Math.max(body.x + body.w - mark.x, prefixW + bodyW, 4),
+      h: Math.max(mark.h, body.h),
+      textWidth: prefixW + bodyW,
+      isListMarker: undefined,
+    });
+  }
+  return out.sort((a, b) => a.y - b.y || a.x - b.x);
 }
 
 /** Word 中文加粗依赖 eastAsia 字体名；跳过系统无衬线占位 */
@@ -229,6 +302,8 @@ export function mergeAdjacentDocxTextRuns(runs: PdfkitTextRun[]): PdfkitTextRun[
       const prev = cur[cur.length - 1];
       const gap = run.x - (prev.x + prev.w);
       const join =
+        !prev.isListMarker &&
+        !run.isListMarker &&
         !isPipeRun(prev.text) &&
         !isPipeRun(run.text) &&
         gap <= MERGE_TOUCH_GAP_PX;
@@ -402,7 +477,13 @@ function pageChildren(page: PdfkitPage, fontFamily?: string): Paragraph[] {
     z += 1;
     if (p) out.push(p);
   }
-  for (const run of mergeAdjacentDocxTextRuns(page.runs.filter((r) => r.text))) {
+  const textRuns = mergeDocxListMarkerRuns(
+    mergeAdjacentDocxTextRuns([
+      ...(page.discs ?? []).map(discToBulletRun),
+      ...page.runs.filter((r) => r.text),
+    ]),
+  );
+  for (const run of textRuns) {
     out.push(textParagraph(run, fontFamily));
   }
   if (!out.length) out.push(new Paragraph({ children: [] }));

@@ -7,6 +7,7 @@ export function glyphText(pages: PdfkitPage[]): string {
     for (const run of page.runs) {
       for (const ch of run.text) chars.add(ch);
     }
+    if (page.discs?.length) chars.add('•');
   }
   return Array.from(chars).join('');
 }

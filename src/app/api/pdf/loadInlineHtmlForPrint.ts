@@ -7,12 +7,15 @@ async function waitFontsReady(page: Page) {
     (ms) =>
       Promise.race([
         (async () => {
-          const families = ['Noto Sans SC', 'Noto Serif SC'];
+          // 只预加载当前导出页声明的字体。之前固定请求两套 Noto 字体，
+          // 使用其他简历字体时会产生不必要的网络请求和字体解析开销。
+          const faces = Array.from(document.fonts);
           await Promise.all(
-            families.flatMap((family) => [
-              document.fonts.load(`400 16px "${family}"`),
-              document.fonts.load(`700 16px "${family}"`),
-            ]),
+            faces.map((face) =>
+              document.fonts.load(
+                `${face.style || 'normal'} ${face.weight || '400'} 16px ${face.family}`,
+              ),
+            ),
           );
           await document.fonts.ready;
         })(),

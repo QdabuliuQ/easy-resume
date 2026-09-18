@@ -333,18 +333,40 @@ export function cssBeforeOuterBox(
   return { x, y, w: Math.max(boxW, 1), h: Math.max(boxH, 1) };
 }
 
-/** 列表圆点：在首行文字左侧，留 margin-right，垂直居中 */
+/** 列表圆点：在首行文字左侧，留 margin-right，垂直居中。
+ * 直径 0.22em；水平按预览 • 的 advance 盒居中（不能贴右缘，否则偏右）。
+ */
 export function discLeftOfLine(
   line: { left: number; top: number; height: number },
   fontSize: number,
   marginRight = fontSize * 0.3,
+  markerAdvance = fontSize * 0.4,
 ): { cx: number; cy: number; r: number } {
-  const r = Math.max(1.15, fontSize * 0.14);
+  const r = Math.max(0.7, fontSize * 0.11);
   const gap = Number.isFinite(marginRight) ? Math.max(0, marginRight) : fontSize * 0.3;
+  const advance =
+    Number.isFinite(markerAdvance) && markerAdvance > 0 ? markerAdvance : fontSize * 0.4;
+  const half = Math.max(r, advance / 2);
   return {
-    cx: line.left - gap - r,
+    cx: line.left - gap - half,
     cy: line.top + line.height / 2,
     r,
+  };
+}
+
+/** 有序/勾选标记：贴在首行文字左侧（[marker][gap][text]） */
+export function markerLeftOfLine(
+  line: { left: number; top: number; height: number },
+  markerWidth: number,
+  marginRight: number,
+): { x: number; y: number; w: number; h: number } {
+  const gap = Number.isFinite(marginRight) ? Math.max(0, marginRight) : 0;
+  const w = Math.max(1, markerWidth);
+  return {
+    x: line.left - gap - w,
+    y: line.top,
+    w,
+    h: Math.max(1, line.height),
   };
 }
 

@@ -18,6 +18,8 @@ export type PdfkitTextRun = {
   isHeader?: boolean;
   /** info1 字段：DOCX 按同一行合并为一个可编辑文本框 */
   isInfo1?: boolean;
+  /** 列表标记（• / 1. / a.）；DOCX 与同行正文合并，避免双 Frame 错位 */
+  isListMarker?: boolean;
   /** info1 行容器的真实页面盒，DOCX 用它定位整行 Frame */
   info1LineId?: string;
   info1LineX?: number;

@@ -12,11 +12,13 @@ import {
   cssRichTextFlags,
   orRichTextFlags,
   tagRichTextFlags,
+  discLeftOfLine,
   flushToPageEdge,
   cssBorderRadiusPx,
   groupTextNodeIntoLineRuns,
   intersectBoxes,
   imageMimeFromSrc,
+  markerLeftOfLine,
   normalizePdfHref,
   objectFitCrop,
   parseCssBeforeContent,
@@ -26,6 +28,7 @@ import {
 } from '@/lib/pdfkitExport/layout';
 import { quillOrderedListMarker } from '@/lib/resumeSnapPrepare';
 import type {
+  PdfkitDisc,
   PdfkitFillRun,
   PdfkitImageRun,
   PdfkitPage,
@@ -41,6 +44,7 @@ const SIDE_COL_SEL = '[data-resume-side-col]';
 const H7_PANEL_SEL = `[${RESUME_H7_PANEL_ATTR}]`;
 const ROUNDED_BANNER_SEL = '[data-resume-rounded-banner]';
 const QL_UI_SEL = '.ql-ui';
+const SNAP_MARKER_SEL = '[data-resume-snap-marker]';
 const PSEUDO_ATTR = 'data-pdfkit-pseudo';
 const HIDE_BEFORE = 'data-pdfkit-hide-before';
 const HIDE_AFTER = 'data-pdfkit-hide-after';
@@ -329,6 +333,166 @@ function resolveQlUiBeforeText(el: HTMLElement, content: string): string | null 
   return null;
 }
 
+type ListMarkerKind = 'disc' | 'ordered';
+
+function listMarkerKind(li: HTMLElement): ListMarkerKind | null {
+  const kind = li.getAttribute('data-list');
+  if (kind === 'bullet') return 'disc';
+  if (kind === 'ordered') return 'ordered';
+  if (kind) return null;
+  const parent = li.parentElement?.tagName;
+  if (parent === 'UL') return 'disc';
+  if (parent === 'OL') return 'ordered';
+  return null;
+}
+
+function listMarkerGapPx(li: HTMLElement, fontSize: number): number {
+  const ui = li.querySelector(':scope > .ql-ui');
+  if (ui instanceof HTMLElement) {
+    const mr = Number.parseFloat(getComputedStyle(ui, '::before').marginRight);
+    if (Number.isFinite(mr)) return Math.max(0, mr);
+  }
+  return fontSize * 0.3;
+}
+
+/** ::before 占位宽（• advance）；读不到时用 0.4em */
+function listMarkerAdvancePx(li: HTMLElement, fontSize: number): number {
+  const ui = li.querySelector(':scope > .ql-ui');
+  if (ui instanceof HTMLElement) {
+    const w = Number.parseFloat(getComputedStyle(ui, '::before').width);
+    if (Number.isFinite(w) && w > 0.5) return w;
+  }
+  return fontSize * 0.4;
+}
+
+/** li 内首段真实文字的首行盒（跳过 .ql-ui / 物化 marker） */
+function firstTextLineInLi(li: HTMLElement, range: Range): LineRect | null {
+  const doc = li.ownerDocument;
+  const walker = doc.createTreeWalker(li, NodeFilter.SHOW_TEXT);
+  let node: Node | null = walker.nextNode();
+  while (node) {
+    if (node instanceof Text) {
+      const parent = node.parentElement;
+      if (
+        parent &&
+        !parent.closest(QL_UI_SEL) &&
+        !parent.closest(SNAP_MARKER_SEL) &&
+        !parent.closest(SKIP_CLOSEST)
+      ) {
+        const raw = node.nodeValue ?? '';
+        const m = /\S/.exec(raw);
+        if (m && m.index != null) {
+          const start = m.index;
+          range.setStart(node, start);
+          range.setEnd(node, Math.min(raw.length, start + 1));
+          const rects = range.getClientRects();
+          for (let i = 0; i < rects.length; i += 1) {
+            const r = rects[i];
+            if (r.width >= 0.5 && r.height >= 0.5) {
+              return { top: r.top, left: r.left, width: r.width, height: r.height };
+            }
+          }
+        }
+      }
+    }
+    node = walker.nextNode();
+  }
+  return null;
+}
+
+function measureMarkerWidth(
+  ctx: CanvasRenderingContext2D | null,
+  text: string,
+  style: CSSStyleDeclaration,
+  fontWeight: number,
+  fontSize: number,
+): number {
+  if (!text) return fontSize;
+  if (!ctx) return Math.max(fontSize * 0.55, text.length * fontSize * 0.5);
+  ctx.font = canvasFontString(style, fontWeight, fontSize);
+  const w = ctx.measureText(text).width;
+  return Number.isFinite(w) && w > 0 ? w : Math.max(fontSize * 0.55, text.length * fontSize * 0.5);
+}
+
+/**
+ * 列表标记相对首行文字几何对齐（不走 ::before 探针 snap）。
+ * bullet → discs；ordered/check → text run。
+ */
+function collectListMarkers(
+  page: HTMLElement,
+  pageRect: DOMRect,
+  measureContext: CanvasRenderingContext2D | null,
+): { discs: PdfkitDisc[]; runs: PdfkitTextRun[] } {
+  const discs: PdfkitDisc[] = [];
+  const runs: PdfkitTextRun[] = [];
+  const range = page.ownerDocument.createRange();
+  const lis = page.querySelectorAll<HTMLElement>('li[data-list], .ql-editor li, .resume-quill-embed li');
+  for (let i = 0; i < lis.length; i += 1) {
+    const li = lis[i];
+    if (li.closest(HEADER_SEL) || li.closest(HEADER_MARK_SEL)) continue;
+    const kind = listMarkerKind(li);
+    if (!kind) continue;
+    const style = getComputedStyle(li);
+    if (isHiddenStyle(style)) continue;
+    const line = firstTextLineInLi(li, range);
+    if (!line) continue;
+    const fontSize = Number.parseFloat(style.fontSize) || 12;
+    const gap = listMarkerGapPx(li, fontSize);
+    const clip = visibleClip(li, page);
+    if (kind === 'disc') {
+      const d = discLeftOfLine(line, fontSize, gap, listMarkerAdvancePx(li, fontSize));
+      const box: ClipBox = {
+        x: d.cx - d.r,
+        y: d.cy - d.r,
+        w: d.r * 2,
+        h: d.r * 2,
+      };
+      if (!keepTextVisible(box, clip)) continue;
+      discs.push({
+        cx: d.cx - pageRect.left,
+        cy: d.cy - pageRect.top,
+        r: d.r,
+        color: style.color,
+      });
+      continue;
+    }
+    const text = quillOrderedListMarker(li);
+    if (!text.trim()) continue;
+    const fontWeight = resolveFontWeight(li);
+    const markerW = measureMarkerWidth(measureContext, text, style, fontWeight, fontSize);
+    const placed = markerLeftOfLine(line, markerW, gap);
+    if (!keepTextVisible(placed, clip)) continue;
+    const ink = measureContext
+      ? measureTextInk(measureContext, text, style, fontWeight, fontSize)
+      : {};
+    runs.push({
+      text,
+      x: placed.x - pageRect.left,
+      y: placed.y - pageRect.top,
+      w: placed.w,
+      h: placed.h,
+      fontSize,
+      fontWeight,
+      color: style.color,
+      letterSpacing: 0,
+      fontFamily: style.fontFamily || undefined,
+      isListMarker: true,
+      ...(ink.width != null ? { textWidth: ink.width } : {}),
+      ...(ink.ascent != null ? { textAscent: ink.ascent } : {}),
+      ...(ink.descent != null ? { textDescent: ink.descent } : {}),
+    });
+  }
+  return { discs, runs };
+}
+
+function isListMarkerPseudoHost(el: HTMLElement): boolean {
+  if (el.hasAttribute('data-resume-snap-marker')) return true;
+  if (!el.classList.contains('ql-ui')) return false;
+  const li = el.closest('li');
+  if (!(li instanceof HTMLElement)) return true;
+  return listMarkerKind(li) != null;
+}
+
 function waitFrame(): Promise<void> {
   return new Promise((r) => {
     requestAnimationFrame(() => r());
@@ -540,6 +704,7 @@ async function collectPseudoImages(
     if (
       el === page ||
       el.hasAttribute(PSEUDO_ATTR) ||
+      isListMarkerPseudoHost(el) ||
       el.closest(HEADER_SEL) ||
       el.closest(ROUNDED_BANNER_SEL)
     ) {
@@ -966,11 +1131,12 @@ export async function collectPdfkitPage(
     collectH7PanelImages(page, pageRect, snapElement, bakeDecorText),
   ]);
   const pseudoImages = await collectPseudoImages(page, pageRect, snapElement);
+  const listMarks = collectListMarkers(page, pageRect, measureContext);
   return {
     width: pageRect.width,
     height: pageRect.height,
     background,
-    runs,
+    runs: [...listMarks.runs, ...runs],
     images: [
       ...banner.images,
       ...headerImages,
@@ -983,6 +1149,7 @@ export async function collectPdfkitPage(
       ...collectSideColFills(page, pageRect),
       ...collectFills(page, pageRect, parseCssColor(background)),
     ],
+    ...(listMarks.discs.length ? { discs: listMarks.discs } : {}),
   };
 }
 

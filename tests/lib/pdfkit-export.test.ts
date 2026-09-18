@@ -15,6 +15,7 @@ import {
   intersectBoxes,
   isDiscGlyph,
   imageMimeFromSrc,
+  markerLeftOfLine,
   normalizePdfHref,
   objectFitCrop,
   orRichTextFlags,
@@ -212,11 +213,22 @@ describe('pdfkitExport layout', () => {
 
   it('places a disc left of the first text line, vertically centered', () => {
     expect(isDiscGlyph('•')).toBe(true);
-    const r = Math.max(1.15, 12 * 0.14);
-    expect(discLeftOfLine({ left: 40, top: 20, height: 18 }, 12, 3.6)).toEqual({
-      cx: 40 - 3.6 - r,
+    const fontSize = 12;
+    const r = Math.max(0.7, fontSize * 0.11);
+    const half = Math.max(r, (fontSize * 0.4) / 2);
+    expect(discLeftOfLine({ left: 40, top: 20, height: 18 }, fontSize, 3.6)).toEqual({
+      cx: 40 - 3.6 - half,
       cy: 29,
       r,
+    });
+  });
+
+  it('places ordered marker left of the first text line with gap', () => {
+    expect(markerLeftOfLine({ left: 40, top: 20, height: 18 }, 12, 3.6)).toEqual({
+      x: 40 - 3.6 - 12,
+      y: 20,
+      w: 12,
+      h: 18,
     });
   });
 });
@@ -249,6 +261,18 @@ describe('pdfkitExport draw helpers', () => {
         },
       ]),
     ).toContain('你');
+    expect(
+      glyphText([
+        {
+          width: 1,
+          height: 1,
+          background: '#fff',
+          runs: [],
+          images: [],
+          discs: [{ cx: 1, cy: 1, r: 1, color: '#000' }],
+        },
+      ]),
+    ).toContain('•');
     expect(
       pdfkitNeedBold([
         {

@@ -3,10 +3,12 @@ import JSZip from 'jszip';
 import { describe, expect, it } from 'vitest';
 import {
   buildDocxUint8ArrayFromPages,
+  discToBulletRun,
   docxFrameWidthPx,
   docxTextYLiftPx,
   joinDocxRunTexts,
   mergeAdjacentDocxTextRuns,
+  mergeDocxListMarkerRuns,
   pickDocxFontFamily,
 } from '@/lib/docxExport/buildFromPages';
 import { shouldBakeDecorText } from '@/lib/pdfkitExport/collect';
@@ -85,6 +87,33 @@ describe('docxFrameWidthPx', () => {
       }),
     ).toBe(240);
     expect(docxFrameWidthPx({ w: 0, fontSize: 12 })).toBe(1);
+  });
+});
+
+describe('mergeDocxListMarkerRuns', () => {
+  it('merges ordered marker with same-line body into one run', () => {
+    const merged = mergeDocxListMarkerRuns([
+      baseRun({ text: 'a. ', x: 40, w: 14, y: 80, isListMarker: true, textWidth: 12 }),
+      baseRun({ text: '和移动端', x: 58, w: 48, y: 80, textWidth: 48 }),
+      baseRun({ text: '2. ', x: 40, w: 14, y: 100, isListMarker: true, textWidth: 12 }),
+      baseRun({ text: '熟悉 Vue', x: 58, w: 40, y: 100, textWidth: 40 }),
+    ]);
+    expect(merged).toHaveLength(2);
+    expect(merged[0]?.text).toBe('a. 和移动端');
+    expect(merged[0]?.x).toBe(40);
+    expect(merged[0]?.isListMarker).toBeUndefined();
+    expect(merged[1]?.text).toBe('2. 熟悉 Vue');
+  });
+
+  it('merges bullet glyph with following body text', () => {
+    const bullet = discToBulletRun({ cx: 48, cy: 60, r: 2, color: '#333333' });
+    const merged = mergeDocxListMarkerRuns([
+      bullet,
+      baseRun({ text: '前端 Vue3', x: 56, w: 60, y: bullet.y, textWidth: 60 }),
+    ]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.text).toBe('• 前端 Vue3');
+    expect(merged[0]?.x).toBe(bullet.x);
   });
 });
 
@@ -267,6 +296,42 @@ describe('buildDocxUint8ArrayFromPages', () => {
     const xml = await zip.file('word/document.xml')!.async('string');
     expect(xml).toContain('w:eastAsia="月星楷"');
     expect(xml).not.toContain('w:eastAsia="Arial"');
+  });
+
+  it('writes list discs as editable bullet text runs', async () => {
+    const page: PdfkitPage = {
+      width: 794,
+      height: 1123,
+      background: '#ffffff',
+      runs: [baseRun({ text: '前端 Vue3', x: 56, w: 60, y: 54 })],
+      images: [],
+      discs: [{ cx: 48, cy: 60, r: 2, color: '#333333' }],
+    };
+    const bytes = await buildDocxUint8ArrayFromPages([page]);
+    const zip = await JSZip.loadAsync(bytes);
+    const xml = await zip.file('word/document.xml')!.async('string');
+    expect(xml).toContain('• 前端 Vue3');
+    expect(xml).toContain('w:framePr');
+    expect(xml.split('<w:framePr').length - 1).toBe(1);
+    expect(xml).not.toContain('asvg:svgBlip');
+  });
+
+  it('writes ordered list marker and body in one frame', async () => {
+    const page: PdfkitPage = {
+      width: 794,
+      height: 1123,
+      background: '#ffffff',
+      runs: [
+        baseRun({ text: 'a. ', x: 40, w: 14, y: 80, isListMarker: true, textWidth: 12 }),
+        baseRun({ text: '和移动端', x: 58, w: 48, y: 80, textWidth: 48 }),
+      ],
+      images: [],
+    };
+    const bytes = await buildDocxUint8ArrayFromPages([page]);
+    const zip = await JSZip.loadAsync(bytes);
+    const xml = await zip.file('word/document.xml')!.async('string');
+    expect(xml).toContain('a. 和移动端');
+    expect(xml.split('<w:framePr').length - 1).toBe(1);
   });
 
   it('exports page fills as floating bitmap backgrounds', async () => {
