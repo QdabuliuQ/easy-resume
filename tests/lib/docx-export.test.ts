@@ -6,6 +6,8 @@ import {
   discToBulletRun,
   docxFrameWidthPx,
   docxTextYLiftPx,
+  dedupeDocxTextRuns,
+  dropPlainDuplicatesOfMarkedRuns,
   joinDocxRunTexts,
   mergeAdjacentDocxTextRuns,
   mergeDocxListMarkerRuns,
@@ -106,14 +108,37 @@ describe('mergeDocxListMarkerRuns', () => {
   });
 
   it('merges bullet glyph with following body text', () => {
-    const bullet = discToBulletRun({ cx: 48, cy: 60, r: 2, color: '#333333' });
+    const bullet = discToBulletRun({
+      cx: 48,
+      cy: 60,
+      r: 2,
+      color: '#333333',
+      lineTop: 54,
+      lineH: 16,
+    });
     const merged = mergeDocxListMarkerRuns([
       bullet,
-      baseRun({ text: '前端 Vue3', x: 56, w: 60, y: bullet.y, textWidth: 60 }),
+      baseRun({ text: '前端 Vue3', x: 56, w: 60, y: 54, textWidth: 60 }),
     ]);
     expect(merged).toHaveLength(1);
     expect(merged[0]?.text).toBe('• 前端 Vue3');
     expect(merged[0]?.x).toBe(bullet.x);
+    expect(merged[0]?.y).toBe(54);
+  });
+});
+
+describe('dropPlainDuplicatesOfMarkedRuns', () => {
+  it('keeps marked line and drops overlapping plain copy', () => {
+    const marked = baseRun({ text: '• 熟练 HTML', x: 40, y: 80, w: 90 });
+    const plain = baseRun({ text: '熟练 HTML', x: 52, y: 80, w: 72 });
+    const out = dropPlainDuplicatesOfMarkedRuns([marked, plain]);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.text).toBe('• 熟练 HTML');
+  });
+
+  it('keeps plain text when no marked duplicate exists', () => {
+    const plain = baseRun({ text: '熟练 HTML', x: 52, y: 80, w: 72 });
+    expect(dropPlainDuplicatesOfMarkedRuns([plain])).toHaveLength(1);
   });
 });
 
@@ -195,6 +220,33 @@ describe('mergeAdjacentDocxTextRuns', () => {
       baseRun({ text: '左侧', x: 40, w: 30 }),
       baseRun({ text: '右侧正文', x: 320, w: 60 }),
     ]);
+    expect(merged).toHaveLength(2);
+  });
+});
+
+describe('dedupeDocxTextRuns', () => {
+  it('removes identical text runs at the same position', () => {
+    const run = baseRun({ text: '重复文本', x: 80, y: 120, w: 100, h: 18 });
+    expect(dedupeDocxTextRuns([run, { ...run }, { ...run, x: 200 }])).toHaveLength(2);
+  });
+
+  it('keeps repeated text at different positions', () => {
+    const a = baseRun({ text: '项目', x: 80, y: 120 });
+    const b = baseRun({ text: '项目', x: 120, y: 120 });
+    expect(dedupeDocxTextRuns([a, b])).toHaveLength(2);
+  });
+
+  it('removes overlapping rich-text copies without removing separated words', () => {
+    const a = baseRun({ text: 'TypeScript', x: 80, y: 120, w: 80, isRichText: true });
+    const b = baseRun({ text: 'TypeScript', x: 80.5, y: 120.2, w: 81, isRichText: true });
+    const c = baseRun({ text: 'TypeScript', x: 180, y: 120, w: 80, isRichText: true });
+    expect(dedupeDocxTextRuns([a, b, c])).toHaveLength(2);
+  });
+
+  it('does not merge rich text with following ordinary text', () => {
+    const rich = baseRun({ text: '富文本', x: 80, y: 120, w: 42, isRichText: true });
+    const plain = baseRun({ text: '后续文字', x: 122, y: 120, w: 48, isRichText: false });
+    const merged = mergeAdjacentDocxTextRuns([rich, plain]);
     expect(merged).toHaveLength(2);
   });
 });

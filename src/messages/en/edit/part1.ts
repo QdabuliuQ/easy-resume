@@ -62,7 +62,6 @@ export default {
     exportImagePdf: 'Export PDF (image)',
     exportImage: 'Export image',
     exportDocx: 'Export DOCX',
-    exportDocxBeta: 'Beta',
     exportJson: 'Export JSON',
     exporting: 'Exporting…',
     importBusy: 'Importing resume—try again when it finishes',

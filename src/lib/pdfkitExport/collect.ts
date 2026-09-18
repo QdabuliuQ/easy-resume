@@ -44,6 +44,8 @@ const SIDE_COL_SEL = '[data-resume-side-col]';
 const H7_PANEL_SEL = `[${RESUME_H7_PANEL_ATTR}]`;
 const ROUNDED_BANNER_SEL = '[data-resume-rounded-banner]';
 const QL_UI_SEL = '.ql-ui';
+const ARIA_HIDDEN_SEL = '[aria-hidden="true"]';
+const RICH_TEXT_SEL = '.resume-quill-embed';
 const SNAP_MARKER_SEL = '[data-resume-snap-marker]';
 const PSEUDO_ATTR = 'data-pdfkit-pseudo';
 const HIDE_BEFORE = 'data-pdfkit-hide-before';
@@ -453,6 +455,8 @@ function collectListMarkers(
         cy: d.cy - pageRect.top,
         r: d.r,
         color: style.color,
+        lineTop: line.top - pageRect.top,
+        lineH: line.height,
       });
       continue;
     }
@@ -711,6 +715,9 @@ async function collectPseudoImages(
       continue;
     }
     if (isHiddenStyle(getComputedStyle(el))) continue;
+    // 富文本列表标记由 collectListMarkers 写成可编辑 run；再截 ::before
+    // （含 counter()）会与正文 Frame 叠成「有圆点 + 无圆点」两份。
+    if (el.closest(RICH_TEXT_SEL)) continue;
     if (
       cssPseudoIsVisual(getComputedStyle(el, '::before')) ||
       cssPseudoIsVisual(getComputedStyle(el, '::after'))
@@ -1020,8 +1027,12 @@ export async function collectPdfkitPage(
         el &&
         !el.closest(SKIP_CLOSEST) &&
         !el.closest(QL_UI_SEL) &&
+        !el.closest(ARIA_HIDDEN_SEL) &&
         !el.closest(HEADER_MARK_SEL) &&
-        !(opts?.skipDecorText && inSnapDecor(el))
+        // DOCX 的 H7 面板只截背景装饰，正文（包括富文本）保留为可编辑 Frame；
+        // header/banner 仍由截图承载文字，避免装饰文字重复。
+        !(opts?.skipDecorText &&
+          (Boolean(el.closest(HEADER_SEL)) || Boolean(el.closest(ROUNDED_BANNER_SEL))))
       ) {
         const style = getComputedStyle(el);
         if (!isHiddenStyle(style)) {
@@ -1115,6 +1126,7 @@ export async function collectPdfkitPage(
               ...(flags.underline || href ? { underline: true } : {}),
               ...(flags.strike ? { strike: true } : {}),
               ...(href ? { href } : {}),
+              ...(el.closest('.resume-quill-embed') ? { isRichText: true } : {}),
             });
           }
         }
@@ -1128,7 +1140,12 @@ export async function collectPdfkitPage(
   const [banner, headerImages, panelImages] = await Promise.all([
     collectRoundedBanner(page, pageRect, snapElement, bakeDecorText),
     collectHeaderImages(page, pageRect, snapElement, bakeDecorText),
-    collectH7PanelImages(page, pageRect, snapElement, bakeDecorText),
+    collectH7PanelImages(
+      page,
+      pageRect,
+      snapElement,
+      opts?.skipDecorText ? false : bakeDecorText,
+    ),
   ]);
   const pseudoImages = await collectPseudoImages(page, pageRect, snapElement);
   const listMarks = collectListMarkers(page, pageRect, measureContext);

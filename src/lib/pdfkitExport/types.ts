@@ -31,6 +31,8 @@ export type PdfkitTextRun = {
   underline?: boolean;
   strike?: boolean;
   href?: string;
+  /** 采自 Quill 富文本，DOCX 对重叠副本做定向去重 */
+  isRichText?: boolean;
 };
 
 export type PdfkitImageRun = {
@@ -55,6 +57,9 @@ export type PdfkitDisc = {
   cy: number;
   r: number;
   color: string;
+  /** 首行文字顶边（相对页），DOCX 转 • 时与正文 y 对齐 */
+  lineTop?: number;
+  lineH?: number;
 };
 
 export type PdfkitPage = {

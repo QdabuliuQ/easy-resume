@@ -57,14 +57,7 @@ function HeaderExportMenu() {
         key: 'docx',
         disabled: actionsDisabled,
         icon: <FileWord theme='outline' size={16} fill={ICON_PRIMARY} />,
-        label: (
-          <span className='inline-flex items-center gap-1.5'>
-            {t('exportDocx')}
-            <span className='rounded border border-fg/15 px-1 py-px text-[10px] font-medium leading-tight text-fg/45'>
-              {t('exportDocxBeta')}
-            </span>
-          </span>
-        ),
+        label: t('exportDocx'),
         onClick: () => void exportDocx(),
       },
       {

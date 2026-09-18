@@ -62,7 +62,6 @@ export default {
     exportImagePdf: '导出 PDF（图片版）',
     exportImage: '导出图片',
     exportDocx: '导出 DOCX',
-    exportDocxBeta: 'Beta 测试',
     exportJson: '导出 JSON',
     exporting: '导出中…',
     importBusy: '正在导入简历，请稍后再操作',

@@ -92,11 +92,16 @@ function roundedColorSvg(color: string, w: number, h: number, radius: number): U
 export function discToBulletRun(disc: PdfkitDisc): PdfkitTextRun {
   const fontSize = Math.max(8, disc.r / 0.11);
   const advance = fontSize * 0.4;
-  const h = fontSize * 1.15;
+  const h = Number.isFinite(disc.lineH) && (disc.lineH ?? 0) > 0
+    ? disc.lineH!
+    : fontSize * 1.15;
+  const y = Number.isFinite(disc.lineTop)
+    ? disc.lineTop!
+    : disc.cy - h / 2;
   return {
     text: '•',
     x: disc.cx - advance / 2,
-    y: disc.cy - h / 2,
+    y,
     w: advance,
     h,
     fontSize,
@@ -105,6 +110,13 @@ export function discToBulletRun(disc: PdfkitDisc): PdfkitTextRun {
     letterSpacing: 0,
     isListMarker: true,
   };
+}
+
+const LIST_MARKER_PREFIX_RE =
+  /^(?:•|●|∙|·|☑|☐|\d+\.|[a-z]\.|[ivxlcdm]+\.)(?:\s+|$)/i;
+
+function looksLikeListMarkedText(text: string): boolean {
+  return LIST_MARKER_PREFIX_RE.test(text.trim());
 }
 
 /**
@@ -123,14 +135,21 @@ export function mergeDocxListMarkerRuns(runs: PdfkitTextRun[]): PdfkitTextRun[] 
       out.push(mark);
       continue;
     }
-    const yTol = Math.max(4, mark.fontSize * 0.45);
+    const yTol = Math.max(6, mark.fontSize * 0.6);
+    const markMid = mark.y + mark.h / 2;
     let best = -1;
     let bestDx = Infinity;
     for (let j = 0; j < sorted.length; j += 1) {
       if (j === i || used.has(j)) continue;
       const body = sorted[j]!;
       if (body.isListMarker) continue;
-      if (Math.abs(body.y - mark.y) > yTol) continue;
+      const bodyMid = body.y + body.h / 2;
+      if (
+        Math.abs(body.y - mark.y) > yTol &&
+        Math.abs(bodyMid - markMid) > yTol
+      ) {
+        continue;
+      }
       const dx = body.x - mark.x;
       if (dx < -2) continue;
       if (dx < bestDx) {
@@ -159,6 +178,31 @@ export function mergeDocxListMarkerRuns(runs: PdfkitTextRun[]): PdfkitTextRun[] 
     });
   }
   return out.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+/**
+ * 合并后若仍残留「无标记正文」与「•/1. 正文」重叠，丢掉无标记那份。
+ */
+export function dropPlainDuplicatesOfMarkedRuns(runs: PdfkitTextRun[]): PdfkitTextRun[] {
+  if (runs.length <= 1) return runs;
+  return runs.filter((run, i) => {
+    const plain = run.text.trim();
+    if (!plain || looksLikeListMarkedText(plain)) return true;
+    return !runs.some((other, j) => {
+      if (i === j) return false;
+      const ot = other.text.trim();
+      if (!looksLikeListMarkedText(ot) || !ot.endsWith(plain)) return false;
+      const prefix = ot.slice(0, ot.length - plain.length).trim();
+      if (!looksLikeListMarkedText(`${prefix} `) && !looksLikeListMarkedText(prefix)) {
+        return false;
+      }
+      const yTol = Math.max(6, run.fontSize * 0.6);
+      if (Math.abs(other.y - run.y) > yTol) return false;
+      const overlap =
+        Math.min(run.x + run.w, other.x + other.w) - Math.max(run.x, other.x);
+      return overlap > Math.min(run.w, other.w) * 0.2 || Math.abs(run.x - other.x) < other.w;
+    });
+  });
 }
 
 /** Word 中文加粗依赖 eastAsia 字体名；跳过系统无衬线占位 */
@@ -270,6 +314,42 @@ export function joinDocxRunTexts(runs: PdfkitTextRun[]): string {
   return runs.map((r) => r.text).join('');
 }
 
+/** Remove identical DOM text copies before creating overlapping Word frames. */
+export function dedupeDocxTextRuns(runs: PdfkitTextRun[]): PdfkitTextRun[] {
+  if (runs.length <= 1) return runs;
+  const seen = new Set<string>();
+  const out: PdfkitTextRun[] = [];
+  for (const run of runs) {
+    if (run.isRichText) {
+      const duplicate = out.find((prev) => {
+        if (!prev.isRichText || prev.text !== run.text) return false;
+        if (Math.abs(prev.y - run.y) > Math.max(2, run.fontSize * 0.12)) return false;
+        const overlap = Math.min(prev.x + prev.w, run.x + run.w) - Math.max(prev.x, run.x);
+        const near = Math.min(Math.abs(prev.x - (run.x + run.w)), Math.abs(run.x - (prev.x + prev.w)));
+        return overlap > Math.min(prev.w, run.w) * 0.35 || near <= 1.5;
+      });
+      if (duplicate) continue;
+    }
+    const key = [
+      run.text,
+      Math.round(run.x * 2) / 2,
+      Math.round(run.y * 2) / 2,
+      run.fontSize,
+      run.fontWeight,
+      run.color,
+      run.letterSpacing,
+      Boolean(run.italic),
+      Boolean(run.underline),
+      Boolean(run.strike),
+      run.info1LineId ?? '',
+    ].join('|');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(run);
+  }
+  return out;
+}
+
 /**
  * 仅合并同行且几乎贴住的 text 碎片（同一字段被拆成多 node 时）。
  * 不跨 `|`；info1 在这里按整行保留字段顺序和间隔符。
@@ -304,6 +384,7 @@ export function mergeAdjacentDocxTextRuns(runs: PdfkitTextRun[]): PdfkitTextRun[
       const join =
         !prev.isListMarker &&
         !run.isListMarker &&
+        prev.isRichText === run.isRichText &&
         !isPipeRun(prev.text) &&
         !isPipeRun(run.text) &&
         gap <= MERGE_TOUCH_GAP_PX;
@@ -477,11 +558,15 @@ function pageChildren(page: PdfkitPage, fontFamily?: string): Paragraph[] {
     z += 1;
     if (p) out.push(p);
   }
-  const textRuns = mergeDocxListMarkerRuns(
-    mergeAdjacentDocxTextRuns([
-      ...(page.discs ?? []).map(discToBulletRun),
-      ...page.runs.filter((r) => r.text),
-    ]),
+  const textRuns = dropPlainDuplicatesOfMarkedRuns(
+    mergeDocxListMarkerRuns(
+      mergeAdjacentDocxTextRuns(
+        dedupeDocxTextRuns([
+          ...(page.discs ?? []).map(discToBulletRun),
+          ...page.runs.filter((r) => r.text),
+        ]),
+      ),
+    ),
   );
   for (const run of textRuns) {
     out.push(textParagraph(run, fontFamily));
