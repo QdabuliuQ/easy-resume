@@ -144,7 +144,7 @@ export function mergeDocxListMarkerRuns(runs: PdfkitTextRun[]): PdfkitTextRun[] 
     }
     used.add(best);
     const body = sorted[best]!;
-    const prefix = `${mark.text.replace(/\s+$/u, '')} `;
+    const prefix = `${mark.text.replace(/\s+$/, '')} `;
     const prefixW = Number(mark.textWidth) > 0 ? Number(mark.textWidth) : mark.w;
     const bodyW = Number(body.textWidth) > 0 ? Number(body.textWidth) : body.w;
     out.push({
