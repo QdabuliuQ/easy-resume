@@ -182,11 +182,8 @@ export async function downloadResumeDocx(opts: Opts): Promise<void> {
       );
     });
     await waitPaint(host);
-    // DOCX 装饰区（header/banner/H7 panel）整块截图，避免截图文字与可编辑
-    // 文字 Frame 叠加后出现重影/重叠；正文仍按文字 Frame 保持可编辑。
-    const pages = await collectPdfkitPages(host, makeElementSnapper(localFonts), {
-      skipDecorText: true,
-    });
+    // header 只截装饰，标题继续采集为可编辑文字 Frame。
+    const pages = await collectPdfkitPages(host, makeElementSnapper(localFonts));
     if (!pages.length) throw new Error('导出 Page 未渲染');
     const hasContent = pages.some(
       (p) =>

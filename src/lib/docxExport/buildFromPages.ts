@@ -620,7 +620,7 @@ export async function buildDocxFromPages(
   opts?: BuildDocxOptions,
 ): Promise<Blob> {
   const bytes = await packDocx(pages, opts);
-  return new Blob([bytes], {
+  return new Blob([new Uint8Array(bytes)], {
     type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   });
 }
