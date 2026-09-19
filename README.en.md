@@ -60,7 +60,7 @@
 
 | Feature | Model | Notes |
 |---------|-------|-------|
-| AI polish | SenseNova | Streaming rewrite for job/project descriptions |
+| AI polish | DeepSeek | Streaming rewrite for job/project descriptions |
 | AI score | DeepSeek | Multi-dimension scoring and suggestions |
 | AI modify | DeepSeek | Chat-based edits |
 | AI mock interview | DeepSeek | Practice from your resume |
@@ -82,7 +82,7 @@
 | State | MobX |
 | Editor / layout | Quill, @dnd-kit, react-grid-layout |
 | Export | Puppeteer (server PDF), pdfkit / docx / snapdom (browser) |
-| AI | LangChain, DeepSeek, SenseNova |
+| AI | LangChain, DeepSeek |
 | Auth | Auth.js / next-auth |
 | Cloud data | Cloudflare Workers + D1 (`cf-api/`) |
 | Tooling | Vitest, ESLint, Prettier, Husky |
@@ -156,8 +156,7 @@ Create `.env.local` at repo root (never commit secrets). Full list: `.env.local.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DEEPSEEK_API_KEY` | No | AI score, modify, mock interview |
-| `SENSENOVA_API_KEY` | No | AI polish |
+| `DEEPSEEK_API_KEY` | No | AI polish, score, modify, mock interview |
 | `BAIDU_OCR_API_KEY` / `BAIDU_OCR_SECRET_KEY` | No | Resume PDF/image import |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | No | AI rate limit & cache |
 

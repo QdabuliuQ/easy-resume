@@ -3,10 +3,10 @@
  *
  * 调用链：
  *   编辑器 RichTextEditor → src/api/polishDescription.ts → 本路由
- *   → LangChain（src/lib/ai/polish/service.ts）→ SenseNova deepseek-v4-flash
+ *   → LangChain（src/lib/ai/polish/service.ts）→ DeepSeek deepseek-v4-flash
  *
  * 环境变量：
- *   SENSENOVA_API_KEY — 商汤 SenseNova（AI 润色）
+ *   DEEPSEEK_API_KEY — DeepSeek 官方 API（AI 润色）
  *
  * 请求体（JSON）：
  *   type: 'job' | 'project' | 'education' | 'skill'

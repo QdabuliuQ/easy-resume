@@ -53,7 +53,7 @@ export function createDeepSeekModel(opts?: {
   return model;
 }
 
-/** 商汤 SenseNova：AI 润色默认 deepseek-v4-flash */
+/** 商汤 SenseNova（可选备用；润色已改走 DeepSeek） */
 export function createSenseNovaModel(opts?: {
   temperature?: number;
   jsonMode?: boolean;

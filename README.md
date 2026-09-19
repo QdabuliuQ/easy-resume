@@ -60,7 +60,7 @@
 
 | 能力 | 模型 | 说明 |
 |------|------|------|
-| AI 润色 | SenseNova | 工作/项目等描述流式润色 |
+| AI 润色 | DeepSeek | 工作/项目等描述流式润色 |
 | AI 评分 | DeepSeek | 多维度评分与改进建议 |
 | AI 帮改 | DeepSeek | 对话式改稿 |
 | AI 模拟面试 | DeepSeek | 基于简历的面试练习 |
@@ -82,7 +82,7 @@
 | 状态 | MobX |
 | 编辑 / 布局 | Quill、@dnd-kit、react-grid-layout |
 | 导出 | Puppeteer（服务端 PDF）、pdfkit / docx / snapdom（浏览器本地） |
-| AI | LangChain、DeepSeek、SenseNova |
+| AI | LangChain、DeepSeek |
 | 登录 | Auth.js / next-auth |
 | 云端数据 | Cloudflare Workers + D1（`cf-api/`） |
 | 测试 / 规范 | Vitest、ESLint、Prettier、Husky |
@@ -156,8 +156,7 @@ npm run start   # 端口 3010
 
 | 变量 | 必填 | 说明 |
 |------|------|------|
-| `DEEPSEEK_API_KEY` | 否 | AI 评分、帮改、模拟面试 |
-| `SENSENOVA_API_KEY` | 否 | AI 润色 |
+| `DEEPSEEK_API_KEY` | 否 | AI 润色、评分、帮改、模拟面试 |
 | `BAIDU_OCR_API_KEY` / `BAIDU_OCR_SECRET_KEY` | 否 | 简历 PDF/图片导入 |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 否 | AI 限流与缓存 |
 
