@@ -22,8 +22,10 @@ type AiToolsMenuItemProps = {
   descriptions: Record<AiToolKey, string>;
   needLoginLabel: string;
   interviewLocked: boolean;
+  loginLocked: boolean;
   showHint: boolean;
   onSelectTool: (key: AiToolKey) => void;
+  onRequireLogin: () => void;
 };
 
 export default function AiToolsMenuItem({
@@ -33,8 +35,10 @@ export default function AiToolsMenuItem({
   descriptions,
   needLoginLabel,
   interviewLocked,
+  loginLocked,
   showHint,
   onSelectTool,
+  onRequireLogin,
 }: AiToolsMenuItemProps) {
   const panelId = useId();
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -143,7 +147,9 @@ export default function AiToolsMenuItem({
       className='relative'
       onMouseEnter={openNow}
       onMouseLeave={scheduleClose}
-      onFocusCapture={openNow}
+      onFocusCapture={() => {
+        if (!loginLocked) openNow();
+      }}
     >
       <div
         data-edit-tour='menu-ai-tools'
@@ -155,12 +161,20 @@ export default function AiToolsMenuItem({
         aria-label={label}
         aria-current={aiActive ? 'page' : undefined}
         onClick={() => {
+          if (loginLocked) {
+            onRequireLogin();
+            return;
+          }
           if (present && visible) beginClose();
           else openNow();
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
+            if (loginLocked) {
+              onRequireLogin();
+              return;
+            }
             if (present && visible) beginClose();
             else openNow();
           }
@@ -194,6 +208,7 @@ export default function AiToolsMenuItem({
                 titles={titles}
                 descriptions={descriptions}
                 interviewLocked={interviewLocked}
+                loginLocked={loginLocked}
                 onSelect={(key) => {
                   if (key === 'ai-interview' && interviewLocked) return;
                   onSelectTool(key);

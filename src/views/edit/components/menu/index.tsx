@@ -18,6 +18,7 @@ import {
   getResumeImportValidationError,
   normalizeResumeImportPayload,
 } from '@/lib/validateResumeImportJson';
+import { signInPreservingResume } from '@/lib/signInPreservingResume';
 
 const MENU_TILE_SIZE_PX = 68;
 const MENU_TILE_TRANSITION =
@@ -169,7 +170,7 @@ export default observer(function Menu({ activeKey, onActiveKeyChange, templateMo
       isActionImportResume && resumeImportLoading && resumeImportStore.statusText
         ? resumeImportStore.statusText
         : item.label;
-    const loginLocked = item.key === 'my-resumes' && !signedIn;
+    const loginLocked = (item.key === 'my-resumes' || item.key === 'import-resume') && !signedIn;
     const tile = (
       <div
         data-edit-tour={item.key === 'resume-template' ? 'menu-resume-template' : undefined}
@@ -221,7 +222,8 @@ export default observer(function Menu({ activeKey, onActiveKeyChange, templateMo
     }
     return <Fragment key={item.key}>{tile}</Fragment>;
   };
-  const interviewLocked = !signedIn && process.env.NODE_ENV === 'production';
+  const interviewLocked = !signedIn;
+  const aiLoginLocked = status !== 'loading' && !signedIn;
   return (
     <>
       <div className='relative flex h-full min-h-0 w-[96px] shrink-0 flex-col px-2.5 py-3'>
@@ -253,11 +255,13 @@ export default observer(function Menu({ activeKey, onActiveKeyChange, templateMo
                 descriptions={aiDescriptions}
                 needLoginLabel={t('needLogin')}
                 interviewLocked={interviewLocked}
+                loginLocked={aiLoginLocked}
                 showHint={hintAiModify || hintAiScore}
                 onSelectTool={(key) => {
                   dismissAiHints();
                   onActiveKeyChange(key);
                 }}
+                onRequireLogin={() => void signInPreservingResume('github')}
               />
               {panelMenuItems.slice(templateMode ? 1 : 3).map((item) => renderMenuItem(item))}
             </div>

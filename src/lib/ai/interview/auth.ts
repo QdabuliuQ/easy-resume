@@ -7,13 +7,12 @@ export type InterviewAuth =
   | { error: NextResponse };
 
 export async function requireInterviewAuth(): Promise<InterviewAuth> {
-  const isDev = process.env.NODE_ENV !== 'production';
   const session = await auth();
   const uid = session?.user?.uid;
-  if (!uid && !isDev) {
+  if (!uid) {
     return { error: err('请先登录', 401) };
   }
-  return { ownerKey: uid || 'dev-local', uid, isDev };
+  return { ownerKey: uid, uid, isDev: false };
 }
 
 export function assertSessionOwner(

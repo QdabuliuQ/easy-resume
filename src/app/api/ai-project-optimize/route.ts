@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { optimizeByScene } from '@/lib/ai/ragResume/optimize';
+import { requireAiAuth } from '@/lib/ai/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,6 +11,8 @@ const requestSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const authError = await requireAiAuth();
+  if (authError) return authError;
   try {
     const body = await req.json();
     const parsed = requestSchema.safeParse(body);

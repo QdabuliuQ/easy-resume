@@ -11,6 +11,7 @@ import { sanitizeResumeHtmlFields } from '@/lib/ai/modifyChat/sanitizeResume';
 import { streamModifyChatPipeline } from '@/lib/ai/modifyChat/service';
 import { checkModifyChatRateLimit, getClientIp, parseEncryptedRequestBody } from '@/lib/ai/score/routeShared';
 import { getResumeImportValidationError } from '@/lib/validateResumeImportJson';
+import { requireAiAuth } from '@/lib/ai/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -33,6 +34,8 @@ function sseLine(data: unknown): Uint8Array {
 }
 
 export async function POST(req: Request) {
+  const authError = await requireAiAuth();
+  if (authError) return authError;
   const contentLength = req.headers.get('content-length');
   if (contentLength) {
     const len = Number.parseInt(contentLength, 10);

@@ -1,11 +1,14 @@
 import crypto from 'crypto';
 import { checkSpeechRateLimit, err, getClientIp, ok } from '@/lib/ai/score/routeShared';
 import { getSpeechMaxAudioBytes, transcribeAudioBuffer } from '@/lib/ai/speech/transcribeService';
+import { requireAiAuth } from '@/lib/ai/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
+  const authError = await requireAiAuth();
+  if (authError) return authError;
   const ipHash = crypto.createHash('sha256').update(getClientIp(req)).digest('hex').slice(0, 16);
   try {
     const rate = await checkSpeechRateLimit(ipHash);

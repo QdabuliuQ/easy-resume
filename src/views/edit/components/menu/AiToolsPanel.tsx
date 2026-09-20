@@ -72,6 +72,7 @@ type AiToolsPanelProps = {
   titles: Record<AiToolKey, string>;
   descriptions: Record<AiToolKey, string>;
   interviewLocked?: boolean;
+  loginLocked?: boolean;
   onSelect: (key: AiToolKey) => void;
   footer?: ReactNode;
   className?: string;
@@ -82,6 +83,7 @@ export function AiToolsPanel({
   titles,
   descriptions,
   interviewLocked,
+  loginLocked = false,
   onSelect,
   footer,
   className,
@@ -103,7 +105,7 @@ export function AiToolsPanel({
             title={titles[key]}
             description={descriptions[key]}
             selected={activeKey === key}
-            locked={key === 'ai-interview' && interviewLocked}
+            locked={loginLocked || (key === 'ai-interview' && interviewLocked)}
             tourAttr={key === 'ai-score' ? 'menu-ai-score' : key === 'ai-modify' ? 'menu-ai-modify' : undefined}
             onSelect={() => onSelect(key)}
           />

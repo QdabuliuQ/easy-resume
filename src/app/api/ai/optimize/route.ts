@@ -17,11 +17,14 @@ import {
   type AnalyzeRequestBody,
 } from '@/lib/ai/score/routeShared';
 import type { ResumeAiOptimizeResult } from '@/lib/ai/score/types';
+import { requireAiAuth } from '@/lib/ai/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+  const authError = await requireAiAuth();
+  if (authError) return authError;
   try {
     let raw: unknown;
     try {

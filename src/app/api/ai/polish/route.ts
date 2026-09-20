@@ -32,6 +32,7 @@ import { checkPolishRateLimit, getClientIp, parseEncryptedRequestBody } from '@/
 import { streamPolishDescription } from '@/lib/ai/polish/service';
 import { MIN_POLISH_PLAIN_LENGTH, type PolishRequest } from '@/lib/ai/polish/types';
 import { plainTextFromRichHtml } from '@/utils/sanitizeHtml';
+import { requireAiAuth } from '@/lib/ai/auth';
 
 /** LangChain / Puppeteer 等同理，必须在 Node 运行时执行 */
 export const runtime = 'nodejs';
@@ -116,6 +117,8 @@ function sseLine(data: unknown): Uint8Array {
 // POST /api/ai/polish
 // ---------------------------------------------------------------------------
 export async function POST(req: Request) {
+  const authError = await requireAiAuth();
+  if (authError) return authError;
   // ---------- 1. 解析并校验请求体 ----------
   let raw: unknown;
   try {

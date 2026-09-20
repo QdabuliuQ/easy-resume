@@ -22,6 +22,7 @@ import {
   err,
   getClientIp,
 } from '@/lib/ai/score/routeShared';
+import { requireAiAuth } from '@/lib/ai/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,6 +32,8 @@ function sseLine(data: unknown): Uint8Array {
 }
 
 export async function POST(req: NextRequest) {
+  const authError = await requireAiAuth();
+  if (authError) return authError;
   const reqId = crypto.randomBytes(4).toString('hex');
   const log = createResumeImportLogger(reqId);
   try {
