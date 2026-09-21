@@ -6,7 +6,6 @@ import { useAppMessage } from '@/hooks/useAppMessage';
 import { observer } from 'mobx-react';
 import { useTranslations } from 'next-intl';
 import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react';
-import { analyzeResumeScore } from '@/api/analyzeResume';
 import type { ResumeAiScoreResult } from '@/lib/ai/score/types';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore } from '@/mobx';
@@ -86,7 +85,8 @@ function Resume({ menuActiveKey }: ResumeProps) {
       return;
     }
     setScoreLoading(true);
-    void analyzeResumeScore(payload, newAnalyzeSessionId())
+    void import('@/api/analyzeResume')
+      .then(({ analyzeResumeScore }) => analyzeResumeScore(payload, newAnalyzeSessionId()))
       .then((res) => {
         const { cached, ...score } = res;
         void cached;

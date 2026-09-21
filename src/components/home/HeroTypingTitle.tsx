@@ -1,7 +1,6 @@
 'use client';
 
 import { memo, useEffect, useRef } from 'react';
-import Typed from 'typed.js';
 
 const HeroTypingTitle = memo(function HeroTypingTitle({
   reduceMotion,
@@ -29,21 +28,27 @@ const HeroTypingTitle = memo(function HeroTypingTitle({
         if (iv !== undefined) window.clearInterval(iv);
       };
     }
-    const typed = new Typed(el, {
-      strings: lines,
-      typeSpeed: 46,
-      backSpeed: 30,
-      backDelay: 2280,
-      startDelay: 80,
-      loop: true,
-      smartBackspace: false,
-      showCursor: true,
-      cursorChar: '|',
-      autoInsertCss: true,
-      contentType: 'null',
+    let disposed = false;
+    let typed: { destroy: () => void } | null = null;
+    void import('typed.js').then(({ default: Typed }) => {
+      if (disposed || !el) return;
+      typed = new Typed(el, {
+        strings: lines,
+        typeSpeed: 46,
+        backSpeed: 30,
+        backDelay: 2280,
+        startDelay: 80,
+        loop: true,
+        smartBackspace: false,
+        showCursor: true,
+        cursorChar: '|',
+        autoInsertCss: true,
+        contentType: 'null',
+      });
     });
     return () => {
-      typed.destroy();
+      disposed = true;
+      typed?.destroy();
     };
   }, [reduceMotion, lines]);
   return (

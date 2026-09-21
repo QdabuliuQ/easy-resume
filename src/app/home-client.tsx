@@ -4,15 +4,21 @@ import { useEffect, useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 
-import HomeBackdrop from '@/components/home/HomeBackdrop';
-import HomeTopNavActions from '@/components/home/HomeTopNavActions';
-import HomeBrandMark from '@/components/home/HomeBrandMark';
 import HomeHorizontalScroll from '@/components/home/HomeHorizontalScroll';
 import { useReduceMotion } from '@/lib/home/useReduceMotion';
+import type { ReactNode } from 'react';
 
 gsap.registerPlugin(useGSAP);
 
-export default function HomeClient() {
+export default function HomeClient({
+  backdrop,
+  brand,
+  nav,
+}: {
+  backdrop: ReactNode;
+  brand: ReactNode;
+  nav: ReactNode;
+}) {
   const mainRef = useRef<HTMLElement>(null);
   const [githubStars, setGithubStars] = useState<number | null>(null);
   const reduceMotion = useReduceMotion();
@@ -69,13 +75,13 @@ export default function HomeClient() {
           : 'relative min-h-screen w-full bg-[var(--editor-shell-bg)] text-[var(--text-strong)] [&_[data-home-enter]]:opacity-0'
       }
     >
-      <HomeBackdrop />
+      {backdrop}
       <header className='home-header fixed inset-x-0 top-0 z-20 flex items-center justify-between gap-3 px-4 pt-[calc(env(safe-area-inset-top,0px)+12px)] sm:px-5'>
         <div data-home-enter data-home-interactive className='min-w-0 shrink'>
-          <HomeBrandMark />
+          {brand}
         </div>
         <div data-home-enter data-home-interactive className='shrink-0'>
-          <HomeTopNavActions />
+          {nav}
         </div>
       </header>
       <HomeHorizontalScroll reduceMotion={reduceMotion} githubStars={githubStars} />

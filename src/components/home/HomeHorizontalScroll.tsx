@@ -8,7 +8,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { memo, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
-import HeroTypingTitle from '@/components/home/HeroTypingTitle';
+const HeroTypingTitle = dynamic(() => import('@/components/home/HeroTypingTitle'), {
+  loading: () => <span className='inline-block min-h-[2.2lh]' aria-hidden />,
+});
 import { PHOTOS, PHOTO_SIZES } from '@/lib/brandAssets';
 import { GITHUB_REPO_URL } from '@/lib/githubRepoStars';
 import { prefetchEditPage } from '@/lib/prefetchEditPage';

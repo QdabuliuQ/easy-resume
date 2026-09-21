@@ -58,12 +58,20 @@ export type AdminStats = {
   ts: number;
 };
 
-export function AdminProvider({ children }: { children: ReactNode }) {
-  const [authed, setAuthed] = useState(false);
-  const [adminName, setAdminName] = useState('');
-  const [booting, setBooting] = useState(true);
+export function AdminProvider({
+  children,
+  initialSession,
+}: {
+  children: ReactNode;
+  initialSession?: { username: string } | null;
+}) {
+  const hasInitialSession = initialSession !== undefined;
+  const [authed, setAuthed] = useState(hasInitialSession ? Boolean(initialSession) : false);
+  const [adminName, setAdminName] = useState(initialSession?.username || '');
+  const [booting, setBooting] = useState(!hasInitialSession);
 
   useEffect(() => {
+    if (hasInitialSession) return;
     (async () => {
       try {
         const res = await fetch('/api/admin/login', { cache: 'no-store' });
@@ -76,7 +84,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setBooting(false);
       }
     })();
-  }, []);
+  }, [hasInitialSession]);
 
   const login = useCallback(async (username: string, password: string) => {
     const res = await fetch('/api/admin/login', {

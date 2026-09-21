@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { logo } from '@/lib/brandAssets';
@@ -63,7 +63,7 @@ const ResumeImageExportPage = dynamic(
   { ssr: false, loading: () => <ShareResumeSkeleton /> },
 );
 
-type Status = 'loading' | 'ok' | 'expired' | 'invalid';
+export type ShareResumeStatus = 'ok' | 'expired' | 'invalid';
 
 const SHARE_RESUME_MAX_W = 720;
 
@@ -146,38 +146,14 @@ function ShareResumeFrame({ config }: { config: unknown }) {
   );
 }
 
-export default function ShareResumeView({ token }: { token: string }) {
+export default function ShareResumeView({
+  status,
+  config,
+}: {
+  status: ShareResumeStatus;
+  config: unknown;
+}) {
   const t = useTranslations('Share');
-  const [status, setStatus] = useState<Status>('loading');
-  const [config, setConfig] = useState<unknown>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`/api/resume/share/${encodeURIComponent(token)}`, {
-          cache: 'no-store',
-        });
-        const data = await res.json();
-        if (cancelled) return;
-        if (res.status === 410 || data?.code === 'expired') {
-          setStatus('expired');
-          return;
-        }
-        if (!res.ok || !data?.content) {
-          setStatus('invalid');
-          return;
-        }
-        setConfig(data.content);
-        setStatus('ok');
-      } catch {
-        if (!cancelled) setStatus('invalid');
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
 
   return (
     <div className='min-h-dvh bg-[rgb(var(--surface-bg-rgb))] text-fg'>
@@ -199,12 +175,6 @@ export default function ShareResumeView({ token }: { token: string }) {
         </span>
       </Link>
       <main className='mx-auto flex w-full flex-col items-center px-3 pb-8 pt-16 sm:px-6'>
-        {status === 'loading' ? (
-          <>
-            <span className='sr-only'>{t('loading')}</span>
-            <ShareResumeSkeleton />
-          </>
-        ) : null}
         {status === 'expired' || status === 'invalid' ? (
           <div className='flex min-h-[50vh] w-full max-w-md flex-col items-center justify-center gap-3 text-center'>
             <h1 className='text-xl font-semibold text-fg/90'>

@@ -1,24 +1,16 @@
-'use client';
-
 import Image from 'next/image';
-import { useLocale, useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/navigation';
+import { getTranslations } from 'next-intl/server';
+import { Link } from '@/i18n/navigation';
 import { logo } from '@/lib/brandAssets';
-import { homeFocusRing, homeNavKey } from '@/lib/home/homeA11y';
-import { memo } from 'react';
+import { homeFocusRing } from '@/lib/home/homeA11y';
 
-export default memo(function HomeBrandMark() {
-  const router = useRouter();
-  const locale = useLocale();
-  const t = useTranslations('Home');
-  const goHome = () => router.push('/');
+export default async function HomeBrandMark({ locale }: { locale: string }) {
+  const t = await getTranslations({ locale, namespace: 'Home' });
   return (
-    <span
-      role='link'
-      tabIndex={0}
+    <Link
+      href='/'
+      prefetch={false}
       aria-label={t('navHome')}
-      onClick={goHome}
-      onKeyDown={homeNavKey(goHome)}
       className={`flex min-w-0 cursor-pointer items-center gap-2 overflow-hidden rounded-lg ${homeFocusRing}`}
     >
       <span className='relative inline-flex h-9 w-9 shrink-0 sm:h-10 sm:w-10'>
@@ -32,6 +24,6 @@ export default memo(function HomeBrandMark() {
           {locale === 'zh' ? 'EasyResume' : '青松简历'}
         </span>
       </span>
-    </span>
+    </Link>
   );
-});
+}

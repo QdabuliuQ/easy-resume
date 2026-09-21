@@ -1,8 +1,4 @@
-'use client';
-
-import { memo } from 'react';
-
-export default memo(function HomeBackdrop() {
+export default function HomeBackdrop() {
   return (
     <div className='pointer-events-none fixed inset-0 z-0 overflow-hidden' aria-hidden>
       <div className='absolute inset-0 size-full bg-[radial-gradient(ellipse_at_50%_38%,color-mix(in_srgb,var(--color-primary)_14%,transparent),transparent_72%)]' />
@@ -17,4 +13,4 @@ export default memo(function HomeBackdrop() {
       <div className='absolute inset-x-[8%] top-[68%] h-px bg-gradient-to-r from-transparent via-[color-mix(in_srgb,var(--color-primary)_22%,transparent)] to-transparent' />
     </div>
   );
-});
+}
