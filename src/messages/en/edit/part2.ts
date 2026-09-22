@@ -74,7 +74,7 @@ export default {
     load: 'Load',
     preview: 'Preview',
     previewTitle: 'Resume preview',
-    previewHint: 'Click the name to load into the editor; Preview fetches details on demand.',
+    previewHint: 'Click the name to load into the editor; Preview fetches details (cached after first view).',
     previewFail: 'Failed to load preview',
     deleted: 'Deleted',
     deleteFail: 'Failed to delete',

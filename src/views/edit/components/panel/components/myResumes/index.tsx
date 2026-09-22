@@ -112,17 +112,15 @@ function MyResumes() {
     if (previewingId || openingId) return;
     setPreviewingId(item.id);
     try {
-      const res = await fetch(`/api/resume/cloud/${encodeURIComponent(item.id)}`, {
-        cache: 'no-store',
-      });
-      const body = await res.json();
-      if (!res.ok || !body?.content) {
-        message.error(body?.error || t('previewFail'));
+      const result = await cloudResumeStore.fetchResumeContent(item.id);
+      if (!result.ok) {
+        message.error(result.error || t('previewFail'));
         return;
       }
-      const displayName = body.content.name || item.name || t('unnamed');
+      const content = result.content as { name?: string };
+      const displayName = content?.name || item.name || t('unnamed');
       resumePreviewStore.openWithConfig(
-        body.content,
+        result.content,
         `${t('previewTitle')} · ${displayName}`,
       );
     } catch {

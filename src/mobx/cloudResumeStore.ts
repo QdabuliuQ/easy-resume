@@ -15,6 +15,8 @@ class CloudResumeStore {
   lastSavedAt: number | null = null;
   /** 变更后「我的简历」列表刷新 */
   listEpoch = 0;
+  /** 预览/加载共用的简历 JSON 缓存，避免重复请求详情 */
+  private contentCache = new Map<string, unknown>();
   private timer: ReturnType<typeof setTimeout> | null = null;
   private seq = 0;
 
@@ -48,6 +50,41 @@ class CloudResumeStore {
 
   bumpList() {
     this.listEpoch += 1;
+  }
+
+  getCachedContent(id: string): unknown | undefined {
+    return this.contentCache.get(id);
+  }
+
+  cacheContent(id: string, content: unknown) {
+    if (!id || content == null) return;
+    this.contentCache.set(id, content);
+  }
+
+  clearCachedContent(id?: string) {
+    if (id) this.contentCache.delete(id);
+    else this.contentCache.clear();
+  }
+
+  /** 拉取云端详情；命中缓存则不发请求 */
+  async fetchResumeContent(
+    id: string,
+  ): Promise<{ ok: true; content: unknown } | { ok: false; error: string }> {
+    const cached = this.contentCache.get(id);
+    if (cached != null) return { ok: true, content: cached };
+    try {
+      const res = await fetch(`/api/resume/cloud/${encodeURIComponent(id)}`, {
+        cache: 'no-store',
+      });
+      const data = await res.json();
+      if (!res.ok) return { ok: false, error: data?.error || '加载失败' };
+      const content = data?.content;
+      if (!content) return { ok: false, error: '简历内容为空' };
+      this.cacheContent(id, content);
+      return { ok: true, content };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : '网络错误' };
+    }
   }
 
   markAsNew() {
@@ -107,20 +144,13 @@ class CloudResumeStore {
 
   /** 打开云端简历到编辑器 */
   async openResume(id: string): Promise<{ ok: boolean; error?: string }> {
-    try {
-      const res = await fetch(`/api/resume/cloud/${encodeURIComponent(id)}`, { cache: 'no-store' });
-      const data = await res.json();
-      if (!res.ok) return { ok: false, error: data?.error || '加载失败' };
-      const content = data?.content;
-      if (!content) return { ok: false, error: '简历内容为空' };
-      editHistoryStore.clear();
-      configStore.setConfig(JSON.parse(JSON.stringify(content)), { source: 'hydrate' });
-      resetAiModifyChatSession();
-      this.bindId(id);
-      return { ok: true };
-    } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : '网络错误' };
-    }
+    const result = await this.fetchResumeContent(id);
+    if (!result.ok) return result;
+    editHistoryStore.clear();
+    configStore.setConfig(JSON.parse(JSON.stringify(result.content)), { source: 'hydrate' });
+    resetAiModifyChatSession();
+    this.bindId(id);
+    return { ok: true };
   }
 
   async deleteResume(id: string): Promise<{ ok: boolean; error?: string }> {
@@ -130,6 +160,7 @@ class CloudResumeStore {
       });
       const data = await res.json();
       if (!res.ok) return { ok: false, error: data?.error || '删除失败' };
+      this.clearCachedContent(id);
       if (this.resumeId === id) this.markAsNew();
       this.bumpList();
       return { ok: true };
@@ -191,6 +222,7 @@ class CloudResumeStore {
         this.lastError = '';
         this.lastSavedAt = Date.now();
         this.persistId(id);
+        this.cacheContent(id, copy);
         this.bumpList();
       });
       return { ok: true };
@@ -215,7 +247,6 @@ class CloudResumeStore {
 
     this.clearTimer();
     const mySeq = ++this.seq;
-    const wasNew = !this.resumeId;
     runInAction(() => {
       if (!silent) this.saving = true;
       this.lastError = '';
@@ -247,9 +278,11 @@ class CloudResumeStore {
         this.saving = false;
         this.lastError = '';
         this.lastSavedAt = Date.now();
-        if (id) this.persistId(id);
-        if (wasNew) this.bumpList();
-        else this.bumpList();
+        if (id) {
+          this.persistId(id);
+          this.cacheContent(id, content);
+        }
+        this.bumpList();
       });
       return { ok: true };
     } catch (e) {

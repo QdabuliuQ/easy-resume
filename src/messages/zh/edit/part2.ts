@@ -74,7 +74,7 @@ export default {
     load: '加载',
     preview: '预览',
     previewTitle: '简历预览',
-    previewHint: '点击名称加载到编辑器；点「预览」再拉取详情大屏查看',
+    previewHint: '点击名称加载到编辑器；点「预览」拉取详情（已预览过会复用缓存）',
     previewFail: '预览加载失败',
     deleted: '已删除',
     deleteFail: '删除失败',
