@@ -1,7 +1,6 @@
 'use client';
 import Image from 'next/image';
 import CheckCircleFilled from '@ant-design/icons/CheckCircleFilled';
-import CloudDownloadOutlined from '@ant-design/icons/CloudDownloadOutlined';
 import CloudOutlined from '@ant-design/icons/CloudOutlined';
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
@@ -17,11 +16,6 @@ import { useAppMessage } from '@/hooks/useAppMessage';
 import { useResponsiveConfirm } from '@/hooks/useResponsiveConfirm';
 import { cloudResumeStore } from '@/mobx';
 import { resumePreviewStore } from '@/mobx/resumePreviewStore';
-import type { ResumeTemplateItem } from '@/json/resumeTemplates';
-import {
-  TEMPLATE_CARD_PREVIEW_SCALE,
-  TemplateFirstPagePreview,
-} from '@/views/edit/components/panel/components/resumeTemplate';
 import { MyResumesSkeleton } from '@/views/edit/components/panel/components/settingsSkeletons';
 
 const panelShellClass =
@@ -31,7 +25,6 @@ type ResumeItem = {
   id: string;
   name: string;
   update_at: number;
-  config?: ResumeTemplateItem['config'];
 };
 
 function MyResumes() {
@@ -46,6 +39,7 @@ function MyResumes() {
   const [max, setMax] = useState(5);
   const [loading, setLoading] = useState(false);
   const [openingId, setOpeningId] = useState<string | null>(null);
+  const [previewingId, setPreviewingId] = useState<string | null>(null);
   const activeId = cloudResumeStore.resumeId;
   const listEpoch = cloudResumeStore.listEpoch;
 
@@ -63,23 +57,8 @@ function MyResumes() {
         setList([]);
         return;
       }
-      const rows = (data.list || []) as ResumeItem[];
+      setList((data.list || []) as ResumeItem[]);
       setMax(Number(data.max || 5));
-      const withConfig = await Promise.all(
-        rows.map(async (row) => {
-          try {
-            const detail = await fetch(`/api/resume/cloud/${encodeURIComponent(row.id)}`, {
-              cache: 'no-store',
-            });
-            const body = await detail.json();
-            if (!detail.ok || !body?.content) return row;
-            return { ...row, name: body.content.name || row.name, config: body.content };
-          } catch {
-            return row;
-          }
-        }),
-      );
-      setList(withConfig);
     } catch {
       message.error(t('loadFail'));
       setList([]);
@@ -93,7 +72,7 @@ function MyResumes() {
   }, [load, listEpoch]);
 
   const onLoad = (id: string) => {
-    if (openingId) return;
+    if (openingId || previewingId) return;
     if (activeId === id) {
       message.info(t('alreadyOpen'));
       return;
@@ -129,15 +108,28 @@ function MyResumes() {
     else message.error(result.error || t('deleteFail'));
   };
 
-  const onPreview = (item: ResumeItem) => {
-    if (!item.config) {
-      message.info(t('previewNeedConfig'));
-      return;
+  const onPreview = async (item: ResumeItem) => {
+    if (previewingId || openingId) return;
+    setPreviewingId(item.id);
+    try {
+      const res = await fetch(`/api/resume/cloud/${encodeURIComponent(item.id)}`, {
+        cache: 'no-store',
+      });
+      const body = await res.json();
+      if (!res.ok || !body?.content) {
+        message.error(body?.error || t('previewFail'));
+        return;
+      }
+      const displayName = body.content.name || item.name || t('unnamed');
+      resumePreviewStore.openWithConfig(
+        body.content,
+        `${t('previewTitle')} · ${displayName}`,
+      );
+    } catch {
+      message.error(t('previewFail'));
+    } finally {
+      setPreviewingId(null);
     }
-    resumePreviewStore.openWithConfig(
-      item.config,
-      `${t('previewTitle')} · ${item.name || t('unnamed')}`,
-    );
   };
 
   return (
@@ -208,77 +200,57 @@ function MyResumes() {
             <p className='max-w-[240px] text-[12px] leading-relaxed text-fg/42'>{t('emptyDesc')}</p>
           </div>
         ) : (
-          <ul className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-            {list.map((item, index) => {
+          <ul className='space-y-2'>
+            {list.map((item) => {
               const active = activeId === item.id;
               const displayName = item.name || t('unnamed');
+              const busy = !!openingId || !!previewingId;
               return (
-                <li key={item.id} className='min-w-0'>
+                <li key={item.id}>
                   <div
-                    className={`group relative flex w-full flex-col overflow-hidden rounded-2xl border text-left shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04),var(--panel-shadow-card-tight)] transition-[transform,border-color,background-color,box-shadow] duration-200 ${
+                    className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-[border-color,background-color] duration-150 ${
                       active
-                        ? 'border-[color:color-mix(in_srgb,var(--color-primary)_42%,rgb(var(--panel-surface-rgb)/0.12))] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-primary)_10%,transparent)_0%,rgb(var(--panel-surface-rgb)/0.03)_100%),var(--panel-layer-deep)]'
-                        : 'border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.055)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),var(--panel-layer-deep)] hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--color-primary)_42%,rgb(var(--panel-surface-rgb)/0.12))]'
+                        ? 'border-[color:color-mix(in_srgb,var(--color-primary)_42%,rgb(var(--panel-surface-rgb)/0.12))] bg-[color:color-mix(in_srgb,var(--color-primary)_8%,transparent)]'
+                        : 'border-fg/[0.08] bg-[rgb(var(--panel-surface-rgb)/0.03)] hover:border-fg/[0.14]'
                     }`}
                   >
-                    <div className='flex items-center justify-between gap-2 border-b border-fg/[0.06] bg-surface/[0.03] px-3 py-2'>
-                      <span className='inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-fg/[0.08] bg-surface/[0.04] px-2 py-0.5 text-[10px] font-medium text-fg/62'>
-                        {active ? (
-                          <CheckCircleFilled className='text-[10px] text-[var(--color-primary)]' />
-                        ) : null}
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                      <Tooltip title={displayName} mouseEnterDelay={0.2} placement='top'>
-                        <span className='min-w-0 flex-1 overflow-hidden text-right'>
-                          <span className='block truncate text-[12px] font-semibold text-fg/88'>
-                            {displayName}
-                          </span>
-                        </span>
-                      </Tooltip>
-                    </div>
-                    <div className='flex justify-center overflow-hidden bg-[rgb(var(--surface-fg-rgb)/0.04)]'>
-                      <div className='pointer-events-none max-h-[220px] overflow-hidden'>
-                        {item.config ? (
-                          <TemplateFirstPagePreview
-                            config={item.config}
-                            scale={TEMPLATE_CARD_PREVIEW_SCALE}
-                          />
-                        ) : (
-                          <div className='flex h-[160px] w-full items-center justify-center text-[12px] text-fg/40'>
-                            {t('previewLoading')}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className='flex items-center gap-2 border-t border-fg/[0.06] px-3 py-2'>
-                      <Button
-                        type='default'
-                        size='small'
-                        icon={<EyeOutlined />}
-                        className='!h-7 min-w-0 flex-1 !rounded-md !border-fg/[0.12] !bg-surface/[0.04] !px-2 !text-[11px] !font-medium !text-fg/72'
-                        onClick={() => onPreview(item)}
-                      >
-                        {t('preview')}
-                      </Button>
-                      <Button
-                        type='default'
-                        size='small'
-                        disabled={!!openingId}
-                        icon={<CloudDownloadOutlined />}
-                        className='!h-7 min-w-0 flex-1 !rounded-md !border-[color:color-mix(in_srgb,var(--color-primary)_24%,transparent)] !bg-[color:color-mix(in_srgb,var(--color-primary)_12%,transparent)] !px-2 !text-[11px] !font-medium !text-[color:var(--color-primary)]'
-                        onClick={() => onLoad(item.id)}
-                      >
-                        {t('load')}
-                      </Button>
+                    <Tooltip title={t('load')} mouseEnterDelay={0.35} placement='top'>
                       <button
                         type='button'
-                        className='module-op-delete-btn !h-7 !w-7 !rounded-md'
-                        aria-label={t('delete')}
-                        onClick={() => askDelete(item.id)}
+                        disabled={busy}
+                        className='flex min-w-0 flex-1 items-center gap-2 text-left disabled:opacity-50'
+                        onClick={() => onLoad(item.id)}
                       >
-                        <DeleteOne theme='outline' size='17' fill='currentColor' />
+                        {active ? (
+                          <CheckCircleFilled className='shrink-0 text-[12px] text-[var(--color-primary)]' />
+                        ) : (
+                          <FileTextOutlined className='shrink-0 text-[12px] text-fg/40' />
+                        )}
+                        <span className='min-w-0 truncate text-[13px] font-medium text-fg/88'>
+                          {displayName}
+                        </span>
                       </button>
-                    </div>
+                    </Tooltip>
+                    <Button
+                      type='default'
+                      size='small'
+                      disabled={busy}
+                      loading={previewingId === item.id}
+                      icon={previewingId === item.id ? undefined : <EyeOutlined />}
+                      className='!h-7 shrink-0 !rounded-md !border-fg/[0.12] !bg-surface/[0.04] !px-2 !text-[11px] !font-medium !text-fg/72'
+                      onClick={() => void onPreview(item)}
+                    >
+                      {t('preview')}
+                    </Button>
+                    <button
+                      type='button'
+                      className='module-op-delete-btn !h-7 !w-7 shrink-0 !rounded-md'
+                      aria-label={t('delete')}
+                      disabled={busy}
+                      onClick={() => askDelete(item.id)}
+                    >
+                      <DeleteOne theme='outline' size='17' fill='currentColor' />
+                    </button>
                   </div>
                 </li>
               );
