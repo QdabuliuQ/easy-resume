@@ -173,6 +173,7 @@ function Certificate({ moduleId }: { moduleId?: string } = {}) {
             disabled={!module}
             onCommit={(next) => {
               if (!module) return;
+              configStore.updateModuleField(moduleActive, 'title', next);
               commitModule({
                 ...module,
                 options: { ...module.options, title: next },
