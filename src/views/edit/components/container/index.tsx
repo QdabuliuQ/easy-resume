@@ -1,14 +1,12 @@
 import Resume from './resume';
 
 const RESUME_MENU_KEY = 'resume';
-const AI_SCORE_MENU_KEY = 'ai-score';
 const AI_MODIFY_MENU_KEY = 'ai-modify';
 const RESUME_TEMPLATE_MENU_KEY = 'resume-template';
 const GENERAL_SETTINGS_MENU_KEY = 'general-settings';
 
 const PANEL_MENU_KEYS = [
   RESUME_MENU_KEY,
-  AI_SCORE_MENU_KEY,
   AI_MODIFY_MENU_KEY,
   RESUME_TEMPLATE_MENU_KEY,
   'page-settings',

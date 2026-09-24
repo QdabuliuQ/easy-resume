@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { z } from 'zod';
+import { auth } from '@/auth';
 import { linkAbortSignal, formatExternalError } from '@/lib/ai/abortSignal';
 import { buildModifyChatMessages, MODIFY_CHAT_MAX_MESSAGES } from '@/lib/ai/modifyChat/shared';
 import {
@@ -36,6 +37,10 @@ function sseLine(data: unknown): Uint8Array {
 export async function POST(req: Request) {
   const authError = await requireAiAuth();
   if (authError) return authError;
+  const session = await auth();
+  const rateKey =
+    session?.user?.uid ||
+    crypto.createHash('sha256').update(getClientIp(req)).digest('hex').slice(0, 16);
   const contentLength = req.headers.get('content-length');
   if (contentLength) {
     const len = Number.parseInt(contentLength, 10);
@@ -70,10 +75,9 @@ export async function POST(req: Request) {
   if (resumeSizeErr) {
     return Response.json({ error: resumeSizeErr }, { status: 413 });
   }
-  const ipHash = crypto.createHash('sha256').update(getClientIp(req)).digest('hex').slice(0, 16);
   let rate: Awaited<ReturnType<typeof checkModifyChatRateLimit>>;
   try {
-    rate = await checkModifyChatRateLimit(ipHash);
+    rate = await checkModifyChatRateLimit(rateKey);
   } catch (e) {
     console.error('[modifyChat] rate limit check failed:', e);
     return Response.json({ error: '服务暂时不可用，请稍后重试' }, { status: 503 });

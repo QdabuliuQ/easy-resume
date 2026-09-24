@@ -1,12 +1,9 @@
 'use client';
 
-import { stripResumeForAiAnalyze } from '@/lib/stripResumeForAiAnalyze';
 import { Popover, Tooltip } from 'antd';
-import { useAppMessage } from '@/hooks/useAppMessage';
 import { observer } from 'mobx-react';
 import { useTranslations } from 'next-intl';
-import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react';
-import type { ResumeAiScoreResult } from '@/lib/ai/score/types';
+import { lazy, memo, Suspense, useMemo, useState } from 'react';
 import { useModuleHandle } from '@/hooks/module';
 import { configStore } from '@/mobx';
 import type { ResumeModuleType } from '@/utils/createResumeModule';
@@ -16,7 +13,6 @@ import {
   RESUME_MODULE_MAX_COUNT,
 } from '@/utils/moduleTypeLimits';
 
-const AiScore = lazy(() => import('../../panel/components/aiScore'));
 const AiModify = lazy(() => import('../../panel/components/aiModify'));
 const GeneralSettings = lazy(() => import('../../panel/components/generalSettings'));
 const ModuleEdit = lazy(() => import('../../panel/components/moduleEdit'));
@@ -29,7 +25,6 @@ import PanelHero from '../../panel/components/panelHero';
 import { resolvePanelHeroContent } from '../../panel/components/panelHero/resolveContent';
 import {
   AiModifySkeleton,
-  AiScoreSkeleton,
   GeneralSettingsSkeleton,
   MyResumesSkeleton,
   PageSettingsSkeleton,
@@ -40,7 +35,6 @@ import {
 const GRADIENT_CTA_CLASS =
   'bg-add-module-gradient relative isolate flex h-10 w-full max-w-full cursor-pointer select-none items-center justify-center gap-2 overflow-hidden rounded-md text-[14px] font-bold text-white shadow-lg shadow-black/20 outline-none backdrop-blur-md backdrop-saturate-200 transition-[filter] duration-200 hover:brightness-125 hover:saturate-150 active:brightness-95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:brightness-100 disabled:hover:saturate-100';
 function Resume({ menuActiveKey }: ResumeProps) {
-  const message = useAppMessage();
   const tr = useTranslations('Edit.resumeContainer');
   const addModuleList = useMemo(
     () =>
@@ -58,9 +52,6 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const cfg = configStore.getConfig;
   const { addModuleByType } = useModuleHandle();
   const [addOpen, setAddOpen] = useState(false);
-  const [scoreLoading, setScoreLoading] = useState(false);
-  const [aiScoreResult, setAiScoreResult] = useState<ResumeAiScoreResult | null>(null);
-  const isAiScore = menuActiveKey === 'ai-score';
   const isAiModify = menuActiveKey === 'ai-modify';
   const isResumeTemplate = menuActiveKey === 'resume-template';
   const isGeneralSettings = menuActiveKey === 'general-settings';
@@ -68,38 +59,6 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const isMyResumes = menuActiveKey === 'my-resumes';
   const isResumeEdit = menuActiveKey === 'resume';
   const panelHero = resolvePanelHeroContent(menuActiveKey, tr);
-  const buildAnalyzePayload = useCallback(() => {
-    const cfgInner = configStore.getConfig;
-    if (!cfgInner?.pages?.length) return null;
-    return stripResumeForAiAnalyze({ pages: cfgInner.pages ?? [] });
-  }, []);
-  const newAnalyzeSessionId = () =>
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const onStartScoreAnalyze = useCallback(() => {
-    if (scoreLoading) return;
-    const payload = buildAnalyzePayload();
-    if (!payload) {
-      message.warning(tr('noConfigWarn'));
-      return;
-    }
-    setScoreLoading(true);
-    void import('@/api/analyzeResume')
-      .then(({ analyzeResumeScore }) => analyzeResumeScore(payload, newAnalyzeSessionId()))
-      .then((res) => {
-        const { cached, ...score } = res;
-        void cached;
-        setAiScoreResult({
-          totalScore: score.totalScore,
-          dimensionEvaluate: score.dimensionEvaluate,
-        });
-      })
-      .catch((e) => {
-        message.error(e instanceof Error ? e.message : tr('analyzeFail'));
-      })
-      .finally(() => setScoreLoading(false));
-  }, [buildAnalyzePayload, scoreLoading, message, tr]);
   const panelSuspenseFallback =
     isPageSettings ? (
       <PageSettingsSkeleton />
@@ -107,8 +66,6 @@ function Resume({ menuActiveKey }: ResumeProps) {
       <GeneralSettingsSkeleton />
     ) : isResumeEdit ? (
       <ResumeEditPanelSkeleton />
-    ) : isAiScore ? (
-      <AiScoreSkeleton />
     ) : isAiModify ? (
       <AiModifySkeleton />
     ) : isResumeTemplate ? (
@@ -129,11 +86,9 @@ function Resume({ menuActiveKey }: ResumeProps) {
   const panelBody = (
     <>
       <PanelHero {...panelHero} />
-      <div className={isAiModify || isAiScore ? 'min-h-0 flex-1 flex flex-col' : undefined}>
+      <div className={isAiModify ? 'min-h-0 flex-1 flex flex-col' : undefined}>
         <Suspense fallback={panelSuspenseFallback}>
-          {isAiScore ? (
-            <AiScore scoreLoading={scoreLoading} analysis={aiScoreResult} onAnalyze={onStartScoreAnalyze} />
-          ) : isAiModify ? (
+          {isAiModify ? (
             <AiModify />
           ) : isResumeTemplate ? (
             <ResumeTemplate />
@@ -152,7 +107,7 @@ function Resume({ menuActiveKey }: ResumeProps) {
   );
   return (
     <div className='relative flex h-full min-h-0 flex-1 flex-col text-black [transform:translateZ(0)] bg-[var(--resume-panel-bg)]'>
-      {isAiModify || isAiScore ? (
+      {isAiModify ? (
         <div className='flex min-h-0 flex-1 flex-col overflow-hidden p-5'>
           <div className='flex min-h-0 flex-1 flex-col'>{panelBody}</div>
         </div>

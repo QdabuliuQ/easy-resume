@@ -1,4 +1,4 @@
-/** AI 评分/分析前剔除 info1 模块（含头像等个人信息） */
+/** AI 请求前剔除 info1 模块（含头像等个人信息） */
 export function stripResumeForAiAnalyze<T>(resume: T): T {
   if (!resume || typeof resume !== 'object') return resume;
   const clone = JSON.parse(JSON.stringify(resume)) as Record<string, unknown>;

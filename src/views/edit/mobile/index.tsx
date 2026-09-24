@@ -75,7 +75,7 @@ function MobileEditInner() {
 
   const changeMenuKey = useCallback(
     (
-      key: 'resume' | 'page-settings' | 'ai-score' | 'ai-modify' | 'ai-interview' | 'general-settings',
+      key: 'resume' | 'page-settings' | 'ai-modify' | 'ai-interview' | 'general-settings',
     ) => {
       if (menuActiveKey === 'ai-interview' && key !== 'ai-interview' && interviewLiveRef.current) {
         confirm({
@@ -115,7 +115,6 @@ function MobileEditInner() {
       ? 'resume'
       : menuActiveKey === 'resume' ||
           menuActiveKey === 'page-settings' ||
-          menuActiveKey === 'ai-score' ||
           menuActiveKey === 'ai-modify' ||
           menuActiveKey === 'ai-interview' ||
           menuActiveKey === 'general-settings'

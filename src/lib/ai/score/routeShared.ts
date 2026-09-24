@@ -1,10 +1,6 @@
 import { Redis } from '@upstash/redis';
 import { type NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { decryptAiPayloadJson } from '@/lib/ai/payloadCrypto';
-
-export const CACHE_TTL_SEC = 300;
-const ANALYZE_SESSION_TTL_SEC = 120;
 
 let redisClient: Redis | null | undefined;
 
@@ -23,11 +19,6 @@ function getRedis(): Redis | null {
 type ApiSuccess<T> = { success: true; data: T };
 type ApiError = { success: false; error: string; retryAfter?: number };
 
-export type AnalyzeRequestBody = {
-  pages?: unknown;
-  analyzeSessionId?: string;
-};
-
 export function ok<T>(data: T): NextResponse<ApiSuccess<T>> {
   return NextResponse.json({ success: true, data });
 }
@@ -44,17 +35,6 @@ export function getClientIp(req: Pick<NextRequest, 'headers'> | Request): string
   const forwarded = req.headers.get('x-forwarded-for');
   if (forwarded) return forwarded.split(',')[0].trim();
   return req.headers.get('x-real-ip') ?? '127.0.0.1';
-}
-
-export function hashResumeContent(pages: unknown): string {
-  return crypto.createHash('md5').update(JSON.stringify(pages)).digest('hex');
-}
-
-export function parseAnalyzeBody(body: AnalyzeRequestBody): NextResponse<ApiError> | null {
-  if (!body.pages || !Array.isArray(body.pages) || body.pages.length === 0) {
-    return err('缺少 pages 字段或内容为空', 400);
-  }
-  return null;
 }
 
 export function parseEncryptedRequestBody(raw: unknown): NextResponse<ApiError> | unknown {
@@ -95,92 +75,115 @@ async function checkRateLimit(
 
 type RateLimitDenied = { allowed: false; resetIn: number; message: string };
 
-async function applyAnalyzeRateLimit(redis: Redis, ipHash: string): Promise<RateLimitDenied | { allowed: true }> {
-  const minuteKey = `ratelimit:analyze:1m:${ipHash}`;
-  const hourKey = `ratelimit:analyze:1h:${ipHash}`;
-  const [minuteCheck, hourCheck] = await Promise.all([
-    checkRateLimit(redis, minuteKey, 2, 60),
-    checkRateLimit(redis, hourKey, 10, 3600),
-  ]);
-  if (!minuteCheck.allowed) {
+type MemBucket = { t: number[] };
+type DayBucket = { day: string; n: number };
+
+function shanghaiYmd(now = Date.now()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(now));
+}
+
+function secondsUntilShanghaiMidnight(now = Date.now()): number {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Shanghai',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(now));
+  const n = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+  const elapsed = n('hour') * 3600 + n('minute') * 60 + n('second');
+  return Math.max(1, 86400 - elapsed);
+}
+
+/** AI 帮写：2 次/分钟防刷 + 每天 20 条（上海时区）。有 Redis 用 Redis；生产无 Redis 用内存桶；本地开发跳过。 */
+const MODIFY_CHAT_PER_MIN = 2;
+const MODIFY_CHAT_PER_DAY = 20;
+
+const modifyChatMemBuckets = new Map<string, MemBucket>();
+const modifyChatDayBuckets = new Map<string, DayBucket>();
+
+function checkModifyChatMemMinute(key: string): { allowed: boolean; resetIn: number } {
+  const now = Date.now();
+  const windowMs = 60_000;
+  let bucket = modifyChatMemBuckets.get(key);
+  if (!bucket) {
+    bucket = { t: [] };
+    modifyChatMemBuckets.set(key, bucket);
+  }
+  bucket.t = bucket.t.filter((ts) => now - ts < windowMs);
+  if (bucket.t.length >= MODIFY_CHAT_PER_MIN) {
+    const oldest = bucket.t[0] ?? now;
+    return { allowed: false, resetIn: Math.max(1, Math.ceil((oldest + windowMs - now) / 1000)) };
+  }
+  bucket.t.push(now);
+  return { allowed: true, resetIn: 60 };
+}
+
+function checkModifyChatMemDay(key: string): RateLimitDenied | { allowed: true } {
+  const day = shanghaiYmd();
+  const resetIn = secondsUntilShanghaiMidnight();
+  let bucket = modifyChatDayBuckets.get(key);
+  if (!bucket || bucket.day !== day) {
+    bucket = { day, n: 0 };
+    modifyChatDayBuckets.set(key, bucket);
+  }
+  if (bucket.n >= MODIFY_CHAT_PER_DAY) {
     return {
       allowed: false,
-      resetIn: minuteCheck.resetIn,
-      message: `请求过于频繁，1 分钟内最多 2 次，请 ${minuteCheck.resetIn} 秒后重试`,
+      resetIn,
+      message: `今日 AI 帮写次数已用完（每天最多 ${MODIFY_CHAT_PER_DAY} 次），请明天再试`,
     };
   }
-  if (!hourCheck.allowed) {
-    return {
-      allowed: false,
-      resetIn: hourCheck.resetIn,
-      message: `已超出每小时限额（最多 10 次），请 ${hourCheck.resetIn} 秒后重试`,
-    };
-  }
+  bucket.n += 1;
   return { allowed: true };
 }
 
-/**
- * 同一次分析（score + optimize 并行）共享 analyzeSessionId，仅首请求计入限流。
- * 未配置 Upstash 时跳过限流。
- */
-export async function checkAnalyzeRateLimit(
-  ipHash: string,
-  analyzeSessionId?: string,
+export async function checkModifyChatRateLimit(
+  rateKey: string,
 ): Promise<RateLimitDenied | { allowed: true }> {
   const redis = getRedis();
-  if (!redis) return { allowed: true };
-  const sessionId = analyzeSessionId?.trim();
-  if (!sessionId) return applyAnalyzeRateLimit(redis, ipHash);
-  const batchKey = `analyze:batch:${ipHash}:${sessionId}`;
-  const blockedKey = `analyze:blocked:${ipHash}:${sessionId}`;
-  const count = await redis.incr(batchKey);
-  if (count === 1) await redis.expire(batchKey, ANALYZE_SESSION_TTL_SEC);
-  if (count > 1) {
-    const blocked = await redis.get(blockedKey);
-    if (blocked) {
-      const resetIn = Number(blocked) || 60;
+  if (redis) {
+    const day = shanghaiYmd();
+    const resetIn = secondsUntilShanghaiMidnight();
+    const dayKey = `ratelimit:modify-chat:day:${day}:${rateKey}`;
+    const count = await redis.incr(dayKey);
+    if (count === 1) await redis.expire(dayKey, resetIn + 120);
+    if (count > MODIFY_CHAT_PER_DAY) {
       return {
         allowed: false,
         resetIn,
-        message:
-          resetIn >= 3600
-            ? `已超出每小时限额（最多 10 次），请 ${resetIn} 秒后重试`
-            : `请求过于频繁，1 分钟内最多 2 次，请 ${resetIn} 秒后重试`,
+        message: `今日 AI 帮写次数已用完（每天最多 ${MODIFY_CHAT_PER_DAY} 次），请明天再试`,
+      };
+    }
+    const minuteCheck = await checkRateLimit(
+      redis,
+      `ratelimit:modify-chat:1m:${rateKey}`,
+      MODIFY_CHAT_PER_MIN,
+      60,
+    );
+    if (!minuteCheck.allowed) {
+      return {
+        allowed: false,
+        resetIn: minuteCheck.resetIn,
+        message: `请求过于频繁，1 分钟内最多 ${MODIFY_CHAT_PER_MIN} 次，请 ${minuteCheck.resetIn} 秒后重试`,
       };
     }
     return { allowed: true };
   }
-  const rate = await applyAnalyzeRateLimit(redis, ipHash);
-  if (!rate.allowed) {
-    await redis.set(blockedKey, String(rate.resetIn), { ex: ANALYZE_SESSION_TTL_SEC });
-  }
-  return rate;
-}
-
-/** AI 修改对话：1 分钟最多 2 次、1 小时最多 20 次（按 IP）。未配置 Upstash 时跳过限流。 */
-export async function checkModifyChatRateLimit(
-  ipHash: string,
-): Promise<RateLimitDenied | { allowed: true }> {
-  const redis = getRedis();
-  if (!redis) return { allowed: true };
-  const minuteKey = `ratelimit:modify-chat:1m:${ipHash}`;
-  const hourKey = `ratelimit:modify-chat:1h:${ipHash}`;
-  const [minuteCheck, hourCheck] = await Promise.all([
-    checkRateLimit(redis, minuteKey, 2, 60),
-    checkRateLimit(redis, hourKey, 20, 3600),
-  ]);
-  if (!minuteCheck.allowed) {
+  if (process.env.NODE_ENV !== 'production') return { allowed: true };
+  const day = checkModifyChatMemDay(rateKey);
+  if (!day.allowed) return day;
+  const minute = checkModifyChatMemMinute(rateKey);
+  if (!minute.allowed) {
     return {
       allowed: false,
-      resetIn: minuteCheck.resetIn,
-      message: `请求过于频繁，1 分钟内最多 2 次，请 ${minuteCheck.resetIn} 秒后重试`,
-    };
-  }
-  if (!hourCheck.allowed) {
-    return {
-      allowed: false,
-      resetIn: hourCheck.resetIn,
-      message: `已超出每小时限额（最多 20 次），请 ${hourCheck.resetIn} 秒后重试`,
+      resetIn: minute.resetIn,
+      message: `请求过于频繁，1 分钟内最多 ${MODIFY_CHAT_PER_MIN} 次，请 ${minute.resetIn} 秒后重试`,
     };
   }
   return { allowed: true };
@@ -240,14 +243,17 @@ export async function checkResumeImportRateLimit(
 /** AI 面试限流。生产必限流：有 Redis 用 Redis，否则进程内内存桶。本地调试跳过。 */
 export type InterviewRateKind = 'session' | 'answer' | 'report';
 
-const INTERVIEW_RATE: Record<InterviewRateKind, { perMin: number; perHour: number }> = {
-  session: { perMin: 2, perHour: 8 },
+type InterviewRateCfg = { perMin: number; perHour?: number; perDay?: number };
+
+const INTERVIEW_RATE: Record<InterviewRateKind, InterviewRateCfg> = {
+  // session：每天 2 场；perMin 防连点刷
+  session: { perMin: 2, perDay: 2 },
   answer: { perMin: 30, perHour: 200 },
   report: { perMin: 3, perHour: 10 },
 };
 
-type MemBucket = { t: number[] };
 const interviewMemBuckets = new Map<string, MemBucket>();
+const interviewDayBuckets = new Map<string, DayBucket>();
 
 function checkMemRateLimit(
   key: string,
@@ -270,6 +276,48 @@ function checkMemRateLimit(
   return { allowed: true, resetIn: windowSec };
 }
 
+function checkMemDayLimit(
+  key: string,
+  limit: number,
+): RateLimitDenied | { allowed: true } {
+  const day = shanghaiYmd();
+  const resetIn = secondsUntilShanghaiMidnight();
+  let bucket = interviewDayBuckets.get(key);
+  if (!bucket || bucket.day !== day) {
+    bucket = { day, n: 0 };
+    interviewDayBuckets.set(key, bucket);
+  }
+  if (bucket.n >= limit) {
+    return {
+      allowed: false,
+      resetIn,
+      message: `今日 AI 面试次数已用完（每天最多 ${limit} 次），请明天再试`,
+    };
+  }
+  bucket.n += 1;
+  return { allowed: true };
+}
+
+async function checkRedisDayLimit(
+  redis: Redis,
+  key: string,
+  limit: number,
+): Promise<RateLimitDenied | { allowed: true }> {
+  const day = shanghaiYmd();
+  const resetIn = secondsUntilShanghaiMidnight();
+  const redisKey = `ratelimit:interview:session:day:${day}:${key}`;
+  const count = await redis.incr(redisKey);
+  if (count === 1) await redis.expire(redisKey, resetIn + 120);
+  if (count > limit) {
+    return {
+      allowed: false,
+      resetIn,
+      message: `今日 AI 面试次数已用完（每天最多 ${limit} 次），请明天再试`,
+    };
+  }
+  return { allowed: true };
+}
+
 export async function checkInterviewRateLimit(
   key: string,
   kind: InterviewRateKind = 'session',
@@ -278,10 +326,16 @@ export async function checkInterviewRateLimit(
   const cfg = INTERVIEW_RATE[kind];
   const redis = getRedis();
   if (redis) {
-    const [minuteCheck, hourCheck] = await Promise.all([
-      checkRateLimit(redis, `ratelimit:interview:${kind}:1m:${key}`, cfg.perMin, 60),
-      checkRateLimit(redis, `ratelimit:interview:${kind}:1h:${key}`, cfg.perHour, 3600),
-    ]);
+    if (cfg.perDay != null) {
+      const day = await checkRedisDayLimit(redis, key, cfg.perDay);
+      if (!day.allowed) return day;
+    }
+    const minuteCheck = await checkRateLimit(
+      redis,
+      `ratelimit:interview:${kind}:1m:${key}`,
+      cfg.perMin,
+      60,
+    );
     if (!minuteCheck.allowed) {
       return {
         allowed: false,
@@ -289,16 +343,28 @@ export async function checkInterviewRateLimit(
         message: `请求过于频繁，1 分钟内最多 ${cfg.perMin} 次，请 ${minuteCheck.resetIn} 秒后重试`,
       };
     }
-    if (!hourCheck.allowed) {
-      return {
-        allowed: false,
-        resetIn: hourCheck.resetIn,
-        message: `1 小时内最多 ${cfg.perHour} 次，请 ${hourCheck.resetIn} 秒后重试`,
-      };
+    if (cfg.perHour != null) {
+      const hourCheck = await checkRateLimit(
+        redis,
+        `ratelimit:interview:${kind}:1h:${key}`,
+        cfg.perHour,
+        3600,
+      );
+      if (!hourCheck.allowed) {
+        return {
+          allowed: false,
+          resetIn: hourCheck.resetIn,
+          message: `1 小时内最多 ${cfg.perHour} 次，请 ${hourCheck.resetIn} 秒后重试`,
+        };
+      }
     }
     return { allowed: true };
   }
   // ponytail: 无 Upstash 时用进程内桶，多实例不共享，但强于生产静默放行
+  if (cfg.perDay != null) {
+    const day = checkMemDayLimit(`interview:${kind}:day:${key}`, cfg.perDay);
+    if (!day.allowed) return day;
+  }
   const minute = checkMemRateLimit(`interview:${kind}:1m:${key}`, cfg.perMin, 60);
   if (!minute.allowed) {
     return {
@@ -307,26 +373,16 @@ export async function checkInterviewRateLimit(
       message: `请求过于频繁，1 分钟内最多 ${cfg.perMin} 次，请 ${minute.resetIn} 秒后重试`,
     };
   }
-  const hour = checkMemRateLimit(`interview:${kind}:1h:${key}`, cfg.perHour, 3600);
-  if (!hour.allowed) {
-    return {
-      allowed: false,
-      resetIn: hour.resetIn,
-      message: `1 小时内最多 ${cfg.perHour} 次，请 ${hour.resetIn} 秒后重试`,
-    };
+  if (cfg.perHour != null) {
+    const hour = checkMemRateLimit(`interview:${kind}:1h:${key}`, cfg.perHour, 3600);
+    if (!hour.allowed) {
+      return {
+        allowed: false,
+        resetIn: hour.resetIn,
+        message: `1 小时内最多 ${cfg.perHour} 次，请 ${hour.resetIn} 秒后重试`,
+      };
+    }
   }
   return { allowed: true };
 }
 
-export async function getCachedJson<T>(cacheKey: string): Promise<T | null> {
-  const redis = getRedis();
-  if (!redis) return null;
-  const cached = await redis.get<T>(cacheKey);
-  return cached ?? null;
-}
-
-export function setCachedJson<T>(cacheKey: string, value: T): void {
-  const redis = getRedis();
-  if (!redis) return;
-  void redis.set(cacheKey, value, { ex: CACHE_TTL_SEC }).catch(() => {});
-}

@@ -1,8 +1,8 @@
 'use client';
-import { EditTwo, Magic, Peoples } from '@icon-park/react';
+import { EditTwo, Peoples } from '@icon-park/react';
 import type { ReactNode } from 'react';
 
-export const AI_TOOL_KEYS = ['ai-score', 'ai-modify', 'ai-interview'] as const;
+export const AI_TOOL_KEYS = ['ai-modify', 'ai-interview'] as const;
 export type AiToolKey = (typeof AI_TOOL_KEYS)[number];
 
 export function isAiToolKey(key: string): key is AiToolKey {
@@ -25,7 +25,6 @@ const rowBase =
 function ToolIcon({ toolKey, selected }: { toolKey: AiToolKey; selected: boolean }) {
   const fill = selected ? 'var(--color-primary)' : 'var(--menu-icon-muted)';
   const cls = 'mt-0.5 shrink-0 transition-[fill] duration-200';
-  if (toolKey === 'ai-score') return <Magic theme='outline' size={18} fill={fill} className={cls} />;
   if (toolKey === 'ai-modify') return <EditTwo theme='outline' size={18} fill={fill} className={cls} />;
   return <Peoples theme='outline' size={18} fill={fill} className={cls} />;
 }
@@ -106,7 +105,7 @@ export function AiToolsPanel({
             description={descriptions[key]}
             selected={activeKey === key}
             locked={loginLocked || (key === 'ai-interview' && interviewLocked)}
-            tourAttr={key === 'ai-score' ? 'menu-ai-score' : key === 'ai-modify' ? 'menu-ai-modify' : undefined}
+            tourAttr={key === 'ai-modify' ? 'menu-ai-modify' : undefined}
             onSelect={() => onSelect(key)}
           />
         ))}

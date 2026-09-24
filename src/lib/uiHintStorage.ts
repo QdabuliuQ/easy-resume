@@ -23,10 +23,6 @@ export const uiHints = {
     isDismissed: () => isDismissed('ai-modify-menu'),
     dismiss: () => dismiss('ai-modify-menu'),
   },
-  aiScoreMenu: {
-    isDismissed: () => isDismissed('ai-score-menu'),
-    dismiss: () => dismiss('ai-score-menu'),
-  },
   aiPolishBtn: {
     isDismissed: () => isDismissed('ai-polish-btn'),
     dismiss: () => dismiss('ai-polish-btn'),

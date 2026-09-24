@@ -160,52 +160,12 @@ function ModuleRichTextSkeleton() {
     </div>
   );
 }
-const AI_PANEL_SHELL =
-  'overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.07)_0%,rgb(var(--panel-surface-rgb)/0.02)_100%)]';
 const AI_MODIFY_SHELL =
   'flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),rgb(var(--panel-surface-rgb)/0.03)] shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04),var(--panel-shadow-md)]';
 const AI_INTERVIEW_SHELL =
   'overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.08)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%)]';
 const AI_INTERVIEW_SETTINGS_SHELL =
   'overflow-hidden rounded-2xl border border-fg/[0.08] bg-[linear-gradient(180deg,rgb(var(--panel-surface-rgb)/0.06)_0%,rgb(var(--panel-surface-rgb)/0.025)_100%),rgb(var(--panel-surface-rgb)/0.03)] p-4 shadow-[inset_0_1px_0_rgb(var(--panel-surface-rgb)/0.04),var(--panel-shadow-md)] md:p-5';
-export function AiScoreSkeleton() {
-  return (
-    <div className='relative flex h-full min-h-0 flex-col' aria-hidden>
-      <div className='min-h-0 flex-1 overflow-auto pb-3'>
-        <section className={`${AI_PANEL_SHELL} ui-hint-shimmer relative px-4 pb-4 pt-4`}>
-          <div className='flex items-start justify-between gap-3'>
-            <div className={`h-4 w-28 rounded ${pulse}`} />
-            <div className='flex gap-1.5'>
-              <div className={`h-5 w-12 rounded-full ${pulse}`} />
-              <div className={`h-5 w-12 rounded-full ${pulse}`} style={{ opacity: 0.75 }} />
-            </div>
-          </div>
-          <div className={`mt-3 h-4 w-20 rounded ${pulse}`} />
-          <div className={`mt-1 h-3 w-40 rounded ${pulse}`} style={{ opacity: 0.65 }} />
-          <div className='mx-auto mt-4 aspect-square w-full max-w-[220px] rounded-full border border-fg/[0.06] p-3'>
-            <div className={`h-full w-full rounded-full ${pulse}`} style={{ opacity: 0.4 }} />
-          </div>
-          <div className='mt-4 grid grid-cols-2 gap-2.5'>
-            {[0, 1].map((i) => (
-              <div key={i} className='rounded-2xl border border-fg/[0.08] px-3 py-3'>
-                <div className={`h-9 w-9 rounded-full ${pulse}`} />
-                <div className={`mt-2.5 h-3 w-16 rounded ${pulse}`} />
-                <div className={`mt-1 h-6 w-10 rounded ${pulse}`} style={{ opacity: 0.8 }} />
-              </div>
-            ))}
-          </div>
-        </section>
-        <div className={`${AI_PANEL_SHELL} ui-hint-shimmer relative mt-3 px-4 py-3`}>
-          <div className={`h-4 w-32 rounded ${pulse}`} />
-          <div className={`mt-3 h-20 rounded-xl ${pulse}`} style={{ opacity: 0.55 }} />
-        </div>
-      </div>
-      <div className='shrink-0 border-t border-fg/[0.06] bg-[linear-gradient(180deg,transparent,rgb(var(--panel-surface-rgb)/0.04))] px-1 pt-3'>
-        <div className={`h-11 w-full rounded-xl ${pulse}`} style={{ opacity: 0.45 }} />
-      </div>
-    </div>
-  );
-}
 export function AiModifySkeleton() {
   return (
     <div className={`${AI_MODIFY_SHELL} ui-hint-shimmer relative`} aria-hidden>

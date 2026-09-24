@@ -33,7 +33,7 @@
 
 ## Overview
 
-**EasyResume (青松简历)** is an online resume editor for job seekers. Edit with modular blocks and a live canvas preview—no sign-in required for local editing and export. Sign in for cloud sync, share links, and AI polish, scoring, and chat-based edits.
+**EasyResume (青松简历)** is an online resume editor for job seekers. Edit with modular blocks and a live canvas preview—no sign-in required for local editing and export. Sign in for cloud sync, share links, and AI polish and chat-based edits.
 
 ## ✨ Features
 
@@ -61,7 +61,6 @@
 | Feature | Model | Notes |
 |---------|-------|-------|
 | AI polish | DeepSeek | Streaming rewrite for job/project descriptions |
-| AI score | DeepSeek | Multi-dimension scoring and suggestions |
 | AI modify | DeepSeek | Chat-based edits |
 | AI mock interview | DeepSeek | Practice from your resume |
 | Resume import | Baidu OCR + LLM | Fill from PDF/image |
@@ -156,7 +155,7 @@ Create `.env.local` at repo root (never commit secrets). Full list: `.env.local.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DEEPSEEK_API_KEY` | No | AI polish, score, modify, mock interview |
+| `DEEPSEEK_API_KEY` | No | AI polish, modify, mock interview |
 | `BAIDU_OCR_API_KEY` / `BAIDU_OCR_SECRET_KEY` | No | Resume PDF/image import |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | No | AI rate limit & cache |
 

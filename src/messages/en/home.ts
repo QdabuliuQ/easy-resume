@@ -10,7 +10,7 @@ export default {
   navStart: 'Get started',
   heroBadge: 'AI · Cloud sync · Share links',
   heroSub:
-    'Modular editing with AI polish, scoring, and chat-based edits. Sign in to sync cloud resumes and share read-only links. Export PDF, image, and JSON—local editing still works without an account.',
+    'Modular editing with AI polish and chat-based edits. Sign in to sync cloud resumes and share read-only links. Export PDF, image, and JSON—local editing still works without an account.',
   ctaStart: 'Get started',
   ctaFeatures: 'Explore features',
   featuresTitle: 'Built for real applications',
@@ -33,9 +33,9 @@ export default {
   compareSlider: 'Comparison position',
   highlights: [
     {
-      title: 'AI: polish, score, and chat edits',
-      desc: 'Rewrite for clarity, score against hiring dimensions, or adjust sections through conversation.',
-      bullets: ['Polish and resume scoring', 'Chat edits and PDF/image import'],
+      title: 'AI: polish and chat edits',
+      desc: 'Rewrite for clarity, or adjust sections through conversation.',
+      bullets: ['Polish and description rewrite', 'Chat edits and PDF/image import'],
     },
     {
       title: 'Cloud sync and shareable links',
@@ -62,12 +62,12 @@ export default {
     },
     {
       q: 'Which AI features are included?',
-      a: 'Description polish, resume scoring tips, conversational edits, and PDF/image import when the server is configured.',
+      a: 'Description polish, conversational edits, and PDF/image import when the server is configured.',
     },
   ],
   heroLines: [
     'Edit faster. Look sharper.',
-    'AI polish and scoring—chat your way to a stronger CV',
+    'AI polish and chat—shape a stronger CV',
     'Cloud saves, one-click share links',
     'Github / QQ sign-in for multi-device sync',
     'Speed when editing, standards when applying',

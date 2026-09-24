@@ -18,7 +18,7 @@ const TABS = [
 ] as const;
 
 type TabKey = (typeof TABS)[number]['key'];
-type MenuKey = 'resume' | 'page-settings' | 'ai-score' | 'ai-modify' | 'ai-interview' | 'general-settings';
+type MenuKey = 'resume' | 'page-settings' | 'ai-modify' | 'ai-interview' | 'general-settings';
 
 function MobileMainTabs({
   activeKey,
@@ -42,7 +42,6 @@ function MobileMainTabs({
   const aiTitles = useMemo(
     () =>
       ({
-        'ai-score': tm('aiScore'),
         'ai-modify': tm('aiModify'),
         'ai-interview': tm('aiInterview'),
       }) satisfies Record<AiToolKey, string>,
@@ -51,7 +50,6 @@ function MobileMainTabs({
   const aiDescriptions = useMemo(
     () =>
       ({
-        'ai-score': tm('aiScoreDesc'),
         'ai-modify': tm('aiModifyDesc'),
         'ai-interview': tm('aiInterviewDesc'),
       }) satisfies Record<AiToolKey, string>,

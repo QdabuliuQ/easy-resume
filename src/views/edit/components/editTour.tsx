@@ -67,8 +67,8 @@ function EditTour({ ready }: EditTourProps) {
         placement: 'right' as const,
       },
       {
-        title: t('aiScoreTitle'),
-        description: t('aiScoreDesc'),
+        title: t('aiToolsTitle'),
+        description: t('aiToolsDesc'),
         target: tourTarget('menu-ai-tools'),
         placement: 'right' as const,
       },

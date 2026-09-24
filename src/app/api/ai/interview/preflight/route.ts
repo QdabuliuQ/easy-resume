@@ -1,7 +1,6 @@
-import crypto from 'crypto';
 import { requireInterviewAuth } from '@/lib/ai/interview/auth';
 import { preflightFromResume, resolveInterviewResume } from '@/lib/ai/interview/resolveResume';
-import { checkInterviewRateLimit, err, getClientIp, ok } from '@/lib/ai/score/routeShared';
+import { err, ok } from '@/lib/ai/score/routeShared';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,10 +8,6 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: Request) {
   const gate = await requireInterviewAuth();
   if ('error' in gate) return gate.error;
-
-  const rateKey = gate.uid || crypto.createHash('sha256').update(getClientIp(req)).digest('hex').slice(0, 16);
-  const rate = await checkInterviewRateLimit(rateKey, 'session');
-  if (!rate.allowed) return err(rate.message, 429, rate.resetIn);
 
   let body: { resumeId?: string; resume?: unknown };
   try {

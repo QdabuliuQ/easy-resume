@@ -84,7 +84,6 @@ export default observer(function Menu({ activeKey, onActiveKeyChange, templateMo
   const aiTitles = useMemo(
     () =>
       ({
-        'ai-score': t('aiScore'),
         'ai-modify': t('aiModify'),
         'ai-interview': t('aiInterview'),
       }) satisfies Record<AiToolKey, string>,
@@ -93,7 +92,6 @@ export default observer(function Menu({ activeKey, onActiveKeyChange, templateMo
   const aiDescriptions = useMemo(
     () =>
       ({
-        'ai-score': t('aiScoreDesc'),
         'ai-modify': t('aiModifyDesc'),
         'ai-interview': t('aiInterviewDesc'),
       }) satisfies Record<AiToolKey, string>,
@@ -113,16 +111,12 @@ export default observer(function Menu({ activeKey, onActiveKeyChange, templateMo
   } = useResumeImport();
   const fileRef = useRef<HTMLInputElement>(null);
   const [hintAiModify, setHintAiModify] = useState(false);
-  const [hintAiScore, setHintAiScore] = useState(false);
   useEffect(() => {
     setHintAiModify(!uiHints.aiModifyMenu.isDismissed());
-    setHintAiScore(!uiHints.aiScoreMenu.isDismissed());
   }, []);
   const dismissAiHints = () => {
     uiHints.aiModifyMenu.dismiss();
-    uiHints.aiScoreMenu.dismiss();
     setHintAiModify(false);
-    setHintAiScore(false);
   };
   const pickImportFile = () => fileRef.current?.click();
   const confirmThenPickImport = () => {
@@ -256,7 +250,7 @@ export default observer(function Menu({ activeKey, onActiveKeyChange, templateMo
                 needLoginLabel={t('needLogin')}
                 interviewLocked={interviewLocked}
                 loginLocked={aiLoginLocked}
-                showHint={hintAiModify || hintAiScore}
+                showHint={hintAiModify}
                 onSelectTool={(key) => {
                   dismissAiHints();
                   onActiveKeyChange(key);

@@ -4,7 +4,7 @@ import ProfileOutlined from '@ant-design/icons/ProfileOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
 import SlidersOutlined from '@ant-design/icons/SlidersOutlined';
 import UploadOutlined from '@ant-design/icons/UploadOutlined';
-import { EditTwo, Magic, Peoples, Scanning } from '@icon-park/react';
+import { EditTwo, Peoples, Scanning } from '@icon-park/react';
 import AiToolsIcon from './AiToolsIcon';
 
 type MenuItemIconProps = {
@@ -40,16 +40,6 @@ export default function MenuItemIcon({ menuKey, selected }: MenuItemIconProps) {
   if (menuKey === 'page-settings') return <SlidersOutlined className={antIconCls} />;
   if (menuKey === 'ai-tools') {
     return <AiToolsIcon size={24} className={`${aiToolsCls} size-6 shrink-0`} />;
-  }
-  if (menuKey === 'ai-score') {
-    return (
-      <Magic
-        theme='outline'
-        size='20'
-        fill={fill}
-        className='relative z-[1] mb-0.5 transition-[fill] duration-200'
-      />
-    );
   }
   if (menuKey === 'ai-modify') {
     return (

@@ -34,7 +34,7 @@ function createOpenAiModel(opts: {
   });
 }
 
-/** DeepSeek 官方 API：AI 评分、对话修改、模拟面试、简历导入等 */
+/** DeepSeek 官方 API：对话修改、模拟面试、简历导入等 */
 export function createDeepSeekModel(opts?: {
   temperature?: number;
   jsonMode?: boolean;
@@ -81,7 +81,7 @@ export function createModifyChatModel(opts?: { temperature?: number; jsonMode?: 
   });
 }
 
-/** AI 评分等通用链路：DeepSeek */
+/** 通用 DeepSeek 链路（润色 RAG、简历导入等） */
 export function createChatModel(opts?: { temperature?: number; jsonMode?: boolean }): AppChatModel {
   return createDeepSeekModel({
     temperature: opts?.temperature,

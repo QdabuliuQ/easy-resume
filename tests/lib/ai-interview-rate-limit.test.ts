@@ -16,13 +16,13 @@ describe('checkInterviewRateLimit', () => {
     expect(r).toEqual({ allowed: true });
   });
 
-  it('uses in-memory bucket in production without Redis', async () => {
+  it('limits session to 2 per calendar day in production without Redis', async () => {
     vi.resetModules();
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('UPSTASH_REDIS_REST_URL', '');
     vi.stubEnv('UPSTASH_REDIS_REST_TOKEN', '');
     const { checkInterviewRateLimit } = await import('@/lib/ai/score/routeShared');
-    const key = `mem-session-${Date.now()}`;
+    const key = `mem-session-day-${Date.now()}`;
     for (let i = 0; i < 2; i++) {
       const r = await checkInterviewRateLimit(key, 'session');
       expect(r.allowed).toBe(true);
@@ -30,7 +30,7 @@ describe('checkInterviewRateLimit', () => {
     const denied = await checkInterviewRateLimit(key, 'session');
     expect(denied.allowed).toBe(false);
     if (!denied.allowed) {
-      expect(denied.message).toMatch(/1 分钟/);
+      expect(denied.message).toMatch(/每天最多 2 次/);
       expect(denied.resetIn).toBeGreaterThan(0);
     }
   });
