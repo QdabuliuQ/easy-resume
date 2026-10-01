@@ -77,7 +77,7 @@ export default function AdminResumesPage() {
 
   useEffect(() => {
     void load('');
-  }, [authed, filterUid]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [load]);
 
   const openPreview = async (row: ResumeRow) => {
     setPreviewOpen(true);
