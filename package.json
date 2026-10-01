@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "lint:pritter": "prettier --write src/",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "dev": "next dev",
     "clean:next": "rm -rf .next node_modules/.cache",
     "prebuild": "npm run clean:next",
@@ -13,6 +14,7 @@
     "start": "next start -p 3010",
     "deploy": "npm ci && npm run build",
     "lint": "eslint src",
+    "lint:prettier": "prettier --write src/",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
