@@ -1,7 +1,6 @@
 'use client';
 import { observer } from 'mobx-react';
 import { memo, useMemo, useRef, type CSSProperties, type MouseEvent } from 'react';
-import dynamic from 'next/dynamic';
 import UserOutlined from '@ant-design/icons/UserOutlined';
 import {
   Cascader,
@@ -35,8 +34,7 @@ import InfoLayout from '@/components/infoLayout';
 import { clonePlain } from '@/utils/clonePlain';
 import PanelToolbar from '../panelToolbar';
 import { useTranslations } from 'next-intl';
-
-const CropperImage = dynamic(() => import('@/components/cropperImage'), { ssr: false });
+import CropperImage from '@/components/cropperImage';
 import {
   AlignLeft,
   Attention,
@@ -304,6 +302,11 @@ function Info1({ moduleId }: { moduleId?: string } = {}) {
     const ok = mimeOk || (!file.type && extOk);
     if (!ok) {
       message.error(ti('imageFormatError'));
+      return Upload.LIST_IGNORE;
+    }
+    if (!cropperRef.current?.showModal) {
+      // 裁剪器未挂载时直接报错，避免 rc-upload 吞掉异常后“点了没反应”
+      message.error(ti('imageReadyError'));
       return Upload.LIST_IGNORE;
     }
     cropperRef.current.showModal(await fileToBase64(file), (image: string) => {

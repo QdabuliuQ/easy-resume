@@ -237,6 +237,7 @@ export default {
     uploadAvatar: 'Upload photo',
     deleteAvatar: 'Remove photo',
     imageFormatError: 'Please upload JPEG or PNG',
+    imageReadyError: 'Photo uploader is not ready, please refresh and retry',
     hintTitle: 'Field missing on the page?',
     hintBody:
       'If you edited phone, email, etc. but they still don’t appear in the preview: open “Field layout” below and turn that field on.',

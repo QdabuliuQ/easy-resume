@@ -237,6 +237,7 @@ export default {
     uploadAvatar: '上传头像',
     deleteAvatar: '删除头像',
     imageFormatError: '请上传 jpeg、jpg、png 格式的图片',
+    imageReadyError: '头像上传组件未就绪，请刷新页面后重试',
     hintTitle: '字段不显示？先看这里',
     hintBody:
       '编辑了手机号、邮箱等字段后，预览里仍看不到时：请点下方「字段布局」，打开该字段的显示开关。',
