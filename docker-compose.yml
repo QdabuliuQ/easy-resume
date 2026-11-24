@@ -1,6 +1,98 @@
+# 青松简历（easy-resume）一键启动
+#
+#   docker compose up -d
+#
+# 前置：Docker Engine + Docker Compose v2.24 及以上（env_file.required 需要）
+# 首次构建约 15-20 分钟（含 npm ci 与 Chromium 安装）；之后启动只需数秒
+#
+# 不填任何密钥也能启动：编辑器、导出、云端保存全部可用。
+# 数据层（cf-api）在容器内以 wrangler 本地模式运行，D1 落成本地 SQLite 文件，
+# 无需 Cloudflare 账号。AI 与第三方登录仍需自行配置，见 .env.docker.example
+
 services:
-  resy-resume:
-    build: .
+  # ---------------------------------------------------------------------------
+  # 数据层：Cloudflare Worker + D1（本地模式，schema 自动初始化）
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: ./cf-api
+      dockerfile: Dockerfile
+    image: easy-resume-api:local
+    container_name: easy-resume-api
+    environment:
+      FRONTEND_URL: http://localhost:3010
+      # 主站与数据层共用的密钥。未配置时容器内会生成占位值，
+      # 但两端必须一致，因此这里统一从同一个变量派生。
+      ADMIN_SECRET: ${ADMIN_SECRET:-dev-only-admin-secret-change-me}
+      CF_API_SECRET: ${CF_API_SECRET:-dev-only-cf-api-secret-change-me}
+    volumes:
+      # D1 的 SQLite 文件与 wrangler 缓存，重建容器不丢数据
+      - d1-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8787/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      # 首次启动要执行 schema 初始化，留足时间
+      start_period: 40s
+
+  # ---------------------------------------------------------------------------
+  # 主站：Next.js（页面 + API 路由 + Puppeteer 导出）
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # 构建期变量：会被打进前端 bundle，运行时无法修改
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3010}
+        # 可选：构建时从该地址补齐 public/fonts 下的导出字体
+        RESUME_FONT_BASE_URL: ${RESUME_FONT_BASE_URL:-}
+    image: easy-resume:local
+    container_name: easy-resume
     ports:
-      - "3010:3010"
-    restart: always
+      - '3010:3010'
+    # 可选加载：存在 .env 就读取，不存在视为零配置启动
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # 默认指向 compose 内的数据层服务名；在 .env 中设置 CF_API_BASE_URL
+      # 可切回云端 Cloudflare Worker（environment 优先级高于 env_file，
+      # 因此必须用变量替换而非写死）
+      CF_API_BASE_URL: ${CF_API_BASE_URL:-http://api:8787}
+      CF_API_SECRET: ${CF_API_SECRET:-dev-only-cf-api-secret-change-me}
+      # 必须与 api 侧保持一致：worker 的 /api/admin/* 用 X-Admin-Key 校验此值。
+      # 若此处留空，adminAuth 会回落到自动生成的 AUTH_SECRET，导致后台接口 403。
+      ADMIN_SECRET: ${ADMIN_SECRET:-dev-only-admin-secret-change-me}
+      # 后台模板覆盖配置的持久化位置（镜像内默认值，此处显式声明便于理解）
+      TEMPLATE_OVERRIDES_PATH: /data/template-overrides.json
+      # Puppeteer 通过容器内 loopback 访问自身
+      EXPORT_BASE_URL: http://127.0.0.1:3010
+      PORT: '3010'
+    volumes:
+      # 持久化 auth-secret 与后台模板配置；重建容器不丢失
+      - resume-data:/data
+    # 等数据层 schema 就绪后再启动，避免首屏请求 503
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    # 让 Node 正确接收 SIGTERM，避免导出任务被强杀
+    init: true
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://127.0.0.1:3010/api/version']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      # 启动时 instrumentation 会预热 Chromium，留足时间
+      start_period: 60s
+
+volumes:
+  resume-data:
+  d1-data:

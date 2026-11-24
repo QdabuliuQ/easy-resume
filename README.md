@@ -212,13 +212,130 @@ tests/              # Vitest
 - CF 直连无密钥 → 401
 - 后台登录有失败次数限制
 
-## 🐳 Docker
+## 🐳 Docker 一键部署
+
+不需要在本机安装 Node、Chromium、中文字体，也不需要 Cloudflare 账号。
 
 ```bash
-docker-compose up -d
+git clone <本仓库地址>
+cd easy-resume
+docker compose up -d --build
 ```
 
-访问：`http://localhost:3010/zh`
+首次构建约 15–20 分钟（`npm ci` + `next build` + 安装配对版 Chrome），完成后访问：
+
+**http://localhost:3010/zh**
+
+不复制任何配置文件也能启动：容器会自行生成 `AUTH_SECRET`，数据层会自动初始化 SQLite schema。
+
+### 这套 compose 起了什么
+
+```
+浏览器 ──► app :3010  (Next.js：页面 + API 路由 + Puppeteer 导出)
+                │
+                │ http://api:8787  (容器内服务名)
+                ▼
+           api  (cf-api，wrangler 本地模式运行 Workers 运行时)
+                │
+                ▼
+        命令卷 d1-data  (D1 的 SQLite 文件)
+```
+
+| 服务 | 说明 |
+|------|------|
+| `app` | 主站。`/api/**` 路由、PDF 导出（Puppeteer）、NextAuth 登录都在这里 |
+| `api` | 数据层。原样运行 `cf-api/src/index.js`，代码零改动，无需 Cloudflare 账号 |
+| `resume-data` | 卷。存自动生成的 `AUTH_SECRET` 与后台模板配置 |
+| `d1-data` | 卷。存 D1 的 SQLite 文件。`docker compose down` 不丢，`down -v` 才清空 |
+
+> 想改回使用云端 Cloudflare Worker？在 `.env` 里设置 `CF_API_BASE_URL` 即可覆盖默认值。
+
+### 开箱可用 vs 需要配置
+
+| 功能 | 默认状态 |
+|------|----------|
+| 编辑、画布预览、拖拽、多模板 | ✅ 直接可用 |
+| 云端保存、简历列表、分享链接 | ✅ 直接可用（数据落在 `d1-data` 卷） |
+| PNG 截图导出 | ✅ 可用（字体缺失时回退系统字体，中文正常） |
+| PDFKit / DOCX 导出 | ⚠️ 需字体，见下方「字体」 |
+| AI 润色 / 改稿 / 面试 | ❌ 需填 `DEEPSEEK_API_KEY` |
+| GitHub / QQ 登录 | ❌ 需填 `AUTH_GITHUB_ID` 等 |
+| 运维后台 `/zh/admin` | ❌ 需填 `ADMIN_USERNAME` / `ADMIN_PASSWORD` |
+
+容器启动时会打印自检结果，明确告知哪些密钥仍是默认值、哪些字体缺失、哪些能力未启用。
+
+### 配置可选功能
+
+```bash
+cp .env.docker.example .env
+# 按需填写 DEEPSEEK_API_KEY / AUTH_GITHUB_ID / ADMIN_PASSWORD 等
+docker compose up -d
+```
+
+完整变量说明见 [.env.docker.example](./.env.docker.example)，与 `.env.local.example` 一致。
+
+> ⚠️ **部署到公网前必须修改** `.env` 里的 `CF_API_SECRET` 与 `ADMIN_SECRET`（`AUTH_SECRET` 会自动生成）。
+> 这两个值是主站与数据层之间的凭证，两端必须一致，否则后台接口返回 403。
+> 生成方式：`openssl rand -base64 32`
+
+`NEXT_PUBLIC_SITE_URL` 是**构建期**变量，会被打进前端 bundle，改它必须重建镜像：
+
+```bash
+docker compose build --build-arg NEXT_PUBLIC_SITE_URL=https://你的域名 app
+```
+
+### 字体（影响 PDFKit / DOCX 导出）
+
+`public/fonts/` 被 `.gitignore` 排除，**仓库里没有字体文件**。运行时只使用 `.woff2`（见 `src/lib/resumeFont.ts` 的 `LOCAL_FONTS`）。
+
+构建时会自动运行 `scripts/prepare-resume-fonts.mjs`，按顺序尝试补齐：
+
+1. 已有 `.woff2` → 跳过
+2. 有同名 `.ttf` → 自动转 `.woff2`（`wawoff2`，体积约降到 40%）
+3. 配了 `RESUME_FONT_BASE_URL` → 从该地址下载后转换
+4. 都没有 → 只警告，**不中断构建**
+
+需要这 4 个文件：`NotoSansSC-Regular`、`NotoSansSC-Bold`、`NotoSerifSC-Regular`、`NotoSerifSC-Bold`。
+
+缺字体时：PNG 截图导出正常（回退系统字体），**PDFKit / DOCX 导出会报错** `缺少字体文件 public/fonts/xxx.woff2`。
+
+```bash
+# 补齐方式一：把字体放进 public/fonts/ 后重建
+docker compose build app
+
+# 补齐方式二：构建时从你有权使用的地址下载
+docker compose build --build-arg RESUME_FONT_BASE_URL=https://your.host/fonts app
+```
+
+### 常用命令
+
+```bash
+docker compose logs -f app      # 主站日志（含启动自检结果）
+docker compose logs -f api      # 数据层日志（schema 初始化、D1 状态）
+docker compose restart app      # 重启主站
+docker compose down             # 停止（保留数据卷）
+docker compose down -v          # 停止并清空全部数据
+```
+
+### 已知限制
+
+- **`api` 用 `wrangler dev` 本地模式**：单进程、无优雅退出，适合本地开发、演示、单人自托管，**不适合多用户生产后端**。生产建议继续用 Cloudflare 托管的 Worker + D1。
+- **多架构**：`app` 镜像内含 Chromium。Apple Silicon 构建的镜像无法直接在 x86 服务器运行，反之亦然，需用 `--platform` 或统一构建产物。`AUTH_SECRET` 自动生成方案只适用于**单实例**；多副本请显式配置统一值。
+- **后台模板配置**默认写到 `process.cwd()/src/json/`，容器内已通过 `TEMPLATE_OVERRIDES_PATH` 改到 `/data`，务必保留 `resume-data` 卷。
+- **AI 模拟面试会话存储**需要 Upstash Redis（走 HTTP REST），普通 Redis 镜像接不上；未配置时该功能会提示「未配置会话存储」，其余不受影响。
+
+### 旧版用法（仅主站，后端用云端 Worker）
+
+```bash
+docker build -t easy-resume .
+docker run -p 3010:3010 \
+  -v easy-resume-data:/data \
+  -e CF_API_BASE_URL=https://api.resume.qdabuliuq.cn \
+  -e CF_API_SECRET=<你的密钥> \
+  easy-resume
+```
+
+---
 
 ## 📄 许可
 

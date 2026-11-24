@@ -1,0 +1,27 @@
+# 统一换行符，避免 Windows 检出后 CRLF 污染导致容器内脚本/构建失败
+# 仓库此前缺少该文件，Windows 用户 clone 后 .sh 与 .mjs 可能变成 CRLF
+
+* text=auto eol=lf
+
+# 会被容器内直接执行的脚本，必须 LF
+*.sh text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.py text eol=lf
+
+# 二进制资源：不做换行符转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.wasm binary
+*.pdf binary
+*.zip binary
+*.docx binary

@@ -1,0 +1,7 @@
+# cf-api 构建上下文瘦身 + 防泄漏
+node_modules
+.wrangler
+.dev.vars
+*.log
+.DS_Store
+README.md

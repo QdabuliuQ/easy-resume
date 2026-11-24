@@ -1,0 +1,40 @@
+# 依赖与构建产物：容器内重新安装/构建，禁止从宿主机带入
+# 关键：宿主机 node_modules 含平台原生二进制（sharp/swc 的 darwin 版），
+# 带入 Linux 容器会导致运行时崩溃
+node_modules
+.next
+.cache
+coverage
+dist
+tsconfig.tsbuildinfo
+
+# 版本控制
+.git
+.gitignore
+.gitattributes
+
+# 密钥：任何情况下都不得进入镜像
+# 运行时通过 docker compose 的 env_file / environment 注入
+.env
+.env.*
+
+# 容器自身文件不参与构建上下文（docker/ 目录需保留：镜像要 COPY entrypoint.sh）
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# 开发/文档类，构建不需要
+.github
+.husky
+.cursor
+.vscode
+docs
+tests
+*.md
+!README.md
+
+# 系统/编辑器杂项
+.DS_Store
+*.log
+*.swp
+.idea

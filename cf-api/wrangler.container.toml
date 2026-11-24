@@ -1,0 +1,21 @@
+# 容器专用 wrangler 配置（本地模式）
+#
+# 与 wrangler.toml 的区别：
+#   - 去掉 [[routes]] custom_domain：容器内没有 Cloudflare 账号，
+#     保留自定义域名会让 wrangler dev 尝试解析域名甚至报错
+#   - workers_dev 关闭，只监听本地端口
+#
+# D1 数据落在 --persist-to 指定的目录（compose 里挂 /data 命名卷）。
+
+name = "easy-resume-db"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+workers_dev = false
+
+[[d1_databases]]
+binding = "DB"
+database_name = "easy-resume"
+database_id = "4e2964ea-ac8c-4bb7-b7b2-a79859bc06ce"
+
+[vars]
+FRONTEND_URL = "http://localhost:3010"

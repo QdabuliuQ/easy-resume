@@ -29,6 +29,8 @@ docs/
 next-env.d.ts
 .vercel
 .env*.local
+# Docker 部署变量（按 README 用 cp .env.docker.example .env 生成，含密钥）
+.env
 deploy.sh
 ecosystem.config.cjs
 webhook.cjs
